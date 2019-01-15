@@ -1,2 +1,3 @@
-# addons-code-review
-A frontend for the code review tool for AMO.
+# addons-code-manager
+
+This is a web application to manage add-on source code, such as reviewing code for add-ons submitted to https://addons.mozilla.org
