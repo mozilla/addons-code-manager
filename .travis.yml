@@ -1,7 +1,11 @@
 language: node_js
-node_js:
-  - 8
-  - 10
+_aliases:
+  - &node-prod
+    # This is the NodeJS version we run in production.
+    node_js: '8'
+  - &node-next
+    # This is the next NodeJS version we will support.
+    node_js: '10'
 
 cache:
   yarn: true
@@ -9,17 +13,30 @@ cache:
 # See: https://github.com/mozilla/addons-frontend/issues/3034
 install: yarn install --pure-lockfile
 
-env:
-  - YARN_CMD=test
-  # Make sure we can build a production bundle.
-  # This also does type checking.
-  - YARN_CMD=build
-  # This is a workaround for how `build` does not type check test files.
-  # See https://github.com/mozilla/addons-code-manager/issues/33
-  - YARN_CMD=typecheck
-  - YARN_CMD=type-coverage
-
-script: "yarn $YARN_CMD"
-
 matrix:
   fast_finish: true
+
+jobs:
+  include:
+    - name: unit tests (node@production)
+      <<: *node-prod
+      script: yarn test
+    - name: unit tests (node@next)
+      <<: *node-next
+      script: yarn test
+      # Make sure we can build a production bundle.
+      # This also does type checking.
+    - name: build (node@production)
+      <<: *node-prod
+      script: yarn build
+      # This is a workaround for how `build` does not type check test files.
+      # See https://github.com/mozilla/addons-code-manager/issues/33
+    - name: type checking (node@production)
+      <<: *node-prod
+      script: yarn typecheck
+    - name: type coverage (node@production)
+      <<: *node-prod
+      script: yarn type-coverage
+    - name: prettier
+      <<: *node-prod
+      script: yarn prettier-ci
