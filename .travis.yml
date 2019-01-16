@@ -1,0 +1,13 @@
+language: node_js
+node_js:
+  - 8
+  - 10
+
+cache:
+  yarn: true
+
+# See: https://github.com/mozilla/addons-frontend/issues/3034
+install: yarn install --pure-lockfile
+
+matrix:
+  fast_finish: true
