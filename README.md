@@ -45,7 +45,7 @@ See the section about [deployment](https://facebook.github.io/create-react-app/d
 This checks for TypeScript errors in all files, including test files.
 
 You'd think that `build` does this but it does not check test files.
-See [create-react-app issue 6170](https://github.com/facebook/create-react-app/issues/6170).
+See [create-react-app issue 5626](https://github.com/facebook/create-react-app/issues/5626).
 
 ## Learn More
 
