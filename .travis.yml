@@ -9,11 +9,13 @@ cache:
 # See: https://github.com/mozilla/addons-frontend/issues/3034
 install: yarn install --pure-lockfile
 
-script:
-  - yarn test
+env:
+  - YARN_CMD=test
   # Make sure we can build a production bundle.
   # This also does type checking.
-  - yarn build
+  - YARN_CMD=build
+
+script: "yarn $YARN_CMD"
 
 matrix:
   fast_finish: true
