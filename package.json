@@ -14,15 +14,20 @@
     "typescript": "3.2.2"
   },
   "devDependencies": {
+    "prettier": "1.15.3",
+    "pretty-quick": "^1.8.1",
     "type-coverage": "^1.6.2"
   },
   "scripts": {
-    "start": "BROWSER=none react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "typecheck": "tsc",
-    "type-coverage": "type-coverage"
+    "prettier": "prettier --write '**'",
+    "prettier-ci": "yarn prettier --list-different || (echo '\n\nThis failure means you did not run `yarn prettier-dev` before committing\n\n' && exit 1)",
+    "prettier-dev": "pretty-quick --branch master",
+    "start": "BROWSER=none react-scripts start",
+    "test": "react-scripts test",
+    "type-coverage": "type-coverage",
+    "typecheck": "tsc"
   },
   "eslintConfig": {
     "extends": "react-app"

@@ -1,0 +1,15 @@
+# exclude everything by default
+*.*
+# exclude these files
+Dockerfile
+# exclude these directories
+/bin/
+/build/
+/dist/
+/docker/
+/node_modules/
+# white-list files we want to process
+!*.ts
+!*.tsx
+!*.md
+!*.scss
