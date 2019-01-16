@@ -17,6 +17,7 @@ env:
   # This is a workaround for how `build` does not type check test files.
   # See https://github.com/mozilla/addons-code-manager/issues/33
   - YARN_CMD=typecheck
+  - YARN_CMD=type-coverage
 
 script: "yarn $YARN_CMD"
 
