@@ -14,7 +14,7 @@
     "typescript": "3.2.2"
   },
   "devDependencies": {
-    "type-coverage": "^1.6.2"
+    "type-coverage": "1.6.2"
   },
   "scripts": {
     "start": "BROWSER=none react-scripts start",
