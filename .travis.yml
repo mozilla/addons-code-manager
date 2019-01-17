@@ -20,7 +20,7 @@ jobs:
   include:
     - name: unit tests (node@production)
       <<: *node-prod
-      script: yarn test
+      script: yarn test-ci
     - name: unit tests (node@next)
       <<: *node-next
       script: yarn test

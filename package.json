@@ -16,6 +16,7 @@
   "devDependencies": {
     "prettier": "1.15.3",
     "pretty-quick": "^1.8.1",
+    "codecov": "^3.1.0",
     "type-coverage": "^1.6.2"
   },
   "scripts": {
@@ -26,6 +27,7 @@
     "prettier-dev": "pretty-quick --branch master",
     "start": "BROWSER=none react-scripts start",
     "test": "react-scripts test",
+    "test-ci": "yarn test --coverage && codecov",
     "type-coverage": "type-coverage",
     "typecheck": "tsc"
   },
