@@ -6,7 +6,7 @@
     "node-sass": "4.11.0",
     "@types/jest": "23.3.12",
     "@types/node": "10.12.18",
-    "@types/react": "16.7.19",
+    "@types/react": "16.7.20",
     "@types/react-dom": "16.0.11",
     "react": "16.7.0",
     "react-dom": "16.7.0",
