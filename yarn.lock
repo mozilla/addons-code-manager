@@ -7939,7 +7939,7 @@ pretty-format@^23.6.0:
     ansi-regex "^3.0.0"
     ansi-styles "^3.2.0"
 
-pretty-quick@^1.8.1:
+pretty-quick@1.8.1:
   version "1.8.1"
   resolved "https://registry.yarnpkg.com/pretty-quick/-/pretty-quick-1.8.1.tgz#af7b046fdd1d36c29f558c5585aa80db30c7f1db"
   integrity sha512-HPCl9fVtifPAgkoD9ZtuZRfeCZO/mzNdAOqCNEFBLRanOyhNRZpY97UnFZAdCwumCx9LQUJwCCsW4qleQDjP2g==
@@ -9669,7 +9669,7 @@ type-check@~0.3.2:
   dependencies:
     prelude-ls "~1.1.2"
 
-type-coverage@^1.6.2:
+type-coverage@1.6.2:
   version "1.6.2"
   resolved "https://registry.yarnpkg.com/type-coverage/-/type-coverage-1.6.2.tgz#fae92ba5a1bf8df0b7b0c19d2f7f5305f1fb41f0"
   integrity sha512-ss/YY7NM8ZVdeJlpZYIuvwKo3eL19Ej5BRR/O1PUkPXpqKrGG9Pz4EZlWkkUzXOFRmbwBN3pyW+dNRY4Z65WSA==
