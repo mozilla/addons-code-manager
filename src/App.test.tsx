@@ -1,9 +1,12 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { shallow } from 'enzyme';
+
 import App from './App';
+import styles from './App.module.scss';
 
 it('renders without crashing', () => {
-  const div = document.createElement('div');
-  ReactDOM.render(<App />, div);
-  ReactDOM.unmountComponentAtNode(div);
+  const root = shallow(<App />);
+
+  expect(root).toHaveClassName(styles.container);
+  expect(root.find(styles.header)).toHaveLength(1);
 });
