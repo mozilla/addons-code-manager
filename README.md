@@ -31,7 +31,7 @@ All CSS is written with the [SASS](https://sass-lang.com/) pre-processor.
 
 ## Available Commands
 
-In the project directory, you can run:
+In the project directory, you can run the following commands. There are a few commands not mentioned here (see `package.json`) but those are only used by internal processes.
 
 ### `yarn build`
 
@@ -52,10 +52,6 @@ This runs [Prettier][] to automatically format the entire codebase.
 ### `yarn prettier-dev`
 
 This runs [Prettier][] on only your changed files. This is intended for development.
-
-### `yarn prettier-ci`
-
-This runs [Prettier][] and fails if there are any files that need fixing.
 
 ### `yarn start`
 
