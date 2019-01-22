@@ -1,7 +1,7 @@
 /// <reference path="DiffView.d.ts"/>
 
 import * as React from 'react';
-import { Diff, Hunk, parseDiff } from 'react-diff-view';
+import { Diff, parseDiff } from 'react-diff-view';
 
 export interface Props {
   diff: string;
