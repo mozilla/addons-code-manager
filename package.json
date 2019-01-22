@@ -22,7 +22,7 @@
     "enzyme": "^3.8.0",
     "enzyme-adapter-react-16": "^1.7.1",
     "jest-enzyme": "7.0.1",
-    "prettier": "1.16.0",
+    "prettier": "1.16.1",
     "pretty-quick": "^1.8.1",
     "type-coverage": "^1.6.2"
   },
