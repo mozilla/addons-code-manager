@@ -1,29 +1,33 @@
-/// <reference path="DiffView.d.ts"/>
+/// <reference path="index.d.ts"/>
 
 import * as React from 'react';
-import { Diff, parseDiff } from 'react-diff-view';
-
+import { Diff, ViewType, parseDiff } from 'react-diff-view';
 export interface Props {
   diff: string;
-  viewType: 'split' | 'unified';
+  viewType: ViewType;
 }
 
-export default class DiffView extends React.Component<Props> {
-  static defaultProps = {
-    viewType: 'unified',
-  };
+const diffViewDefaultProps = {
+  viewType: 'unified' as ViewType,
+};
 
-  render() {
-    const { diff, viewType } = this.props;
-
-    const parsedDiff = parseDiff(diff)[0];
-
-    return (
-      <Diff
-        viewType={viewType}
-        diffType={parsedDiff.type}
-        hunks={parsedDiff.hunks}
-      />
-    );
-  }
+interface DiffViewSFC extends React.SFC<Props> {
+  defaultProps: typeof diffViewDefaultProps;
 }
+
+const DiffView: DiffViewSFC = (props) => {
+  const { diff, viewType } = props;
+  const parsedDiff = parseDiff(diff)[0];
+
+  return (
+    <Diff
+      viewType={viewType}
+      diffType={parsedDiff.type}
+      hunks={parsedDiff.hunks}
+    />
+  );
+};
+
+DiffView.defaultProps = diffViewDefaultProps;
+
+export default DiffView;

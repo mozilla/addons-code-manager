@@ -1,6 +1,8 @@
+/// <reference path="index.d.ts"/>
+
 import { shallow } from 'enzyme';
 import React from 'react';
-import { Diff, Hunk, parseDiff } from 'react-diff-view';
+import { parseDiff } from 'react-diff-view';
 
 import DiffView from '.';
 

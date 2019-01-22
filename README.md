@@ -23,7 +23,7 @@ We use [Prettier][] to automatically format our JavaScript code and stop all the
 
 ## TypeScript
 
-All code is written in [typescript][]. Currently, errors in test files won't be reported until you try to submit a pull request. Because of this, consider [configuring your editor](https://github.com/Microsoft/TypeScript/wiki/TypeScript-Editor-Support) for error reporting.
+All code is written in [TypeScript][]. Currently, errors in test files won't be reported until you try to submit a pull request. Because of this, consider [configuring your editor](https://github.com/Microsoft/TypeScript/wiki/TypeScript-Editor-Support) for error reporting.
 
 ## SASS
 
