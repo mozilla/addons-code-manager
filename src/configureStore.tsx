@@ -1,6 +1,6 @@
 import { Dispatch, Action, AnyAction } from 'redux';
 import { Store, applyMiddleware, combineReducers, createStore } from 'redux';
-import { composeWithDevTools } from 'redux-devtools-extension'
+import { composeWithDevTools } from 'redux-devtools-extension';
 import { createLogger } from 'redux-logger';
 
 import example, { ExampleState } from './reducers/example';
@@ -26,11 +26,7 @@ export default function configureStore(
     middleware = composeEnhancers(middleware);
   }
 
-  const store = createStore(
-    rootReducer,
-    preloadedState,
-    middleware,
-  );
+  const store = createStore(rootReducer, preloadedState, middleware);
 
   return store;
 }
