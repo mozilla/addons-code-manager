@@ -9,6 +9,7 @@ Dockerfile
 /docker/
 /node_modules/
 # white-list files we want to process
+!*.js
 !*.ts
 !*.tsx
 !*.md

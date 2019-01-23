@@ -39,7 +39,7 @@ This builds the app for production to the `build` folder.
 
 It correctly bundles React in production mode and optimizes the build for the best performance. The build is minified and the filenames include the hashes. Your app is ready to be deployed!
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Note: for this project, we use a node server (see `server/server.js`).
 
 ### `yarn eject`
 
@@ -53,11 +53,37 @@ This runs [Prettier][] to automatically format the entire codebase.
 
 This runs [Prettier][] on only your changed files. This is intended for development.
 
-### `yarn start`
+### `yarn dev`
 
-This runs the app in the development mode.
+This runs the app in the development mode, with the [-dev AMO API](https://addons-server.readthedocs.io/).
 
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser. The page will reload if you make edits. You will also see any lint errors in the console.
+
+### `yarn start-local-dev`
+
+This builds the app for production to the `build` folder (see `yarn build` command), configured with the [-dev AMO API](https://addons-server.readthedocs.io/). It also starts a production server that serves the application (configured for local usage).
+
+Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+
+### `yarn stage`
+
+This runs the app in the development mode, with the [stage AMO API](https://addons-server.readthedocs.io/).
+
+Open [http://localhost:3000](http://localhost:3000) to view it in the browser. The page will reload if you make edits. You will also see any lint errors in the console.
+
+### `yarn start-local-stage`
+
+This builds the app for production to the `build` folder (see `yarn build` command), configured with the [stage AMO API](https://addons-server.readthedocs.io/). It also starts a production server that serves the application (configured for local usage).
+
+Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+
+### `yarn start-local-prod`
+
+This builds the app for production to the `build` folder (see `yarn build` command), configured with the [production AMO API](https://addons-server.readthedocs.io/). It also starts a production server that serves the application (configured for local usage).
+
+Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+
+:warning: It is currently not possible to authenticate users.
 
 ### `yarn test`
 
