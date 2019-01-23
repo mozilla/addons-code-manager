@@ -11,7 +11,7 @@ interface Props {
 }
 
 class App extends React.Component<Props & ConnectedReduxProps, {}> {
-  handleToggleClick = (event: React.SyntheticEvent<any>) => {
+  handleToggleClick = (event: React.SyntheticEvent<HTMLButtonElement>) => {
     const { dispatch, toggleState } = this.props;
     event.preventDefault();
 
