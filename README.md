@@ -73,9 +73,7 @@ This will check how much of the codebase is protect by safe static types and fai
 
 This checks for [TypeScript][] errors in all files, including test files.
 
-You'd think that `build` does this but it does not check test files.
-See [create-react-app issue 5626](https://github.com/facebook/create-react-app/issues/5626).
-
+You'd think that `build` does this but it does not check test files. See [create-react-app issue 5626](https://github.com/facebook/create-react-app/issues/5626).
 
 ## Learn More
 
@@ -84,4 +82,4 @@ You can learn more in the [Create React App documentation](https://facebook.gith
 To learn React, check out the [React documentation](https://reactjs.org/).
 
 [prettier]: https://prettier.io/
-[TypeScript]: https://www.typescriptlang.org/
+[typescript]: https://www.typescriptlang.org/
