@@ -30,7 +30,7 @@
     "jest-enzyme": "7.0.1",
     "prettier": "1.16.1",
     "pretty-quick": "^1.8.1",
-    "redux-devtools-extension": "2.13.7",
+    "redux-devtools-extension": "^2.13.7",
     "type-coverage": "^1.6.2"
   },
   "scripts": {
