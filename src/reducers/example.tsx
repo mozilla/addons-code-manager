@@ -7,14 +7,24 @@ export interface ExampleState {
   toggle: 'on' | 'off';
 }
 
-export function toggleOn() {
+interface ToggleOnAction {
+  type: typeof TOGGLE_ON;
+  payload: {};
+}
+
+export function toggleOn(): ToggleOnAction {
   return {
     type: TOGGLE_ON,
     payload: {},
   };
 }
 
-export function toggleOff() {
+interface ToggleOffAction {
+  type: typeof TOGGLE_OFF;
+  payload: {};
+}
+
+export function toggleOff(): ToggleOffAction {
   return {
     type: TOGGLE_OFF,
     payload: {},
@@ -25,7 +35,12 @@ const initialState: ExampleState = {
   toggle: 'off',
 };
 
-const reducer: Reducer<ExampleState> = (state = initialState, action) => {
+type ActionTypes = ToggleOnAction | ToggleOffAction;
+
+const reducer: Reducer<ExampleState, ActionTypes> = (
+  state = initialState,
+  action,
+): ExampleState => {
   switch (action.type) {
     case TOGGLE_ON:
       return { ...state, toggle: 'on' };
