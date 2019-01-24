@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { ApplicationState, ConnectedReduxProps } from './configureStore';
 import logo from './logo.svg';
 import styles from './App.module.scss';
-import { ExampleState, toggle } from './reducers/example';
+import { ExampleState, actions as exampleActions } from './reducers/example';
 
 type PublicProps = {};
 
@@ -18,7 +18,7 @@ class App extends React.Component<
   handleToggleClick = (event: React.SyntheticEvent<HTMLButtonElement>) => {
     const { dispatch } = this.props;
     event.preventDefault();
-    dispatch(toggle());
+    dispatch(exampleActions.toggle());
   };
 
   render() {

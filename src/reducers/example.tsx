@@ -1,37 +1,28 @@
 import { Reducer } from 'redux';
+import { ActionType, createAction, getType } from 'typesafe-actions';
 
-enum ExampleActionTypes {
-  TOGGLE = 'TOGGLE',
-}
+type TogglePayload = {};
+
+export const actions = {
+  toggle: createAction('TOGGLE', (resolve) => {
+    return () => resolve({} as TogglePayload);
+  }),
+};
 
 export type ExampleState = {
   toggledOn: boolean;
-};
-
-type ToggleAction = {
-  type: typeof ExampleActionTypes.TOGGLE;
-  payload: {};
-};
-
-export function toggle(): ToggleAction {
-  return {
-    type: ExampleActionTypes.TOGGLE,
-    payload: {},
-  };
 }
 
 const initialState: ExampleState = {
   toggledOn: false,
 };
 
-type ActionTypes = ToggleAction; // | OtherAction | AnotherAction
-
-const reducer: Reducer<ExampleState, ActionTypes> = (
+const reducer: Reducer<ExampleState, ActionType<typeof actions>> = (
   state = initialState,
   action,
 ): ExampleState => {
   switch (action.type) {
-    case ExampleActionTypes.TOGGLE:
+    case getType(actions.toggle):
       return { ...state, toggledOn: !state.toggledOn };
     default:
       return state;
