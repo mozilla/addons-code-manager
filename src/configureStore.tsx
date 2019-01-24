@@ -5,13 +5,13 @@ import { createLogger } from 'redux-logger';
 
 import example, { ExampleState } from './reducers/example';
 
-export interface ConnectedReduxProps<A extends Action = AnyAction> {
+export type ConnectedReduxProps<A extends Action = AnyAction> = {
   dispatch: Dispatch<A>;
-}
+};
 
-export interface ApplicationState {
+export type ApplicationState = {
   example: ExampleState;
-}
+};
 
 function createRootReducer() {
   return combineReducers<ApplicationState>({ example });

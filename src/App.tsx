@@ -6,11 +6,11 @@ import logo from './logo.svg';
 import styles from './App.module.scss';
 import { ExampleState, toggle } from './reducers/example';
 
-interface PublicProps {}
+type PublicProps = {};
 
-interface PropsFromState {
+type PropsFromState = {
   toggledOn: ExampleState['toggledOn'];
-}
+};
 
 class App extends React.Component<
   PublicProps & PropsFromState & ConnectedReduxProps

@@ -2,14 +2,14 @@ import { Reducer } from 'redux';
 
 const TOGGLE = 'TOGGLE';
 
-export interface ExampleState {
+export type ExampleState = {
   toggledOn: boolean;
-}
+};
 
-interface ToggleAction {
+type ToggleAction = {
   type: typeof TOGGLE;
   payload: {};
-}
+};
 
 export function toggle(): ToggleAction {
   return {
