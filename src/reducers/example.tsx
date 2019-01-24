@@ -1,19 +1,21 @@
 import { Reducer } from 'redux';
 
-const TOGGLE = 'TOGGLE';
+enum ExampleActionTypes {
+  TOGGLE = 'TOGGLE',
+}
 
 export type ExampleState = {
   toggledOn: boolean;
 };
 
 type ToggleAction = {
-  type: typeof TOGGLE;
+  type: typeof ExampleActionTypes.TOGGLE;
   payload: {};
 };
 
 export function toggle(): ToggleAction {
   return {
-    type: TOGGLE,
+    type: ExampleActionTypes.TOGGLE,
     payload: {},
   };
 }
@@ -29,7 +31,7 @@ const reducer: Reducer<ExampleState, ActionTypes> = (
   action,
 ): ExampleState => {
   switch (action.type) {
-    case TOGGLE:
+    case ExampleActionTypes.TOGGLE:
       return { ...state, toggledOn: !state.toggledOn };
     default:
       return state;
