@@ -11,7 +11,7 @@ export const actions = {
 
 export type ExampleState = {
   toggledOn: boolean;
-}
+};
 
 const initialState: ExampleState = {
   toggledOn: false,
