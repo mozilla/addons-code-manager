@@ -1,17 +1,30 @@
 declare module 'react-diff-view' {
-  export interface HunkInfo {
+  type ChangeType = 'delete' | 'insert' | 'normal';
+
+  interface ChangeInfo {
     content: string;
-    oldStart: number;
-    newStart: number;
-    oldLines: number;
-    newLines: number;
-    changes: Array<object>;
-    isPlain: boolean;
+    isDelete?: boolean;
+    isInsert?: boolean;
+    isNormal?: boolean;
+    lineNumber?: number;
+    newLineNumber?: number;
+    oldLineNumber?: number;
+    type: ChangeType;
   }
 
-  export type Hunks = Array<HunkInfo>;
+  interface HunkInfo {
+    changes: Array<ChangeInfo>;
+    content: string;
+    isPlain: boolean;
+    newLines: number;
+    newStart: number;
+    oldLines: number;
+    oldStart: number;
+  }
 
-  export interface DiffInfo {
+  type Hunks = Array<HunkInfo>;
+
+  interface DiffInfo {
     oldPath: string;
     newPath: string;
     hunks: Hunks;
@@ -24,15 +37,15 @@ declare module 'react-diff-view' {
     type: string;
   }
 
-  export function parseDiff(text: string, options?: object): Array<DiffInfo>;
+  function parseDiff(text: string, options?: object): Array<DiffInfo>;
 
-  export type ViewType = 'split' | 'unified';
+  type ViewType = 'split' | 'unified';
 
-  export interface DiffProps {
+  interface DiffProps {
     diffType: string;
     hunks: Hunks;
     viewType: ViewType;
   }
 
-  export class Diff extends React.Component<DiffProps, any> {}
+  class Diff extends React.Component<DiffProps, any> {}
 }
