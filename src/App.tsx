@@ -54,7 +54,7 @@ class App extends React.Component<
   }
 }
 
-const mapStateToProps = (state: ApplicationState) => {
+const mapStateToProps = (state: ApplicationState): PropsFromState => {
   return {
     toggledOn: state.example.toggledOn,
   };
