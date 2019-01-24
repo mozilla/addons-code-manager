@@ -10,7 +10,6 @@
     "@types/react-router-dom": "4.3.1",
     "@types/react-redux": "7.0.0",
     "@types/redux-logger": "3.0.6",
-    "@types/webpack-env": "1.13.6",
     "node-sass": "4.11.0",
     "react": "16.7.0",
     "react-dom": "16.7.0",
