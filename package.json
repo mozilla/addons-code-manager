@@ -30,7 +30,7 @@
     "build": "react-scripts build",
     "eject": "react-scripts eject",
     "prettier": "prettier --write '**'",
-    "prettier-ci": "yarn prettier --list-different || (echo '\n\nThis failure means you did not run `yarn prettier-dev` before committing\n\n' && exit 1)",
+    "prettier-ci": "prettier --list-different '**' || (echo '\n\nThis failure means you did not run `yarn prettier-dev` before committing\n\n' && exit 1)",
     "prettier-dev": "pretty-quick --branch master",
     "start": "BROWSER=none react-scripts start",
     "test": "react-scripts test",
