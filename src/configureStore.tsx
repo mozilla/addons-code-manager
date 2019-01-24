@@ -13,13 +13,13 @@ export type ApplicationState = {
   example: ExampleState;
 };
 
-function createRootReducer() {
+const createRootReducer = () => {
   return combineReducers<ApplicationState>({ example });
-}
+};
 
-export default function configureStore(
+const configureStore = (
   preloadedState?: ApplicationState,
-): Store<ApplicationState> {
+): Store<ApplicationState> => {
   let middleware = applyMiddleware(createLogger());
   if (process.env.NODE_ENV !== 'production') {
     const composeEnhancers = composeWithDevTools({});
@@ -27,4 +27,6 @@ export default function configureStore(
   }
 
   return createStore(createRootReducer(), preloadedState, middleware);
-}
+};
+
+export default configureStore;

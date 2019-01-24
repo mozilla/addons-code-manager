@@ -54,10 +54,10 @@ class App extends React.Component<
   }
 }
 
-function mapStateToProps(state: ApplicationState) {
+const mapStateToProps = (state: ApplicationState) => {
   return {
     toggledOn: state.example.toggledOn,
   };
-}
+};
 
 export default connect(mapStateToProps)(App);
