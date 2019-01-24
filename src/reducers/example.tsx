@@ -1,51 +1,36 @@
 import { Reducer } from 'redux';
 
-const TOGGLE_ON = 'TOGGLE_ON';
-const TOGGLE_OFF = 'TOGGLE_OFF';
+const TOGGLE = 'TOGGLE';
 
 export interface ExampleState {
-  toggle: 'on' | 'off';
+  toggledOn: boolean;
 }
 
-interface ToggleOnAction {
-  type: typeof TOGGLE_ON;
+interface ToggleAction {
+  type: typeof TOGGLE;
   payload: {};
 }
 
-export function toggleOn(): ToggleOnAction {
+export function toggle(): ToggleAction {
   return {
-    type: TOGGLE_ON,
-    payload: {},
-  };
-}
-
-interface ToggleOffAction {
-  type: typeof TOGGLE_OFF;
-  payload: {};
-}
-
-export function toggleOff(): ToggleOffAction {
-  return {
-    type: TOGGLE_OFF,
+    type: TOGGLE,
     payload: {},
   };
 }
 
 const initialState: ExampleState = {
-  toggle: 'off',
+  toggledOn: false,
 };
 
-type ActionTypes = ToggleOnAction | ToggleOffAction;
+type ActionTypes = ToggleAction; // | OtherAction | AnotherAction
 
 const reducer: Reducer<ExampleState, ActionTypes> = (
   state = initialState,
   action,
 ): ExampleState => {
   switch (action.type) {
-    case TOGGLE_ON:
-      return { ...state, toggle: 'on' };
-    case TOGGLE_OFF:
-      return { ...state, toggle: 'off' };
+    case TOGGLE:
+      return { ...state, toggledOn: !state.toggledOn };
     default:
       return state;
   }

@@ -4,30 +4,25 @@ import { connect } from 'react-redux';
 import { ApplicationState, ConnectedReduxProps } from './configureStore';
 import logo from './logo.svg';
 import styles from './App.module.scss';
-import { ExampleState, toggleOn, toggleOff } from './reducers/example';
+import { ExampleState, toggle } from './reducers/example';
 
 interface PublicProps {}
 
 interface PropsFromState {
-  toggleState: ExampleState['toggle'];
+  toggledOn: ExampleState['toggledOn'];
 }
 
 class App extends React.Component<
   PublicProps & PropsFromState & ConnectedReduxProps
 > {
   handleToggleClick = (event: React.SyntheticEvent<HTMLButtonElement>) => {
-    const { dispatch, toggleState } = this.props;
+    const { dispatch } = this.props;
     event.preventDefault();
-
-    if (toggleState === 'on') {
-      dispatch(toggleOff());
-    } else {
-      dispatch(toggleOn());
-    }
+    dispatch(toggle());
   };
 
   render() {
-    const { toggleState } = this.props;
+    const { toggledOn } = this.props;
 
     return (
       <div className={styles.container}>
@@ -50,7 +45,7 @@ class App extends React.Component<
               onClick={this.handleToggleClick}
               style={{ padding: '32px' }}
             >
-              {toggleState === 'on' ? 'OFF' : 'ON'}
+              {toggledOn ? 'OFF' : 'ON'}
             </button>
           </p>
         </header>
@@ -61,7 +56,7 @@ class App extends React.Component<
 
 function mapStateToProps(state: ApplicationState) {
   return {
-    toggleState: state.example.toggle,
+    toggledOn: state.example.toggledOn,
   };
 }
 
