@@ -6,11 +6,15 @@ import logo from './logo.svg';
 import styles from './App.module.scss';
 import { ExampleState, toggleOn, toggleOff } from './reducers/example';
 
-interface Props {
+interface PublicProps {}
+
+interface PropsFromState {
   toggleState: ExampleState['toggle'];
 }
 
-class App extends React.Component<Props & ConnectedReduxProps, {}> {
+class App extends React.Component<
+  PublicProps & PropsFromState & ConnectedReduxProps
+> {
   handleToggleClick = (event: React.SyntheticEvent<HTMLButtonElement>) => {
     const { dispatch, toggleState } = this.props;
     event.preventDefault();
