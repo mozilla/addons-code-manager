@@ -1,8 +1,16 @@
 import { ApiState } from '../reducers/api';
 
+export enum HttpMethod {
+  DELETE = 'DELETE',
+  GET = 'GET',
+  PATCH = 'PATCH',
+  POST = 'POST',
+  PUT = 'PUT',
+}
+
 type CallApiParams = {
   endpoint: string;
-  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+  method?: HttpMethod;
   credentials?: boolean;
   version?: string;
   apiState: ApiState;
@@ -16,7 +24,7 @@ export const callApi = async ({
   apiState,
   endpoint,
   credentials = false,
-  method = 'GET',
+  method = HttpMethod.GET,
   version = 'v4',
 }: CallApiParams) => {
   if (!endpoint.startsWith('/')) {
@@ -51,6 +59,6 @@ export const logOutFromServer = async (apiState: ApiState) => {
     apiState,
     credentials: true,
     endpoint: 'accounts/session',
-    method: 'DELETE',
+    method: HttpMethod.DELETE,
   });
 };

@@ -1,4 +1,4 @@
-import { callApi } from '.';
+import { HttpMethod, callApi } from '.';
 import { initialState as apiState } from '../reducers/api';
 
 describe(__filename, () => {
@@ -33,7 +33,7 @@ describe(__filename, () => {
     it('accepts an HTTP method', async () => {
       fetchMock.mockResponse(JSON.stringify({}));
 
-      const method = 'POST';
+      const method = HttpMethod.POST;
       await callApi({ apiState, endpoint: '/foo/', method });
 
       expect(fetchMock.mock.calls[0][1]).toMatchObject({

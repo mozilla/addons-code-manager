@@ -20,12 +20,14 @@ type PropsFromState = {
 
 type Props = PublicProps & PropsFromState & ConnectedReduxProps;
 
-interface State {
-  profile: null | {
-    name: string;
-  };
+type Profile = {
+  name: string;
+};
+
+type State = {
+  profile: null | Profile;
   isLoggingOut: boolean;
-}
+};
 
 class AppBase extends React.Component<Props, State> {
   constructor(props: Props) {
