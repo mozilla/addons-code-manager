@@ -1,10 +1,12 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import { ApplicationState, ConnectedReduxProps } from './configureStore';
-import logo from './logo.svg';
-import styles from './App.module.scss';
-import { ExampleState, actions as exampleActions } from './reducers/example';
+import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
+import styles from './styles.module.scss';
+import {
+  ExampleState,
+  actions as exampleActions,
+} from '../../reducers/example';
 
 type PublicProps = {};
 
@@ -27,18 +29,6 @@ class App extends React.Component<
     return (
       <div className={styles.container}>
         <header className={styles.header}>
-          <img src={logo} className={styles.logo} alt="logo" />
-          <p>
-            Edit <code>src/App.tsx</code> and save to reload.
-          </p>
-          <a
-            className={styles.link}
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
           <p>Toggle this on and off to test out Redux:</p>
           <p>
             <button

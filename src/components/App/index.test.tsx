@@ -1,9 +1,9 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 
-import App from './App';
-import styles from './App.module.scss';
-import configureStore from './configureStore';
+import App from '.';
+import styles from './styles.module.scss';
+import configureStore from '../../configureStore';
 
 it('renders without crashing', () => {
   const store = configureStore();
