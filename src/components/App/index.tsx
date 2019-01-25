@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 
 import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
 import styles from './styles.module.scss';
+import { ApiState } from '../../reducers/api';
 import {
   ExampleState,
   actions as exampleActions,
@@ -13,6 +14,7 @@ import Login from '../Login';
 type PublicProps = {};
 
 type PropsFromState = {
+  apiState: ApiState;
   toggledOn: ExampleState['toggledOn'];
 };
 
@@ -36,7 +38,10 @@ class AppBase extends React.Component<Props, State> {
   }
 
   async componentDidMount() {
+    const { apiState } = this.props;
+
     const profile = (await api.callApi({
+      apiState,
       endpoint: '/accounts/profile/',
     })) as State['profile'];
 
@@ -46,9 +51,11 @@ class AppBase extends React.Component<Props, State> {
   }
 
   logOut = async () => {
+    const { apiState } = this.props;
+
     this.setState({ isLoggingOut: true });
 
-    await api.logOutFromServer();
+    await api.logOutFromServer(apiState);
 
     this.setState({ profile: null, isLoggingOut: false });
   };
@@ -99,6 +106,7 @@ class AppBase extends React.Component<Props, State> {
 
 const mapStateToProps = (state: ApplicationState): PropsFromState => {
   return {
+    apiState: state.api,
     toggledOn: state.example.toggledOn,
   };
 };

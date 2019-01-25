@@ -1,11 +1,12 @@
 import { callApi } from '.';
+import { initialState as apiState } from '../reducers/api';
 
 describe(__filename, () => {
   describe('callApi', () => {
     it('calls the API', async () => {
       fetchMock.mockResponse(JSON.stringify({}));
 
-      await callApi({ endpoint: '/foo/' });
+      await callApi({ apiState, endpoint: '/foo/' });
 
       expect(fetch).toHaveBeenCalledWith(`/api/v4/foo/`, {
         method: 'GET',
@@ -16,7 +17,7 @@ describe(__filename, () => {
     it('adds a trailing slash to the endpoint if there is none', async () => {
       fetchMock.mockResponse(JSON.stringify({}));
 
-      await callApi({ endpoint: '/foo' });
+      await callApi({ apiState, endpoint: '/foo' });
 
       expect(fetchMock.mock.calls[0][0]).toEqual(`/api/v4/foo/`);
     });
@@ -24,7 +25,7 @@ describe(__filename, () => {
     it('adds a leading slash to the endpoint if there is none', async () => {
       fetchMock.mockResponse(JSON.stringify({}));
 
-      await callApi({ endpoint: 'foo/' });
+      await callApi({ apiState, endpoint: 'foo/' });
 
       expect(fetchMock.mock.calls[0][0]).toEqual(`/api/v4/foo/`);
     });
@@ -33,7 +34,7 @@ describe(__filename, () => {
       fetchMock.mockResponse(JSON.stringify({}));
 
       const method = 'POST';
-      await callApi({ endpoint: '/foo/', method });
+      await callApi({ apiState, endpoint: '/foo/', method });
 
       expect(fetchMock.mock.calls[0][1]).toMatchObject({
         method,

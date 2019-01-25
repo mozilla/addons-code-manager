@@ -1,8 +1,11 @@
+import { ApiState } from '../reducers/api';
+
 type CallApiParams = {
   endpoint: string;
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   credentials?: boolean;
   version?: string;
+  apiState: ApiState;
 };
 
 type Headers = {
@@ -10,9 +13,10 @@ type Headers = {
 };
 
 export const callApi = async ({
+  apiState,
   endpoint,
-  method = 'GET',
   credentials = false,
+  method = 'GET',
   version = 'v4',
 }: CallApiParams) => {
   if (!endpoint.startsWith('/')) {
@@ -23,11 +27,8 @@ export const callApi = async ({
   }
 
   const headers = {} as Headers;
-  const rootElement = document.getElementById('root');
-  const authToken = rootElement ? rootElement.dataset.authToken : null;
-
-  if (authToken && authToken !== process.env.REACT_APP_AUTH_TOKEN_PLACEHOLDER) {
-    headers['Authorization'] = `Bearer ${authToken}`;
+  if (apiState.authToken) {
+    headers['Authorization'] = `Bearer ${apiState.authToken}`;
   }
 
   try {
@@ -45,8 +46,9 @@ export const callApi = async ({
   }
 };
 
-export const logOutFromServer = async () => {
+export const logOutFromServer = async (apiState: ApiState) => {
   return callApi({
+    apiState,
     credentials: true,
     endpoint: 'accounts/session',
     method: 'DELETE',
