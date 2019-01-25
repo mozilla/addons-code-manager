@@ -1,7 +1,7 @@
 declare module 'react-diff-view' {
   type ChangeType = 'delete' | 'insert' | 'normal';
 
-  interface ChangeInfo {
+  type ChangeInfo = {
     content: string;
     isDelete?: boolean;
     isInsert?: boolean;
@@ -10,9 +10,9 @@ declare module 'react-diff-view' {
     newLineNumber?: number;
     oldLineNumber?: number;
     type: ChangeType;
-  }
+  };
 
-  interface HunkInfo {
+  type HunkInfo = {
     changes: Array<ChangeInfo>;
     content: string;
     isPlain: boolean;
@@ -20,11 +20,11 @@ declare module 'react-diff-view' {
     newStart: number;
     oldLines: number;
     oldStart: number;
-  }
+  };
 
   type Hunks = Array<HunkInfo>;
 
-  interface DiffInfo {
+  type DiffInfo = {
     oldPath: string;
     newPath: string;
     hunks: Hunks;
@@ -35,17 +35,17 @@ declare module 'react-diff-view' {
     newMode: string;
     oldMode: string;
     type: string;
-  }
+  };
 
   function parseDiff(text: string, options?: object): Array<DiffInfo>;
 
   type ViewType = 'split' | 'unified';
 
-  interface DiffProps {
+  type DiffProps = {
     diffType: string;
     hunks: Hunks;
     viewType: ViewType;
-  }
+  };
 
   class Diff extends React.Component<DiffProps, any> {}
 }
