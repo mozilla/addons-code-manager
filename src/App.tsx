@@ -1,15 +1,35 @@
 import * as React from 'react';
+import { connect } from 'react-redux';
+
+import { ApplicationState, ConnectedReduxProps } from './configureStore';
 import logo from './logo.svg';
 import styles from './App.module.scss';
+import { ExampleState, actions as exampleActions } from './reducers/example';
 
-class App extends React.Component {
+type PublicProps = {};
+
+type PropsFromState = {
+  toggledOn: ExampleState['toggledOn'];
+};
+
+class App extends React.Component<
+  PublicProps & PropsFromState & ConnectedReduxProps
+> {
+  handleToggleClick = (event: React.SyntheticEvent<HTMLButtonElement>) => {
+    const { dispatch } = this.props;
+    event.preventDefault();
+    dispatch(exampleActions.toggle());
+  };
+
   render() {
+    const { toggledOn } = this.props;
+
     return (
       <div className={styles.container}>
         <header className={styles.header}>
           <img src={logo} className={styles.logo} alt="logo" />
           <p>
-            Edit <code>src/App.js</code> and save to reload.
+            Edit <code>src/App.tsx</code> and save to reload.
           </p>
           <a
             className={styles.link}
@@ -19,10 +39,25 @@ class App extends React.Component {
           >
             Learn React
           </a>
+          <p>Toggle this on and off to test out Redux:</p>
+          <p>
+            <button
+              onClick={this.handleToggleClick}
+              style={{ padding: '32px' }}
+            >
+              {toggledOn ? 'OFF' : 'ON'}
+            </button>
+          </p>
         </header>
       </div>
     );
   }
 }
 
-export default App;
+const mapStateToProps = (state: ApplicationState): PropsFromState => {
+  return {
+    toggledOn: state.example.toggledOn,
+  };
+};
+
+export default connect(mapStateToProps)(App);
