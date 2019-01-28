@@ -17,11 +17,13 @@ class DiffView extends React.Component<Props> {
     const { diff, viewType } = this.props;
     const files = parseDiff(diff);
 
-    const renderFile = ({ hunks, type }: DiffInfo, index: number) => (
-      <Diff diffType={type} hunks={hunks} key={index} viewType={viewType} />
+    return (
+      <div>
+        {files.map(({ hunks, type }, index: number) => (
+          <Diff diffType={type} hunks={hunks} key={index} viewType={viewType} />
+        ))}
+      </div>
     );
-
-    return <div>{files.map(renderFile)}</div>;
   };
 }
 

@@ -47,5 +47,5 @@ declare module 'react-diff-view' {
     viewType: ViewType;
   };
 
-  class Diff extends React.Component<DiffProps, any> {}
+  class Diff extends React.Component<DiffProps, {}> {}
 }
