@@ -22,8 +22,10 @@ const createRootReducer = () => {
 const configureStore = (
   preloadedState?: ApplicationState,
 ): Store<ApplicationState> => {
-  let middleware = applyMiddleware(createLogger());
-  if (process.env.NODE_ENV !== 'production') {
+  let middleware;
+  if (process.env.NODE_ENV === 'development') {
+    middleware = applyMiddleware(createLogger());
+
     const composeEnhancers = composeWithDevTools({});
     middleware = composeEnhancers(middleware);
   }
