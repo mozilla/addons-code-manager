@@ -49,16 +49,21 @@ class AppBase extends React.Component<Props, State> {
     }
   }
 
-  async componentDidUpdate() {
+  async componentDidUpdate(prevProps: Props) {
     const { apiState } = this.props;
 
-    const profile = (await api.callApi({
-      apiState,
-      endpoint: '/accounts/profile/',
-    })) as State['profile'];
+    if (
+      !this.state.profile &&
+      prevProps.apiState.authToken !== apiState.authToken
+    ) {
+      const profile = (await api.callApi({
+        apiState,
+        endpoint: '/accounts/profile/',
+      })) as State['profile'];
 
-    if (profile && profile.name) {
-      this.setState({ profile });
+      if (profile && profile.name) {
+        this.setState({ profile });
+      }
     }
   }
 
