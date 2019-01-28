@@ -1,7 +1,7 @@
 /// <reference path="index.d.ts"/>
 
 import * as React from 'react';
-import { Diff, DiffProps, ViewType, parseDiff } from 'react-diff-view';
+import { Diff, DiffInfo, DiffProps, parseDiff } from 'react-diff-view';
 
 type Props = {
   diff: string;
@@ -14,16 +14,14 @@ class DiffView extends React.Component<Props> {
   };
 
   render = () => {
-    const { diff, viewType } = this.props as Props;
-    const parsedDiff = parseDiff(diff)[0];
+    const { diff, viewType } = this.props;
+    const files = parseDiff(diff);
 
-    return (
-      <Diff
-        viewType={viewType}
-        diffType={parsedDiff.type}
-        hunks={parsedDiff.hunks}
-      />
+    const renderFile = ({ hunks, type }: DiffInfo, index: number) => (
+      <Diff diffType={type} hunks={hunks} key={index} viewType={viewType} />
     );
+
+    return <div>{files.map(renderFile)}</div>;
   };
 }
 

@@ -2,7 +2,7 @@
 
 import { shallow } from 'enzyme';
 import React from 'react';
-import { parseDiff } from 'react-diff-view';
+import { Diff, parseDiff } from 'react-diff-view';
 
 import DiffView from '.';
 
@@ -26,21 +26,21 @@ index 5ca1a30..4e2c90f 100644
   it('defaults the viewType to unified', () => {
     const root = render();
 
-    expect(root).toHaveProp('viewType', 'unified');
+    expect(root.find(Diff)).toHaveProp('viewType', 'unified');
   });
 
   it('renders with a specified viewType', () => {
     const viewType = 'split';
     const root = render({ viewType });
 
-    expect(root).toHaveProp('viewType', viewType);
+    expect(root.find(Diff)).toHaveProp('viewType', viewType);
   });
 
   it('passes parsed diff information to DiffView', () => {
     const parsedDiff = parseDiff(basicDiff)[0];
     const root = shallow(<DiffView diff={basicDiff} />);
 
-    expect(root).toHaveProp('diffType', parsedDiff.type);
-    expect(root).toHaveProp('hunks', parsedDiff.hunks);
+    expect(root.find(Diff)).toHaveProp('diffType', parsedDiff.type);
+    expect(root.find(Diff)).toHaveProp('hunks', parsedDiff.hunks);
   });
 });
