@@ -9,6 +9,8 @@ const cookiesMiddleware = require('universal-cookie-express');
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 require('react-scripts/config/env');
 
+const ROOT_PATH = path.join(__dirname, '..');
+
 // Create an express server.
 const app = express();
 
@@ -64,14 +66,12 @@ if (process.env.NODE_ENV === 'production') {
   // authentication token.
 
   const indexHtml = fs.readFileSync(
-    path.join(__dirname, '..', 'build', 'index.html'),
+    path.join(ROOT_PATH, 'build', 'index.html'),
     'utf8',
   );
 
   // Serve all the static files but `index.html`.
-  app.use(
-    express.static(path.join(__dirname, '..', 'build'), { index: false }),
-  );
+  app.use(express.static(path.join(ROOT_PATH, 'build'), { index: false }));
 
   // This handles all the incoming requests.
   app.get('/*', (req, res) => {
