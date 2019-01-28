@@ -46,7 +46,7 @@
     "prettier": "prettier --write '**'",
     "prettier-ci": "prettier --list-different '**' || (echo '\n\nThis failure means you did not run `yarn prettier-dev` before committing\n\n' && exit 1)",
     "prettier-dev": "pretty-quick --branch master",
-    "serve": "node server/server.js",
+    "serve": "node scripts/server.js",
     "stage": "cat .env.common-local .env.stage > .env.local && yarn start-dev",
     "start": "yarn build && NODE_ENV=production yarn serve",
     "start-dev": "concurrently --kill-others 'PORT=3100 BROWSER=none react-scripts start' 'NODE_ENV=development yarn serve'",
