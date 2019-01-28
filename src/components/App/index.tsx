@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 
 import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
 import styles from './styles.module.scss';
-import { ApiState } from '../../reducers/api';
+import { ApiState, actions as apiActions } from '../../reducers/api';
 import {
   ExampleState,
   actions as exampleActions,
@@ -11,7 +11,9 @@ import {
 import * as api from '../../api';
 import LoginButton from '../LoginButton';
 
-type PublicProps = {};
+type PublicProps = {
+  authToken: string | null;
+};
 
 type PropsFromState = {
   apiState: ApiState;
@@ -39,7 +41,15 @@ class AppBase extends React.Component<Props, State> {
     };
   }
 
-  async componentDidMount() {
+  componentDidMount() {
+    const { authToken, dispatch } = this.props;
+
+    if (authToken) {
+      dispatch(apiActions.setAuthToken({ authToken }));
+    }
+  }
+
+  async componentDidUpdate() {
     const { apiState } = this.props;
 
     const profile = (await api.callApi({

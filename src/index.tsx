@@ -11,20 +11,18 @@ import { actions as apiActions } from './reducers/api';
 const store = configureStore();
 
 const rootElement = document.getElementById('root') as HTMLElement;
-const authToken = rootElement ? rootElement.dataset.authToken : null;
+const authToken = (rootElement && rootElement.dataset.authToken) || null;
 
-if (
-  authToken &&
-  authToken.length &&
-  authToken !== process.env.REACT_APP_AUTH_TOKEN_PLACEHOLDER
-) {
-  store.dispatch(apiActions.setAuthToken({ authToken }));
+if (authToken === process.env.REACT_APP_AUTH_TOKEN_PLACEHOLDER) {
+  throw new Error(
+    `Runtime error: authentication token placeholder should not be present`,
+  );
 }
 
 ReactDOM.render(
   <Provider store={store}>
     <BrowserRouter>
-      <App />
+      <App authToken={authToken} />
     </BrowserRouter>
   </Provider>,
   rootElement,
