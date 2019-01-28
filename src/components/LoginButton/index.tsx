@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import styles from './styles.module.scss';
 
-export class LoginBase extends React.Component {
+export class LoginButtonBase extends React.Component {
   getFxaURL() {
     const fxaConfig = process.env.REACT_APP_FXA_CONFIG;
 
@@ -18,4 +18,4 @@ export class LoginBase extends React.Component {
   }
 }
 
-export default LoginBase;
+export default LoginButtonBase;

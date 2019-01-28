@@ -9,7 +9,7 @@ import {
   actions as exampleActions,
 } from '../../reducers/example';
 import * as api from '../../api';
-import Login from '../Login';
+import LoginButton from '../LoginButton';
 
 type PublicProps = {};
 
@@ -98,7 +98,7 @@ class AppBase extends React.Component<Props, State> {
               </p>
             </React.Fragment>
           ) : (
-            <Login />
+            <LoginButton />
           )}
         </header>
       </div>
