@@ -26,7 +26,7 @@ export const callApi = async ({
   credentials = false,
   method = HttpMethod.GET,
   version = 'v4',
-}: CallApiParams) => {
+}: CallApiParams): Promise<object | { error: Error }> => {
   if (!endpoint.startsWith('/')) {
     endpoint = `/${endpoint}`;
   }
