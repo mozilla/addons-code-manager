@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
+import { Button, Container, Row } from 'react-bootstrap';
 
 import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
 import styles from './styles.module.scss';
@@ -88,35 +89,32 @@ class AppBase extends React.Component<Props, State> {
     const { profile, isLoggingOut } = this.state;
 
     return (
-      <div className={styles.container}>
-        <header className={styles.header}>
+      <Container className={styles.container} fluid={true}>
+        <Row className={styles.header}>
           {profile ? (
             <React.Fragment>
               <h3>Hello {profile.name}!</h3>
 
               <p>Toggle this on and off to test out Redux:</p>
               <p>
-                <button
-                  onClick={this.handleToggleClick}
-                  style={{ padding: '32px' }}
-                >
+                <Button onClick={this.handleToggleClick} size="lg">
                   {toggledOn ? 'OFF' : 'ON'}
-                </button>
+                </Button>
               </p>
 
               <p>
                 {isLoggingOut ? (
                   'See you next time... 😕'
                 ) : (
-                  <button onClick={this.logOut}>Log out</button>
+                  <Button onClick={this.logOut}>Log out</Button>
                 )}
               </p>
             </React.Fragment>
           ) : (
             <LoginButton />
           )}
-        </header>
-      </div>
+        </Row>
+      </Container>
     );
   }
 }
