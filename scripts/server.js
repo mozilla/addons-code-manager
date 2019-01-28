@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
+const chalk = require('chalk');
 const express = require('express');
 const proxy = require('http-proxy-middleware');
 const cookiesMiddleware = require('universal-cookie-express');
@@ -10,6 +11,7 @@ process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 require('react-scripts/config/env');
 
 const ROOT_PATH = path.join(__dirname, '..');
+const PROXY_PORT = 3100;
 
 // Create an express server.
 const app = express();
@@ -91,7 +93,7 @@ if (process.env.NODE_ENV === 'production') {
 
   app.use(
     proxy('/', {
-      target: 'http://localhost:3100',
+      target: `http://localhost:${PROXY_PORT}`,
       // We need WebSocket for Hot Module Reload (HMR).
       ws: true,
       onProxyRes: (proxyResponse, req, res) => {
@@ -110,10 +112,32 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 app.listen(app.get('port'), () => {
-  console.log(
-    '\nApp is running at http://localhost:%d/ in %s mode',
-    app.get('port'),
-    app.get('env'),
-  );
-  console.log('Press CTRL-C to stop\n');
+  if (process.env.NODE_ENV === 'production') {
+    console.log(
+      'The node server is listening on port %d in %s mode',
+      app.get('port'),
+      app.get('env'),
+    );
+  } else {
+    console.log('\n' + '#'.repeat(70) + '\n');
+    console.log(chalk.green('  MOZILLA/ADDONS-CODE-MANAGER\n'));
+    console.log(
+      `  This project is running at ${chalk.yellow(
+        'http://localhost:%d/',
+      )} in %s`,
+      app.get('port'),
+      app.get('env'),
+    );
+    console.log(
+      '  mode, please use this URL and not the URL given by Create React',
+    );
+    console.log(
+      `  App (below). ${chalk.yellow(
+        'You must use port %d',
+      )} (and not ${PROXY_PORT}).`,
+      app.get('port'),
+    );
+    console.log('\n  Press CTRL-C to stop');
+    console.log('\n' + '#'.repeat(70) + '\n');
+  }
 });
