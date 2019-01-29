@@ -102,15 +102,6 @@ describe(__filename, () => {
       );
     });
 
-    it('includes the credentials when credentials is true', async () => {
-      await callApiWithDefaultApiState({ credentials: true });
-
-      expect(fetch).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({ credentials: 'include' }),
-      );
-    });
-
     it('returns an object containing an error when something went wrong', async () => {
       const error = new Error('some network error, maybe');
       fetchMock.mockReject(error);
@@ -135,7 +126,6 @@ describe(__filename, () => {
       await logOutFromServer(defaultApiState);
 
       expect(fetch).toHaveBeenCalledWith('/api/v4/accounts/session/', {
-        credentials: 'include',
         headers: {},
         method: HttpMethod.DELETE,
       });

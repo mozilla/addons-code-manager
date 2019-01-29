@@ -11,7 +11,6 @@ export enum HttpMethod {
 type CallApiParams = {
   endpoint: string;
   method?: HttpMethod;
-  credentials?: boolean;
   version?: string;
   apiState: ApiState;
 };
@@ -23,7 +22,6 @@ type Headers = {
 export const callApi = async ({
   apiState,
   endpoint,
-  credentials = false,
   method = HttpMethod.GET,
   version = 'v4',
 }: CallApiParams): Promise<object | { error: Error }> => {
@@ -43,7 +41,6 @@ export const callApi = async ({
     const response = await fetch(`/api/${version}${endpoint}`, {
       method,
       headers,
-      credentials: credentials ? 'include' : undefined,
     });
 
     return await response.json();
@@ -57,7 +54,6 @@ export const callApi = async ({
 export const logOutFromServer = async (apiState: ApiState) => {
   return callApi({
     apiState,
-    credentials: true,
     endpoint: 'accounts/session',
     method: HttpMethod.DELETE,
   });
