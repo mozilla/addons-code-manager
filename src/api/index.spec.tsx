@@ -119,6 +119,17 @@ describe(__filename, () => {
 
       expect(response).toEqual(data);
     });
+
+    it('returns an object containing an error when the response is not OK', async () => {
+      fetchMock.mockResponse('', { status: 400 });
+
+      const response = await callApiWithDefaultApiState();
+
+      expect(response).toHaveProperty(
+        'error',
+        new Error('Unexpected status for GET /: 400'),
+      );
+    });
   });
 
   describe('logOutFromServer', () => {
