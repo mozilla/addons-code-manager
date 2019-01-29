@@ -44,16 +44,15 @@ export const callApi = async ({
     });
 
     if (!response.ok) {
-      const message = `Unexpected status for ${method} ${endpoint}: ${
-        response.status
-      }`;
-      console.error(message);
-
-      throw new Error(message);
+      throw new Error(
+        `Unexpected status for ${method} ${endpoint}: ${response.status}`,
+      );
     }
 
     return await response.json();
   } catch (error) {
+    console.error(error);
+
     return {
       error,
     };

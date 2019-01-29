@@ -38,7 +38,7 @@ const createServer = ({
   // AMO/addons-server API). This is useful for local development.
   if (env.REACT_APP_USE_INSECURE_PROXY === 'true') {
     if (env.NODE_ENV === 'production') {
-      console.log(`Using an insecure proxy with NODE_ENV=production is risky`);
+      console.warn(`Using an insecure proxy with NODE_ENV=production is risky`);
     }
 
     app.use(

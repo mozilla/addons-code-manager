@@ -20,6 +20,22 @@ describe(__filename, () => {
 
       expect(htmlWithToken).toEqual(`<div data-token="${token}">`);
     });
+
+    it('avoids HTML injections', () => {
+      const token = '<script>';
+
+      const req = {
+        universalCookies: {
+          get: () => token,
+        },
+      };
+      const env = { REACT_APP_AUTH_TOKEN_PLACEHOLDER: '__PLACEHOLDER__' };
+      const html = `<div data-token="${env.REACT_APP_AUTH_TOKEN_PLACEHOLDER}">`;
+
+      const htmlWithToken = injectAuthenticationToken(req, html, env);
+
+      expect(htmlWithToken).toEqual(`<div data-token="\\u003cscript>">`);
+    });
   });
 
   describe('createServer', () => {
