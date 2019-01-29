@@ -40,7 +40,7 @@
     "prettier": "1.16.1",
     "pretty-quick": "^1.8.1",
     "supertest": "^3.4.2",
-    "type-coverage": "^1.6.2"
+    "type-coverage": "^1.8.0"
   },
   "scripts": {
     "build": "react-scripts build",
