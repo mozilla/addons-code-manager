@@ -5,7 +5,7 @@ type TogglePayload = {};
 
 export const actions = {
   toggle: createAction('TOGGLE', (resolve) => {
-    return () => resolve({} as TogglePayload);
+    return () => resolve({});
   }),
 };
 

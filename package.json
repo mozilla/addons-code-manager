@@ -35,12 +35,18 @@
     "@types/enzyme-adapter-react-16": "^1.0.3",
     "@types/storybook__react": "^4.0.0",
     "@types/supertest": "^2.0.7",
+    "@typescript-eslint/eslint-plugin": "^1.1.1",
+    "@typescript-eslint/parser": "^1.1.1",
     "babel-loader": "8.0.4",
     "chalk": "^2.4.2",
     "codecov": "^3.1.0",
     "enzyme": "^3.8.0",
     "enzyme-adapter-react-16": "^1.7.1",
+    "eslint": "^5.12.1",
+    "eslint-config-amo": "^1.10.0",
+    "eslint-plugin-amo": "^1.9.1",
     "http-proxy-response-rewrite": "^0.0.1",
+    "jest-enzyme": "^7.0.1",
     "jest-enzyme": "^7.0.1",
     "jest-fetch-mock": "^2.1.0",
     "prettier": "1.16.3",
@@ -56,6 +62,8 @@
     "dev-2col": "yarn build-local-dev-config && yarn stmux [ 'yarn test' .. [ 'tsc -w' : 'yarn react-scripts-start' : 'yarn serve-dev' ] ]",
     "dev-servers": "yarn build-local-dev-config && yarn stmux [ 'yarn serve-dev' : 'yarn react-scripts-start' ]",
     "eject": "react-scripts eject",
+    "eslint": "eslint --ext .js --ext tsx src/",
+    "lint": "yarn eslint",
     "prettier": "prettier --write '**'",
     "prettier-ci": "prettier --list-different '**' || (echo '\n\nThis failure means you did not run `yarn prettier-dev` before committing\n\n' && exit 1)",
     "prettier-dev": "pretty-quick --branch master",
@@ -73,9 +81,6 @@
     "type-coverage": "type-coverage",
     "typecheck": "tsc",
     "storybook": "start-storybook -p 9001 -c stories/setup"
-  },
-  "eslintConfig": {
-    "extends": "react-app"
   },
   "browserslist": [
     ">0.2%",

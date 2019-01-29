@@ -1,5 +1,13 @@
-import { Dispatch, Action, AnyAction } from 'redux';
-import { Store, applyMiddleware, combineReducers, createStore } from 'redux';
+import {
+  Action,
+  AnyAction,
+  Dispatch,
+  Reducer,
+  Store,
+  applyMiddleware,
+  combineReducers,
+  createStore,
+} from 'redux';
 import { composeWithDevTools } from 'redux-devtools-extension';
 import { createLogger } from 'redux-logger';
 
@@ -15,7 +23,7 @@ export type ApplicationState = {
   example: ExampleState;
 };
 
-const createRootReducer = () => {
+const createRootReducer = (): Reducer<ApplicationState> => {
   return combineReducers<ApplicationState>({ api, example });
 };
 
