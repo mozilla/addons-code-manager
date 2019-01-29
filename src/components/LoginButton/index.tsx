@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Button } from 'react-bootstrap';
 
 import styles from './styles.module.scss';
 
@@ -11,9 +12,9 @@ export class LoginButtonBase extends React.Component {
 
   render() {
     return (
-      <a href={this.getFxaURL()} className={styles.link}>
+      <Button href={this.getFxaURL()} className={styles.link}>
         Log in
-      </a>
+      </Button>
     );
   }
 }

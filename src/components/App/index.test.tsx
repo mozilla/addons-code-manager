@@ -30,7 +30,7 @@ describe(__filename, () => {
     const root = render();
 
     expect(root).toHaveClassName(styles.container);
-    expect(root.find(styles.header)).toHaveLength(1);
+    expect(root.find(`.${styles.header}`)).toHaveLength(1);
   });
 
   it('dispatches setAuthToken on mount when authToken is valid', () => {
