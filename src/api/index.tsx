@@ -16,6 +16,8 @@ type CallApiParams = {
   apiState: ApiState;
 };
 
+type CallApiResponse = object | { error: Error };
+
 type Headers = {
   [name: string]: string;
 };
@@ -25,7 +27,7 @@ export const callApi = async ({
   endpoint,
   method = HttpMethod.GET,
   version = 'v4',
-}: CallApiParams): Promise<object | { error: Error }> => {
+}: CallApiParams): Promise<CallApiResponse> => {
   if (!endpoint.startsWith('/')) {
     // eslint-disable-next-line no-param-reassign
     endpoint = `/${endpoint}`;
@@ -63,7 +65,9 @@ export const callApi = async ({
   }
 };
 
-export const logOutFromServer = async (apiState: ApiState) => {
+export const logOutFromServer = async (
+  apiState: ApiState,
+): Promise<CallApiResponse> => {
   return callApi({
     apiState,
     endpoint: 'accounts/session',

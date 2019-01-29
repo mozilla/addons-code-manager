@@ -42,7 +42,7 @@ class AppBase extends React.Component<Props, State> {
     };
   }
 
-  componentDidMount() {
+  componentDidMount(): void {
     const { authToken, dispatch } = this.props;
 
     if (authToken) {
@@ -50,7 +50,7 @@ class AppBase extends React.Component<Props, State> {
     }
   }
 
-  async componentDidUpdate(prevProps: Props) {
+  async componentDidUpdate(prevProps: Props): Promise<void> {
     const { apiState } = this.props;
 
     if (
@@ -69,7 +69,7 @@ class AppBase extends React.Component<Props, State> {
     }
   }
 
-  logOut = async () => {
+  logOut = async (): Promise<void> => {
     const { apiState } = this.props;
 
     this.setState({ isLoggingOut: true });
@@ -79,13 +79,15 @@ class AppBase extends React.Component<Props, State> {
     this.setState({ profile: null, isLoggingOut: false });
   };
 
-  handleToggleClick = (event: React.SyntheticEvent<HTMLButtonElement>) => {
+  handleToggleClick = (
+    event: React.SyntheticEvent<HTMLButtonElement>,
+  ): void => {
     const { dispatch } = this.props;
     event.preventDefault();
     dispatch(exampleActions.toggle());
   };
 
-  render() {
+  render(): React.ReactNode {
     const { toggledOn } = this.props;
     const { profile, isLoggingOut } = this.state;
 

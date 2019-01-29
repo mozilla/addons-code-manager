@@ -1,5 +1,5 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { ShallowWrapper, shallow } from 'enzyme';
 import { Store } from 'redux';
 
 import styles from './styles.module.scss';
@@ -17,7 +17,7 @@ describe(__filename, () => {
   const render = ({
     store = configureStore(),
     authToken = 'some-token',
-  }: RenderParams = {}) => {
+  }: RenderParams = {}): ShallowWrapper => {
     // TODO: Use shallowUntilTarget()
     // https://github.com/mozilla/addons-code-manager/issues/15
     const root = shallow(<App authToken={authToken} />, {
