@@ -12,6 +12,7 @@ import { createLogger } from 'redux-logger';
 
 import api, { ApiState } from './reducers/api';
 import example, { ExampleState } from './reducers/example';
+import users, { UsersState } from './reducers/users';
 
 export type ConnectedReduxProps<A extends Action = AnyAction> = {
   dispatch: Dispatch<A>;
@@ -20,10 +21,11 @@ export type ConnectedReduxProps<A extends Action = AnyAction> = {
 export type ApplicationState = {
   api: ApiState;
   example: ExampleState;
+  users: UsersState;
 };
 
 const createRootReducer = () => {
-  return combineReducers<ApplicationState>({ api, example });
+  return combineReducers<ApplicationState>({ api, example, users });
 };
 
 const configureStore = (
