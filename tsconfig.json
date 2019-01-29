@@ -21,5 +21,6 @@
   },
   "include": [
     "src"
-  ]
+  ],
+  "exclude": ["src/server/index.js"]
 }

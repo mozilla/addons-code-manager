@@ -10,6 +10,8 @@
     "@types/react-redux": "7.0.1",
     "@types/react-router-dom": "4.3.1",
     "@types/redux-logger": "3.0.6",
+    "express": "4.16.4",
+    "http-proxy-middleware": "0.19.1",
     "node-sass": "4.11.0",
     "react": "16.7.0",
     "react-dom": "16.7.0",
@@ -20,26 +22,40 @@
     "redux-devtools-extension": "2.13.7",
     "redux-logger": "3.0.6",
     "typesafe-actions": "3.0.0",
-    "typescript": "3.2.4"
+    "typescript": "3.2.4",
+    "universal-cookie-express": "3.0.7"
   },
   "devDependencies": {
     "@types/enzyme": "^3.1.15",
     "@types/enzyme-adapter-react-16": "^1.0.3",
+    "@types/supertest": "^2.0.7",
+    "chalk": "^2.4.2",
     "codecov": "^3.1.0",
+    "concurrently": "^4.1.0",
     "enzyme": "^3.8.0",
     "enzyme-adapter-react-16": "^1.7.1",
-    "jest-enzyme": "7.0.1",
+    "http-proxy-response-rewrite": "^0.0.1",
+    "jest-enzyme": "^7.0.1",
+    "jest-fetch-mock": "^2.1.0",
     "prettier": "1.16.1",
     "pretty-quick": "^1.8.1",
-    "type-coverage": "^1.6.2"
+    "supertest": "^3.4.2",
+    "type-coverage": "^1.8.0"
   },
   "scripts": {
     "build": "react-scripts build",
+    "dev": "cat .env.common-local .env.dev > .env.local && yarn start-dev",
     "eject": "react-scripts eject",
     "prettier": "prettier --write '**'",
     "prettier-ci": "prettier --list-different '**' || (echo '\n\nThis failure means you did not run `yarn prettier-dev` before committing\n\n' && exit 1)",
     "prettier-dev": "pretty-quick --branch master",
-    "start": "BROWSER=none react-scripts start",
+    "serve": "node scripts/server.js",
+    "stage": "cat .env.common-local .env.stage > .env.local && yarn start-dev",
+    "start": "yarn build && NODE_ENV=production yarn serve",
+    "start-dev": "concurrently --kill-others 'PORT=3100 BROWSER=none react-scripts start' 'NODE_ENV=development yarn serve'",
+    "start-local-dev": "cat .env.common-local .env.dev > .env.local && yarn start",
+    "start-local-prod": "cat .env.common-local > .env.local && yarn start",
+    "start-local-stage": "cat .env.common-local .env.stage > .env.local && yarn start",
     "test": "react-scripts test",
     "test-ci": "yarn test --coverage && codecov",
     "type-coverage": "type-coverage",
@@ -56,5 +72,6 @@
   ],
   "typeCoverage": {
     "atLeast": 99
-  }
+  },
+  "homepage": "/"
 }
