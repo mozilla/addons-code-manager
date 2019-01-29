@@ -1,12 +1,15 @@
-import { HttpMethod, callApi, logOutFromServer } from '.';
+/* global fetch, fetchMock */
 import {
-  initialState as defaultApiState,
+  ApiState,
   actions as apiActions,
+  initialState as defaultApiState,
 } from '../reducers/api';
 import configureStore from '../configureStore';
 
+import { HttpMethod, callApi, logOutFromServer } from '.';
+
 describe(__filename, () => {
-  const getApiState = ({ authToken = '12345' } = {}) => {
+  const getApiState = ({ authToken = '12345' } = {}): ApiState => {
     const store = configureStore();
 
     store.dispatch(apiActions.setAuthToken({ authToken }));
@@ -16,7 +19,7 @@ describe(__filename, () => {
   };
 
   describe('callApi', () => {
-    const callApiWithDefaultApiState = (params = {}) => {
+    const callApiWithDefaultApiState = (params = {}): object => {
       return callApi({ apiState: defaultApiState, endpoint: '/', ...params });
     };
 

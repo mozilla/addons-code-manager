@@ -2,10 +2,11 @@ import React from 'react';
 import { shallow } from 'enzyme';
 import { Store } from 'redux';
 
-import App from '.';
 import styles from './styles.module.scss';
 import configureStore from '../../configureStore';
 import { actions as apiActions } from '../../reducers/api';
+
+import App from '.';
 
 describe(__filename, () => {
   type RenderParams = {

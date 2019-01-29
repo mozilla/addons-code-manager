@@ -5,9 +5,6 @@
     "plugin:jest/recommended",
     "plugin:@typescript-eslint/recommended"
   ],
-  "globals": {
-    "document": true
-  },
   "parser": "@typescript-eslint/parser",
   "rules": {
     // TS configuration for the `indent` rule.
@@ -15,7 +12,7 @@
     "indent": "off",
     "@typescript-eslint/indent": ["error", 2],
       "import/no-extraneous-dependencies": ["error", {
-        "devDependencies": ["**/*.test.*"]
+        "devDependencies": ["**/*.test.*", "**/*.spec.*"]
       }
     ],
     // We use `.tsx` instead of `.jsx` for files with JSX inside.
@@ -25,7 +22,14 @@
     ],
     // We decided to prefer types over interfaces.
     "@typescript-eslint/prefer-interface": "off",
-    "@typescript-eslint/explicit-member-accessibility": "off"
+    "@typescript-eslint/explicit-member-accessibility": "off",
+    // This rule conflicts with our convention.
+    "jest/valid-describe": "off",
+    // These rules are not compatible with Prettier.
+    "implicit-arrow-linebreak": "off",
+    "no-mixed-operators": "off",
+    "operator-linebreak": "off",
+    "react/jsx-one-expression-per-line": "off"
   },
   "settings": {
     "import/resolver": {

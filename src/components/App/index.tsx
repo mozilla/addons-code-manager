@@ -63,6 +63,7 @@ class AppBase extends React.Component<Props, State> {
       })) as State['profile'];
 
       if (profile && profile.name) {
+        // eslint-disable-next-line react/no-did-update-set-state
         this.setState({ profile });
       }
     }
@@ -93,7 +94,10 @@ class AppBase extends React.Component<Props, State> {
         <Row className={styles.header}>
           {profile ? (
             <React.Fragment>
-              <h3>Hello {profile.name}!</h3>
+              <h3>
+                Hello
+                {profile.name}!
+              </h3>
 
               <p>Toggle this on and off to test out Redux:</p>
               <p>

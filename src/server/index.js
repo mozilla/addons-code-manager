@@ -1,3 +1,4 @@
+/* eslint @typescript-eslint/no-var-requires: 0, no-console: 0, global-require: 0 */
 // @ts-ignore
 const fs = require('fs');
 const path = require('path');
@@ -57,6 +58,7 @@ const createServer = ({
             const cookies = proxyResponse.headers['set-cookie'].map((cookie) =>
               cookie.replace(/;\s*?(Secure)/i, ''),
             );
+            // eslint-disable-next-line no-param-reassign
             proxyResponse.headers['set-cookie'] = cookies;
           }
         },
@@ -100,6 +102,7 @@ const createServer = ({
         ws: true,
         onProxyRes: (proxyResponse, req, res) => {
           if (req.url === '/') {
+            // eslint-disable-next-line no-param-reassign
             proxyResponse.headers['cache-control'] = 'private, no-store';
 
             modifyResponse(

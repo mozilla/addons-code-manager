@@ -1,3 +1,4 @@
+/* global fetch */
 import { ApiState } from '../reducers/api';
 
 export enum HttpMethod {
@@ -26,15 +27,17 @@ export const callApi = async ({
   version = 'v4',
 }: CallApiParams): Promise<object | { error: Error }> => {
   if (!endpoint.startsWith('/')) {
+    // eslint-disable-next-line no-param-reassign
     endpoint = `/${endpoint}`;
   }
   if (!endpoint.endsWith('/')) {
+    // eslint-disable-next-line no-param-reassign
     endpoint = `${endpoint}/`;
   }
 
-  const headers = {} as Headers;
+  const headers: Headers = {};
   if (apiState.authToken) {
-    headers['Authorization'] = `Bearer ${apiState.authToken}`;
+    headers.Authorization = `Bearer ${apiState.authToken}`;
   }
 
   try {
@@ -51,6 +54,7 @@ export const callApi = async ({
 
     return await response.json();
   } catch (error) {
+    // eslint-disable-next-line amo/only-log-strings, no-console
     console.error(error);
 
     return {
