@@ -1,10 +1,12 @@
-import React from 'react';
 import { shallow } from 'enzyme';
+import React from 'react';
+import { Container } from 'react-bootstrap';
 import { Store } from 'redux';
 
 import styles from './styles.module.scss';
 import configureStore from '../../configureStore';
 import { actions as apiActions } from '../../reducers/api';
+import Navbar from '../Navbar';
 
 import App from '.';
 
@@ -30,7 +32,8 @@ describe(__filename, () => {
   it('renders without crashing', () => {
     const root = render();
 
-    expect(root).toHaveClassName(styles.container);
+    expect(root.find(Navbar)).toHaveProp('onLogOut', root.instance().logOut);
+    expect(root.find(Container)).toHaveClassName(styles.container);
     expect(root.find(`.${styles.header}`)).toHaveLength(1);
   });
 

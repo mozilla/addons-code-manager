@@ -10,7 +10,7 @@ import {
   actions as exampleActions,
 } from '../../reducers/example';
 import * as api from '../../api';
-import LoginButton from '../LoginButton';
+import Navbar from '../Navbar';
 
 type PublicProps = {
   authToken: string | null;
@@ -23,7 +23,7 @@ type PropsFromState = {
 
 type Props = PublicProps & PropsFromState & ConnectedReduxProps;
 
-type Profile = {
+export type Profile = {
   name: string;
 };
 
@@ -90,35 +90,27 @@ class AppBase extends React.Component<Props, State> {
     const { profile, isLoggingOut } = this.state;
 
     return (
-      <Container className={styles.container} fluid>
-        <Row className={styles.header}>
-          {profile ? (
-            <React.Fragment>
-              <h3>
-                Hello
-                {profile.name}!
-              </h3>
+      <React.Fragment>
+        <Navbar onLogOut={this.logOut} profile={profile} />
+        <Container className={styles.container} fluid={true}>
+          <Row className={styles.header}>
+            {profile ? (
+              <React.Fragment>
+                <h3>Hello {profile.name}!</h3>
 
-              <p>Toggle this on and off to test out Redux:</p>
-              <p>
-                <Button onClick={this.handleToggleClick} size="lg">
-                  {toggledOn ? 'OFF' : 'ON'}
-                </Button>
-              </p>
+                <p>Toggle this on and off to test out Redux:</p>
+                <p>
+                  <Button onClick={this.handleToggleClick} size="lg">
+                    {toggledOn ? 'OFF' : 'ON'}
+                  </Button>
+                </p>
 
-              <p>
-                {isLoggingOut ? (
-                  'See you next time... 😕'
-                ) : (
-                  <Button onClick={this.logOut}>Log out</Button>
-                )}
-              </p>
-            </React.Fragment>
-          ) : (
-            <LoginButton />
-          )}
-        </Row>
-      </Container>
+                <p>{isLoggingOut ? 'See you next time... 😕' : null}</p>
+              </React.Fragment>
+            ) : null}
+          </Row>
+        </Container>
+      </React.Fragment>
     );
   }
 }
