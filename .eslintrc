@@ -1,7 +1,7 @@
 {
   "extends": [
     "amo",
-    "plugin:amo/recommended",
+    "plugin:amo/typescript",
     "plugin:jest/recommended",
     "plugin:@typescript-eslint/recommended"
   ],
