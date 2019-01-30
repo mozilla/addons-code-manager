@@ -6,7 +6,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## Requirements
 
-- You need [Node](https://nodejs.org/) 8 which is the current [LTS](https://github.com/nodejs/LTS) (long term support) release.
+- You need [Node](https://nodejs.org/) 10 which is the current [LTS](https://github.com/nodejs/LTS) (long term support) release.
 - You need [yarn](https://yarnpkg.com/en/) to manage dependencies and run commands.
 
 ## Getting started
