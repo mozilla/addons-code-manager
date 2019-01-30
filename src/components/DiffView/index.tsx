@@ -1,5 +1,3 @@
-/// <reference path="index.d.ts"/>
-
 import * as React from 'react';
 import { Diff, DiffInfo, DiffProps, parseDiff } from 'react-diff-view';
 

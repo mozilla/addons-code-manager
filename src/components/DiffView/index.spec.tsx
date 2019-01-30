@@ -1,5 +1,3 @@
-// / <reference path="index.d.ts"/>
-
 import { ShallowWrapper, shallow } from 'enzyme';
 import React from 'react';
 import { Diff, parseDiff } from 'react-diff-view';
