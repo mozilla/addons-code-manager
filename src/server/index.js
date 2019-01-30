@@ -1,4 +1,5 @@
-/* eslint @typescript-eslint/no-var-requires: 0, no-console: 0, global-require: 0 */
+/* eslint @typescript-eslint/no-var-requires: 0, no-console: 0,
+   global-require: 0, amo/only-tsx-files: 0 */
 // @ts-ignore
 const fs = require('fs');
 const path = require('path');

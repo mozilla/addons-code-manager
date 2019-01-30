@@ -1,3 +1,4 @@
+/* eslint amo/only-tsx-files: 0 */
 import path from 'path';
 
 import request from 'supertest';
