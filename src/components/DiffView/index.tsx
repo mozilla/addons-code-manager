@@ -20,7 +20,13 @@ class DiffView extends React.Component<Props> {
     return (
       <div>
         {files.map(({ hunks, type }, index: number) => (
-          <Diff diffType={type} hunks={hunks} key={index} viewType={viewType} />
+          <Diff
+            diffType={type}
+            hunks={hunks}
+            // eslint-disable-next-line react/no-array-index-key
+            key={`diff-${index}`}
+            viewType={viewType}
+          />
         ))}
       </div>
     );
