@@ -92,7 +92,7 @@ class AppBase extends React.Component<Props, State> {
     const { profile, isLoggingOut } = this.state;
 
     return (
-      <Container className={styles.container} fluid={true}>
+      <Container className={styles.container} fluid>
         <Row className={styles.header}>
           {profile ? (
             <React.Fragment>
