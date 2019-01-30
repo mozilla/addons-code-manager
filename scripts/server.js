@@ -39,7 +39,9 @@ app.listen(app.get('port'), () => {
       }).`,
       app.get('port'),
     );
-    console.log('\n  Press CTRL-C to stop');
+    console.log('');
+    console.log('  Press CTRL-a-k to stop');
+    console.log('  Press CTRL-a-? for help');
     console.log('\n' + '#'.repeat(70) + '\n');
   }
 });
