@@ -20,7 +20,8 @@
     "jsx": "preserve"
   },
   "include": [
-    "src"
+    "src",
+    "stories"
   ],
   "exclude": ["src/server/index.js"]
 }
