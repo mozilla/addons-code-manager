@@ -1,6 +1,7 @@
 {
   "extends": [
     "amo",
+    "plugin:amo/recommended",
     "plugin:jest/recommended",
     "plugin:@typescript-eslint/recommended"
   ],
@@ -28,7 +29,8 @@
     "operator-linebreak": "off",
     "react/jsx-one-expression-per-line": "off",
     // Report an error when a variable is not used.
-    "@typescript-eslint/no-unused-vars": "error",
+    // TODO: uncomment when we can upgrade https://github.com/typescript-eslint/typescript-eslint
+    //"@typescript-eslint/no-unused-vars": "error",
   },
   "settings": {
     "import/resolver": {

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Diff, DiffInfo, DiffProps, parseDiff } from 'react-diff-view';
+import { Diff, DiffProps, parseDiff } from 'react-diff-view';
 
 type Props = {
   diff: string;
