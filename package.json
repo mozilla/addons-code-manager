@@ -6,7 +6,7 @@
     "@types/jest": "23.3.13",
     "@types/node": "10.12.19",
     "@types/react": "16.7.22",
-    "@types/react-bootstrap": "0.32.15",
+    "@types/react-bootstrap": "0.32.16",
     "@types/react-dom": "16.0.11",
     "@types/react-redux": "7.0.1",
     "@types/react-router-dom": "4.3.1",
