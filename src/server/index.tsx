@@ -1,16 +1,32 @@
 /* eslint @typescript-eslint/no-var-requires: 0, no-console: 0,
    global-require: 0, amo/only-tsx-files: 0 */
-// @ts-ignore
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import http from 'http';
+import path from 'path';
 
-const express = require('express');
-const proxy = require('http-proxy-middleware');
-const cookiesMiddleware = require('universal-cookie-express');
+import express from 'express';
+import proxy from 'http-proxy-middleware';
+import cookiesMiddleware, {
+  RequestWithCookies,
+} from 'universal-cookie-express';
+
+export type ServerEnvVars = {
+  NODE_ENV: string;
+  PORT: number;
+  REACT_APP_API_HOST: string;
+  REACT_APP_AUTHENTICATION_COOKIE: string;
+  REACT_APP_AUTH_TOKEN_PLACEHOLDER: string;
+  REACT_APP_CRA_PORT: number;
+  REACT_APP_USE_INSECURE_PROXY: string;
+};
 
 // This function injects the authentication token into the HTML sent to the
 // browser (`index.html`). The token is stored into a HttpOnly cookie.
-const injectAuthenticationToken = (req, html, env) => {
+export const injectAuthenticationToken = (
+  req: RequestWithCookies,
+  html: string,
+  env: ServerEnvVars,
+): string => {
   // Try to retrieve the authentication cookie, which contains the token.
   const authToken = req.universalCookies.get(
     env.REACT_APP_AUTHENTICATION_COOKIE,
@@ -23,11 +39,17 @@ const injectAuthenticationToken = (req, html, env) => {
   );
 };
 
-const createServer = ({
+type CreateServerParams = {
+  _injectAuthenticationToken?: typeof injectAuthenticationToken;
+  env: ServerEnvVars;
+  rootPath: string;
+};
+
+export const createServer = ({
   env,
   rootPath,
   _injectAuthenticationToken = injectAuthenticationToken,
-}) => {
+}: CreateServerParams) => {
   // Create an express server.
   const app = express();
 
@@ -51,13 +73,13 @@ const createServer = ({
         cookieDomainRewrite: '',
         protocolRewrite: 'http',
         secure: false,
-        onProxyRes: (proxyResponse) => {
+        onProxyRes: (proxyResponse: http.IncomingMessage) => {
           // We make cookies unsecure because local development uses http and
           // not https. Without this change, the server code would not be able
           // to read the cookie that stores the authentication token.
           if (proxyResponse.headers['set-cookie']) {
-            const cookies = proxyResponse.headers['set-cookie'].map((cookie) =>
-              cookie.replace(/;\s*?(Secure)/i, ''),
+            const cookies = proxyResponse.headers['set-cookie'].map(
+              (cookie: string) => cookie.replace(/;\s*?(Secure)/i, ''),
             );
             // eslint-disable-next-line no-param-reassign
             proxyResponse.headers['set-cookie'] = cookies;
@@ -81,8 +103,12 @@ const createServer = ({
     app.use(express.static(path.join(rootPath, 'build'), { index: false }));
 
     // This handles all the incoming requests.
-    app.get('/*', (req, res) => {
-      const html = _injectAuthenticationToken(req, indexHtml, env);
+    app.get('/*', (req: express.Request, res: express.Response) => {
+      const html = _injectAuthenticationToken(
+        req as RequestWithCookies,
+        indexHtml,
+        env,
+      );
 
       res.set('cache-control', 'private, no-store');
       res.send(html);
@@ -101,7 +127,11 @@ const createServer = ({
         target: `http://localhost:${env.REACT_APP_CRA_PORT}`,
         // We need WebSocket for Hot Module Reload (HMR).
         ws: true,
-        onProxyRes: (proxyResponse, req, res) => {
+        onProxyRes: (
+          proxyResponse: http.IncomingMessage,
+          req: http.IncomingMessage & RequestWithCookies,
+          res: http.ServerResponse,
+        ) => {
           if (req.url === '/') {
             // eslint-disable-next-line no-param-reassign
             proxyResponse.headers['cache-control'] = 'private, no-store';
@@ -109,7 +139,7 @@ const createServer = ({
             modifyResponse(
               res,
               proxyResponse.headers['content-encoding'],
-              (body) => _injectAuthenticationToken(req, body, env),
+              (body: string) => _injectAuthenticationToken(req, body, env),
             );
           }
         },
@@ -118,9 +148,4 @@ const createServer = ({
   }
 
   return app;
-};
-
-module.exports = {
-  createServer,
-  injectAuthenticationToken,
 };

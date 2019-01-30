@@ -1,15 +1,16 @@
-const path = require('path');
+import path from 'path';
+import chalk from 'chalk';
 
-const chalk = require('chalk');
-
-const { createServer } = require('../src/server');
+import { ServerEnvVars, createServer } from '../src/server';
 
 // Load environment configuration.
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 require('react-scripts/config/env');
 
 const app = createServer({
-  env: process.env,
+  // This is risky but also expected because `process.env` is only defined at
+  // runtime.
+  env: (process.env as any) as ServerEnvVars,
   rootPath: path.join(__dirname, '..'),
 });
 
