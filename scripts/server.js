@@ -30,17 +30,17 @@ app.listen(app.get('port'), () => {
     console.log(
       `  This project is running at ${chalk.yellow(
         'http://localhost:%d/',
-      )} in %s`,
+      )}`,
       app.get('port'),
+    );
+    console.log(
+      '  in %s mode. Please use this URL and not the URL ',
       app.get('env'),
     );
     console.log(
-      '  mode, please use this URL and not the URL given by Create React',
-    );
-    console.log(
-      `  App (below). ${chalk.yellow('You must use port %d')} (and not ${
+      `  given by Create React App. ${chalk.yellow('You must use port %d')}, not ${
         process.env.REACT_APP_CRA_PORT
-      }).`,
+      }.`,
       app.get('port'),
     );
     console.log('');
