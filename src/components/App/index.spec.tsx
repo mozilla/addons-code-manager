@@ -32,7 +32,6 @@ describe(__filename, () => {
   it('renders without crashing', () => {
     const root = render();
 
-    expect(root.find(Navbar)).toHaveProp('onLogOut', root.instance().logOut);
     expect(root.find(Container)).toHaveClassName(styles.container);
     expect(root.find(`.${styles.header}`)).toHaveLength(1);
   });

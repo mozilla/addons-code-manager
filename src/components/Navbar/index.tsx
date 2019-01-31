@@ -17,18 +17,18 @@ export class NavbarBase extends React.Component<Props> {
     return (
       <Navbar bg="dark" className={styles.Navbar} expand="lg" variant="dark">
         <Navbar.Brand href="#">addons-code-manager</Navbar.Brand>
-        <Nav>
+        <Navbar.Text>
           {profile ? (
-            <Nav.Link className="Navbar-username">{profile.name}</Nav.Link>
+            <span className={styles.username}>{profile.name}</span>
           ) : null}
           {profile ? (
-            <Button className="Navbar-logOut" onClick={onLogOut}>
+            <Button className={styles.logOut} onClick={onLogOut}>
               Log out
             </Button>
           ) : (
             <LoginButton />
           )}
-        </Nav>
+        </Navbar.Text>
       </Navbar>
     );
   }

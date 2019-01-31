@@ -4,6 +4,7 @@ import React from 'react';
 import LoginButton from '../LoginButton';
 
 import Navbar from '.';
+import styles from './styles.module.scss';
 
 describe(__filename, () => {
   const render = (props = {}) => {
@@ -19,14 +20,14 @@ describe(__filename, () => {
       const name = 'Bob';
       const root = render({ profile: createProfile(name) });
 
-      expect(root.find('.Navbar-username')).toHaveText(name);
+      expect(root.find(`.${styles.username}`)).toHaveText(name);
     });
 
-    it('configures a log out button', () => {
+    it('renders a log out button', () => {
       const onLogOut = () => null;
       const root = render({ onLogOut, profile: createProfile() });
 
-      expect(root.find('.Navbar-logOut')).toHaveProp('onClick', onLogOut);
+      expect(root.find(`.${styles.logOut}`)).toHaveLength(1);
     });
 
     it('does not render a log in button', () => {
@@ -40,7 +41,7 @@ describe(__filename, () => {
     it('does not render a username', () => {
       const root = render({ profile: null });
 
-      expect(root.find('.Navbar-username')).toHaveLength(0);
+      expect(root.find(`.${styles.username}`)).toHaveLength(0);
     });
 
     it('renders a log in button', () => {
@@ -52,7 +53,17 @@ describe(__filename, () => {
     it('does not render a log out button', () => {
       const root = render({ profile: null });
 
-      expect(root.find('.Navbar-logOut')).toHaveLength(0);
+      expect(root.find(`.${styles.logOut}`)).toHaveLength(0);
+    });
+  });
+
+  describe('Log out button', () => {
+    it('calls onLogOut when clicked', () => {
+      const onLogOutMock = jest.fn();
+      const root = render({ onLogOut: onLogOutMock, profile: createProfile() });
+
+      root.find(`.${styles.logOut}`).simulate('click');
+      expect(onLogOutMock).toBeCalled();
     });
   });
 });
