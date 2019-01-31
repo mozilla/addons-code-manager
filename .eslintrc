@@ -13,7 +13,7 @@
     // https://github.com/typescript-eslint/typescript-eslint/blob/5b0b3d9edbcb3ab588a34c431037d9deece30824/packages/eslint-plugin/docs/rules/indent.md#options
     "@typescript-eslint/indent": ["error", 2],
     "import/no-extraneous-dependencies": ["error", {
-        "devDependencies": ["**/*.spec.*"]
+        "devDependencies": ["**/*.spec.*", "src/setupTests.tsx"]
       }
     ],
     // We use `.tsx` instead of `.jsx` for files with JSX inside.
