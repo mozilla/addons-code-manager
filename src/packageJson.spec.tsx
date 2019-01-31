@@ -1,25 +1,33 @@
 import packageJson from '../package.json';
 
-type KeyValue = { [key: string]: string };
-
 describe(__filename, () => {
-  const skipDevDeps = ['prettier'];
+  const skipDevDeps = [
+    // There is a conflict between CRA and Storybook, see:
+    // https://github.com/mozilla/addons-code-manager/issues/91
+    'babel-loader',
+    // Prettier recommends to pin the version to avoid unreviewed changes.
+    'prettier',
+  ];
 
-  Object.keys(packageJson.devDependencies).forEach((key) => {
-    it(`should have devDependencies[${key}] version prefixed with "^"`, () => {
+  it.each(Object.keys(packageJson.dependencies))(
+    `should have dependencies[%s] version prefixed with a number`,
+    (key: string) => {
+      expect(packageJson.dependencies).toHaveProperty(
+        key,
+        expect.stringMatching(/^\d/),
+      );
+    },
+  );
+
+  it.each(Object.keys(packageJson.devDependencies))(
+    `should have devDependencies[%s] version prefixed with "^"`,
+    (key: string) => {
       if (!skipDevDeps.includes(key)) {
-        expect((packageJson.devDependencies as KeyValue)[key]).toEqual(
+        expect(packageJson.devDependencies).toHaveProperty(
+          key,
           expect.stringMatching(/^(\^|git)/),
         );
       }
-    });
-  });
-
-  Object.keys(packageJson.dependencies).forEach((key) => {
-    it(`should have dependencies[${key}] version prefixed with a number`, () => {
-      expect((packageJson.dependencies as KeyValue)[key]).toEqual(
-        expect.stringMatching(/^\d/),
-      );
-    });
-  });
+    },
+  );
 });
