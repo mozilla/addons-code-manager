@@ -13,6 +13,10 @@ const app = createServer({
   rootPath: path.join(__dirname, '..'),
 });
 
+const printDivider = () => {
+  console.log('\n' + '#'.repeat(60) + '\n');
+};
+
 app.listen(app.get('port'), () => {
   if (process.env.NODE_ENV === 'production') {
     console.log(
@@ -21,25 +25,25 @@ app.listen(app.get('port'), () => {
       app.get('env'),
     );
   } else {
-    console.log('\n' + '#'.repeat(70) + '\n');
+    printDivider();
     console.log(chalk.green('  MOZILLA/ADDONS-CODE-MANAGER\n'));
     console.log(
-      `  This project is running at ${chalk.yellow(
-        'http://localhost:%d/',
-      )} in %s`,
+      `  This project is running at ${chalk.yellow('http://localhost:%d/')}`,
       app.get('port'),
+    );
+    console.log(
+      '  in %s mode. Please use this URL and not the URL ',
       app.get('env'),
     );
     console.log(
-      '  mode, please use this URL and not the URL given by Create React',
-    );
-    console.log(
-      `  App (below). ${chalk.yellow('You must use port %d')} (and not ${
-        process.env.REACT_APP_CRA_PORT
-      }).`,
+      `  given by Create React App. ${chalk.yellow(
+        'You must use port %d',
+      )}, not ${process.env.REACT_APP_CRA_PORT}.`,
       app.get('port'),
     );
-    console.log('\n  Press CTRL-C to stop');
-    console.log('\n' + '#'.repeat(70) + '\n');
+    console.log('');
+    console.log('  Press CTRL-c to stop');
+    console.log('  Press CTRL-a-? for stmux help');
+    printDivider();
   }
 });
