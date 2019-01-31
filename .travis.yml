@@ -40,3 +40,6 @@ jobs:
     - name: prettier
       <<: *node-prod
       script: yarn prettier-ci
+    - name: linter (node@production)
+      <<: *node-prod
+      script: yarn lint

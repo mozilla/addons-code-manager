@@ -1,3 +1,5 @@
+/* eslint amo/only-tsx-files: 0, @typescript-eslint/no-unused-vars: 0 */
+
 declare module 'react-diff-view' {
   type ChangeType = 'delete' | 'insert' | 'normal';
 
@@ -13,7 +15,7 @@ declare module 'react-diff-view' {
   };
 
   type HunkInfo = {
-    changes: Array<ChangeInfo>;
+    changes: ChangeInfo[];
     content: string;
     isPlain: boolean;
     newLines: number;
@@ -22,7 +24,7 @@ declare module 'react-diff-view' {
     oldStart: number;
   };
 
-  type Hunks = Array<HunkInfo>;
+  type Hunks = HunkInfo[];
 
   type DiffInfo = {
     oldPath: string;
@@ -37,7 +39,7 @@ declare module 'react-diff-view' {
     type: string;
   };
 
-  function parseDiff(text: string, options?: object): Array<DiffInfo>;
+  function parseDiff(text: string, options?: object): DiffInfo[];
 
   type ViewType = 'split' | 'unified';
 
@@ -47,5 +49,6 @@ declare module 'react-diff-view' {
     viewType: ViewType;
   };
 
+  // eslint-disable-next-line no-undef
   class Diff extends React.Component<DiffProps, {}> {}
 }

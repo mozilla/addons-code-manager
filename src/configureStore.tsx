@@ -1,5 +1,12 @@
-import { Dispatch, Action, AnyAction } from 'redux';
-import { Store, applyMiddleware, combineReducers, createStore } from 'redux';
+import {
+  Action,
+  AnyAction,
+  Dispatch,
+  Store,
+  applyMiddleware,
+  combineReducers,
+  createStore,
+} from 'redux';
 import { composeWithDevTools } from 'redux-devtools-extension';
 import { createLogger } from 'redux-logger';
 

@@ -58,6 +58,14 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser. *
 
 This runs the [eject](https://facebook.github.io/create-react-app/docs/available-scripts#npm-run-eject) command. Hopefully we won't ever need this 😭
 
+### `yarn eslint`
+
+This runs [ESLint][] to discover problems within our codebase without executing it. ESLint also enforces some patterns and practices.
+
+### `yarn lint`
+
+This runs all the _lint_ commands at once.
+
 ### `yarn prettier`
 
 This runs [Prettier][] to automatically format the entire codebase.
@@ -117,3 +125,4 @@ To learn React, check out the [React documentation](https://reactjs.org/).
 [prettier]: https://prettier.io/
 [typescript]: https://www.typescriptlang.org/
 [stmux]: https://github.com/rse/stmux
+[eslint]: https://eslint.org/

@@ -6,7 +6,6 @@ import { Provider } from 'react-redux';
 import './styles.scss';
 import App from './components/App';
 import configureStore from './configureStore';
-import { actions as apiActions } from './reducers/api';
 
 const store = configureStore();
 

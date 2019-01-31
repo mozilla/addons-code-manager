@@ -15,6 +15,8 @@ type CallApiParams = {
   apiState: ApiState;
 };
 
+type CallApiResponse = object | { error: Error };
+
 type Headers = {
   [name: string]: string;
 };
@@ -24,34 +26,38 @@ export const callApi = async ({
   endpoint,
   method = HttpMethod.GET,
   version = 'v4',
-}: CallApiParams): Promise<object | { error: Error }> => {
-  if (!endpoint.startsWith('/')) {
-    endpoint = `/${endpoint}`;
+}: CallApiParams): Promise<CallApiResponse> => {
+  let adjustedEndpoint = endpoint;
+  if (!adjustedEndpoint.startsWith('/')) {
+    adjustedEndpoint = `/${adjustedEndpoint}`;
   }
-  if (!endpoint.endsWith('/')) {
-    endpoint = `${endpoint}/`;
+  if (!adjustedEndpoint.endsWith('/')) {
+    adjustedEndpoint = `${adjustedEndpoint}/`;
   }
 
-  const headers = {} as Headers;
+  const headers: Headers = {};
   if (apiState.authToken) {
-    headers['Authorization'] = `Bearer ${apiState.authToken}`;
+    headers.Authorization = `Bearer ${apiState.authToken}`;
   }
 
   try {
-    const response = await fetch(`/api/${version}${endpoint}`, {
+    const response = await fetch(`/api/${version}${adjustedEndpoint}`, {
       method,
       headers,
     });
 
     if (!response.ok) {
       throw new Error(
-        `Unexpected status for ${method} ${endpoint}: ${response.status}`,
+        `Unexpected status for ${method} ${adjustedEndpoint}: ${
+          response.status
+        }`,
       );
     }
 
     return await response.json();
   } catch (error) {
-    console.error(error);
+    // eslint-disable-next-line no-console
+    console.debug(error);
 
     return {
       error,

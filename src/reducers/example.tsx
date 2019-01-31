@@ -1,12 +1,8 @@
 import { Reducer } from 'redux';
 import { ActionType, createAction, getType } from 'typesafe-actions';
 
-type TogglePayload = {};
-
 export const actions = {
-  toggle: createAction('TOGGLE', (resolve) => {
-    return () => resolve({} as TogglePayload);
-  }),
+  toggle: createAction('TOGGLE'),
 };
 
 export type ExampleState = {
