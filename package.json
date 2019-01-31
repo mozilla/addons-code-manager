@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@types/jest": "23.3.13",
+    "@types/loglevel": "1.5.3",
     "@types/node": "10.12.21",
     "@types/react": "16.8.0",
     "@types/react-bootstrap": "0.32.16",
@@ -15,6 +16,7 @@
     "express": "4.16.4",
     "http-proxy-middleware": "0.19.1",
     "http-proxy-response-rewrite": "0.0.1",
+    "loglevel": "1.6.1",
     "node-sass": "4.11.0",
     "react": "16.7.0",
     "react-bootstrap": "1.0.0-beta.5",

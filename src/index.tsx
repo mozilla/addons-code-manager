@@ -2,10 +2,15 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { BrowserRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
+import log from 'loglevel';
 
 import './styles.scss';
 import App from './components/App';
 import configureStore from './configureStore';
+
+if (process.env.NODE_ENV === 'production') {
+  log.setLevel(log.levels.INFO);
+}
 
 const store = configureStore();
 

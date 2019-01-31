@@ -1,3 +1,5 @@
+import log from 'loglevel';
+
 import { ApiState } from '../reducers/api';
 
 export enum HttpMethod {
@@ -56,8 +58,7 @@ export const callApi = async ({
 
     return await response.json();
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.debug(error);
+    log.debug(error);
 
     return {
       error,
