@@ -12,9 +12,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 ## Getting started
 
 - Type `yarn` to install everything
-- Type `yarn dev` to launch the test suite, development servers, and all other development processes in [stmux][].
-  Open [http://localhost:3000](http://localhost:3000) to view the development site.
-  **Press CTRL-a-? for help**.
+- Type `yarn dev` to launch the test suite, development servers, and all other development processes in [stmux][]. Open [http://localhost:3000](http://localhost:3000) to view the development site. **Press CTRL-a-? for help**.
 
 All available commands are documented below.
 
@@ -44,22 +42,17 @@ Note: for this project, we use a node server (see `scripts/server.js`).
 
 ### `yarn dev`
 
-This runs all development processes in a single column using [stmux][].
-Open [http://localhost:3000](http://localhost:3000) to view the development site.
-**Press CTRL-a-? for help**.
+This runs all development processes in a single column using [stmux][]. Open [http://localhost:3000](http://localhost:3000) to view the development site. **Press CTRL-a-? for help**.
 
 ### `yarn dev-2col`
 
-This runs all development processes in two columns using [stmux][].
-Open [http://localhost:3000](http://localhost:3000) to view the development site.
-**Press CTRL-a-? for help**.
+This runs all development processes in two columns using [stmux][]. Open [http://localhost:3000](http://localhost:3000) to view the development site. **Press CTRL-a-? for help**.
 
 ### `yarn dev-servers`
 
 This starts all development servers using [stmux][], connected to the [-dev AMO API](https://addons-server.readthedocs.io/).
 
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
-**Press CTRL-a-? for help**.
+Open [http://localhost:3000](http://localhost:3000) to view it in the browser. **Press CTRL-a-? for help**.
 
 ### `yarn eject`
 
