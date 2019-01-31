@@ -40,8 +40,8 @@ app.listen(app.get('port'), () => {
       app.get('port'),
     );
     console.log('');
-    console.log('  Press CTRL-a-k to stop');
-    console.log('  Press CTRL-a-? for help');
+    console.log('  Press CTRL-c to stop');
+    console.log('  Press CTRL-a-? for stmux help');
     console.log('\n' + '#'.repeat(70) + '\n');
   }
 });
