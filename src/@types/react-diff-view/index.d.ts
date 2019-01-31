@@ -49,5 +49,6 @@ declare module 'react-diff-view' {
     viewType: ViewType;
   };
 
+  // eslint-disable-next-line no-undef
   class Diff extends React.Component<DiffProps, {}> {}
 }
