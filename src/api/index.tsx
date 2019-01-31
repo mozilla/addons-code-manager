@@ -1,4 +1,3 @@
-/* global fetch */
 import { ApiState } from '../reducers/api';
 
 export enum HttpMethod {
@@ -28,13 +27,12 @@ export const callApi = async ({
   method = HttpMethod.GET,
   version = 'v4',
 }: CallApiParams): Promise<CallApiResponse> => {
-  if (!endpoint.startsWith('/')) {
-    // eslint-disable-next-line no-param-reassign
-    endpoint = `/${endpoint}`;
+  let adjustedEndpoint = endpoint;
+  if (!adjustedEndpoint.startsWith('/')) {
+    adjustedEndpoint = `/${adjustedEndpoint}`;
   }
-  if (!endpoint.endsWith('/')) {
-    // eslint-disable-next-line no-param-reassign
-    endpoint = `${endpoint}/`;
+  if (!adjustedEndpoint.endsWith('/')) {
+    adjustedEndpoint = `${adjustedEndpoint}/`;
   }
 
   const headers: Headers = {};
@@ -43,21 +41,23 @@ export const callApi = async ({
   }
 
   try {
-    const response = await fetch(`/api/${version}${endpoint}`, {
+    const response = await fetch(`/api/${version}${adjustedEndpoint}`, {
       method,
       headers,
     });
 
     if (!response.ok) {
       throw new Error(
-        `Unexpected status for ${method} ${endpoint}: ${response.status}`,
+        `Unexpected status for ${method} ${adjustedEndpoint}: ${
+          response.status
+        }`,
       );
     }
 
     return await response.json();
   } catch (error) {
-    // eslint-disable-next-line amo/only-log-strings, no-console
-    console.error(error);
+    // eslint-disable-next-line no-console
+    console.debug(error);
 
     return {
       error,

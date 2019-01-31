@@ -3,8 +3,11 @@
     "amo",
     "plugin:amo/typescript",
     "plugin:jest/recommended",
-    "plugin:@typescript-eslint/recommended"
+    "plugin:@typescript-eslint/recommended",
   ],
+  "env": {
+    "browser": true,
+  },
   "rules": {
     // TS configuration for the `indent` rule.
     // https://github.com/typescript-eslint/typescript-eslint/blob/5b0b3d9edbcb3ab588a34c431037d9deece30824/packages/eslint-plugin/docs/rules/indent.md#options
@@ -30,6 +33,11 @@
     "react/jsx-one-expression-per-line": "off",
     // Report an error when a variable is not used.
     "@typescript-eslint/no-unused-vars": "error",
+    // The beauty of TS is that it infers types quite well, so let's not write
+    // too much code.
+    "@typescript-eslint/explicit-function-return-type": "off",
+    // TODO: re-enable this rule once https://github.com/mozilla/addons-code-manager/issues/85 lands.
+    "amo/only-log-strings": "off",
   },
   "settings": {
     "import/resolver": {

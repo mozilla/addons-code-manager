@@ -2,7 +2,6 @@ import {
   Action,
   AnyAction,
   Dispatch,
-  Reducer,
   Store,
   applyMiddleware,
   combineReducers,
@@ -23,7 +22,7 @@ export type ApplicationState = {
   example: ExampleState;
 };
 
-const createRootReducer = (): Reducer<ApplicationState> => {
+const createRootReducer = () => {
   return combineReducers<ApplicationState>({ api, example });
 };
 

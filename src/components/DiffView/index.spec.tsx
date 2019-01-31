@@ -1,4 +1,4 @@
-import { ShallowWrapper, shallow } from 'enzyme';
+import { shallow } from 'enzyme';
 import React from 'react';
 import { Diff, parseDiff } from 'react-diff-view';
 
@@ -37,7 +37,7 @@ index 0cfbf08..e69de29 100644
 @@ -1 +0,0 @@
 -2`;
 
-  const render = (props = {}): ShallowWrapper => {
+  const render = (props = {}) => {
     return shallow(<DiffView diff={basicDiff} {...props} />);
   };
 
