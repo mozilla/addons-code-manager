@@ -28,9 +28,7 @@ app.listen(app.get('port'), () => {
     printDivider();
     console.log(chalk.green('  MOZILLA/ADDONS-CODE-MANAGER\n'));
     console.log(
-      `  This project is running at ${chalk.yellow(
-        'http://localhost:%d/',
-      )}`,
+      `  This project is running at ${chalk.yellow('http://localhost:%d/')}`,
       app.get('port'),
     );
     console.log(
@@ -38,9 +36,9 @@ app.listen(app.get('port'), () => {
       app.get('env'),
     );
     console.log(
-      `  given by Create React App. ${chalk.yellow('You must use port %d')}, not ${
-        process.env.REACT_APP_CRA_PORT
-      }.`,
+      `  given by Create React App. ${chalk.yellow(
+        'You must use port %d',
+      )}, not ${process.env.REACT_APP_CRA_PORT}.`,
       app.get('port'),
     );
     console.log('');
