@@ -65,9 +65,7 @@ export const callApi = async ({
   }
 };
 
-export const logOutFromServer = async (
-  apiState: ApiState,
-): Promise<CallApiResponse> => {
+export const logOutFromServer = async (apiState: ApiState) => {
   return callApi({
     apiState,
     endpoint: 'accounts/session',
