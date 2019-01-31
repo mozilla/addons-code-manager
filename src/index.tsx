@@ -9,7 +9,11 @@ import App from './components/App';
 import configureStore from './configureStore';
 
 if (process.env.NODE_ENV === 'production') {
-  log.setLevel(log.levels.INFO);
+  // The second parameter prevents the log level to be persisted in a cookie or
+  // localStorage.
+  log.setLevel(log.levels.INFO, false);
+} else {
+  log.setLevel(log.levels.DEBUG, false);
 }
 
 const store = configureStore();

@@ -58,7 +58,7 @@ export const callApi = async ({
 
     return await response.json();
   } catch (error) {
-    log.debug(error);
+    log.debug('Error caught in callApi():', error);
 
     return {
       error,
