@@ -1,5 +1,3 @@
-/* eslint @typescript-eslint/no-var-requires: 0, no-console: 0,
-   global-require: 0, amo/only-tsx-files: 0 */
 import fs from 'fs';
 import http from 'http';
 import path from 'path';
@@ -62,6 +60,7 @@ export const createServer = ({
   // AMO/addons-server API). This is useful for local development.
   if (env.REACT_APP_USE_INSECURE_PROXY === 'true') {
     if (env.NODE_ENV === 'production') {
+      // eslint-disable-next-line no-console
       console.warn(`Using an insecure proxy with NODE_ENV=production is risky`);
     }
 
@@ -120,6 +119,7 @@ export const createServer = ({
     // use CRA as usual (in dev mode) and the same authentication mechanism
     // used in production mode.
 
+    // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
     const modifyResponse = require('http-proxy-response-rewrite');
 
     app.use(
