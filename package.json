@@ -83,6 +83,7 @@
     "start-local-stage": "cat .env.common-local .env.stage > .env.local && yarn start",
     "stmux": "stmux -nM -t addons-code-manager -e 'error,!0 errors'",
     "storybook": "start-storybook -p 9001 -c stories/setup",
+    "storybook-smoke-test": "yarn storybook --smoke-test",
     "test": "react-scripts test",
     "test-ci": "yarn test --coverage && codecov",
     "type-coverage": "type-coverage",
