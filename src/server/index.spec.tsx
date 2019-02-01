@@ -1,9 +1,11 @@
-/* eslint amo/only-tsx-files: 0 */
+/* eslint @typescript-eslint/no-object-literal-type-assertion: 0 */
 import path from 'path';
 
 import request from 'supertest';
+import { RequestWithCookies } from 'universal-cookie-express';
+import Cookies from 'universal-cookie';
 
-import { createServer, injectAuthenticationToken } from '.';
+import { ServerEnvVars, createServer, injectAuthenticationToken } from '.';
 
 describe(__filename, () => {
   describe('injectAuthenticationToken', () => {
@@ -12,13 +14,20 @@ describe(__filename, () => {
 
       const req = {
         universalCookies: {
-          get: () => token,
-        },
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          get: (name: string) => token,
+        } as Cookies,
+      } as RequestWithCookies;
+      const env = {
+        REACT_APP_AUTH_TOKEN_PLACEHOLDER: '__PLACEHOLDER__',
       };
-      const env = { REACT_APP_AUTH_TOKEN_PLACEHOLDER: '__PLACEHOLDER__' };
       const html = `<div data-token="${env.REACT_APP_AUTH_TOKEN_PLACEHOLDER}">`;
 
-      const htmlWithToken = injectAuthenticationToken(req, html, env);
+      const htmlWithToken = injectAuthenticationToken(
+        req,
+        html,
+        env as ServerEnvVars,
+      );
 
       expect(htmlWithToken).toEqual(`<div data-token="${token}">`);
     });
@@ -28,13 +37,18 @@ describe(__filename, () => {
 
       const req = {
         universalCookies: {
-          get: () => token,
-        },
-      };
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          get: (name: string) => token,
+        } as Cookies,
+      } as RequestWithCookies;
       const env = { REACT_APP_AUTH_TOKEN_PLACEHOLDER: '__PLACEHOLDER__' };
       const html = `<div data-token="${env.REACT_APP_AUTH_TOKEN_PLACEHOLDER}">`;
 
-      const htmlWithToken = injectAuthenticationToken(req, html, env);
+      const htmlWithToken = injectAuthenticationToken(
+        req,
+        html,
+        env as ServerEnvVars,
+      );
 
       expect(htmlWithToken).toEqual(`<div data-token="\\u003cscript>">`);
     });
@@ -44,12 +58,14 @@ describe(__filename, () => {
     const rootPath = path.join(__dirname, 'fixtures');
 
     describe('NODE_ENV=production', () => {
-      const env = {
+      const prodEnv = {
         NODE_ENV: 'production',
       };
 
       it('creates an Express server', async () => {
-        const server = request(createServer({ env, rootPath }));
+        const server = request(
+          createServer({ env: prodEnv as ServerEnvVars, rootPath }),
+        );
 
         const response = await server.get('/');
 
@@ -61,7 +77,9 @@ describe(__filename, () => {
       });
 
       it('serves the index.html content to all routes', async () => {
-        const server = request(createServer({ env, rootPath }));
+        const server = request(
+          createServer({ env: prodEnv as ServerEnvVars, rootPath }),
+        );
 
         const response = await server.get('/foo-bar');
 
@@ -75,7 +93,11 @@ describe(__filename, () => {
         _injectAuthenticationToken.mockReturnValue(expectedHTML);
 
         const server = request(
-          createServer({ env, rootPath, _injectAuthenticationToken }),
+          createServer({
+            env: prodEnv as ServerEnvVars,
+            rootPath,
+            _injectAuthenticationToken,
+          }),
         );
 
         const response = await server.get('/');

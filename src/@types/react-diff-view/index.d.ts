@@ -1,4 +1,4 @@
-/* eslint amo/only-tsx-files: 0, @typescript-eslint/no-unused-vars: 0 */
+/* eslint amo/only-tsx-files: 0 */
 
 declare module 'react-diff-view' {
   type ChangeType = 'delete' | 'insert' | 'normal';
@@ -50,5 +50,5 @@ declare module 'react-diff-view' {
   };
 
   // eslint-disable-next-line no-undef
-  class Diff extends React.Component<DiffProps, {}> {}
+  export class Diff extends React.Component<DiffProps, {}> {}
 }
