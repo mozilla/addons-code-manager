@@ -23,6 +23,7 @@
     "loglevel": "1.6.1",
     "node-sass": "4.11.0",
     "prop-types": "15.6.2",
+    "raven-js": "3.27.0",
     "react": "16.8.0",
     "react-bootstrap": "1.0.0-beta.5",
     "react-diff-view": "2.0.0-alpha.1",
@@ -65,7 +66,7 @@
   },
   "scripts": {
     "build": "react-scripts build",
-    "build-local-dev-config": "cat .env.common-local .env.dev > .env.local",
+    "build-local-dev-config": "cat .env.dev .env.common-local > .env.local",
     "dev": "yarn build-local-dev-config && yarn stmux [ 'yarn test' : 'tsc -w' : 'yarn react-scripts-start' : 'yarn serve-dev' ]",
     "dev-2col": "yarn build-local-dev-config && yarn stmux [ 'yarn test' .. [ 'tsc -w' : 'yarn react-scripts-start' : 'yarn serve-dev' ] ]",
     "dev-servers": "yarn build-local-dev-config && yarn stmux [ 'yarn serve-dev' : 'yarn react-scripts-start' ]",
