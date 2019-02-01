@@ -51,7 +51,7 @@
     "enzyme": "^3.8.0",
     "enzyme-adapter-react-16": "^1.7.1",
     "eslint-config-amo": "^1.11.0",
-    "eslint-plugin-amo": "^1.10.0",
+    "eslint-plugin-amo": "^1.10.1",
     "jest-enzyme": "^7.0.1",
     "jest-fetch-mock": "^2.1.0",
     "prettier": "1.16.3",
