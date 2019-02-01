@@ -1,7 +1,6 @@
 # addons-code-manager
 
-[![Build Status](https://travis-ci.com/mozilla/addons-code-manager.svg?branch=master)](https://travis-ci.com/mozilla/addons-code-manager)
-[![codecov](https://codecov.io/gh/mozilla/addons-code-manager/branch/master/graph/badge.svg)](https://codecov.io/gh/mozilla/addons-code-manager)
+[![Build Status](https://travis-ci.com/mozilla/addons-code-manager.svg?branch=master)](https://travis-ci.com/mozilla/addons-code-manager) [![codecov](https://codecov.io/gh/mozilla/addons-code-manager/branch/master/graph/badge.svg)](https://codecov.io/gh/mozilla/addons-code-manager)
 
 This is a web application to manage add-on source code, such as reviewing code for add-ons submitted to https://addons.mozilla.org
 
