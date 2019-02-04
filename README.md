@@ -13,10 +13,13 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## Getting started
 
+- Clone this repository
 - Type `yarn` to install everything
 - Type `yarn dev` to launch the test suite, development servers, and all other development processes in [stmux][]. Open [http://localhost:3000](http://localhost:3000) to view the development site. **Press CTRL-a-? for help**.
 
 All available commands are documented below.
+
+Read [our contributing guidelines](./CONTRIBUTING.md) to get started on your first patch.
 
 ## Prettier
 
