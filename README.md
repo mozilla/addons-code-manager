@@ -29,11 +29,43 @@ We use [Prettier][] to automatically format our JavaScript code and stop all the
 
 All code is written in [TypeScript][]. Currently, errors in test files won't be reported until you try to submit a pull request. Because of this, consider [configuring your editor](https://github.com/Microsoft/TypeScript/wiki/TypeScript-Editor-Support) for error reporting.
 
-## SASS
+## CSS
 
-All CSS is written with the [SASS](https://sass-lang.com/) pre-processor.
+All styles are written in the [SASS](https://sass-lang.com/) pre-processor language as [css modules](https://github.com/css-modules/css-modules).
 
-## Available Commands
+Example: for a component like `UserProfile/index.tsx`, you'd create its module as `UserProfile/styles.module.scss`. You would import it at the top and reference it as a module. As an example, here is a simple stylesheet:
+
+```css
+.container {
+  padding: 12px;
+}
+```
+
+You would reference in your component like this:
+
+```js
+import * as React from 'react';
+
+import styles from './styles.module.scss';
+
+const UserProfile = () => {
+  return <div className={styles.container} />;
+};
+
+export default UserProfile;
+```
+
+## Storybook
+
+We use [storybook](https://storybook.js.org/) to visualize the look and feel of our React components. Launch the development server like this:
+
+```
+yarn storybook
+```
+
+When developing a new component, always add a story for it. If you were creating a component like `UserProfile/index.tsx` then you'd put its story in `stories/UserProfile.stories.tsx`. The storybook server will automatically load files having the `.stories.tsx` suffix in this directory.
+
+## All Available Commands
 
 In the project directory, you can run the following commands. There are a few commands not mentioned here (see `package.json`) but those are only used by internal processes.
 
