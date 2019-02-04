@@ -43,3 +43,6 @@ jobs:
     - name: linter (node@production)
       <<: *node-prod
       script: yarn lint
+    - name: storybook-smoke-test (node@production)
+      <<: *node-prod
+      script: yarn storybook-smoke-test
