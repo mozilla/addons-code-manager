@@ -1,19 +1,44 @@
 import * as React from 'react';
 import { Button, Navbar } from 'react-bootstrap';
+import { connect } from 'react-redux';
 
 import { gettext } from '../../utils';
-import { Profile } from '../App';
 import LoginButton from '../LoginButton';
+import { logOutFromServer } from '../../api';
+import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
+import { ApiState } from '../../reducers/api';
+import {
+  User,
+  actions as userActions,
+  getCurrentUser,
+} from '../../reducers/users';
 import styles from './styles.module.scss';
 
-type Props = {
-  onLogOut: () => void;
-  profile: null | Profile;
+type PublicProps = {
+  _logOutFromServer: typeof logOutFromServer;
 };
 
+type PropsFromState = {
+  apiState: ApiState;
+  profile: User | null;
+};
+
+type Props = PublicProps & PropsFromState & ConnectedReduxProps;
+
 export class NavbarBase extends React.Component<Props> {
+  static defaultProps = {
+    _logOutFromServer: logOutFromServer,
+  };
+
+  logOut = async () => {
+    const { _logOutFromServer, apiState, dispatch } = this.props;
+
+    await _logOutFromServer(apiState);
+    dispatch(userActions.logOut());
+  };
+
   render() {
-    const { onLogOut, profile } = this.props;
+    const { profile } = this.props;
 
     return (
       <Navbar bg="dark" className={styles.Navbar} expand="lg" variant="dark">
@@ -23,7 +48,7 @@ export class NavbarBase extends React.Component<Props> {
             <span className={styles.username}>{profile.name}</span>
           ) : null}
           {profile ? (
-            <Button className={styles.logOut} onClick={onLogOut}>
+            <Button className={styles.logOut} onClick={this.logOut}>
               {gettext('Log out')}
             </Button>
           ) : (
@@ -35,4 +60,11 @@ export class NavbarBase extends React.Component<Props> {
   }
 }
 
-export default NavbarBase;
+const mapStateToProps = (state: ApplicationState): PropsFromState => {
+  return {
+    apiState: state.api,
+    profile: getCurrentUser(state.users),
+  };
+};
+
+export default connect(mapStateToProps)(NavbarBase);

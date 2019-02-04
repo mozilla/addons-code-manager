@@ -11,6 +11,12 @@ import {
 import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
 import styles from './styles.module.scss';
 import { ApiState, actions as apiActions } from '../../reducers/api';
+import {
+  ExternalUser,
+  User,
+  actions as userActions,
+  getCurrentUser,
+} from '../../reducers/users';
 import * as api from '../../api';
 import Navbar from '../Navbar';
 import Browse from '../../pages/Browse';
@@ -24,6 +30,7 @@ type PublicProps = {
 
 type PropsFromState = {
   apiState: ApiState;
+  profile: User | null;
 };
 
 /* eslint-disable @typescript-eslint/indent */
@@ -33,23 +40,7 @@ type Props = PublicProps &
   RouteComponentProps<{}>;
 /* eslint-enable @typescript-eslint/indent */
 
-export type Profile = {
-  name: string;
-};
-
-type State = {
-  profile: null | Profile;
-};
-
-class AppBase extends React.Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-
-    this.state = {
-      profile: null,
-    };
-  }
-
+class AppBase extends React.Component<Props> {
   componentDidMount() {
     const { authToken, dispatch } = this.props;
 
@@ -59,38 +50,26 @@ class AppBase extends React.Component<Props, State> {
   }
 
   async componentDidUpdate(prevProps: Props) {
-    const { apiState } = this.props;
+    const { apiState, dispatch, profile } = this.props;
 
-    if (
-      !this.state.profile &&
-      prevProps.apiState.authToken !== apiState.authToken
-    ) {
-      const profile = (await api.callApi({
+    if (!profile && prevProps.apiState.authToken !== apiState.authToken) {
+      const response = (await api.callApi({
         apiState,
         endpoint: '/accounts/profile/',
-      })) as State['profile'];
+      })) as ExternalUser;
 
-      if (profile && profile.name) {
-        // eslint-disable-next-line react/no-did-update-set-state
-        this.setState({ profile });
+      if (response && response.name) {
+        dispatch(userActions.loadCurrentUser({ user: response }));
       }
     }
   }
 
-  logOut = async () => {
-    const { apiState } = this.props;
-
-    await api.logOutFromServer(apiState);
-
-    this.setState({ profile: null });
-  };
-
   render() {
-    const { profile } = this.state;
+    const { profile } = this.props;
 
     return (
       <React.Fragment>
-        <Navbar onLogOut={this.logOut} profile={profile} />
+        <Navbar />
 
         <Container className={styles.container} fluid>
           <Row className={styles.content}>
@@ -122,6 +101,7 @@ class AppBase extends React.Component<Props, State> {
 const mapStateToProps = (state: ApplicationState): PropsFromState => {
   return {
     apiState: state.api,
+    profile: getCurrentUser(state.users),
   };
 };
 
