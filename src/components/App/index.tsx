@@ -1,16 +1,21 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { Button, Container, Row } from 'react-bootstrap';
+import { Container, Row } from 'react-bootstrap';
+import {
+  Route,
+  RouteComponentProps,
+  Switch,
+  withRouter,
+} from 'react-router-dom';
 
 import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
 import styles from './styles.module.scss';
 import { ApiState, actions as apiActions } from '../../reducers/api';
-import {
-  ExampleState,
-  actions as exampleActions,
-} from '../../reducers/example';
 import * as api from '../../api';
 import Navbar from '../Navbar';
+import Browse from '../../pages/Browse';
+import Index from '../../pages/Index';
+import NotFound from '../../pages/NotFound';
 
 type PublicProps = {
   authToken: string | null;
@@ -18,10 +23,14 @@ type PublicProps = {
 
 type PropsFromState = {
   apiState: ApiState;
-  toggledOn: ExampleState['toggledOn'];
 };
 
-type Props = PublicProps & PropsFromState & ConnectedReduxProps;
+/* eslint-disable @typescript-eslint/indent */
+type Props = PublicProps &
+  PropsFromState &
+  ConnectedReduxProps &
+  RouteComponentProps<{}>;
+/* eslint-enable @typescript-eslint/indent */
 
 export type Profile = {
   name: string;
@@ -29,7 +38,6 @@ export type Profile = {
 
 type State = {
   profile: null | Profile;
-  isLoggingOut: boolean;
 };
 
 class AppBase extends React.Component<Props, State> {
@@ -38,7 +46,6 @@ class AppBase extends React.Component<Props, State> {
 
     this.state = {
       profile: null,
-      isLoggingOut: false,
     };
   }
 
@@ -72,42 +79,33 @@ class AppBase extends React.Component<Props, State> {
   logOut = async () => {
     const { apiState } = this.props;
 
-    this.setState({ isLoggingOut: true });
-
     await api.logOutFromServer(apiState);
 
-    this.setState({ profile: null, isLoggingOut: false });
-  };
-
-  handleToggleClick = (event: React.SyntheticEvent<HTMLButtonElement>) => {
-    const { dispatch } = this.props;
-    event.preventDefault();
-    dispatch(exampleActions.toggle());
+    this.setState({ profile: null });
   };
 
   render() {
-    const { toggledOn } = this.props;
-    const { profile, isLoggingOut } = this.state;
+    const { profile } = this.state;
 
     return (
       <React.Fragment>
         <Navbar onLogOut={this.logOut} profile={profile} />
+
         <Container className={styles.container} fluid>
-          <Row className={styles.header}>
+          <Row className={styles.content}>
             {profile ? (
-              <React.Fragment>
-                <h3>Hello {profile.name}!</h3>
-
-                <p>Toggle this on and off to test out Redux:</p>
-                <p>
-                  <Button onClick={this.handleToggleClick} size="lg">
-                    {toggledOn ? 'OFF' : 'ON'}
-                  </Button>
-                </p>
-
-                <p>{isLoggingOut ? 'See you next time... 😕' : null}</p>
-              </React.Fragment>
-            ) : null}
+              <Switch>
+                <Route exact path="/" component={Index} />
+                <Route
+                  component={Browse}
+                  exact
+                  path="/:lang/:application/files/browse/:versionId/"
+                />
+                <Route component={NotFound} />
+              </Switch>
+            ) : (
+              <p>Please log in to continue.</p>
+            )}
           </Row>
         </Container>
       </React.Fragment>
@@ -118,8 +116,7 @@ class AppBase extends React.Component<Props, State> {
 const mapStateToProps = (state: ApplicationState): PropsFromState => {
   return {
     apiState: state.api,
-    toggledOn: state.example.toggledOn,
   };
 };
 
-export default connect(mapStateToProps)(AppBase);
+export default withRouter(connect(mapStateToProps)(AppBase));

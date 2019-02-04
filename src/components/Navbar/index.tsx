@@ -17,7 +17,7 @@ export class NavbarBase extends React.Component<Props> {
 
     return (
       <Navbar bg="dark" className={styles.Navbar} expand="lg" variant="dark">
-        <Navbar.Brand href="#">addons-code-manager</Navbar.Brand>
+        <Navbar.Brand href="/">addons-code-manager</Navbar.Brand>
         <Navbar.Text>
           {profile ? (
             <span className={styles.username}>{profile.name}</span>

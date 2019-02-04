@@ -6,6 +6,7 @@ import { Store } from 'redux';
 import styles from './styles.module.scss';
 import configureStore from '../../configureStore';
 import { actions as apiActions } from '../../reducers/api';
+import { createContextWithFakeRouter } from '../../test-helpers';
 
 import App from '.';
 
@@ -19,11 +20,24 @@ describe(__filename, () => {
     store = configureStore(),
     authToken = 'some-token',
   }: RenderParams = {}) => {
+    const contextWithRouter = createContextWithFakeRouter();
+    const context = {
+      ...contextWithRouter,
+      context: {
+        ...contextWithRouter.context,
+        store,
+      },
+    };
+
     // TODO: Use shallowUntilTarget()
     // https://github.com/mozilla/addons-code-manager/issues/15
-    const root = shallow(<App authToken={authToken} />, {
-      context: { store },
-    }).shallow();
+    const root = shallow(<App authToken={authToken} />, context)
+      // withRouter HOC
+      .shallow(context)
+      // connect HOC
+      .shallow(context)
+      // base component
+      .shallow();
 
     return root;
   };
@@ -32,7 +46,7 @@ describe(__filename, () => {
     const root = render();
 
     expect(root.find(Container)).toHaveClassName(styles.container);
-    expect(root.find(`.${styles.header}`)).toHaveLength(1);
+    expect(root.find(`.${styles.content}`)).toHaveLength(1);
   });
 
   it('dispatches setAuthToken on mount when authToken is valid', () => {
