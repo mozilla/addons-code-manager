@@ -1,8 +1,37 @@
-import invariant from 'invariant';
 import { Reducer } from 'redux';
 import { ActionType, createAction, getType } from 'typesafe-actions';
 
 type UserId = number;
+
+export type ExternalUser = {
+  average_addon_rating: number;
+  biography: string | null;
+  created: string;
+  has_anonymous_display_name: boolean;
+  has_anonymous_username: boolean;
+  homepage: string | null;
+  id: UserId;
+  is_addon_developer: boolean;
+  is_artist: boolean;
+  location: string | null;
+  name: string;
+  num_addons_listed: number;
+  occupation: string | null;
+  picture_type: string | null;
+  picture_url: string | null;
+  username: string;
+  // Properties returned if we are accessing our own profile or the current user
+  // has the `Users:Edit` permission.
+  deleted?: boolean;
+  display_name: string | null;
+  email?: string;
+  fxa_edit_email_url?: string;
+  is_verified?: boolean;
+  last_login?: string;
+  last_login_ip?: string;
+  permissions?: Array<string>;
+  read_dev_agreement?: boolean;
+};
 
 export type User = {
   id: UserId;
@@ -13,71 +42,30 @@ export type User = {
 
 export const actions = {
   loadCurrentUser: createAction('LOAD_CURRENT_USER', (resolve) => {
-    return (payload: { user: User }) => resolve(payload);
+    return (payload: { user: ExternalUser }) => resolve(payload);
   }),
-  loadUser: createAction('LOAD_USER', (resolve) => {
-    return (payload: { user: User }) => resolve(payload);
-  }),
-  logOut: createAction('LOG_OUT', (resolve) => {
-    return () => resolve({});
-  }),
+  logOut: createAction('LOG_OUT'),
 };
 
 export type UsersState = {
-  currentUserId: UserId | null;
-  byId: { [id: number]: User };
-  byName: { [name: string]: UserId };
+  currentUser: User | null;
 };
 
 export const initialState: UsersState = {
-  currentUserId: null,
-  byId: {},
-  byName: {},
+  currentUser: null,
 };
 
-type LoadUserIntoStateParams = {
-  isCurrentUser?: boolean;
-  state: UsersState;
-  user: User;
-};
-
-export const loadUserIntoState = ({
-  isCurrentUser,
-  state,
-  user,
-}: LoadUserIntoStateParams) => {
-  const newState = {
-    ...state,
-    byId: { ...state.byId, [user.id]: user },
-    byName: { ...state.byName, [user.name]: user.id },
+export const createInternalUser = (user: ExternalUser): User => {
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    permissions: user.permissions,
   };
-  if (isCurrentUser) {
-    newState.currentUserId = user.id;
-  }
-  return newState;
 };
 
 export const getCurrentUser = (users: UsersState) => {
-  if (!users.currentUserId) {
-    return null;
-  }
-
-  const currentUser = getUserById(users, users.currentUserId);
-
-  invariant(
-    currentUser,
-    'currentUserId is defined but no matching user found in users state.',
-  );
-
-  return currentUser;
-};
-
-export const getUserById = (users: UsersState, id: UserId) => {
-  return users.byId[id];
-};
-
-export const getUserByName = (users: UsersState, name: string) => {
-  return users.byId[users.byName[name]];
+  return users.currentUser;
 };
 
 const reducer: Reducer<UsersState, ActionType<typeof actions>> = (
@@ -86,20 +74,14 @@ const reducer: Reducer<UsersState, ActionType<typeof actions>> = (
 ): UsersState => {
   switch (action.type) {
     case getType(actions.loadCurrentUser):
-      return loadUserIntoState({
-        isCurrentUser: true,
-        state,
-        user: action.payload.user,
-      });
-    case getType(actions.loadUser):
-      return loadUserIntoState({
-        state,
-        user: action.payload.user,
-      });
+      return {
+        ...state,
+        currentUser: createInternalUser(action.payload.user),
+      };
     case getType(actions.logOut):
       return {
         ...state,
-        currentUserId: null,
+        currentUser: null,
       };
     default:
       return state;

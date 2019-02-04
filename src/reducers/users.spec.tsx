@@ -1,11 +1,10 @@
 import reducer, {
   actions,
+  createInternalUser,
   getCurrentUser,
-  getUserById,
-  getUserByName,
   initialState,
 } from './users';
-import { fakeUser } from '../helpers';
+import { fakeUser } from '../__tests__/helpers';
 
 describe(__filename, () => {
   describe('reducer', () => {
@@ -21,28 +20,7 @@ describe(__filename, () => {
 
       expect(state).toEqual({
         ...initialState,
-        currentUserId: user.id,
-        byId: {
-          [user.id]: user,
-        },
-        byName: {
-          [user.name]: user.id,
-        },
-      });
-    });
-
-    it('loads a user', () => {
-      const user = fakeUser;
-      const state = reducer(undefined, actions.loadUser({ user }));
-
-      expect(state).toEqual({
-        ...initialState,
-        byId: {
-          [user.id]: user,
-        },
-        byName: {
-          [user.name]: user.id,
-        },
+        currentUser: createInternalUser(user),
       });
     });
 
@@ -55,62 +33,30 @@ describe(__filename, () => {
     });
   });
 
+  describe('createInternalUser', () => {
+    it('creates a User', () => {
+      const user = fakeUser;
+      expect(createInternalUser(user)).toEqual({
+        email: user.email,
+        id: user.id,
+        name: user.name,
+        permissions: user.permissions,
+      });
+    });
+  });
+
   describe('getCurrentUser', () => {
     it('returns the current user', () => {
       const user = fakeUser;
       const state = reducer(undefined, actions.loadCurrentUser({ user }));
 
-      expect(getCurrentUser(state)).toEqual(user);
+      expect(getCurrentUser(state)).toEqual(createInternalUser(user));
     });
 
     it('returns null if there is no current user', () => {
-      const state = reducer(undefined, actions.loadUser({ user: fakeUser }));
+      const state = initialState;
 
       expect(getCurrentUser(state)).toEqual(null);
-    });
-
-    it('throws an exception if there is no user matching the currentUserId', () => {
-      const user = fakeUser;
-      const state = reducer(undefined, actions.loadCurrentUser({ user }));
-      delete state.byId[user.id];
-
-      expect(() => {
-        getCurrentUser(state);
-      }).toThrow(
-        /currentUserId is defined but no matching user found in users state/,
-      );
-    });
-  });
-
-  describe('getUserById', () => {
-    it('returns the user', () => {
-      const user = fakeUser;
-      const state = reducer(undefined, actions.loadUser({ user }));
-
-      expect(getUserById(state, user.id)).toEqual(user);
-    });
-
-    it('returns undefined if the user is not found', () => {
-      const user = fakeUser;
-      const state = reducer(undefined, actions.loadUser({ user }));
-
-      expect(getUserById(state, user.id + 1)).toEqual(undefined);
-    });
-  });
-
-  describe('getUserByName', () => {
-    it('returns the user', () => {
-      const user = fakeUser;
-      const state = reducer(undefined, actions.loadUser({ user }));
-
-      expect(getUserByName(state, user.name)).toEqual(user);
-    });
-
-    it('returns undefined if the user is not found', () => {
-      const user = fakeUser;
-      const state = reducer(undefined, actions.loadUser({ user }));
-
-      expect(getUserByName(state, `${user.name}-1`)).toEqual(undefined);
     });
   });
 });
