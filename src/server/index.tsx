@@ -132,7 +132,9 @@ export const createServer = ({
           req: http.IncomingMessage & RequestWithCookies,
           res: http.ServerResponse,
         ) => {
-          if (req.url === '/') {
+          const contentType = proxyResponse.headers['content-type'] || '';
+
+          if (contentType.includes('text/html')) {
             // eslint-disable-next-line no-param-reassign
             proxyResponse.headers['cache-control'] = 'private, no-store';
 
