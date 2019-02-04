@@ -1,4 +1,3 @@
-import { shallow } from 'enzyme';
 import React from 'react';
 import { Container } from 'react-bootstrap';
 import { Store } from 'redux';
@@ -8,9 +7,13 @@ import styles from './styles.module.scss';
 import configureStore from '../../configureStore';
 import { actions as apiActions } from '../../reducers/api';
 import { actions as userActions } from '../../reducers/users';
-import { createContextWithFakeRouter, fakeUser } from '../../test-helpers';
+import {
+  createContextWithFakeRouter,
+  fakeUser,
+  shallowUntilTarget,
+} from '../../test-helpers';
 
-import App from '.';
+import App, { AppBase } from '.';
 
 describe(__filename, () => {
   type RenderParams = {
@@ -31,15 +34,11 @@ describe(__filename, () => {
       },
     };
 
-    // TODO: Use shallowUntilTarget()
-    // https://github.com/mozilla/addons-code-manager/issues/15
-    const root = shallow(<App authToken={authToken} />, context)
-      // withRouter HOC
-      .shallow(context)
-      // connect HOC
-      .shallow(context)
-      // base component
-      .shallow();
+    const root = shallowUntilTarget({
+      componentInstance: <App authToken={authToken} />,
+      targetComponent: AppBase,
+      options: { shallowOptions: { context } },
+    });
 
     return root;
   };

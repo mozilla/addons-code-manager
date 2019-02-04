@@ -40,7 +40,7 @@ type Props = PublicProps &
   RouteComponentProps<{}>;
 /* eslint-enable @typescript-eslint/indent */
 
-class AppBase extends React.Component<Props> {
+export class AppBase extends React.Component<Props> {
   componentDidMount() {
     const { authToken, dispatch } = this.props;
 
