@@ -16,6 +16,13 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 - Clone this repository
 - Type `yarn` to install everything
 - Type `yarn dev` to launch the test suite, development servers, and all other development processes in [stmux][]. Open [http://localhost:3000](http://localhost:3000) to view the development site. **Press CTRL-a-? for help**.
+- If running into ENOSPC error which fails tests:  
+`echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p`
+For Arch linux users add the following line to `/etc/sysctl.d/99-sysctl.conf`
+`fs.inotify.max_user_watches=524288`
+and then execute
+`sysctl --system`
+- and then execute `yarn dev` as usual.
 
 All available commands are documented below.
 
