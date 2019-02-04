@@ -6,7 +6,6 @@ import { Store } from 'redux';
 import styles from './styles.module.scss';
 import configureStore from '../../configureStore';
 import { actions as apiActions } from '../../reducers/api';
-import Navbar from '../Navbar';
 
 import App from '.';
 

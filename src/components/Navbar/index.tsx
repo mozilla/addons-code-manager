@@ -1,6 +1,7 @@
 import * as React from 'react';
-import { Button, Nav, Navbar } from 'react-bootstrap';
+import { Button, Navbar } from 'react-bootstrap';
 
+import { gettext } from '../../utils';
 import { Profile } from '../App';
 import LoginButton from '../LoginButton';
 import styles from './styles.module.scss';
@@ -23,7 +24,7 @@ export class NavbarBase extends React.Component<Props> {
           ) : null}
           {profile ? (
             <Button className={styles.logOut} onClick={onLogOut}>
-              Log out
+              {gettext('Log out')}
             </Button>
           ) : (
             <LoginButton />

@@ -92,7 +92,7 @@ class AppBase extends React.Component<Props, State> {
     return (
       <React.Fragment>
         <Navbar onLogOut={this.logOut} profile={profile} />
-        <Container className={styles.container} fluid={true}>
+        <Container className={styles.container} fluid>
           <Row className={styles.header}>
             {profile ? (
               <React.Fragment>

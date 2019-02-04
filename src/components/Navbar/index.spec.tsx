@@ -2,9 +2,9 @@ import { shallow } from 'enzyme';
 import React from 'react';
 
 import LoginButton from '../LoginButton';
+import styles from './styles.module.scss';
 
 import Navbar from '.';
-import styles from './styles.module.scss';
 
 describe(__filename, () => {
   const render = (props = {}) => {
@@ -63,7 +63,7 @@ describe(__filename, () => {
       const root = render({ onLogOut: onLogOutMock, profile: createProfile() });
 
       root.find(`.${styles.logOut}`).simulate('click');
-      expect(onLogOutMock).toBeCalled();
+      expect(onLogOutMock).toHaveBeenCalled();
     });
   });
 });
