@@ -1,7 +1,7 @@
 import { configure } from '@storybook/react';
 
 // Include application styles.
-import '../../styles.scss';
+import '../../src/styles.scss';
 // Apply some custom styles to storybook.
 import './styles.scss';
 

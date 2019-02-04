@@ -21,9 +21,10 @@
   },
   "include": [
     "scripts",
-    "src"
+    "src",
+    "stories"
   ],
   "exclude": [
-    "src/stories/setup/webpack.config.js"
+    "stories/setup/webpack.config.js"
   ]
 }
