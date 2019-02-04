@@ -29,7 +29,7 @@ export type ExternalUser = {
   is_verified?: boolean;
   last_login?: string;
   last_login_ip?: string;
-  permissions?: Array<string>;
+  permissions?: string[];
   read_dev_agreement?: boolean;
 };
 
@@ -37,7 +37,7 @@ export type User = {
   id: UserId;
   name: string;
   email?: string;
-  permissions?: Array<string>;
+  permissions?: string[];
 };
 
 export const actions = {
@@ -57,9 +57,9 @@ export const initialState: UsersState = {
 
 export const createInternalUser = (user: ExternalUser): User => {
   return {
+    email: user.email,
     id: user.id,
     name: user.name,
-    email: user.email,
     permissions: user.permissions,
   };
 };

@@ -1,4 +1,4 @@
-import { ExternalUser } from '../reducers/users';
+import { ExternalUser } from './reducers/users';
 
 export const fakeUser: ExternalUser = Object.freeze({
   /* eslint-disable @typescript-eslint/camelcase */
