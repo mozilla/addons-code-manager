@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Button } from 'react-bootstrap';
 
+import { gettext } from '../../utils';
 import styles from './styles.module.scss';
 
 export class LoginButtonBase extends React.Component {
@@ -13,7 +14,7 @@ export class LoginButtonBase extends React.Component {
   render() {
     return (
       <Button href={this.getFxaURL()} className={styles.link}>
-        Log in
+        {gettext('Log in')}
       </Button>
     );
   }
