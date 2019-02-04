@@ -8,12 +8,6 @@ import { fakeUser } from '../test-helpers';
 
 describe(__filename, () => {
   describe('reducer', () => {
-    it('initializes the state', () => {
-      const state = reducer(undefined, { type: 'SOME_ACTION' } as any);
-
-      expect(state).toEqual(initialState);
-    });
-
     it('loads a current user', () => {
       const user = fakeUser;
       const state = reducer(undefined, actions.loadCurrentUser({ user }));
