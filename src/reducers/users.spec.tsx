@@ -4,7 +4,7 @@ import reducer, {
   getCurrentUser,
   initialState,
 } from './users';
-import { fakeUser } from '../__tests__/helpers';
+import { fakeUser } from '../test-helpers';
 
 describe(__filename, () => {
   describe('reducer', () => {
