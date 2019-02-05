@@ -11,8 +11,8 @@ describe(__filename, () => {
     };
 
     const wrapper = () => {
-      return function Wrapper(WrappedComponent: any) {
-        return function InnerWrapper(props: object) {
+      return (WrappedComponent: any) => {
+        return (props: object) => {
           return <WrappedComponent {...props} />;
         };
       };
@@ -21,10 +21,7 @@ describe(__filename, () => {
     it('lets you unwrap a component one level', () => {
       const Example = compose(wrapper())(ExampleBase);
 
-      const root = shallowUntilTarget({
-        componentInstance: <Example />,
-        targetComponent: ExampleBase,
-      });
+      const root = shallowUntilTarget(<Example />, ExampleBase);
       expect(root.text()).toEqual('Example component');
     });
 
@@ -34,10 +31,7 @@ describe(__filename, () => {
         wrapper(),
       )(ExampleBase);
 
-      const root = shallowUntilTarget({
-        componentInstance: <Example />,
-        targetComponent: ExampleBase,
-      });
+      const root = shallowUntilTarget(<Example />, ExampleBase);
       expect(root.text()).toEqual('Example component');
     });
 
@@ -50,19 +44,13 @@ describe(__filename, () => {
 
       const Example = compose(wrapper())(ReactExampleBase);
 
-      const root = shallowUntilTarget({
-        componentInstance: <Example />,
-        targetComponent: ReactExampleBase,
-      });
+      const root = shallowUntilTarget(<Example />, ReactExampleBase);
       expect(root.instance()).toBeInstanceOf(ReactExampleBase);
     });
 
     it('does not let you unwrap a component that is not wrapped', () => {
       expect(() => {
-        shallowUntilTarget({
-          componentInstance: <ExampleBase />,
-          targetComponent: ExampleBase,
-        });
+        shallowUntilTarget(<ExampleBase />, ExampleBase);
       }).toThrow(/Cannot unwrap this component because it is not wrapped/);
     });
 
@@ -74,13 +62,7 @@ describe(__filename, () => {
       )(ExampleBase);
 
       expect(() => {
-        shallowUntilTarget({
-          componentInstance: <Example />,
-          targetComponent: ExampleBase,
-          options: {
-            maxTries: 2,
-          },
-        });
+        shallowUntilTarget(<Example />, ExampleBase, { maxTries: 2 });
       }).toThrow(/Could not find .*gave up after 2 tries/s);
     });
 
@@ -93,13 +75,9 @@ describe(__filename, () => {
         lifecycleExperimental: true,
       };
       const instance = <Example />;
-      shallowUntilTarget({
-        componentInstance: instance,
-        targetComponent: ExampleBase,
-        options: {
-          shallowOptions,
-          _shallow: shallowStub,
-        },
+      shallowUntilTarget(instance, ExampleBase, {
+        shallowOptions,
+        _shallow: shallowStub,
       });
 
       expect(shallowStub).toHaveBeenCalledWith(instance, shallowOptions);
@@ -121,14 +99,8 @@ describe(__filename, () => {
 
       const Example = compose(wrapper())(LifecyleExample);
 
-      const root = shallowUntilTarget({
-        componentInstance: <Example />,
-        targetComponent: LifecyleExample,
-        options: {
-          shallowOptions: {
-            lifecycleExperimental: true,
-          },
-        },
+      const root = shallowUntilTarget(<Example />, LifecyleExample, {
+        shallowOptions: { lifecycleExperimental: true },
       });
       root.setProps({ something: 'else' });
 

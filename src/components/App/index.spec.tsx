@@ -34,10 +34,8 @@ describe(__filename, () => {
       },
     };
 
-    const root = shallowUntilTarget({
-      componentInstance: <App authToken={authToken} />,
-      targetComponent: AppBase,
-      options: { shallowOptions: { ...context } },
+    const root = shallowUntilTarget(<App authToken={authToken} />, AppBase, {
+      shallowOptions: { ...context },
     });
 
     return root;

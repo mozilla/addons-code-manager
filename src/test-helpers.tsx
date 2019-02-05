@@ -95,21 +95,21 @@ export const createContextWithFakeRouter = ({
  * The `targetComponent` parameter is the React class (or function) that
  * you want to retrieve from the component tree.
  */
-type ShallowUntilTargetParams = {
-  componentInstance: React.ReactElement<any>;
-  targetComponent: React.JSXElementConstructor<any>;
-  options?: {
-    maxTries?: number;
-    shallowOptions?: object;
-    _shallow?: typeof shallow;
-  };
+type ShallowUntilTargetOptions = {
+  maxTries?: number;
+  shallowOptions?: object;
+  _shallow?: typeof shallow;
 };
 
-export const shallowUntilTarget = ({
-  componentInstance,
-  targetComponent,
-  options: { maxTries = 10, shallowOptions = {}, _shallow = shallow } = {},
-}: ShallowUntilTargetParams) => {
+export const shallowUntilTarget = (
+  componentInstance: React.ReactElement<any>,
+  targetComponent: React.JSXElementConstructor<any>,
+  {
+    maxTries = 10,
+    shallowOptions = {},
+    _shallow = shallow,
+  }: ShallowUntilTargetOptions = {},
+) => {
   let root = _shallow(componentInstance, shallowOptions);
 
   if (typeof root.type() === 'string') {
