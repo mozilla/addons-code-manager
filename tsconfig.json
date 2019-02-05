@@ -25,6 +25,7 @@
     "stories"
   ],
   "exclude": [
-    "stories/setup/webpack.config.js"
+    "stories/setup/webpack.config.js",
+    "src/jest-reporters/"
   ]
 }
