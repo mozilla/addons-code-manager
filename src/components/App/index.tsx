@@ -7,6 +7,7 @@ import {
   Switch,
   withRouter,
 } from 'react-router-dom';
+import makeClassName from 'classnames';
 
 import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
 import styles from './styles.module.scss';
@@ -30,6 +31,7 @@ type PublicProps = {
 
 type PropsFromState = {
   apiState: ApiState;
+  loading: boolean;
   profile: User | null;
 };
 
@@ -65,32 +67,42 @@ export class AppBase extends React.Component<Props> {
   }
 
   render() {
-    const { profile } = this.props;
+    const { loading, profile } = this.props;
+
+    const routesOrLoginMessage = profile ? (
+      <Switch>
+        <Route exact path="/" component={Index} />
+        <Route
+          component={Browse}
+          exact
+          path="/:lang/:application/files/browse/:versionId/"
+        />
+        <Route component={NotFound} />
+      </Switch>
+    ) : (
+      <p className={styles.loginMessage}>
+        {gettext('Please log in to continue.')}
+      </p>
+    );
 
     return (
       <React.Fragment>
-        <Navbar />
+        {!loading && <Navbar />}
 
         <Container className={styles.container} fluid>
-          <Row className={styles.content}>
-            <Switch>
-              {profile ? (
-                <React.Fragment>
-                  <Route exact path="/" component={Index} />
-                  <Route
-                    component={Browse}
-                    exact
-                    path="/:lang/:application/files/browse/:versionId/"
-                  />
-                </React.Fragment>
-              ) : (
-                <p className={styles.loginMessage}>
-                  {gettext('Please log in to continue.')}
-                </p>
-              )}
-
-              <Route component={NotFound} />
-            </Switch>
+          <Row
+            className={makeClassName(styles.content, styles.isoading, {
+              [styles.isLoading]: loading,
+            })}
+          >
+            {loading ? (
+              <React.Fragment>
+                <p>{gettext('Getting your workspace ready')}</p>
+                <p>{gettext(`Don't turn off your computer`)}</p>
+              </React.Fragment>
+            ) : (
+              routesOrLoginMessage
+            )}
           </Row>
         </Container>
       </React.Fragment>
@@ -98,10 +110,17 @@ export class AppBase extends React.Component<Props> {
   }
 }
 
-const mapStateToProps = (state: ApplicationState): PropsFromState => {
+const mapStateToProps = (
+  state: ApplicationState,
+  ownProps: PublicProps,
+): PropsFromState => {
+  const profile = getCurrentUser(state.users);
+  const loading = !!ownProps.authToken && !profile;
+
   return {
     apiState: state.api,
-    profile: getCurrentUser(state.users),
+    loading,
+    profile,
   };
 };
 

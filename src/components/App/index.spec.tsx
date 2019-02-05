@@ -41,11 +41,24 @@ describe(__filename, () => {
     return root;
   };
 
-  it('renders without crashing', () => {
-    const root = render();
+  it('renders without an authentication token', () => {
+    const root = render({ authToken: '' });
 
     expect(root.find(Container)).toHaveClassName(styles.container);
     expect(root.find(`.${styles.content}`)).toHaveLength(1);
+  });
+
+  it('renders with an empty authentication token', () => {
+    const root = render({ authToken: '' });
+
+    expect(root.find(Container)).toHaveClassName(styles.container);
+    expect(root.find(`.${styles.content}`)).toHaveLength(1);
+  });
+
+  it('displays a loading message until the user profile gets loaded', () => {
+    const root = render();
+
+    expect(root).toIncludeText('Getting your workspace ready');
   });
 
   it('dispatches setAuthToken on mount when authToken is valid', () => {
@@ -69,12 +82,10 @@ describe(__filename, () => {
     expect(dispatch).not.toHaveBeenCalled();
   });
 
-  it('configures 1 route when the user is not logged in', () => {
-    const store = configureStore();
+  it('configures no route when the user is not logged in', () => {
+    const root = render({ authToken: null });
 
-    const root = render({ store });
-
-    expect(root.find(Route)).toHaveLength(1);
+    expect(root.find(Route)).toHaveLength(0);
     expect(root.find(`.${styles.loginMessage}`)).toIncludeText('Please log in');
   });
 

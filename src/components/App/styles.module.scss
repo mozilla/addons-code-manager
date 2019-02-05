@@ -1,13 +1,22 @@
 .container {
-  text-align: center;
 }
 
 .content {
   background-color: #282c34;
-  flex-direction: column;
-  padding-top: 20px;
   min-height: 100vh;
+  padding: 15px;
 }
 
-.login-message {
+.isLoading {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  font-size: 1.2em;
+  font-weight: 500;
+  justify-content: center;
+  text-align: center;
+
+  p {
+    margin: 4px auto;
+  }
 }
