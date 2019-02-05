@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types';
 import { History, Location } from 'history';
-import { oneLine } from 'common-tags';
 import { shallow } from 'enzyme';
 
 import { ExternalUser } from './reducers/users';
@@ -128,6 +127,8 @@ export const shallowUntilTarget = ({
     root = root.dive();
   }
 
-  throw new Error(oneLine`Could not find ${targetComponent} in rendered
-    instance: ${componentInstance}; gave up after ${maxTries} tries`);
+  throw new Error(
+    `Could not find ${targetComponent} in rendered instance: ${componentInstance};
+     gave up after ${maxTries} tries`,
+  );
 };

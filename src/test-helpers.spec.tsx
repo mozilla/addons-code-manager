@@ -1,4 +1,3 @@
-/* eslint-disable react/no-multi-comp */
 import React, { Component } from 'react';
 import { shallow } from 'enzyme';
 import { compose } from 'redux';
@@ -7,17 +6,17 @@ import { shallowUntilTarget } from './test-helpers';
 
 describe(__filename, () => {
   describe('shallowUntilTarget', () => {
-    function ExampleBase() {
+    const ExampleBase = () => {
       return <div>Example component</div>;
-    }
+    };
 
-    function wrapper() {
+    const wrapper = () => {
       return function Wrapper(WrappedComponent: any) {
         return function InnerWrapper(props: object) {
           return <WrappedComponent {...props} />;
         };
       };
-    }
+    };
 
     it('lets you unwrap a component one level', () => {
       const Example = compose(wrapper())(ExampleBase);
@@ -82,7 +81,7 @@ describe(__filename, () => {
             maxTries: 2,
           },
         });
-      }).toThrow(/Could not find .*gave up after 2 tries/);
+      }).toThrow(/Could not find .*gave up after 2 tries/s);
     });
 
     it('lets you pass options to shallow()', () => {
@@ -109,6 +108,7 @@ describe(__filename, () => {
     it('lets you pass options to the final shallow()', () => {
       const componentDidUpdate = jest.fn();
 
+      // eslint-disable-next-line react/no-multi-comp
       class LifecyleExample extends Component {
         componentDidUpdate() {
           componentDidUpdate();
