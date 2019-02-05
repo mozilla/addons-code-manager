@@ -11,7 +11,6 @@ import { composeWithDevTools } from 'redux-devtools-extension';
 import { createLogger } from 'redux-logger';
 
 import api, { ApiState } from './reducers/api';
-import example, { ExampleState } from './reducers/example';
 import users, { UsersState } from './reducers/users';
 
 export type ConnectedReduxProps<A extends Action = AnyAction> = {
@@ -20,12 +19,11 @@ export type ConnectedReduxProps<A extends Action = AnyAction> = {
 
 export type ApplicationState = {
   api: ApiState;
-  example: ExampleState;
   users: UsersState;
 };
 
 const createRootReducer = () => {
-  return combineReducers<ApplicationState>({ api, example, users });
+  return combineReducers<ApplicationState>({ api, users });
 };
 
 const configureStore = (

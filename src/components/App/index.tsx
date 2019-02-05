@@ -16,6 +16,7 @@ import Navbar from '../Navbar';
 import Browse from '../../pages/Browse';
 import Index from '../../pages/Index';
 import NotFound from '../../pages/NotFound';
+import { gettext } from '../../utils';
 
 type PublicProps = {
   authToken: string | null;
@@ -93,19 +94,24 @@ class AppBase extends React.Component<Props, State> {
 
         <Container className={styles.container} fluid>
           <Row className={styles.content}>
-            {profile ? (
-              <Switch>
-                <Route exact path="/" component={Index} />
-                <Route
-                  component={Browse}
-                  exact
-                  path="/:lang/:application/files/browse/:versionId/"
-                />
-                <Route component={NotFound} />
-              </Switch>
-            ) : (
-              <p>Please log in to continue.</p>
-            )}
+            <Switch>
+              {profile ? (
+                <React.Fragment>
+                  <Route exact path="/" component={Index} />
+                  <Route
+                    component={Browse}
+                    exact
+                    path="/:lang/:application/files/browse/:versionId/"
+                  />
+                </React.Fragment>
+              ) : (
+                <p className={styles.loginMessage}>
+                  {gettext('Please log in to continue.')}
+                </p>
+              )}
+
+              <Route component={NotFound} />
+            </Switch>
           </Row>
         </Container>
       </React.Fragment>

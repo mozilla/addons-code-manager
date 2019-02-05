@@ -2,6 +2,7 @@ import { shallow } from 'enzyme';
 import React from 'react';
 import { Container } from 'react-bootstrap';
 import { Store } from 'redux';
+import { Route } from 'react-router-dom';
 
 import styles from './styles.module.scss';
 import configureStore from '../../configureStore';
@@ -68,5 +69,25 @@ describe(__filename, () => {
     render({ authToken: null, store });
 
     expect(dispatch).not.toHaveBeenCalled();
+  });
+
+  it('configures 1 route when the user is not logged in', () => {
+    const store = configureStore();
+
+    const root = render({ store });
+
+    expect(root.find(Route)).toHaveLength(1);
+    expect(root.find(`.${styles.loginMessage}`)).toIncludeText('Please log in');
+  });
+
+  it('exposes more routes when the user is logged in', () => {
+    const store = configureStore();
+
+    const root = render({ store });
+    // Set `profile` to some object so that it is not `null`.
+    root.setState({ profile: {} });
+
+    expect(root.find(Route)).toHaveLength(3);
+    expect(root.find(`.${styles.loginMessage}`)).toHaveLength(0);
   });
 });

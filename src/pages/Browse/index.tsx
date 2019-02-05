@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 
-type BrowseRouterProps = {
+type PropsFromRouter = {
   versionId: string;
 };
 
 export class BrowseBase extends React.Component<
-  RouteComponentProps<BrowseRouterProps>
+  RouteComponentProps<PropsFromRouter>
 > {
   render() {
     return (

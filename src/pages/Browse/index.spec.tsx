@@ -6,26 +6,34 @@ import { createFakeHistory } from '../../test-helpers';
 import Browse from '.';
 
 describe(__filename, () => {
-  const render = ({
+  const createFakeRouteComponentProps = ({
     history = createFakeHistory(),
-    versionId = '123',
+    params = {
+      versionId: '123',
+    },
   } = {}) => {
-    const props = {
+    return {
       history,
       location: history.location,
       match: {
+        params,
         isExact: true,
-        params: { versionId },
         path: '/some-path',
         url: '/some-url',
       },
+    };
+  };
+
+  const render = ({ versionId = '123' } = {}) => {
+    const props = {
+      ...createFakeRouteComponentProps({ params: { versionId } }),
     };
 
     return shallow(<Browse {...props} />);
   };
 
-  it('renders an page', () => {
-    const versionId = '123';
+  it('renders a page', () => {
+    const versionId = '123456';
 
     const root = render({ versionId });
 
