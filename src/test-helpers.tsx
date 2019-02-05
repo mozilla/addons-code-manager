@@ -97,7 +97,7 @@ export const createContextWithFakeRouter = ({
  */
 type ShallowUntilTargetParams = {
   componentInstance: React.ReactElement<any>;
-  targetComponent: any;
+  targetComponent: Function;
   options?: {
     maxTries?: number;
     shallowOptions?: object;
