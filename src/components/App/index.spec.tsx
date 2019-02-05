@@ -27,11 +27,8 @@ describe(__filename, () => {
   }: RenderParams = {}) => {
     const contextWithRouter = createContextWithFakeRouter();
     const context = {
-      ...contextWithRouter,
-      context: {
-        ...contextWithRouter.context,
-        store,
-      },
+      ...contextWithRouter.context,
+      store,
     };
 
     const root = shallowUntilTarget({
