@@ -87,7 +87,6 @@
     "storybook": "start-storybook -p 9001 -c stories/setup",
     "storybook-smoke-test": "yarn storybook --smoke-test",
     "test": "react-scripts test",
-    "test-lint": "react-scripts test --reporters=default --reporters=`pwd`/src/__tests__/jest-reporters/eslint-check.js",
     "test-ci": "yarn test --coverage && codecov",
     "type-coverage": "type-coverage",
     "typecheck": "tsc"
