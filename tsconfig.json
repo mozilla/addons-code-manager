@@ -23,5 +23,8 @@
     "scripts",
     "src",
     "stories"
+  ],
+  "exclude": [
+    "stories/setup/webpack.config.js"
   ]
 }
