@@ -27,14 +27,17 @@ describe(__filename, () => {
   }: RenderParams = {}) => {
     const contextWithRouter = createContextWithFakeRouter();
     const context = {
-      ...contextWithRouter.context,
-      store,
+      ...contextWithRouter,
+      context: {
+        ...contextWithRouter.context,
+        store,
+      },
     };
 
     const root = shallowUntilTarget({
       componentInstance: <App authToken={authToken} />,
       targetComponent: AppBase,
-      options: { shallowOptions: { context } },
+      options: { shallowOptions: { ...context } },
     });
 
     return root;
