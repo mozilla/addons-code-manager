@@ -91,13 +91,13 @@ describe(__filename, () => {
       expect(logOutFromServerMock).toHaveBeenCalled();
     });
 
-    it('dispatches userActions.logOut when clicked', () => {
+    it('dispatches userActions.logOut when clicked', async () => {
       const store = storeWithUser();
       const dispatch = jest.spyOn(store, 'dispatch');
 
       const root = render({ store });
 
-      root.find(`.${styles.logOut}`).simulate('click');
+      await root.find(`.${styles.logOut}`).simulate('click');
       expect(dispatch).toHaveBeenCalledWith(userActions.logOut());
     });
   });
