@@ -2,6 +2,7 @@ import {
   Action,
   AnyAction,
   Dispatch,
+  Middleware,
   Store,
   applyMiddleware,
   combineReducers,
@@ -9,6 +10,7 @@ import {
 } from 'redux';
 import { composeWithDevTools } from 'redux-devtools-extension';
 import { createLogger } from 'redux-logger';
+import thunk, { ThunkMiddleware } from 'redux-thunk';
 
 import api, { ApiState } from './reducers/api';
 import users, { UsersState } from './reducers/users';
@@ -31,10 +33,18 @@ const createRootReducer = () => {
 const configureStore = (
   preloadedState?: ApplicationState,
 ): Store<ApplicationState> => {
-  let middleware;
-  if (process.env.NODE_ENV === 'development') {
-    middleware = applyMiddleware(createLogger());
+  const allMiddleware: Middleware[] = [
+    thunk as ThunkMiddleware<ApplicationState, Action>,
+  ];
+  let addDevTools = false;
 
+  if (process.env.NODE_ENV === 'development') {
+    allMiddleware.push(createLogger());
+    addDevTools = true;
+  }
+
+  let middleware = applyMiddleware(...allMiddleware);
+  if (addDevTools) {
     const composeEnhancers = composeWithDevTools({});
     middleware = composeEnhancers(middleware);
   }

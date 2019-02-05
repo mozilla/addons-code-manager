@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { Button, Navbar } from 'react-bootstrap';
+import { AnyAction } from 'redux';
 import { connect } from 'react-redux';
+import { ThunkDispatch } from 'redux-thunk';
 
 import { gettext } from '../../utils';
 import LoginButton from '../LoginButton';
@@ -11,11 +13,12 @@ import {
   User,
   actions as userActions,
   getCurrentUser,
+  requestLogOut,
 } from '../../reducers/users';
 import styles from './styles.module.scss';
 
 type PublicProps = {
-  _logOutFromServer: typeof logOutFromServer;
+  _requestLogOut: typeof requestLogOut;
 };
 
 type PropsFromState = {
@@ -27,14 +30,14 @@ type Props = PublicProps & PropsFromState & ConnectedReduxProps;
 
 export class NavbarBase extends React.Component<Props> {
   static defaultProps = {
-    _logOutFromServer: logOutFromServer,
+    _requestLogOut: requestLogOut,
   };
 
-  logOut = async () => {
-    const { _logOutFromServer, apiState, dispatch } = this.props;
-
-    await _logOutFromServer(apiState);
-    dispatch(userActions.logOut());
+  logOut = () => {
+    const { _requestLogOut, apiState, dispatch } = this.props;
+    (dispatch as ThunkDispatch<ApplicationState, null, AnyAction>)(
+      _requestLogOut(),
+    );
   };
 
   render() {

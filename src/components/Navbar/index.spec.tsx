@@ -6,24 +6,23 @@ import configureStore from '../../configureStore';
 import LoginButton from '../LoginButton';
 import styles from './styles.module.scss';
 import { fakeUser } from '../../test-helpers';
-import { logOutFromServer } from '../../api';
-import { actions as userActions } from '../../reducers/users';
+import { actions as userActions, requestLogOut } from '../../reducers/users';
 
 import Navbar, { NavbarBase } from '.';
 
 describe(__filename, () => {
   type RenderParams = {
-    _logOutFromServer?: typeof logOutFromServer;
+    _requestLogOut?: typeof requestLogOut;
     store?: Store;
   };
 
   const render = ({
-    _logOutFromServer = jest.fn(),
+    _requestLogOut = jest.fn(),
     store = configureStore(),
   }: RenderParams = {}) => {
     // TODO: Use shallowUntilTarget()
     // https://github.com/mozilla/addons-code-manager/issues/15
-    const root = shallow(<Navbar _logOutFromServer={_logOutFromServer} />, {
+    const root = shallow(<Navbar _requestLogOut={_requestLogOut} />, {
       context: { store },
     }).shallow();
 
@@ -80,37 +79,31 @@ describe(__filename, () => {
   });
 
   describe('Log out button', () => {
-    it('configures the click handler', () => {
-      const root = render({ store: storeWithUser() });
-      const instance = root.instance() as NavbarBase;
+    const createFakeThunk = () => {
+      // This is a placeholder for the dispatch callback function.
+      // In reality it would look like (dispatch, getState) => {}
+      const dispatchCallback = '__dispatchCallback__';
+      return {
+        // This is a function that creates the dispatch callback.
+        creator: jest.fn().mockReturnValue(dispatchCallback),
+        dispatchCallback,
+      };
+    };
 
-      expect(root.find(`.${styles.logOut}`)).toHaveProp(
-        'onClick',
-        instance.logOut,
-      );
-    });
+    it('dispatches requestLogOut when clicked', () => {
+      const store = storeWithUser();
+      const dispatch = jest
+        .spyOn(store, 'dispatch')
+        .mockImplementation(jest.fn());
 
-    it('calls logOutFromServer when clicked', async () => {
-      const logOutFromServerMock = jest.fn();
+      const fakeThunk = createFakeThunk();
       const root = render({
-        _logOutFromServer: logOutFromServerMock,
-        store: storeWithUser(),
+        store,
+        _requestLogOut: fakeThunk.creator,
       });
 
-      const instance = root.instance() as NavbarBase;
-      await instance.logOut();
-      expect(logOutFromServerMock).toHaveBeenCalled();
-    });
-
-    it('dispatches userActions.logOut when clicked', async () => {
-      const store = storeWithUser();
-      const dispatch = jest.spyOn(store, 'dispatch');
-
-      const root = render({ store });
-
-      const instance = root.instance() as NavbarBase;
-      await instance.logOut();
-      expect(dispatch).toHaveBeenCalledWith(userActions.logOut());
+      root.find(`.${styles.logOut}`).simulate('click');
+      expect(dispatch).toHaveBeenCalledWith(fakeThunk.dispatchCallback);
     });
   });
 });

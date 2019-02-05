@@ -1,5 +1,9 @@
-import { Reducer } from 'redux';
+import { AnyAction, Reducer } from 'redux';
+import { ThunkAction } from 'redux-thunk';
 import { ActionType, createAction, getType } from 'typesafe-actions';
+
+import { ApplicationState } from '../configureStore';
+import { logOutFromServer } from '../api';
 
 type UserId = number;
 
@@ -45,6 +49,18 @@ export const actions = {
     return (payload: { user: ExternalUser }) => resolve(payload);
   }),
   logOut: createAction('LOG_OUT'),
+};
+
+export const requestLogOut = ({
+  _logOutFromServer = logOutFromServer,
+} = {}): ThunkAction<
+  Promise<void>,
+  ApplicationState,
+  null,
+  AnyAction
+> => async (dispatch, getState) => {
+  await _logOutFromServer(getState().api);
+  dispatch(actions.logOut());
 };
 
 export type UsersState = {
