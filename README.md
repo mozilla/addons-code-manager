@@ -33,7 +33,7 @@ All code is written in [TypeScript][]. Currently, errors in test files won't be 
 
 All styles are written in the [SASS](https://sass-lang.com/) pre-processor language as [css modules](https://github.com/css-modules/css-modules).
 
-Example: for a component like `UserProfile/index.tsx`, you'd create its module as `UserProfile/styles.module.scss`. You would import it at the top and reference it as a module. As an example, here is a simple stylesheet:
+Example: for a component like `StarIcon/index.tsx`, you'd create its module as `StarIcon/styles.module.scss`. You would import it at the top and reference it as a module. As an example, here is a simple stylesheet:
 
 ```css
 .container {
@@ -41,18 +41,18 @@ Example: for a component like `UserProfile/index.tsx`, you'd create its module a
 }
 ```
 
-You would reference in your component like this:
+You would reference this CSS class in your component like this:
 
 ```js
 import * as React from 'react';
 
 import styles from './styles.module.scss';
 
-const UserProfile = () => {
+const StarIcon = () => {
   return <div className={styles.container} />;
 };
 
-export default UserProfile;
+export default StarIcon;
 ```
 
 ## Storybook
@@ -63,7 +63,7 @@ We use [storybook](https://storybook.js.org/) to visualize the look and feel of 
 yarn storybook
 ```
 
-When developing a new component, always add a story for it. If you were creating a component like `UserProfile/index.tsx` then you'd put its story in `stories/UserProfile.stories.tsx`. The storybook server will automatically load files having the `.stories.tsx` suffix in this directory.
+When developing a new component, always add a story for it. If you were creating a component like `src/components/StarIcon/index.tsx` then you'd put its story in `stories/StarIcon.stories.tsx`. The storybook server will automatically load files having the `.stories.tsx` suffix in this directory.
 
 ## All Available Commands
 
