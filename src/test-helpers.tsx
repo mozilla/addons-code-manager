@@ -1,3 +1,6 @@
+import PropTypes from 'prop-types';
+import { History, Location } from 'history';
+
 import { ExternalUser } from './reducers/users';
 
 export const fakeUser: ExternalUser = Object.freeze({
@@ -25,3 +28,55 @@ export const fakeUser: ExternalUser = Object.freeze({
   username: 'user-1234',
   /* eslint-enable @typescript-eslint/camelcase */
 });
+
+export const createFakeLocation = (props = {}): Location<{}> => {
+  return {
+    hash: '',
+    key: 'some-key',
+    pathname: '/some/url',
+    search: '',
+    state: {},
+    ...props,
+  };
+};
+
+export const createFakeHistory = ({
+  location = createFakeLocation(),
+} = {}): History => {
+  return {
+    action: 'PUSH',
+    block: jest.fn(),
+    createHref: jest.fn(),
+    go: jest.fn(),
+    goBack: jest.fn(),
+    goForward: jest.fn(),
+    length: 1,
+    listen: jest.fn(),
+    location,
+    push: jest.fn(),
+    replace: jest.fn(),
+  };
+};
+
+export const createContextWithFakeRouter = ({
+  history = createFakeHistory(),
+  location = null,
+  match = {},
+  ...overrides
+} = {}) => {
+  return {
+    context: {
+      router: {
+        history,
+        route: {
+          location: location || history.location,
+          match,
+        },
+      },
+    },
+    childContextTypes: {
+      router: PropTypes.object.isRequired,
+    },
+    ...overrides,
+  };
+};
