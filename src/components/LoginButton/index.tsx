@@ -4,9 +4,17 @@ import { Button } from 'react-bootstrap';
 import { gettext } from '../../utils';
 import styles from './styles.module.scss';
 
-export class LoginButtonBase extends React.Component {
+type PublicProps = {
+  fxaConfig: string;
+};
+
+export class LoginButtonBase extends React.Component<PublicProps> {
+  static defaultProps = {
+    fxaConfig: process.env.REACT_APP_FXA_CONFIG,
+  };
+
   getFxaURL() {
-    const fxaConfig = process.env.REACT_APP_FXA_CONFIG;
+    const { fxaConfig } = this.props;
 
     return `/api/v4/accounts/login/start/?config=${fxaConfig}&to=/`;
   }
