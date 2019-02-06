@@ -12,6 +12,7 @@ import {
   fakeUser,
   shallowUntilTarget,
 } from '../../test-helpers';
+import Navbar from '../Navbar';
 
 import App, { AppBase } from '.';
 
@@ -42,10 +43,11 @@ describe(__filename, () => {
   };
 
   it('renders without an authentication token', () => {
-    const root = render({ authToken: '' });
+    const root = render({ authToken: null });
 
     expect(root.find(Container)).toHaveClassName(styles.container);
     expect(root.find(`.${styles.content}`)).toHaveLength(1);
+    expect(root.find(Navbar)).toHaveLength(1);
   });
 
   it('renders with an empty authentication token', () => {
@@ -53,12 +55,14 @@ describe(__filename, () => {
 
     expect(root.find(Container)).toHaveClassName(styles.container);
     expect(root.find(`.${styles.content}`)).toHaveLength(1);
+    expect(root.find(Navbar)).toHaveLength(1);
   });
 
   it('displays a loading message until the user profile gets loaded', () => {
     const root = render();
 
     expect(root).toIncludeText('Getting your workspace ready');
+    expect(root.find(Navbar)).toHaveLength(0);
   });
 
   it('dispatches setAuthToken on mount when authToken is valid', () => {
