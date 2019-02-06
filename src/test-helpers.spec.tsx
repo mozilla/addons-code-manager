@@ -72,7 +72,7 @@ describe(__filename, () => {
       const Example = compose(wrapper())(ExampleBase);
 
       const shallowOptions = {
-        lifecycleExperimental: true,
+        disableLifecycleMethods: true,
       };
       const instance = <Example />;
       shallowUntilTarget(instance, ExampleBase, {
@@ -99,12 +99,20 @@ describe(__filename, () => {
 
       const Example = compose(wrapper())(LifecyleExample);
 
-      const root = shallowUntilTarget(<Example />, LifecyleExample, {
-        shallowOptions: { lifecycleExperimental: true },
-      });
+      // Check assertion to show that lifecycle methods are enabled by default
+      let root = shallowUntilTarget(<Example />, LifecyleExample);
       root.setProps({ something: 'else' });
 
       expect(componentDidUpdate).toHaveBeenCalled();
+
+      componentDidUpdate.mockClear();
+
+      root = shallowUntilTarget(<Example />, LifecyleExample, {
+        shallowOptions: { disableLifecycleMethods: true },
+      });
+      root.setProps({ something: 'else' });
+
+      expect(componentDidUpdate).not.toHaveBeenCalled();
     });
   });
 });
