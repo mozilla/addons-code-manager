@@ -5,7 +5,7 @@ import {
 } from '../reducers/api';
 import configureStore from '../configureStore';
 
-import { HttpMethod, callApi, logOutFromServer } from '.';
+import { HttpMethod, callApi, getVersionFile, logOutFromServer } from '.';
 
 describe(__filename, () => {
   const getApiState = ({ authToken = '12345' } = {}) => {
@@ -141,6 +141,36 @@ describe(__filename, () => {
       expect(fetch).toHaveBeenCalledWith(
         '/api/v4/url/?foo=1&bar=abc',
         expect.any(Object),
+      );
+    });
+  });
+
+  describe('getVersionFile', () => {
+    it('calls the API to retrieve default version file information', async () => {
+      const versionId = 123;
+
+      await getVersionFile({ apiState: defaultApiState, versionId });
+
+      expect(fetch).toHaveBeenCalledWith(
+        `/api/v4/reviewers/browse/${versionId}/`,
+        {
+          headers: {},
+          method: HttpMethod.GET,
+        },
+      );
+    });
+    it('calls the API to retrieve information for a specific version file', async () => {
+      const filename = 'test.js';
+      const versionId = 123;
+
+      await getVersionFile({ apiState: defaultApiState, filename, versionId });
+
+      expect(fetch).toHaveBeenCalledWith(
+        `/api/v4/reviewers/browse/${versionId}/?file=${filename}`,
+        {
+          headers: {},
+          method: HttpMethod.GET,
+        },
       );
     });
   });

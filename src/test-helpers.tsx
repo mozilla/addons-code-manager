@@ -3,9 +3,73 @@ import { History, Location } from 'history';
 import { shallow } from 'enzyme';
 
 import { ExternalUser } from './reducers/users';
+import {
+  ExternalVersion,
+  ExternalVersionEntry,
+  ExternalVersionFile,
+} from './reducers/versions';
+
+/* eslint-disable @typescript-eslint/camelcase */
+
+export const fakeVersionEntry: ExternalVersionEntry = Object.freeze({
+  binary: false,
+  depth: 0,
+  directory: false,
+  filename: 'manifest.json',
+  mimetype: 'application/octet-stream',
+  modified: '2017-08-15T12:01:13Z',
+  path: '/manifest.json',
+  sha256: 'some-sha',
+  size: 123,
+});
+
+export const fakeVersionFile: ExternalVersionFile = Object.freeze({
+  content: 'some file content',
+  created: '2017-08-15T12:01:13Z',
+  entries: {
+    'manifest.json': fakeVersionEntry,
+  },
+  hash: 'some-hash',
+  id: 789,
+  is_mozilla_signed_extension: true,
+  is_restart_required: false,
+  is_webextension: true,
+  permissions: [],
+  platform: 'all',
+  size: 123,
+  status: 'public',
+  url: 'http://example.com/edit/',
+});
+
+export const fakeVersion: ExternalVersion = Object.freeze({
+  channel: 'some channel',
+  compatibility: {
+    firefox: {
+      min: '1',
+      max: '2',
+    },
+  },
+  edit_url: 'http://example.com/edit/',
+  file: fakeVersionFile,
+  has_been_validated: true,
+  id: 123,
+  is_strict_compatibility_enabled: false,
+  license: {
+    id: 456,
+    isCustom: true,
+    name: { 'en-US': 'license name' },
+    text: { 'en-US': 'license text' },
+    url: 'http://example.com/license/',
+  },
+  release_notes: null,
+  reviewed: '2017-08-15T12:01:13Z',
+  url: 'http://example.com/',
+  validation_url: 'http://example.com/validation/',
+  validation_url_json: 'http://example.com/validation/json/',
+  version: '1.0',
+});
 
 export const fakeUser: ExternalUser = Object.freeze({
-  /* eslint-disable @typescript-eslint/camelcase */
   average_addon_rating: 4.3,
   biography: 'I love making add-ons!',
   created: '2017-08-15T12:01:13Z',
@@ -27,8 +91,9 @@ export const fakeUser: ExternalUser = Object.freeze({
   picture_url: `https://example.com/anon_user.png`,
   url: null,
   username: 'user-1234',
-  /* eslint-enable @typescript-eslint/camelcase */
 });
+
+/* eslint-enable @typescript-eslint/camelcase */
 
 export const createFakeLocation = (props = {}): Location<{}> => {
   return {
