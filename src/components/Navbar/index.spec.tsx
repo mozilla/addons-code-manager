@@ -1,37 +1,59 @@
 import { shallow } from 'enzyme';
 import React from 'react';
+import { Store } from 'redux';
 
+import configureStore from '../../configureStore';
 import LoginButton from '../LoginButton';
 import styles from './styles.module.scss';
+import { fakeUser } from '../../test-helpers';
+import { logOutFromServer } from '../../api';
+import { actions as userActions } from '../../reducers/users';
 
-import Navbar from '.';
+import Navbar, { NavbarBase } from '.';
 
 describe(__filename, () => {
-  const render = (props = {}) => {
-    return shallow(<Navbar onLogOut={() => null} profile={null} {...props} />);
+  type RenderParams = {
+    _logOutFromServer?: typeof logOutFromServer;
+    store?: Store;
   };
 
-  const createProfile = (name = 'Bob') => {
-    return { name };
+  const render = ({
+    _logOutFromServer = jest.fn(),
+    store = configureStore(),
+  }: RenderParams = {}) => {
+    // TODO: Use shallowUntilTarget()
+    // https://github.com/mozilla/addons-code-manager/issues/15
+    const root = shallow(<Navbar _logOutFromServer={_logOutFromServer} />, {
+      context: { store },
+    }).shallow();
+
+    return root;
+  };
+
+  const storeWithUser = (user = fakeUser) => {
+    const store = configureStore();
+
+    store.dispatch(userActions.loadCurrentUser({ user }));
+    return store;
   };
 
   describe('when a profile is provided', () => {
     it('renders a username', () => {
       const name = 'Bob';
-      const root = render({ profile: createProfile(name) });
+      const store = storeWithUser({ ...fakeUser, name });
+      const root = render({ store });
 
       expect(root.find(`.${styles.username}`)).toHaveText(name);
     });
 
     it('renders a log out button', () => {
-      const onLogOut = () => null;
-      const root = render({ onLogOut, profile: createProfile() });
+      const root = render({ store: storeWithUser() });
 
       expect(root.find(`.${styles.logOut}`)).toHaveLength(1);
     });
 
     it('does not render a log in button', () => {
-      const root = render({ profile: createProfile() });
+      const root = render({ store: storeWithUser() });
 
       expect(root.find(LoginButton)).toHaveLength(0);
     });
@@ -39,31 +61,56 @@ describe(__filename, () => {
 
   describe('when profile is null', () => {
     it('does not render a username', () => {
-      const root = render({ profile: null });
+      const root = render();
 
       expect(root.find(`.${styles.username}`)).toHaveLength(0);
     });
 
     it('renders a log in button', () => {
-      const root = render({ profile: null });
+      const root = render();
 
       expect(root.find(LoginButton)).toHaveLength(1);
     });
 
     it('does not render a log out button', () => {
-      const root = render({ profile: null });
+      const root = render();
 
       expect(root.find(`.${styles.logOut}`)).toHaveLength(0);
     });
   });
 
   describe('Log out button', () => {
-    it('calls onLogOut when clicked', () => {
-      const onLogOutMock = jest.fn();
-      const root = render({ onLogOut: onLogOutMock, profile: createProfile() });
+    it('configures the click handler', () => {
+      const root = render({ store: storeWithUser() });
+      const instance = root.instance() as NavbarBase;
 
-      root.find(`.${styles.logOut}`).simulate('click');
-      expect(onLogOutMock).toHaveBeenCalled();
+      expect(root.find(`.${styles.logOut}`)).toHaveProp(
+        'onClick',
+        instance.logOut,
+      );
+    });
+
+    it('calls logOutFromServer when clicked', async () => {
+      const logOutFromServerMock = jest.fn();
+      const root = render({
+        _logOutFromServer: logOutFromServerMock,
+        store: storeWithUser(),
+      });
+
+      const instance = root.instance() as NavbarBase;
+      await instance.logOut();
+      expect(logOutFromServerMock).toHaveBeenCalled();
+    });
+
+    it('dispatches userActions.logOut when clicked', async () => {
+      const store = storeWithUser();
+      const dispatch = jest.spyOn(store, 'dispatch');
+
+      const root = render({ store });
+
+      const instance = root.instance() as NavbarBase;
+      await instance.logOut();
+      expect(dispatch).toHaveBeenCalledWith(userActions.logOut());
     });
   });
 });

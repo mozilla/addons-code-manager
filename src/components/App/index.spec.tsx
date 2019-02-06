@@ -7,7 +7,8 @@ import { Route } from 'react-router-dom';
 import styles from './styles.module.scss';
 import configureStore from '../../configureStore';
 import { actions as apiActions } from '../../reducers/api';
-import { createContextWithFakeRouter } from '../../test-helpers';
+import { actions as userActions } from '../../reducers/users';
+import { createContextWithFakeRouter, fakeUser } from '../../test-helpers';
 
 import App from '.';
 
@@ -82,10 +83,9 @@ describe(__filename, () => {
 
   it('exposes more routes when the user is logged in', () => {
     const store = configureStore();
+    store.dispatch(userActions.loadCurrentUser({ user: fakeUser }));
 
     const root = render({ store });
-    // Set `profile` to some object so that it is not `null`.
-    root.setState({ profile: {} });
 
     expect(root.find(Route)).toHaveLength(3);
     expect(root.find(`.${styles.loginMessage}`)).toHaveLength(0);
