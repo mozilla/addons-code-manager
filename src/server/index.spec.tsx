@@ -1,6 +1,8 @@
 /* eslint @typescript-eslint/no-object-literal-type-assertion: 0 */
+import http from 'http';
 import path from 'path';
 
+import express from 'express';
 import request from 'supertest';
 import { RequestWithCookies } from 'universal-cookie-express';
 import Cookies from 'universal-cookie';
@@ -104,6 +106,103 @@ describe(__filename, () => {
 
         expect(_injectAuthenticationToken).toHaveBeenCalled();
         expect(response.text).toContain(expectedHTML);
+      });
+    });
+
+    describe('NODE_ENV=development', () => {
+      let proxy: express.Application;
+      let proxyServer: http.Server;
+
+      const devEnv = {
+        NODE_ENV: 'development',
+        REACT_APP_CRA_PORT: 60123,
+      };
+
+      beforeEach(() => {
+        proxy = express();
+        proxyServer = proxy.listen(devEnv.REACT_APP_CRA_PORT);
+      });
+
+      afterEach(() => {
+        proxyServer.close();
+      });
+
+      it('creates an Express server that uses a proxy', async () => {
+        const proxyContent = 'Hello, I am a proxy';
+        // Configure the proxy
+        proxy.get('/*', (req, res) => res.send(proxyContent));
+
+        const server = request(
+          createServer({ env: devEnv as ServerEnvVars, rootPath }),
+        );
+
+        const response = await server.get('/');
+
+        expect(response.text).toContain(proxyContent);
+        expect(response.header).toHaveProperty(
+          'cache-control',
+          'private, no-store',
+        );
+      });
+
+      it('calls injectAuthenticationToken() and returns its output', async () => {
+        const expectedHTML = 'content with auth token';
+
+        const _injectAuthenticationToken = jest.fn();
+        _injectAuthenticationToken.mockReturnValue(expectedHTML);
+
+        const server = request(
+          createServer({
+            env: devEnv as ServerEnvVars,
+            rootPath,
+            _injectAuthenticationToken,
+          }),
+        );
+
+        const response = await server.get('/');
+
+        expect(_injectAuthenticationToken).toHaveBeenCalled();
+        expect(response.text).toContain(expectedHTML);
+      });
+
+      it('does not configure the `cache-control` header of non-HTML proxy responses', async () => {
+        const proxyContent = { foo: 'bar' };
+        // Configure the proxy to return JSON content
+        proxy.get('/*', (req, res) => res.json(proxyContent));
+
+        const server = request(
+          createServer({ env: devEnv as ServerEnvVars, rootPath }),
+        );
+
+        const response = await server.get('/');
+
+        expect(response.text).toContain(JSON.stringify(proxyContent));
+        expect(response.header).not.toHaveProperty(
+          'cache-control',
+          'private, no-store',
+        );
+      });
+
+      it('does not call injectAuthenticationToken() for non-HTML proxy responses', async () => {
+        const proxyContent = { foo: 'bar' };
+        // Configure the proxy to return JSON content
+        proxy.get('/*', (req, res) => res.json(proxyContent));
+
+        const _injectAuthenticationToken = jest.fn();
+        _injectAuthenticationToken.mockReturnValue('this is unexpected');
+
+        const server = request(
+          createServer({
+            env: devEnv as ServerEnvVars,
+            rootPath,
+            _injectAuthenticationToken,
+          }),
+        );
+
+        const response = await server.get('/');
+
+        expect(_injectAuthenticationToken).not.toHaveBeenCalled();
+        expect(response.text).toContain(JSON.stringify(proxyContent));
       });
     });
   });
