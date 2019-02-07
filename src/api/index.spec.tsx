@@ -139,7 +139,7 @@ describe(__filename, () => {
       await callApiWithDefaultApiState({ endpoint: '/url', query });
 
       expect(fetch).toHaveBeenCalledWith(
-        '/api/url/?foo=1&bar=abc',
+        '/api/v4/url/?foo=1&bar=abc',
         expect.any(Object),
       );
     });
