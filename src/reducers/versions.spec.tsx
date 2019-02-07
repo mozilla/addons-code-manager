@@ -2,6 +2,7 @@ import reducer, {
   VersionEntryType,
   actions,
   createInternalVersion,
+  createInternalVersionEntry,
   createInternalVersionFile,
   getVersionEntryType,
   getVersionFile,
@@ -69,21 +70,27 @@ describe(__filename, () => {
     });
   });
 
+  describe('createInternalVersionEntry', () => {
+    it('creates a VersionEntry', () => {
+      const entry = { ...fakeVersionEntry, filename: 'entry' };
+
+      expect(createInternalVersionEntry(entry)).toEqual({
+        depth: entry.depth,
+        filename: entry.filename,
+        modified: entry.modified,
+        path: entry.path,
+        type: getVersionEntryType(entry),
+      });
+    });
+  });
+
   describe('createInternalVersion', () => {
     it('creates a Version', () => {
       const version = fakeVersion;
       const entry = version.file.entries[Object.keys(version.file.entries)[0]];
 
       expect(createInternalVersion(version)).toEqual({
-        entries: [
-          {
-            depth: entry.depth,
-            filename: entry.filename,
-            modified: entry.modified,
-            path: entry.path,
-            type: getVersionEntryType(entry),
-          },
-        ],
+        entries: [createInternalVersionEntry(entry)],
         id: version.id,
         reviewed: version.reviewed,
         version: version.version,
@@ -104,20 +111,8 @@ describe(__filename, () => {
 
       expect(createInternalVersion(version)).toEqual({
         entries: [
-          {
-            depth: entry1.depth,
-            filename: entry1.filename,
-            modified: entry1.modified,
-            path: entry1.path,
-            type: getVersionEntryType(entry1),
-          },
-          {
-            depth: entry2.depth,
-            filename: entry2.filename,
-            modified: entry2.modified,
-            path: entry2.path,
-            type: getVersionEntryType(entry2),
-          },
+          createInternalVersionEntry(entry1),
+          createInternalVersionEntry(entry2),
         ],
         id: version.id,
         reviewed: version.reviewed,

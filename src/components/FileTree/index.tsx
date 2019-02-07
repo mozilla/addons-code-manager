@@ -10,13 +10,37 @@ type FileNode = {
   name: string;
 };
 
-type DirectoryNode = {
+export type DirectoryNode = {
   id: string;
   name: string;
   children: TreeNode[];
 };
 
 type TreeNode = FileNode | DirectoryNode;
+
+const recursiveSortInPlace = (node: DirectoryNode): void => {
+  node.children.sort((a, b) => {
+    if ('children' in a && 'children' in b) {
+      return a.name.localeCompare(b.name);
+    }
+
+    if ('children' in a === false && 'children' in b === false) {
+      return a.name.localeCompare(b.name);
+    }
+
+    if ('children' in b === false) {
+      return -1;
+    }
+
+    return 1;
+  });
+
+  node.children.forEach((child) => {
+    if ('children' in child) {
+      recursiveSortInPlace(child);
+    }
+  });
+};
 
 export const buildFileTree = (
   versionId: string,
@@ -95,6 +119,8 @@ export const buildFileTree = (
     // To the next depth.
     currentDepth++;
   }
+
+  recursiveSortInPlace(root);
 
   return root;
 };

@@ -148,17 +148,24 @@ export const createInternalVersionFile = (
   };
 };
 
+export const createInternalVersionEntry = (
+  entry: ExternalVersionEntry,
+): VersionEntry => {
+  return {
+    type: getVersionEntryType(entry),
+    depth: entry.depth,
+    filename: entry.filename,
+    modified: entry.modified,
+    path: entry.path,
+  };
+};
+
 export const createInternalVersion = (version: ExternalVersion): Version => {
   return {
     entries: Object.keys(version.file.entries).map((nodeName) => {
       const entry = version.file.entries[nodeName];
-      return {
-        type: getVersionEntryType(entry),
-        depth: entry.depth,
-        filename: entry.filename,
-        modified: entry.modified,
-        path: entry.path,
-      };
+
+      return createInternalVersionEntry(entry);
     }),
     id: version.id,
     reviewed: version.reviewed,
