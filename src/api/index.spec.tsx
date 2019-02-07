@@ -132,6 +132,17 @@ describe(__filename, () => {
         new Error('Unexpected status for GET /: 400'),
       );
     });
+
+    it('accepts query parameters', async () => {
+      const query = { foo: '1', bar: 'abc' };
+
+      await callApiWithDefaultApiState({ endpoint: '/url', query });
+
+      expect(fetch).toHaveBeenCalledWith(
+        '/api/url/?foo=1&bar=abc',
+        expect.any(Object),
+      );
+    });
   });
 
   describe('logOutFromServer', () => {
