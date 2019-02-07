@@ -13,7 +13,7 @@ describe(__filename, () => {
     `should have dependencies[%s] version prefixed with a number`,
     (key: string) => {
       expect(packageJson.dependencies).toHaveProperty(
-        key,
+        [key],
         expect.stringMatching(/^\d/),
       );
     },
@@ -24,7 +24,7 @@ describe(__filename, () => {
     (key: string) => {
       if (!skipDevDeps.includes(key)) {
         expect(packageJson.devDependencies).toHaveProperty(
-          key,
+          [key],
           expect.stringMatching(/^(\^|git)/),
         );
       }
