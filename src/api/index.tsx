@@ -15,6 +15,7 @@ type CallApiParams = {
   method?: HttpMethod;
   version?: string;
   apiState: ApiState;
+  query?: { [key: string]: string };
 };
 
 type CallApiResponse = object | { error: Error };
@@ -28,6 +29,7 @@ export const callApi = async ({
   endpoint,
   method = HttpMethod.GET,
   version = 'v4',
+  query = {},
 }: CallApiParams): Promise<CallApiResponse> => {
   let adjustedEndpoint = endpoint;
   if (!adjustedEndpoint.startsWith('/')) {
@@ -40,6 +42,14 @@ export const callApi = async ({
   const headers: Headers = {};
   if (apiState.authToken) {
     headers.Authorization = `Bearer ${apiState.authToken}`;
+  }
+
+  if (Object.keys(query).length) {
+    const queryString = Object.keys(query)
+      .map((k) => `${k}=${query[k]}`)
+      .join('&');
+
+    adjustedEndpoint = `${adjustedEndpoint}?${queryString}`;
   }
 
   try {
