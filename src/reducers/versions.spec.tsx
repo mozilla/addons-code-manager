@@ -57,7 +57,7 @@ describe(__filename, () => {
       });
     });
 
-    it('loads version info', () => {
+    it('loads version info and the default file', () => {
       const version = fakeVersion;
       const state = reducer(undefined, actions.loadVersionInfo({ version }));
 
@@ -65,6 +65,13 @@ describe(__filename, () => {
         ...initialState,
         versionInfo: {
           [version.id]: createInternalVersion(version),
+        },
+        versionFiles: {
+          [version.id]: {
+            [version.file.selected_file]: createInternalVersionFile(
+              version.file,
+            ),
+          },
         },
       });
     });
@@ -94,6 +101,7 @@ describe(__filename, () => {
         id: version.id,
         reviewed: version.reviewed,
         version: version.version,
+        selectedPath: version.file.selected_file,
       });
     });
 
@@ -117,6 +125,7 @@ describe(__filename, () => {
         id: version.id,
         reviewed: version.reviewed,
         version: version.version,
+        selectedPath: version.file.selected_file,
       });
     });
   });

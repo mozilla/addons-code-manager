@@ -2,17 +2,24 @@ import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { Col } from 'react-bootstrap';
+import Highlight from 'react-highlight';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
 import { ApiState } from '../../reducers/api';
-import { getVersionFile } from '../../api';
+import * as api from '../../api';
 import FileTree from '../../components/FileTree';
 import {
-  actions as versionActions,
-  Version,
   ExternalVersion,
+  Version,
+  VersionFile,
+  actions as versionActions,
+  getVersionFiles,
   getVersionInfo,
 } from '../../reducers/versions';
+import { gettext } from '../../utils';
+
+import 'highlight.js/styles/github.css';
 
 type PropsFromRouter = {
   addonId: string;
@@ -21,6 +28,7 @@ type PropsFromRouter = {
 
 type PropsFromState = {
   apiState: ApiState;
+  files: { [path: string]: VersionFile };
   version: Version;
 };
 
@@ -35,7 +43,7 @@ export class BrowseBase extends React.Component<Props> {
     const { apiState, dispatch, match } = this.props;
     const { addonId, versionId } = match.params;
 
-    const response = (await getVersionFile({
+    const response = (await api.getVersionFile({
       addonId: parseInt(addonId, 10),
       apiState,
       versionId: parseInt(versionId, 10),
@@ -46,16 +54,49 @@ export class BrowseBase extends React.Component<Props> {
     }
   }
 
-  render() {
-    const { version } = this.props;
+  onSelect = async (path: string) => {
+    const { apiState, dispatch, match, files, version } = this.props;
 
-    return (
+    dispatch(versionActions.selectPath({ versionId: version.id, path }));
+
+    if (!files[path]) {
+      const { addonId } = match.params;
+
+      const response = (await api.getVersionFile({
+        addonId: parseInt(addonId, 10),
+        apiState,
+        path,
+        versionId: version.id,
+      })) as ExternalVersion;
+
+      if (response && response.id) {
+        dispatch(versionActions.loadVersionFile({ path, version: response }));
+      }
+    }
+  };
+
+  render() {
+    const { files, version } = this.props;
+
+    return version ? (
       <React.Fragment>
-        <Col md="3">{version && <FileTree version={version} />}</Col>
-        <Col>
-          <p>Version ID: {this.props.match.params.versionId}</p>
+        <Col md="3">
+          <FileTree version={version} onSelect={this.onSelect} />
+        </Col>
+        <Col md="9">
+          {files[version.selectedPath] ? (
+            <Highlight className="auto">
+              {files[version.selectedPath].content}
+            </Highlight>
+          ) : (
+            <FontAwesomeIcon icon="spinner" spin />
+          )}
         </Col>
       </React.Fragment>
+    ) : (
+      <Col>
+        <p>{gettext('Loading...')}</p>
+      </Col>
     );
   }
 }
@@ -67,9 +108,13 @@ const mapStateToProps = (
   const { match } = ownProps;
   const { versionId } = match.params;
 
+  const version = getVersionInfo(state.versions, parseInt(versionId, 10));
+  const files = getVersionFiles(state.versions, parseInt(versionId, 10));
+
   return {
     apiState: state.api,
-    version: getVersionInfo(state.versions, parseInt(versionId, 10)),
+    version,
+    files,
   };
 };
 

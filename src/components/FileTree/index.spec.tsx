@@ -355,7 +355,7 @@ describe(__filename, () => {
     };
 
     const render = ({ version = getVersion(fakeVersion) } = {}) => {
-      return shallow(<FileTree version={version} />);
+      return shallow(<FileTree version={version} onSelect={jest.fn()} />);
     };
 
     it('renders a ListGroup component with a Treefold', () => {

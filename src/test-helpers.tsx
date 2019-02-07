@@ -36,6 +36,7 @@ export const fakeVersionFile: ExternalVersionFile = Object.freeze({
   is_webextension: true,
   permissions: [],
   platform: 'all',
+  selected_file: 'manifest.json',
   size: 123,
   status: 'public',
   url: 'http://example.com/edit/',

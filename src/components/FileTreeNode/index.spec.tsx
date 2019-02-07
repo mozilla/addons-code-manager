@@ -33,6 +33,7 @@ describe(__filename, () => {
   const render = (props = {}) => {
     const allProps = {
       ...getTreefoldRenderProps(),
+      onSelect: jest.fn(),
       ...props,
     };
 

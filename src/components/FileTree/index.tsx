@@ -127,11 +127,12 @@ export const buildFileTree = (
 
 type PublicProps = {
   version: Version;
+  onSelect: (path: string) => void;
 };
 
 export class FileTreeBase extends React.Component<PublicProps> {
   renderNode = (props: TreefoldRenderProps<TreeNode>) => {
-    return <FileTreeNode {...props} />;
+    return <FileTreeNode {...props} onSelect={this.props.onSelect} />;
   };
 
   render() {

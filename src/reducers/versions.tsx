@@ -47,6 +47,7 @@ export type ExternalVersionFile = {
   is_webextension: boolean;
   permissions: string[];
   platform: string;
+  selected_file: string;
   size: number;
   status: string;
   url: string;
@@ -69,7 +70,7 @@ export type ExternalVersion = {
   version: string;
 };
 
-type VersionFile = {
+export type VersionFile = {
   content: string;
   created: string;
   id: number;
@@ -96,6 +97,7 @@ export type Version = {
   id: VersionId;
   reviewed: string;
   version: string;
+  selectedPath: string;
 };
 
 export const actions = {
@@ -105,6 +107,10 @@ export const actions = {
   }),
   loadVersionInfo: createAction('LOAD_VERSION_INFO', (resolve) => {
     return (payload: { version: ExternalVersion }) => resolve(payload);
+  }),
+  selectPath: createAction('SELECT_PATH', (resolve) => {
+    return (payload: { versionId: VersionId; path: string }) =>
+      resolve(payload);
   }),
 };
 
@@ -168,7 +174,15 @@ export const createInternalVersion = (version: ExternalVersion): Version => {
     id: version.id,
     reviewed: version.reviewed,
     version: version.version,
+    selectedPath: version.file.selected_file,
   };
+};
+
+export const getVersionFiles = (
+  versions: VersionsState,
+  versionId: VersionId,
+) => {
+  return versions.versionFiles[versionId];
 };
 
 export const getVersionFile = (
@@ -194,16 +208,26 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
   switch (action.type) {
     case getType(actions.loadVersionInfo): {
       const { version } = action.payload;
+
       return {
         ...state,
         versionInfo: {
           ...state.versionInfo,
           [version.id]: createInternalVersion(version),
         },
+        versionFiles: {
+          [version.id]: {
+            ...state.versionFiles[version.id],
+            [version.file.selected_file]: createInternalVersionFile(
+              version.file,
+            ),
+          },
+        },
       };
     }
     case getType(actions.loadVersionFile): {
       const { path, version } = action.payload;
+
       return {
         ...state,
         versionFiles: {
@@ -211,6 +235,20 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
           [version.id]: {
             ...state.versionFiles[version.id],
             [path]: createInternalVersionFile(version.file),
+          },
+        },
+      };
+    }
+    case getType(actions.selectPath): {
+      const { path, versionId } = action.payload;
+
+      return {
+        ...state,
+        versionInfo: {
+          ...state.versionInfo,
+          [versionId]: {
+            ...state.versionInfo[versionId],
+            selectedPath: path,
           },
         },
       };

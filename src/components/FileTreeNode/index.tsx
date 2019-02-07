@@ -8,7 +8,9 @@ import { gettext } from '../../utils';
 import { TreeNode } from '../FileTree';
 import styles from './styles.module.scss';
 
-type PublicProps = TreefoldRenderProps<TreeNode>;
+type PublicProps = TreefoldRenderProps<TreeNode> & {
+  onSelect: (path: string) => void;
+};
 
 class FileTreeNodeBase<TreeNodeType> extends React.Component<PublicProps> {
   render() {
@@ -20,6 +22,7 @@ class FileTreeNodeBase<TreeNodeType> extends React.Component<PublicProps> {
       getToggleProps,
       hasChildNodes,
       renderChildNodes,
+      onSelect,
     } = this.props;
 
     let listGroupItemProps = {
@@ -45,10 +48,11 @@ class FileTreeNodeBase<TreeNodeType> extends React.Component<PublicProps> {
                 &nbsp;{node.name}
               </React.Fragment>
             ) : (
-              <React.Fragment>
+              // eslint-disable-next-line
+              <span onClick={() => onSelect(node.id)}>
                 <FontAwesomeIcon icon="file" />
                 &nbsp;{node.name}
-              </React.Fragment>
+              </span>
             )}
           </span>
         </ListGroup.Item>

@@ -51,12 +51,12 @@ describe(__filename, () => {
     });
   };
 
-  it('renders a page', async () => {
+  it('renders a loading message when there is no version data', async () => {
     const versionId = '123456';
 
     const root = await render({ versionId });
 
-    expect(root).toIncludeText(`Version ID: ${versionId}`);
+    expect(root).toIncludeText('Loading...');
   });
 
   it('renders a FileTree component', async () => {
