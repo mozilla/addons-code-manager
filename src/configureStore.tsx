@@ -10,7 +10,11 @@ import {
 } from 'redux';
 import { composeWithDevTools } from 'redux-devtools-extension';
 import { createLogger } from 'redux-logger';
-import thunk, { ThunkAction, ThunkMiddleware } from 'redux-thunk';
+import thunk, {
+  ThunkAction,
+  ThunkDispatch as ReduxThunkDispatch,
+  ThunkMiddleware,
+} from 'redux-thunk';
 
 import api, { ApiState } from './reducers/api';
 import users, { UsersState } from './reducers/users';
@@ -28,6 +32,12 @@ export type ApplicationState = {
 
 export type ThunkActionCreator<PromiseResult = void> = ThunkAction<
   Promise<PromiseResult>,
+  ApplicationState,
+  undefined,
+  AnyAction
+>;
+
+export type ThunkDispatch = ReduxThunkDispatch<
   ApplicationState,
   undefined,
   AnyAction

@@ -2,12 +2,15 @@ import * as React from 'react';
 import { Button, Navbar } from 'react-bootstrap';
 import { AnyAction } from 'redux';
 import { connect } from 'react-redux';
-import { ThunkDispatch } from 'redux-thunk';
 
 import { gettext } from '../../utils';
 import LoginButton from '../LoginButton';
 import { logOutFromServer } from '../../api';
-import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
+import {
+  ApplicationState,
+  ConnectedReduxProps,
+  ThunkDispatch,
+} from '../../configureStore';
 import { ApiState } from '../../reducers/api';
 import {
   User,
@@ -35,10 +38,7 @@ export class NavbarBase extends React.Component<Props> {
 
   logOut = () => {
     const { _requestLogOut, apiState, dispatch } = this.props;
-    // dispatch(_requestLogOut());
-    (dispatch as ThunkDispatch<ApplicationState, undefined, AnyAction>)(
-      _requestLogOut(),
-    );
+    (dispatch as ThunkDispatch)(_requestLogOut());
   };
 
   render() {
