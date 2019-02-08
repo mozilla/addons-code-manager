@@ -1,20 +1,16 @@
 import * as React from 'react';
 import { Button, Navbar } from 'react-bootstrap';
-import { AnyAction } from 'redux';
 import { connect } from 'react-redux';
 
 import { gettext } from '../../utils';
 import LoginButton from '../LoginButton';
-import { logOutFromServer } from '../../api';
 import {
   ApplicationState,
   ConnectedReduxProps,
   ThunkDispatch,
 } from '../../configureStore';
-import { ApiState } from '../../reducers/api';
 import {
   User,
-  actions as userActions,
   getCurrentUser,
   requestLogOut,
 } from '../../reducers/users';
@@ -25,7 +21,6 @@ type PublicProps = {
 };
 
 type PropsFromState = {
-  apiState: ApiState;
   profile: User | null;
 };
 
@@ -37,7 +32,7 @@ export class NavbarBase extends React.Component<Props> {
   };
 
   logOut = () => {
-    const { _requestLogOut, apiState, dispatch } = this.props;
+    const { _requestLogOut, dispatch } = this.props;
     (dispatch as ThunkDispatch)(_requestLogOut());
   };
 
@@ -66,7 +61,6 @@ export class NavbarBase extends React.Component<Props> {
 
 const mapStateToProps = (state: ApplicationState): PropsFromState => {
   return {
-    apiState: state.api,
     profile: getCurrentUser(state.users),
   };
 };

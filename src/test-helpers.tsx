@@ -167,7 +167,9 @@ type ShallowUntilTargetOptions = {
 };
 
 export const shallowUntilTarget = (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   componentInstance: React.ReactElement<any>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   targetComponent: React.JSXElementConstructor<any>,
   {
     maxTries = 10,

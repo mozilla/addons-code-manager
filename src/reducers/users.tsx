@@ -1,7 +1,7 @@
-import { AnyAction, Reducer } from 'redux';
+import { Reducer } from 'redux';
 import { ActionType, createAction, getType } from 'typesafe-actions';
 
-import { ApplicationState, ThunkActionCreator } from '../configureStore';
+import { ThunkActionCreator } from '../configureStore';
 import { logOutFromServer } from '../api';
 
 type UserId = number;

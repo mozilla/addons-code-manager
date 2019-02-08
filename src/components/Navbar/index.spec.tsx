@@ -8,7 +8,7 @@ import styles from './styles.module.scss';
 import { fakeUser } from '../../test-helpers';
 import { actions as userActions, requestLogOut } from '../../reducers/users';
 
-import Navbar, { NavbarBase } from '.';
+import Navbar from '.';
 
 describe(__filename, () => {
   type RenderParams = {
