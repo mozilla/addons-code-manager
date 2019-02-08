@@ -4,26 +4,33 @@ import reducer, {
   getCurrentUser,
   initialState,
 } from './users';
+
 import { fakeUser } from '../test-helpers';
+import configureStore from '../configureStore';
 
 describe(__filename, () => {
+  let store = configureStore();
+
+  beforeEach(() => {
+    store = configureStore();
+  });
+
   describe('reducer', () => {
     it('loads a current user', () => {
       const user = fakeUser;
-      const state = reducer(undefined, actions.loadCurrentUser({ user }));
+      store.dispatch(actions.loadCurrentUser({ user }));
 
-      expect(state).toEqual({
+      expect(store.getState().users).toEqual({
         ...initialState,
         currentUser: createInternalUser(user),
       });
     });
 
     it('logs a user out', () => {
-      const user = fakeUser;
-      let state = reducer(undefined, actions.loadCurrentUser({ user }));
-      state = reducer(state, actions.logOut());
+      store.dispatch(actions.loadCurrentUser({ user: fakeUser }));
+      store.dispatch(actions.logOut());
 
-      expect(getCurrentUser(state)).toEqual(null);
+      expect(getCurrentUser(store.getState().users)).toEqual(null);
     });
   });
 
@@ -42,9 +49,11 @@ describe(__filename, () => {
   describe('getCurrentUser', () => {
     it('returns the current user', () => {
       const user = fakeUser;
-      const state = reducer(undefined, actions.loadCurrentUser({ user }));
+      store.dispatch(actions.loadCurrentUser({ user }));
 
-      expect(getCurrentUser(state)).toEqual(createInternalUser(user));
+      expect(getCurrentUser(store.getState().users)).toEqual(
+        createInternalUser(user),
+      );
     });
 
     it('returns null if there is no current user', () => {

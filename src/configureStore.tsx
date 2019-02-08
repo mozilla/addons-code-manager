@@ -4,11 +4,17 @@ import {
   Dispatch,
   Store,
   applyMiddleware,
-  combineReducers,
+  compose,
   createStore,
 } from 'redux';
 import { composeWithDevTools } from 'redux-devtools-extension';
 import { createLogger } from 'redux-logger';
+import {
+  LoopReducer,
+  StoreCreator,
+  combineReducers,
+  install,
+} from 'redux-loop';
 
 import api, { ApiState } from './reducers/api';
 import users, { UsersState } from './reducers/users';
@@ -31,15 +37,24 @@ const createRootReducer = () => {
 const configureStore = (
   preloadedState?: ApplicationState,
 ): Store<ApplicationState> => {
-  let middleware;
-  if (process.env.NODE_ENV === 'development') {
-    middleware = applyMiddleware(createLogger());
+  let composeEnhancers = compose;
+  const allMiddleware = [];
 
-    const composeEnhancers = composeWithDevTools({});
-    middleware = composeEnhancers(middleware);
+  if (process.env.NODE_ENV === 'development') {
+    allMiddleware.push(createLogger());
+    composeEnhancers = composeWithDevTools({});
   }
 
-  return createStore(createRootReducer(), preloadedState, middleware);
+  const middleware = composeEnhancers(
+    applyMiddleware(...allMiddleware),
+    install<ApplicationState>(),
+  );
+
+  return (createStore as StoreCreator)(
+    createRootReducer(),
+    preloadedState,
+    middleware,
+  );
 };
 
 export default configureStore;

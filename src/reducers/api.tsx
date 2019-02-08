@@ -1,5 +1,6 @@
 import { Reducer } from 'redux';
 import { ActionType, createAction, getType } from 'typesafe-actions';
+import { Cmd, Loop, LoopReducer, loop } from 'redux-loop';
 
 type SetAuthTokenPayload = {
   authToken: string;
@@ -19,10 +20,12 @@ export const initialState: ApiState = {
   authToken: null,
 };
 
-const reducer: Reducer<ApiState, ActionType<typeof actions>> = (
-  state = initialState,
-  action,
-): ApiState => {
+export type Action = ActionType<typeof actions>
+
+const reducer: LoopReducer<ApiState, Action> = (
+  state: ApiState = initialState,
+  action: Action,
+): ApiState | Loop<ApiState, Action> => {
   switch (action.type) {
     case getType(actions.setAuthToken):
       return { ...state, authToken: action.payload.authToken };

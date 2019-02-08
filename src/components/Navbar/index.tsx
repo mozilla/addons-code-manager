@@ -32,9 +32,7 @@ export class NavbarBase extends React.Component<Props> {
 
   logOut = async () => {
     const { _logOutFromServer, apiState, dispatch } = this.props;
-
-    await _logOutFromServer(apiState);
-    dispatch(userActions.logOut());
+    dispatch(userActions.requestLogOut());
   };
 
   render() {

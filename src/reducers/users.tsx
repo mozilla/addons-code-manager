@@ -1,5 +1,10 @@
-import { Reducer } from 'redux';
+import { Dispatch, Reducer } from 'redux';
+import { Cmd, Loop, LoopReducer, loop } from 'redux-loop';
 import { ActionType, createAction, getType } from 'typesafe-actions';
+
+import { logOutFromServer } from '../api';
+import { ApplicationState } from '../configureStore';
+import { Action as ApiActions } from './api';
 
 type UserId = number;
 
@@ -45,6 +50,12 @@ export const actions = {
     return (payload: { user: ExternalUser }) => resolve(payload);
   }),
   logOut: createAction('LOG_OUT'),
+  requestLogOut: createAction('REQUEST_LOG_OUT'),
+};
+
+const doLogOut = async (dispatch: Dispatch, getState: () => ApplicationState) => {
+  await logOutFromServer(getState().api);
+  dispatch(actions.logOut());
 };
 
 export type UsersState = {
@@ -68,11 +79,20 @@ export const getCurrentUser = (users: UsersState) => {
   return users.currentUser;
 };
 
-const reducer: Reducer<UsersState, ActionType<typeof actions>> = (
-  state = initialState,
-  action,
-): UsersState => {
+export type Action = ActionType<typeof actions>;
+
+const reducer: LoopReducer<UsersState, Action> = (
+  state: UsersState = initialState,
+  action: Action,
+): UsersState | Loop<UsersState, Action> => {
   switch (action.type) {
+    case getType(actions.requestLogOut):
+      return loop(
+        { ...state },
+        Cmd.run(doLogOut, {
+          args: [Cmd.dispatch, Cmd.getState],
+        }),
+      );
     case getType(actions.loadCurrentUser):
       return {
         ...state,
