@@ -16,7 +16,7 @@ describe(__filename, () => {
     });
 
     it('converts a non-directory entry to a file node', () => {
-      const name = 'some-name';
+      const versionId = 'some-name';
 
       const filename = 'some-filename';
       const entries = [
@@ -28,7 +28,7 @@ describe(__filename, () => {
         },
       ];
 
-      const data = buildFileTree(name, entries);
+      const data = buildFileTree(versionId, entries);
 
       expect(data.children).toEqual([
         {
@@ -39,7 +39,7 @@ describe(__filename, () => {
     });
 
     it('converts a directory entry to a directory node', () => {
-      const name = 'some-name';
+      const versionId = 'some-name';
 
       const directory = 'some-directory';
       const entries = [
@@ -51,7 +51,7 @@ describe(__filename, () => {
         },
       ];
 
-      const data = buildFileTree(name, entries);
+      const data = buildFileTree(versionId, entries);
 
       expect(data.children).toEqual([
         {
@@ -63,7 +63,7 @@ describe(__filename, () => {
     });
 
     it('finds the appropriate node to add a new entry to it', () => {
-      const name = 'some-name';
+      const versionId = 'some-name';
 
       const directory = 'parent';
       const file = 'child';
@@ -79,11 +79,11 @@ describe(__filename, () => {
           depth: 1,
           directory: false,
           filename: file,
-          path: `${directory}/${file},`,
+          path: `${directory}/${file}`,
         },
       ];
 
-      const data = buildFileTree(name, entries);
+      const data = buildFileTree(versionId, entries);
 
       expect(data.children).toEqual([
         {
@@ -93,6 +93,55 @@ describe(__filename, () => {
             {
               id: entries[1].path,
               name: file,
+            },
+          ],
+        },
+      ]);
+    });
+
+    it('traverses multiple levels to find the right directory', () => {
+      const versionId = 'some-name';
+
+      const directoryName = 'same-file';
+      const fileName = 'same-nfile';
+
+      const entries = [
+        {
+          depth: 0,
+          directory: true,
+          filename: directoryName,
+          path: directoryName,
+        },
+        {
+          depth: 1,
+          directory: true,
+          filename: directoryName,
+          path: `${directoryName}/${directoryName}`,
+        },
+        {
+          depth: 2,
+          directory: false,
+          filename: fileName,
+          path: `${directoryName}/${directoryName}/${fileName}`,
+        },
+      ];
+
+      const data = buildFileTree(versionId, entries);
+
+      expect(data.children).toEqual([
+        {
+          id: entries[0].path,
+          name: directoryName,
+          children: [
+            {
+              id: entries[1].path,
+              name: directoryName,
+              children: [
+                {
+                  id: entries[2].path,
+                  name: fileName,
+                },
+              ],
             },
           ],
         },

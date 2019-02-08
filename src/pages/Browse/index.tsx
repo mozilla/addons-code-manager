@@ -6,7 +6,7 @@ import { Col } from 'react-bootstrap';
 import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
 import { ApiState } from '../../reducers/api';
 import { callApi } from '../../api';
-import FileTree from '../../components/FileTree';
+import FileTree, { PartialExternalVersion } from '../../components/FileTree';
 
 type PropsFromRouter = {
   versionId: string;
@@ -22,8 +22,12 @@ type Props = RouteComponentProps<PropsFromRouter> &
   ConnectedReduxProps;
 /* eslint-enable @typescript-eslint/indent */
 
-export class BrowseBase extends React.Component<Props> {
-  state = {
+type State = {
+  response: PartialExternalVersion | null;
+};
+
+export class BrowseBase extends React.Component<Props, State> {
+  state: State = {
     response: null,
   };
 
@@ -31,10 +35,10 @@ export class BrowseBase extends React.Component<Props> {
     const { apiState, match } = this.props;
     const { versionId } = match.params;
 
-    const response = await callApi({
+    const response = (await callApi({
       apiState,
       endpoint: `/reviewers/browse/${versionId}`,
-    });
+    })) as PartialExternalVersion;
 
     this.setState({ response });
   }
@@ -42,18 +46,10 @@ export class BrowseBase extends React.Component<Props> {
   render() {
     const { response } = this.state;
 
-    // @ts-ignore
-    const showFileTree = response && !response.error;
-
     return (
       <React.Fragment>
         <Col md="3">
-          {showFileTree && (
-            <FileTree
-              // @ts-ignore
-              response={response}
-            />
-          )}
+          {response && response.id && <FileTree response={response} />}
         </Col>
         <Col>
           <p>Version ID: {this.props.match.params.versionId}</p>

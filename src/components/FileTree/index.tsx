@@ -69,12 +69,12 @@ export const buildFileTree = (
         parts.pop();
 
         for (let i = 0; i < parts.length; i++) {
-          const maybeNode = currentNode.children.find(
+          const foundNode = currentNode.children.find(
             (child: TreeNode) => child.name === parts[i],
           ) as DirectoryNode;
 
-          if (maybeNode) {
-            currentNode = maybeNode;
+          if (foundNode) {
+            currentNode = foundNode;
           }
 
           // TODO: this should not happen but what if we don't find a node?
@@ -105,7 +105,7 @@ export const buildFileTree = (
   return root;
 };
 
-type PartialExternalVersion = {
+export type PartialExternalVersion = {
   id: string;
   file: {
     entries: Entry[];
