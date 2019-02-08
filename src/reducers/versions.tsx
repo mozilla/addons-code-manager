@@ -100,7 +100,7 @@ export type Version = {
 
 export const actions = {
   loadVersionFile: createAction('LOAD_VERSION_FILE', (resolve) => {
-    return (payload: { filename: string; version: ExternalVersion }) =>
+    return (payload: { path: string; version: ExternalVersion }) =>
       resolve(payload);
   }),
   loadVersionInfo: createAction('LOAD_VERSION_INFO', (resolve) => {
@@ -114,7 +114,7 @@ export type VersionsState = {
   };
   versionFiles: {
     [versionId: number]: {
-      [filename: string]: VersionFile;
+      [path: string]: VersionFile;
     };
   };
 };
@@ -167,12 +167,12 @@ export const createInternalVersion = (version: ExternalVersion): Version => {
 };
 
 export const getVersionFile = (
-  filename: string,
+  path: string,
   versions: VersionsState,
   versionId: VersionId,
 ) => {
   const filesForVersion = versions.versionFiles[versionId];
-  return filesForVersion ? filesForVersion[filename] : undefined;
+  return filesForVersion ? filesForVersion[path] : undefined;
 };
 
 export const getVersionInfo = (
@@ -198,14 +198,14 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
       };
     }
     case getType(actions.loadVersionFile): {
-      const { filename, version } = action.payload;
+      const { path, version } = action.payload;
       return {
         ...state,
         versionFiles: {
           ...state.versionFiles,
           [version.id]: {
             ...state.versionFiles[version.id],
-            [filename]: createInternalVersionFile(version.file),
+            [path]: createInternalVersionFile(version.file),
           },
         },
       };

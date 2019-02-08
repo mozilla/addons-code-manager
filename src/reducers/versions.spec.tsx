@@ -17,43 +17,40 @@ import {
 describe(__filename, () => {
   describe('reducer', () => {
     it('loads a version file', () => {
-      const filename = 'test.js';
+      const path = 'test.js';
       const version = fakeVersion;
       const state = reducer(
         undefined,
-        actions.loadVersionFile({ filename, version }),
+        actions.loadVersionFile({ path, version }),
       );
 
       expect(state).toEqual({
         ...initialState,
         versionFiles: {
           [version.id]: {
-            [filename]: createInternalVersionFile(version.file),
+            [path]: createInternalVersionFile(version.file),
           },
         },
       });
     });
 
     it('preserves existing files', () => {
-      const filename1 = 'test1.js';
-      const filename2 = 'test2.js';
+      const path1 = 'test1.js';
+      const path2 = 'test2.js';
       const version = fakeVersion;
 
       let state = reducer(
         undefined,
-        actions.loadVersionFile({ filename: filename1, version }),
+        actions.loadVersionFile({ path: path1, version }),
       );
-      state = reducer(
-        state,
-        actions.loadVersionFile({ filename: filename2, version }),
-      );
+      state = reducer(state, actions.loadVersionFile({ path: path2, version }));
 
       expect(state).toEqual({
         ...initialState,
         versionFiles: {
           [version.id]: {
-            [filename1]: createInternalVersionFile(version.file),
-            [filename2]: createInternalVersionFile(version.file),
+            [path1]: createInternalVersionFile(version.file),
+            [path2]: createInternalVersionFile(version.file),
           },
         },
       });
@@ -168,14 +165,14 @@ describe(__filename, () => {
 
   describe('getVersionFile', () => {
     it('returns a version file', () => {
-      const filename = 'test.js';
+      const path = 'test.js';
       const version = fakeVersion;
       const state = reducer(
         undefined,
-        actions.loadVersionFile({ filename, version }),
+        actions.loadVersionFile({ path, version }),
       );
 
-      expect(getVersionFile(filename, state, version.id)).toEqual(
+      expect(getVersionFile(path, state, version.id)).toEqual(
         createInternalVersionFile(version.file),
       );
     });
