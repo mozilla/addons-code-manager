@@ -1,8 +1,8 @@
 import * as React from 'react';
 import Treefold, { TreefoldRenderProps } from 'react-treefold';
+import { ListGroup } from 'react-bootstrap';
 
-import { gettext } from '../../utils';
-import styles from './styles.module.scss';
+import FileTreeNode from '../FileTreeNode';
 import { Version, VersionEntryType } from '../../reducers/versions';
 
 type FileNode = {
@@ -16,7 +16,7 @@ export type DirectoryNode = {
   children: TreeNode[];
 };
 
-type TreeNode = FileNode | DirectoryNode;
+export type TreeNode = FileNode | DirectoryNode;
 
 const recursiveSortInPlace = (node: DirectoryNode): void => {
   node.children.sort((a, b) => {
@@ -131,41 +131,7 @@ type PublicProps = {
 
 export class FileTreeBase extends React.Component<PublicProps> {
   renderNode = (props: TreefoldRenderProps<TreeNode>) => {
-    const {
-      node,
-      level,
-      isFolder,
-      isExpanded,
-      getToggleProps,
-      hasChildNodes,
-      renderChildNodes,
-    } = props;
-
-    return (
-      <React.Fragment>
-        <div className={styles.node} style={{ paddingLeft: `${level * 20}px` }}>
-          {isFolder ? (
-            <span {...getToggleProps()} className={styles.directoryNode}>
-              {node.name}&nbsp;/
-            </span>
-          ) : (
-            <span>{node.name}</span>
-          )}
-        </div>
-
-        {isExpanded &&
-          (hasChildNodes ? (
-            renderChildNodes()
-          ) : (
-            <div
-              className={styles.emptyNodeDirectory}
-              style={{ paddingLeft: `${(level + 1) * 20}px` }}
-            >
-              {gettext('This folder is empty')}
-            </div>
-          ))}
-      </React.Fragment>
-    );
+    return <FileTreeNode {...props} />;
   };
 
   render() {
@@ -173,8 +139,11 @@ export class FileTreeBase extends React.Component<PublicProps> {
 
     const tree = buildFileTree(`${version.id}`, version.entries);
 
-    // eslint-disable-next-line react/jsx-props-no-multi-space
-    return <Treefold nodes={[tree]} render={this.renderNode} />;
+    return (
+      <ListGroup>
+        <Treefold nodes={[tree]} render={this.renderNode} />
+      </ListGroup>
+    );
   }
 }
 

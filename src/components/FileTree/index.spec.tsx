@@ -1,7 +1,18 @@
-import { Version, createInternalVersionEntry } from '../../reducers/versions';
-import { fakeVersionEntry } from '../../test-helpers';
+import * as React from 'react';
+import { shallow } from 'enzyme';
+import Treefold from 'react-treefold';
+import { ListGroup } from 'react-bootstrap';
 
-import { buildFileTree, DirectoryNode } from '.';
+import configureStore from '../../configureStore';
+import {
+  Version,
+  actions as versionActions,
+  createInternalVersionEntry,
+  getVersionInfo,
+} from '../../reducers/versions';
+import { fakeVersion, fakeVersionEntry } from '../../test-helpers';
+
+import FileTree, { buildFileTree, DirectoryNode } from '.';
 
 describe(__filename, () => {
   describe('buildFileTree', () => {
@@ -331,6 +342,31 @@ describe(__filename, () => {
           id: entries[2].path,
           name: 'A',
         },
+      ]);
+    });
+  });
+
+  describe('FileTree', () => {
+    const getVersion = (version = fakeVersion) => {
+      const store = configureStore();
+      store.dispatch(versionActions.loadVersionInfo({ version }));
+
+      return getVersionInfo(store.getState().versions, version.id);
+    };
+
+    const render = ({ version = getVersion(fakeVersion) } = {}) => {
+      return shallow(<FileTree version={version} />);
+    };
+
+    it('renders a ListGroup component with a Treefold', () => {
+      const version = getVersion({ ...fakeVersion, id: 777 });
+
+      const root = render({ version });
+
+      expect(root.find(ListGroup)).toHaveLength(1);
+      expect(root.find(Treefold)).toHaveLength(1);
+      expect(root.find(Treefold)).toHaveProp('nodes', [
+        buildFileTree(String(version.id), version.entries),
       ]);
     });
   });

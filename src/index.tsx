@@ -4,6 +4,8 @@ import { BrowserRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import log from 'loglevel';
 import Raven from 'raven-js';
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { fas } from '@fortawesome/free-solid-svg-icons';
 
 import './styles.scss';
 import App from './components/App';
@@ -22,6 +24,9 @@ if (process.env.REACT_APP_SENTRY_DSN) {
     logger: 'client',
   }).install();
 }
+
+// Import all the "free solid FontAwesome" icons
+library.add(fas);
 
 const store = configureStore();
 
