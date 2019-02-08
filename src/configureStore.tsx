@@ -41,7 +41,7 @@ const configureStore = (
   preloadedState?: ApplicationState,
 ): Store<ApplicationState> => {
   const allMiddleware: Middleware[] = [
-    thunk as ThunkMiddleware<ApplicationState, Action>,
+    thunk as ThunkMiddleware<ApplicationState, AnyAction>,
   ];
   let addDevTools = false;
 
