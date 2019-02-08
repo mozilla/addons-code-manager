@@ -1,10 +1,12 @@
-import { Entry, buildFileTree } from '.';
+import { Version, VersionEntryType } from '../../reducers/versions';
+
+import { buildFileTree } from '.';
 
 describe(__filename, () => {
   describe('buildFileTree', () => {
     it('creates a root node', () => {
       const versionId = '1234';
-      const entries: Entry[] = [];
+      const entries: Version['entries'] = [];
 
       const data = buildFileTree(versionId, entries);
 
@@ -22,9 +24,10 @@ describe(__filename, () => {
       const entries = [
         {
           depth: 0,
-          directory: false,
+          type: VersionEntryType.text,
           filename,
           path: filename,
+          modified: '2019-01-01',
         },
       ];
 
@@ -45,9 +48,10 @@ describe(__filename, () => {
       const entries = [
         {
           depth: 0,
-          directory: true,
+          type: VersionEntryType.directory,
           filename: directory,
           path: directory,
+          modified: '2019-01-01',
         },
       ];
 
@@ -71,15 +75,17 @@ describe(__filename, () => {
       const entries = [
         {
           depth: 0,
-          directory: true,
+          type: VersionEntryType.directory,
           filename: directory,
           path: directory,
+          modified: '2019-01-01',
         },
         {
           depth: 1,
-          directory: false,
+          type: VersionEntryType.text,
           filename: file,
           path: `${directory}/${file}`,
+          modified: '2019-01-01',
         },
       ];
 
@@ -108,21 +114,24 @@ describe(__filename, () => {
       const entries = [
         {
           depth: 0,
-          directory: true,
+          type: VersionEntryType.directory,
           filename: directoryName,
           path: directoryName,
+          modified: '2019-01-01',
         },
         {
           depth: 1,
-          directory: true,
+          type: VersionEntryType.directory,
           filename: directoryName,
           path: `${directoryName}/${directoryName}`,
+          modified: '2019-01-01',
         },
         {
           depth: 2,
-          directory: false,
+          type: VersionEntryType.text,
           filename: fileName,
           path: `${directoryName}/${directoryName}/${fileName}`,
+          modified: '2019-01-01',
         },
       ];
 

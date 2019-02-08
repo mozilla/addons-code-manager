@@ -3,13 +3,7 @@ import Treefold, { TreefoldRenderProps } from 'react-treefold';
 
 import { gettext } from '../../utils';
 import styles from './styles.module.scss';
-
-export type Entry = {
-  depth: number;
-  directory: boolean;
-  filename: string;
-  path: string;
-};
+import { Version, VersionEntryType } from '../../reducers/versions';
 
 type FileNode = {
   id: string;
@@ -26,7 +20,7 @@ type TreeNode = FileNode | DirectoryNode;
 
 export const buildFileTree = (
   versionId: string,
-  entries: Entry[],
+  entries: Version['entries'],
 ): DirectoryNode => {
   const root: DirectoryNode = {
     id: `root-${versionId}`,
@@ -88,7 +82,7 @@ export const buildFileTree = (
       };
 
       // When the entry is a directory, we create a `DirectoryNode`.
-      if (entry.directory) {
+      if (entry.type === VersionEntryType.directory) {
         node = {
           ...node,
           children: [],
@@ -105,15 +99,8 @@ export const buildFileTree = (
   return root;
 };
 
-export type PartialExternalVersion = {
-  id: string;
-  file: {
-    entries: Entry[];
-  };
-};
-
 type PublicProps = {
-  response: PartialExternalVersion;
+  version: Version;
 };
 
 export class FileTreeBase extends React.Component<PublicProps> {
@@ -156,12 +143,9 @@ export class FileTreeBase extends React.Component<PublicProps> {
   };
 
   render() {
-    const { response } = this.props;
+    const { version } = this.props;
 
-    const tree = buildFileTree(
-      response.id,
-      Object.values(response.file.entries),
-    );
+    const tree = buildFileTree(`${version.id}`, version.entries);
 
     // eslint-disable-next-line react/jsx-props-no-multi-space
     return <Treefold nodes={[tree]} render={this.renderNode} />;
