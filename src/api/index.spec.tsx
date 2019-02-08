@@ -160,13 +160,13 @@ describe(__filename, () => {
       );
     });
     it('calls the API to retrieve information for a specific version file', async () => {
-      const filename = 'test.js';
+      const path = 'test.js';
       const versionId = 123;
 
-      await getVersionFile({ apiState: defaultApiState, filename, versionId });
+      await getVersionFile({ apiState: defaultApiState, path, versionId });
 
       expect(fetch).toHaveBeenCalledWith(
-        `/api/v4/reviewers/browse/${versionId}/?file=${filename}`,
+        `/api/v4/reviewers/browse/${versionId}/?file=${path}`,
         {
           headers: {},
           method: HttpMethod.GET,
