@@ -9,11 +9,7 @@ import {
   ConnectedReduxProps,
   ThunkDispatch,
 } from '../../configureStore';
-import {
-  User,
-  getCurrentUser,
-  requestLogOut,
-} from '../../reducers/users';
+import { User, getCurrentUser, requestLogOut } from '../../reducers/users';
 import styles from './styles.module.scss';
 
 type PublicProps = {
