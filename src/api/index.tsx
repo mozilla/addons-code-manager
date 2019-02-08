@@ -76,6 +76,24 @@ export const callApi = async ({
   }
 };
 
+type GetVersionFileParams = {
+  apiState: ApiState;
+  path?: string;
+  versionId: number;
+};
+
+export const getVersionFile = async ({
+  apiState,
+  path,
+  versionId,
+}: GetVersionFileParams) => {
+  return callApi({
+    apiState,
+    endpoint: `reviewers/browse/${versionId}`,
+    query: path ? { file: path } : undefined,
+  });
+};
+
 export const logOutFromServer = async (apiState: ApiState) => {
   return callApi({
     apiState,
