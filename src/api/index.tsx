@@ -76,7 +76,7 @@ export const callApi = async ({
   }
 };
 
-type GetVersionParams = {
+type GetVersionFileParams = {
   apiState: ApiState;
   filename?: string;
   versionId: number;
@@ -86,12 +86,11 @@ export const getVersionFile = async ({
   apiState,
   filename = '',
   versionId,
-}: GetVersionParams) => {
+}: GetVersionFileParams) => {
   return callApi({
     apiState,
     endpoint: `reviewers/browse/${versionId}`,
     query: filename ? { file: filename } : undefined,
-    method: HttpMethod.GET,
   });
 };
 
