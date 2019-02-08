@@ -65,7 +65,7 @@ describe(__filename, () => {
 
       return {
         dispatch,
-        thunk: () => thunk(dispatch, () => store.getState(), null),
+        thunk: () => thunk(dispatch, () => store.getState(), undefined),
         store,
       };
     };

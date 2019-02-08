@@ -35,7 +35,8 @@ export class NavbarBase extends React.Component<Props> {
 
   logOut = () => {
     const { _requestLogOut, apiState, dispatch } = this.props;
-    (dispatch as ThunkDispatch<ApplicationState, null, AnyAction>)(
+    // dispatch(_requestLogOut());
+    (dispatch as ThunkDispatch<ApplicationState, undefined, AnyAction>)(
       _requestLogOut(),
     );
   };
