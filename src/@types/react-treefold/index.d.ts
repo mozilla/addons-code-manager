@@ -10,7 +10,7 @@ declare module 'react-treefold' {
   };
 
   type TreefoldProps<NodeType> = {
-    nodes: object[];
+    nodes: NodeType[];
     render: (props: TreefoldRenderProps<NodeType>) => React.Node;
   };
 
