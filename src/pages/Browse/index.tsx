@@ -8,7 +8,7 @@ import { ApiState } from '../../reducers/api';
 import { getVersionFile } from '../../api';
 import FileTree from '../../components/FileTree';
 import {
-  actions as userActions,
+  actions as versionActions,
   Version,
   ExternalVersion,
   getVersionInfo,
@@ -40,7 +40,7 @@ export class BrowseBase extends React.Component<Props> {
     })) as ExternalVersion;
 
     if (response && response.id) {
-      dispatch(userActions.loadVersionInfo({ version: response }));
+      dispatch(versionActions.loadVersionInfo({ version: response }));
     }
   }
 
