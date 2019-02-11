@@ -25,6 +25,7 @@ describe(__filename, () => {
       const entries = [
         createInternalVersionEntry({
           ...fakeVersionEntry,
+          directory: false,
           filename,
         }),
       ];
@@ -76,6 +77,7 @@ describe(__filename, () => {
         }),
         createInternalVersionEntry({
           ...fakeVersionEntry,
+          directory: false,
           depth: 1,
           filename: file,
           path: `${directory}/${file}`,
@@ -119,6 +121,7 @@ describe(__filename, () => {
         }),
         createInternalVersionEntry({
           ...fakeVersionEntry,
+          directory: false,
           depth: 2,
           filename: fileName,
           path: `${directoryName}/${directoryName}/${fileName}`,
@@ -157,6 +160,7 @@ describe(__filename, () => {
         }),
         createInternalVersionEntry({
           ...fakeVersionEntry,
+          directory: false,
           filename: 'A',
         }),
         createInternalVersionEntry({
