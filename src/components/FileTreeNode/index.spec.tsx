@@ -41,7 +41,12 @@ describe(__filename, () => {
 
   it('renders a simple directory node', () => {
     const name = 'simple directory node';
-    const renderProps = getTreefoldRenderProps({ name, isFolder: true });
+    const getToggleProps = jest.fn();
+    const renderProps = getTreefoldRenderProps({
+      name,
+      isFolder: true,
+      getToggleProps,
+    });
 
     const root = render(renderProps);
 
@@ -52,6 +57,8 @@ describe(__filename, () => {
 
     expect(root.find(FontAwesomeIcon)).toHaveLength(1);
     expect(root.find(FontAwesomeIcon)).toHaveProp('icon', 'folder');
+
+    expect(getToggleProps).toHaveBeenCalled();
   });
 
   it('renders a simple node', () => {
