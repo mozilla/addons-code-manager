@@ -1,6 +1,7 @@
-import { Version, VersionEntryType } from '../../reducers/versions';
+import { Version, createInternalVersionEntry } from '../../reducers/versions';
+import { fakeVersionEntry } from '../../test-helpers';
 
-import { buildFileTree } from '.';
+import { buildFileTree, DirectoryNode } from '.';
 
 describe(__filename, () => {
   describe('buildFileTree', () => {
@@ -8,9 +9,9 @@ describe(__filename, () => {
       const versionId = '1234';
       const entries: Version['entries'] = [];
 
-      const data = buildFileTree(versionId, entries);
+      const tree = buildFileTree(versionId, entries);
 
-      expect(data).toEqual({
+      expect(tree).toEqual({
         id: `root-${versionId}`,
         name: versionId,
         children: [],
@@ -18,22 +19,20 @@ describe(__filename, () => {
     });
 
     it('converts a non-directory entry to a file node', () => {
-      const versionId = 'some-name';
+      const versionId = '1234';
 
       const filename = 'some-filename';
       const entries = [
-        {
-          depth: 0,
-          type: VersionEntryType.text,
+        createInternalVersionEntry({
+          ...fakeVersionEntry,
+          directory: false,
           filename,
-          path: filename,
-          modified: '2019-01-01',
-        },
+        }),
       ];
 
-      const data = buildFileTree(versionId, entries);
+      const tree = buildFileTree(versionId, entries);
 
-      expect(data.children).toEqual([
+      expect(tree.children).toEqual([
         {
           id: entries[0].path,
           name: filename,
@@ -42,56 +41,52 @@ describe(__filename, () => {
     });
 
     it('converts a directory entry to a directory node', () => {
-      const versionId = 'some-name';
+      const versionId = '1234';
 
-      const directory = 'some-directory';
+      const filename = 'some-directory';
       const entries = [
-        {
-          depth: 0,
-          type: VersionEntryType.directory,
-          filename: directory,
-          path: directory,
-          modified: '2019-01-01',
-        },
+        createInternalVersionEntry({
+          ...fakeVersionEntry,
+          directory: true,
+          filename,
+        }),
       ];
 
-      const data = buildFileTree(versionId, entries);
+      const tree = buildFileTree(versionId, entries);
 
-      expect(data.children).toEqual([
+      expect(tree.children).toEqual([
         {
           id: entries[0].path,
-          name: directory,
+          name: filename,
           children: [],
         },
       ]);
     });
 
     it('finds the appropriate node to add a new entry to it', () => {
-      const versionId = 'some-name';
+      const versionId = '1234';
 
       const directory = 'parent';
       const file = 'child';
 
       const entries = [
-        {
-          depth: 0,
-          type: VersionEntryType.directory,
+        createInternalVersionEntry({
+          ...fakeVersionEntry,
+          directory: true,
           filename: directory,
-          path: directory,
-          modified: '2019-01-01',
-        },
-        {
+        }),
+        createInternalVersionEntry({
+          ...fakeVersionEntry,
+          directory: false,
           depth: 1,
-          type: VersionEntryType.text,
           filename: file,
           path: `${directory}/${file}`,
-          modified: '2019-01-01',
-        },
+        }),
       ];
 
-      const data = buildFileTree(versionId, entries);
+      const tree = buildFileTree(versionId, entries);
 
-      expect(data.children).toEqual([
+      expect(tree.children).toEqual([
         {
           id: entries[0].path,
           name: directory,
@@ -112,27 +107,25 @@ describe(__filename, () => {
       const fileName = 'same-nfile';
 
       const entries = [
-        {
-          depth: 0,
-          type: VersionEntryType.directory,
+        createInternalVersionEntry({
+          ...fakeVersionEntry,
+          directory: true,
           filename: directoryName,
-          path: directoryName,
-          modified: '2019-01-01',
-        },
-        {
+        }),
+        createInternalVersionEntry({
+          ...fakeVersionEntry,
+          directory: true,
           depth: 1,
-          type: VersionEntryType.directory,
           filename: directoryName,
           path: `${directoryName}/${directoryName}`,
-          modified: '2019-01-01',
-        },
-        {
+        }),
+        createInternalVersionEntry({
+          ...fakeVersionEntry,
+          directory: false,
           depth: 2,
-          type: VersionEntryType.text,
           filename: fileName,
           path: `${directoryName}/${directoryName}/${fileName}`,
-          modified: '2019-01-01',
-        },
+        }),
       ];
 
       const data = buildFileTree(versionId, entries);
@@ -153,6 +146,190 @@ describe(__filename, () => {
               ],
             },
           ],
+        },
+      ]);
+    });
+
+    it('sorts the nodes so that directories come first', () => {
+      const versionId = '1234';
+      const entries = [
+        createInternalVersionEntry({
+          ...fakeVersionEntry,
+          directory: true,
+          filename: 'B',
+        }),
+        createInternalVersionEntry({
+          ...fakeVersionEntry,
+          directory: false,
+          filename: 'A',
+        }),
+        createInternalVersionEntry({
+          ...fakeVersionEntry,
+          directory: true,
+          filename: 'C',
+        }),
+      ];
+
+      const tree = buildFileTree(versionId, entries);
+
+      expect(tree.children).toEqual([
+        {
+          id: entries[0].path,
+          name: 'B',
+          children: [],
+        },
+        {
+          id: entries[2].path,
+          name: 'C',
+          children: [],
+        },
+        {
+          id: entries[1].path,
+          name: 'A',
+        },
+      ]);
+    });
+
+    it('sorts files alphabetically', () => {
+      const versionId = '1234';
+      const entries = [
+        createInternalVersionEntry({
+          ...fakeVersionEntry,
+          filename: 'C',
+        }),
+        createInternalVersionEntry({
+          ...fakeVersionEntry,
+          filename: 'B',
+        }),
+        createInternalVersionEntry({
+          ...fakeVersionEntry,
+          filename: 'A',
+        }),
+      ];
+
+      const tree = buildFileTree(versionId, entries);
+
+      expect(tree.children).toEqual([
+        {
+          id: entries[2].path,
+          name: 'A',
+        },
+        {
+          id: entries[1].path,
+          name: 'B',
+        },
+        {
+          id: entries[0].path,
+          name: 'C',
+        },
+      ]);
+    });
+
+    it('sorts directories alphabetically', () => {
+      const versionId = '1234';
+      const entries = [
+        createInternalVersionEntry({
+          ...fakeVersionEntry,
+          directory: true,
+          filename: 'B',
+        }),
+        createInternalVersionEntry({
+          ...fakeVersionEntry,
+          directory: true,
+          filename: 'A',
+        }),
+      ];
+
+      const tree = buildFileTree(versionId, entries);
+
+      expect(tree.children).toEqual([
+        {
+          id: entries[1].path,
+          name: 'A',
+          children: [],
+        },
+        {
+          id: entries[0].path,
+          name: 'B',
+          children: [],
+        },
+      ]);
+    });
+
+    it('sorts the nodes recursively', () => {
+      const versionId = '1234';
+      const entries = [
+        createInternalVersionEntry({
+          ...fakeVersionEntry,
+          directory: true,
+          filename: 'parent',
+          path: 'parent',
+        }),
+        createInternalVersionEntry({
+          ...fakeVersionEntry,
+          depth: 1,
+          filename: 'B',
+          path: 'parent/B',
+        }),
+        createInternalVersionEntry({
+          ...fakeVersionEntry,
+          depth: 1,
+          filename: 'A',
+          path: 'parent/A',
+        }),
+      ];
+
+      const tree = buildFileTree(versionId, entries);
+      const firstNode = tree.children[0] as DirectoryNode;
+
+      expect(firstNode.children).toEqual([
+        {
+          id: entries[2].path,
+          name: 'A',
+        },
+        {
+          id: entries[1].path,
+          name: 'B',
+        },
+      ]);
+    });
+
+    it('puts directories first in a child node', () => {
+      const versionId = '1234';
+      const entries = [
+        createInternalVersionEntry({
+          ...fakeVersionEntry,
+          directory: true,
+          filename: 'parent',
+          path: 'parent',
+        }),
+        createInternalVersionEntry({
+          ...fakeVersionEntry,
+          depth: 1,
+          directory: true,
+          filename: 'B',
+          path: 'parent/B',
+        }),
+        createInternalVersionEntry({
+          ...fakeVersionEntry,
+          depth: 1,
+          filename: 'A',
+          path: 'parent/A',
+        }),
+      ];
+
+      const tree = buildFileTree(versionId, entries);
+      const firstNode = tree.children[0] as DirectoryNode;
+
+      expect(firstNode.children).toEqual([
+        {
+          id: entries[1].path,
+          name: 'B',
+          children: [],
+        },
+        {
+          id: entries[2].path,
+          name: 'A',
         },
       ]);
     });
