@@ -3,8 +3,5 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-// We can override bootstrap variables by setting them before the import
-$body-color: white;
-
 // Import Bootstrap and its default variables
 @import '~bootstrap/scss/bootstrap.scss';
