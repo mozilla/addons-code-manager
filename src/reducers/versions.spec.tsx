@@ -2,6 +2,7 @@ import reducer, {
   VersionEntryType,
   actions,
   createInternalVersion,
+  createInternalVersionAddon,
   createInternalVersionEntry,
   createInternalVersionFile,
   getVersionEntryType,
@@ -12,6 +13,7 @@ import reducer, {
 } from './versions';
 import {
   fakeVersion,
+  fakeVersionAddon,
   fakeVersionEntry,
   fakeVersionFile,
 } from '../test-helpers';
@@ -78,6 +80,19 @@ describe(__filename, () => {
     });
   });
 
+  describe('createInternalVersionAddon', () => {
+    it('creates a VersionAddon', () => {
+      const addon = { ...fakeVersionAddon, id: 1234 };
+
+      expect(createInternalVersionAddon(addon)).toEqual({
+        iconUrl: addon.icon_url,
+        id: addon.id,
+        name: addon.name,
+        slug: addon.slug,
+      });
+    });
+  });
+
   describe('createInternalVersionEntry', () => {
     it('creates a VersionEntry', () => {
       const entry = { ...fakeVersionEntry, filename: 'entry' };
@@ -98,6 +113,7 @@ describe(__filename, () => {
       const entry = version.file.entries[Object.keys(version.file.entries)[0]];
 
       expect(createInternalVersion(version)).toEqual({
+        addon: createInternalVersionAddon(version.addon),
         entries: [createInternalVersionEntry(entry)],
         id: version.id,
         reviewed: version.reviewed,
@@ -119,6 +135,7 @@ describe(__filename, () => {
       const version = { ...fakeVersion, file };
 
       expect(createInternalVersion(version)).toEqual({
+        addon: createInternalVersionAddon(version.addon),
         entries: [
           createInternalVersionEntry(entry1),
           createInternalVersionEntry(entry2),

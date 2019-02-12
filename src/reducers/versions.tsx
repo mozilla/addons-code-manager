@@ -53,7 +53,15 @@ export type ExternalVersionFile = {
   url: string;
 };
 
+export type ExternalVersionAddon = {
+  icon_url: string;
+  id: number;
+  name: LocalizedString;
+  slug: string;
+};
+
 export type ExternalVersion = {
+  addon: ExternalVersionAddon;
   channel: string;
   compatibility: VersionCompatibility;
   edit_url: string;
@@ -92,7 +100,15 @@ type VersionEntry = {
   type: VersionEntryType;
 };
 
+type VersionAddon = {
+  iconUrl: string;
+  id: number;
+  name: LocalizedString;
+  slug: string;
+};
+
 export type Version = {
+  addon: VersionAddon;
   entries: VersionEntry[];
   id: VersionId;
   reviewed: string;
@@ -162,8 +178,20 @@ export const createInternalVersionEntry = (
   };
 };
 
+export const createInternalVersionAddon = (
+  addon: ExternalVersionAddon,
+): VersionAddon => {
+  return {
+    iconUrl: addon.icon_url,
+    id: addon.id,
+    name: addon.name,
+    slug: addon.slug,
+  };
+};
+
 export const createInternalVersion = (version: ExternalVersion): Version => {
   return {
+    addon: createInternalVersionAddon(version.addon),
     entries: Object.keys(version.file.entries).map((nodeName) => {
       return createInternalVersionEntry(version.file.entries[nodeName]);
     }),
