@@ -33,8 +33,8 @@ interface StoreCreator {
   <S, A extends Action>(
     reducer: LoopReducer<S, A>,
     // Fix optional preloadedState.
-    preloadedState?: S,
-    enhancer?: StoreEnhancer<S>,
+    preloadedState: S | undefined,
+    enhancer: StoreEnhancer<S>,
   ): Store<S>;
 }
 
