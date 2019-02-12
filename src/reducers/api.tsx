@@ -20,12 +20,12 @@ export const initialState: ApiState = {
   authToken: null,
 };
 
-export type Action = ActionType<typeof actions>
+export type Actions = ActionType<typeof actions>
 
-const reducer: LoopReducer<ApiState, Action> = (
+const reducer: LoopReducer<ApiState, Actions> = (
   state: ApiState = initialState,
-  action: Action,
-): ApiState | Loop<ApiState, Action> => {
+  action: Actions,
+): ApiState | Loop<ApiState, Actions> => {
   switch (action.type) {
     case getType(actions.setAuthToken):
       return { ...state, authToken: action.payload.authToken };

@@ -11,14 +11,25 @@ import { composeWithDevTools } from 'redux-devtools-extension';
 import { createLogger } from 'redux-logger';
 import {
   LoopReducer,
-  StoreCreator,
+  // StoreCreator,
   combineReducers,
   install,
 } from 'redux-loop';
 
-import api, { ApiState } from './reducers/api';
-import users, { UsersState } from './reducers/users';
+import api, { Actions as ApiActions, ApiState } from './reducers/api';
+import users, { Actions as UsersActions, UsersState } from './reducers/users';
 import versions, { VersionsState } from './reducers/versions';
+
+// TODO: move this somewhere better
+import { StoreEnhancer } from 'redux';
+interface StoreCreator {
+  <S, A extends Action>(
+    reducer: LoopReducer<S, A>,
+    // Fix optional preloadedState.
+    preloadedState?: S,
+    enhancer?: StoreEnhancer<S>,
+  ): Store<S>;
+}
 
 export type ConnectedReduxProps<A extends Action = AnyAction> = {
   dispatch: Dispatch<A>;
@@ -30,31 +41,52 @@ export type ApplicationState = {
   versions: VersionsState;
 };
 
+type Actions = ApiActions | UsersActions;
+
 const createRootReducer = () => {
-  return combineReducers<ApplicationState>({ api, users, versions });
+  return combineReducers({ api, users, versions });
 };
 
-const configureStore = (
-  preloadedState?: ApplicationState,
-): Store<ApplicationState> => {
-  let composeEnhancers = compose;
-  const allMiddleware = [];
+const configureStore = () => {
+  const enhancedCreateStore = createStore as StoreCreator;
 
-  if (process.env.NODE_ENV === 'development') {
-    allMiddleware.push(createLogger());
-    composeEnhancers = composeWithDevTools({});
-  }
+  let enhancer = compose(install<ApplicationState>());
 
-  const middleware = composeEnhancers(
-    applyMiddleware(...allMiddleware),
-    install<ApplicationState>(),
-  );
+  // if (typeof window === 'object' && window.__REDUX_DEVTOOLS_EXTENSION__) {
+  //   enhancer = compose(
+  //     install(),
+  //     window.__REDUX_DEVTOOLS_EXTENSION__({
+  //       serialize: {
+  //         options: true,
+  //       },
+  //     })
+  //   );
+  // }
 
-  return (createStore as StoreCreator)(
+  return enhancedCreateStore<ApplicationState, Actions>(
     createRootReducer(),
-    preloadedState,
-    middleware,
+    undefined,
+    enhancer,
   );
+
+  // let composeEnhancers = compose;
+  // const allMiddleware = [];
+
+  // if (process.env.NODE_ENV === 'development') {
+  //   allMiddleware.push(createLogger());
+  //   composeEnhancers = composeWithDevTools({});
+  // }
+
+  // const middleware = composeEnhancers(
+  //   applyMiddleware(...allMiddleware),
+  //   install<ApplicationState>(),
+  // );
+
+  // return (createStore as StoreCreator)(
+  //   createRootReducer(),
+  //   preloadedState,
+  //   middleware,
+  // );
 };
 
 export default configureStore;

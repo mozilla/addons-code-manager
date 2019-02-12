@@ -4,7 +4,6 @@ import { ActionType, createAction, getType } from 'typesafe-actions';
 
 import { logOutFromServer } from '../api';
 import { ApplicationState } from '../configureStore';
-import { Action as ApiActions } from './api';
 
 type UserId = number;
 
@@ -79,12 +78,12 @@ export const getCurrentUser = (users: UsersState) => {
   return users.currentUser;
 };
 
-export type Action = ActionType<typeof actions>;
+export type Actions = ActionType<typeof actions>;
 
-const reducer: LoopReducer<UsersState, Action> = (
+const reducer: LoopReducer<UsersState, Actions> = (
   state: UsersState = initialState,
-  action: Action,
-): UsersState | Loop<UsersState, Action> => {
+  action: Actions,
+): UsersState | Loop<UsersState, Actions> => {
   switch (action.type) {
     case getType(actions.requestLogOut):
       return loop(
