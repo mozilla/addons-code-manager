@@ -52,7 +52,10 @@ export const actions = {
   requestLogOut: createAction('REQUEST_LOG_OUT'),
 };
 
-const doLogOut = async (dispatch: Dispatch, getState: () => ApplicationState) => {
+const doLogOut = async (
+  dispatch: Dispatch,
+  getState: () => ApplicationState,
+) => {
   await logOutFromServer(getState().api);
   dispatch(actions.logOut());
 };
