@@ -27,7 +27,7 @@
     "http-proxy-response-rewrite": "0.0.1",
     "loglevel": "1.6.1",
     "node-sass": "4.11.0",
-    "prop-types": "15.7.1",
+    "prop-types": "15.7.2",
     "raven-js": "3.27.0",
     "react": "16.8.1",
     "react-bootstrap": "1.0.0-beta.5",
