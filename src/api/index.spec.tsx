@@ -8,6 +8,8 @@ import configureStore from '../configureStore';
 import { HttpMethod, callApi, getVersion, logOutFromServer } from '.';
 
 describe(__filename, () => {
+  const defaultQueryString = `?lang=${process.env.REACT_APP_DEFAULT_API_LANG}`;
+
   const getApiState = ({ authToken = '12345' } = {}) => {
     const store = configureStore();
 
@@ -22,10 +24,10 @@ describe(__filename, () => {
       return callApi({ apiState: defaultApiState, endpoint: '/', ...params });
     };
 
-    it('calls the API', async () => {
+    it('calls the API using the default language', async () => {
       await callApiWithDefaultApiState({ endpoint: '/foo/' });
 
-      expect(fetch).toHaveBeenCalledWith(`/api/v4/foo/`, {
+      expect(fetch).toHaveBeenCalledWith(`/api/v4/foo/${defaultQueryString}`, {
         headers: {},
         method: 'GET',
       });
@@ -34,13 +36,19 @@ describe(__filename, () => {
     it('adds a trailing slash to the endpoint if there is none', async () => {
       await callApiWithDefaultApiState({ endpoint: '/foo' });
 
-      expect(fetch).toHaveBeenCalledWith(`/api/v4/foo/`, expect.any(Object));
+      expect(fetch).toHaveBeenCalledWith(
+        `/api/v4/foo/${defaultQueryString}`,
+        expect.any(Object),
+      );
     });
 
     it('adds a leading slash to the endpoint if there is none', async () => {
       await callApiWithDefaultApiState({ endpoint: 'foo/' });
 
-      expect(fetch).toHaveBeenCalledWith(`/api/v4/foo/`, expect.any(Object));
+      expect(fetch).toHaveBeenCalledWith(
+        `/api/v4/foo/${defaultQueryString}`,
+        expect.any(Object),
+      );
     });
 
     it('accepts an HTTP method', async () => {
@@ -62,7 +70,18 @@ describe(__filename, () => {
       await callApiWithDefaultApiState({ endpoint: '/', version });
 
       expect(fetch).toHaveBeenCalledWith(
-        `/api/${version}/`,
+        `/api/${version}/${defaultQueryString}`,
+        expect.any(Object),
+      );
+    });
+
+    it('accepts an API lang', async () => {
+      const lang = 'en-CA';
+
+      await callApiWithDefaultApiState({ endpoint: '/', lang });
+
+      expect(fetch).toHaveBeenCalledWith(
+        `/api/v4/?lang=${lang}`,
         expect.any(Object),
       );
     });
@@ -129,7 +148,7 @@ describe(__filename, () => {
 
       expect(response).toHaveProperty(
         'error',
-        new Error('Unexpected status for GET /: 400'),
+        new Error(`Unexpected status for GET /${defaultQueryString}: 400`),
       );
     });
 
@@ -139,7 +158,7 @@ describe(__filename, () => {
       await callApiWithDefaultApiState({ endpoint: '/url', query });
 
       expect(fetch).toHaveBeenCalledWith(
-        '/api/v4/url/?foo=1&bar=abc',
+        `/api/v4/url/${defaultQueryString}&foo=1&bar=abc`,
         expect.any(Object),
       );
     });
@@ -153,7 +172,7 @@ describe(__filename, () => {
       await getVersion({ apiState: defaultApiState, addonId, versionId });
 
       expect(fetch).toHaveBeenCalledWith(
-        `/api/v4/reviewers/addon/${addonId}/versions/${versionId}/`,
+        `/api/v4/reviewers/addon/${addonId}/versions/${versionId}/${defaultQueryString}`,
         {
           headers: {},
           method: HttpMethod.GET,
@@ -174,7 +193,7 @@ describe(__filename, () => {
       });
 
       expect(fetch).toHaveBeenCalledWith(
-        `/api/v4/reviewers/addon/${addonId}/versions/${versionId}/?file=${path}`,
+        `/api/v4/reviewers/addon/${addonId}/versions/${versionId}/${defaultQueryString}&file=${path}`,
         {
           headers: {},
           method: HttpMethod.GET,
@@ -187,10 +206,13 @@ describe(__filename, () => {
     it(`calls the API to delete the user's session`, async () => {
       await logOutFromServer(defaultApiState);
 
-      expect(fetch).toHaveBeenCalledWith('/api/v4/accounts/session/', {
-        headers: {},
-        method: HttpMethod.DELETE,
-      });
+      expect(fetch).toHaveBeenCalledWith(
+        `/api/v4/accounts/session/${defaultQueryString}`,
+        {
+          headers: {},
+          method: HttpMethod.DELETE,
+        },
+      );
     });
   });
 });
