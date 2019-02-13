@@ -12,7 +12,7 @@ import { createLogger } from 'redux-logger';
 import {
   LiftedLoopReducer,
   Loop,
-  // LoopReducer,
+  LoopReducer,
   // StoreCreator,
   combineReducers,
   install,
@@ -24,10 +24,6 @@ import versions, { VersionsState } from './reducers/versions';
 
 // TODO: move this somewhere better
 
-interface LoopReducer<S, A extends Action> {
-  (state: S | undefined, action: A, ...args: any[]): S | Loop<S, A>;
-}
-
 import { StoreEnhancer } from 'redux';
 interface StoreCreator {
   <S, A extends Action>(
@@ -36,16 +32,6 @@ interface StoreCreator {
     preloadedState: S | undefined,
     enhancer: StoreEnhancer<S>,
   ): Store<S>;
-}
-
-type ReducerMapObject<S, A extends Action = AnyAction> = {
-  [K in keyof S]: LoopReducer<S[K], A>
-};
-
-interface CombineReducers {
-  <S, A extends Action = AnyAction>(
-    reducers: ReducerMapObject<S, A>,
-  ): LiftedLoopReducer<S, A>;
 }
 
 export type ConnectedReduxProps<A extends Action = AnyAction> = {
@@ -61,7 +47,7 @@ export type ApplicationState = {
 type Actions = ApiActions | UsersActions;
 
 const createRootReducer = () => {
-  return (combineReducers as CombineReducers)<ApplicationState, Actions>({
+  return combineReducers<ApplicationState, Actions>({
     api,
     users,
     versions,

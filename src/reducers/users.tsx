@@ -1,4 +1,4 @@
-import { Dispatch, Reducer } from 'redux';
+import { AnyAction, Dispatch, Reducer } from 'redux';
 import { Cmd, Loop, LoopReducer, loop } from 'redux-loop';
 import { ActionType, createAction, getType } from 'typesafe-actions';
 
@@ -85,7 +85,9 @@ export type Actions = ActionType<typeof actions>;
 
 const reducer: LoopReducer<UsersState, Actions> = (
   state: UsersState = initialState,
-  action: Actions,
+  // TODO: this type seems wrong because it removes any
+  // type safety for action payloads.
+  action: AnyAction,
 ): UsersState | Loop<UsersState, Actions> => {
   switch (action.type) {
     case getType(actions.requestLogOut):
