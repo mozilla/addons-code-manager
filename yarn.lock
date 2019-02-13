@@ -1599,10 +1599,10 @@
   resolved "https://registry.yarnpkg.com/@types/range-parser/-/range-parser-1.2.3.tgz#7ee330ba7caafb98090bece86a5ee44115904c2c"
   integrity sha512-ewFXqrQHlFsgc09MK5jP5iR7vumV/BYayNC6PgJO2LPe8vrnNFyjQjSppfEngITi0qvfKtzFvgKymGheFM9UOA==
 
-"@types/react-bootstrap@0.32.16":
-  version "0.32.16"
-  resolved "https://registry.yarnpkg.com/@types/react-bootstrap/-/react-bootstrap-0.32.16.tgz#90f860e9c7c86c2f1f361e2116001d4e359a0603"
-  integrity sha512-525mmAnsiqq5UCeGWbELpdcisuVvO9727NIpxSjsxW2IDYBrjYylCq9QdC7ZMhGcTwe7tp129J2iJ6ExaTFuOg==
+"@types/react-bootstrap@0.32.17":
+  version "0.32.17"
+  resolved "https://registry.yarnpkg.com/@types/react-bootstrap/-/react-bootstrap-0.32.17.tgz#62be3350734c7433683f54ec02afba69e7412427"
+  integrity sha512-w/Agv91PQ2q5w4MK+plWshyvLMFePxdl+b2KtlFHBSbr6FgaguIGEAdhA3l0hyKDmEj3VMHGFiBqwhsQJ2Rltg==
   dependencies:
     "@types/react" "*"
 
