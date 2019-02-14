@@ -110,8 +110,11 @@ describe(__filename, () => {
     });
 
     describe('NODE_ENV=development', () => {
-      let fakeCreateReactAppServer: express.Application;
-      let proxyServer: http.Server;
+      // This is meant to simulate the create-react-app dev server application.
+      let fakeCreateReactAppServerApp: express.Application;
+      // This is the actual HTTP server instance, which is needed to close it
+      // after each test case.
+      let fakeCreateReactAppServer: http.Server;
 
       const devEnv = {
         NODE_ENV: 'development',
@@ -119,27 +122,23 @@ describe(__filename, () => {
       };
 
       beforeEach(() => {
-        fakeCreateReactAppServer = express();
-        // This is meant to simulate the create-react-app dev server.
-        proxyServer = fakeCreateReactAppServer.listen(
+        fakeCreateReactAppServerApp = express();
+        fakeCreateReactAppServer = fakeCreateReactAppServerApp.listen(
           devEnv.REACT_APP_CRA_PORT,
         );
-        proxyServer.on('error', (error) => {
+        fakeCreateReactAppServer.on('error', (error) => {
           // eslint-disable-next-line no-console
           console.error('proxy error', error);
         });
       });
 
       afterEach(() => {
-        proxyServer.close();
+        fakeCreateReactAppServer.close();
       });
 
-      it('creates an Express server that uses a proxy', async () => {
-        const proxiedContent = 'Hello, I am the create-react-app server';
-        // Configure the proxy
-        fakeCreateReactAppServer.get('/*', (req, res) =>
-          res.send(proxiedContent),
-        );
+      it('creates an Express server that acts as a proxy for the CRA server', async () => {
+        const content = 'Hello, I am the create-react-app server';
+        fakeCreateReactAppServerApp.get('/*', (req, res) => res.send(content));
 
         const server = request(
           createServer({ env: devEnv as ServerEnvVars, rootPath }),
@@ -147,7 +146,7 @@ describe(__filename, () => {
 
         const response = await server.get('/');
 
-        expect(response.text).toContain(proxiedContent);
+        expect(response.text).toContain(content);
         expect(response.header).toHaveProperty(
           'cache-control',
           'private, no-store',
@@ -175,11 +174,8 @@ describe(__filename, () => {
       });
 
       it('does not configure the `cache-control` header of non-HTML proxy responses', async () => {
-        const proxiedContent = { foo: 'bar' };
-        // Configure the proxy to return JSON content
-        fakeCreateReactAppServer.get('/*', (req, res) =>
-          res.json(proxiedContent),
-        );
+        const content = { foo: 'bar' };
+        fakeCreateReactAppServerApp.get('/*', (req, res) => res.json(content));
 
         const server = request(
           createServer({ env: devEnv as ServerEnvVars, rootPath }),
@@ -187,7 +183,7 @@ describe(__filename, () => {
 
         const response = await server.get('/');
 
-        expect(response.text).toContain(JSON.stringify(proxiedContent));
+        expect(response.text).toContain(JSON.stringify(content));
         expect(response.header).not.toHaveProperty(
           'cache-control',
           'private, no-store',
@@ -195,11 +191,8 @@ describe(__filename, () => {
       });
 
       it('does not call injectAuthenticationToken() for non-HTML proxy responses', async () => {
-        const proxiedContent = { foo: 'bar' };
-        // Configure the proxy to return JSON content
-        fakeCreateReactAppServer.get('/*', (req, res) =>
-          res.json(proxiedContent),
-        );
+        const content = { foo: 'bar' };
+        fakeCreateReactAppServerApp.get('/*', (req, res) => res.json(content));
 
         const _injectAuthenticationToken = jest.fn();
         _injectAuthenticationToken.mockReturnValue('this is unexpected');
@@ -215,7 +208,7 @@ describe(__filename, () => {
         const response = await server.get('/');
 
         expect(_injectAuthenticationToken).not.toHaveBeenCalled();
-        expect(response.text).toContain(JSON.stringify(proxiedContent));
+        expect(response.text).toContain(JSON.stringify(content));
       });
     });
   });
