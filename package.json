@@ -90,10 +90,10 @@
     "start-local-dev": "yarn build-local-dev-config && yarn start",
     "start-local-prod": "cat .env.common-local > .env.local && yarn start",
     "start-local-stage": "cat .env.common-local .env.stage > .env.local && yarn start",
-    "stmux": "stmux -nM -t addons-code-manager -e 'error,!0 errors'",
+    "stmux": "stmux -nM -t addons-code-manager -e 'error,!0 errors,!no errors'",
     "storybook": "start-storybook -p 9001 -c stories/setup",
     "storybook-smoke-test": "yarn storybook --smoke-test",
-    "test": "react-scripts test",
+    "test": "react-scripts test --reporters=default --reporters='<rootDir>/src/jest-reporters/eslint-check.js'",
     "test-ci": "yarn test --coverage && codecov",
     "type-coverage": "type-coverage",
     "typecheck": "tsc"
