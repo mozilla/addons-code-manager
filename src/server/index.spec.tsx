@@ -110,7 +110,7 @@ describe(__filename, () => {
     });
 
     describe('NODE_ENV=development', () => {
-      let proxy: express.Application;
+      let fakeCreateReactAppServer: express.Application;
       let proxyServer: http.Server;
 
       const devEnv = {
@@ -119,8 +119,15 @@ describe(__filename, () => {
       };
 
       beforeEach(() => {
-        proxy = express();
-        proxyServer = proxy.listen(devEnv.REACT_APP_CRA_PORT);
+        fakeCreateReactAppServer = express();
+        // This is meant to simulate the create-react-app dev server.
+        proxyServer = fakeCreateReactAppServer.listen(
+          devEnv.REACT_APP_CRA_PORT,
+        );
+        proxyServer.on('error', (error) => {
+          // eslint-disable-next-line no-console
+          console.error('proxy error', error);
+        });
       });
 
       afterEach(() => {
@@ -128,9 +135,11 @@ describe(__filename, () => {
       });
 
       it('creates an Express server that uses a proxy', async () => {
-        const proxyContent = 'Hello, I am a proxy';
+        const proxiedContent = 'Hello, I am the create-react-app server';
         // Configure the proxy
-        proxy.get('/*', (req, res) => res.send(proxyContent));
+        fakeCreateReactAppServer.get('/*', (req, res) =>
+          res.send(proxiedContent),
+        );
 
         const server = request(
           createServer({ env: devEnv as ServerEnvVars, rootPath }),
@@ -138,7 +147,7 @@ describe(__filename, () => {
 
         const response = await server.get('/');
 
-        expect(response.text).toContain(proxyContent);
+        expect(response.text).toContain(proxiedContent);
         expect(response.header).toHaveProperty(
           'cache-control',
           'private, no-store',
@@ -166,9 +175,11 @@ describe(__filename, () => {
       });
 
       it('does not configure the `cache-control` header of non-HTML proxy responses', async () => {
-        const proxyContent = { foo: 'bar' };
+        const proxiedContent = { foo: 'bar' };
         // Configure the proxy to return JSON content
-        proxy.get('/*', (req, res) => res.json(proxyContent));
+        fakeCreateReactAppServer.get('/*', (req, res) =>
+          res.json(proxiedContent),
+        );
 
         const server = request(
           createServer({ env: devEnv as ServerEnvVars, rootPath }),
@@ -176,7 +187,7 @@ describe(__filename, () => {
 
         const response = await server.get('/');
 
-        expect(response.text).toContain(JSON.stringify(proxyContent));
+        expect(response.text).toContain(JSON.stringify(proxiedContent));
         expect(response.header).not.toHaveProperty(
           'cache-control',
           'private, no-store',
@@ -184,9 +195,11 @@ describe(__filename, () => {
       });
 
       it('does not call injectAuthenticationToken() for non-HTML proxy responses', async () => {
-        const proxyContent = { foo: 'bar' };
+        const proxiedContent = { foo: 'bar' };
         // Configure the proxy to return JSON content
-        proxy.get('/*', (req, res) => res.json(proxyContent));
+        fakeCreateReactAppServer.get('/*', (req, res) =>
+          res.json(proxiedContent),
+        );
 
         const _injectAuthenticationToken = jest.fn();
         _injectAuthenticationToken.mockReturnValue('this is unexpected');
@@ -202,7 +215,7 @@ describe(__filename, () => {
         const response = await server.get('/');
 
         expect(_injectAuthenticationToken).not.toHaveBeenCalled();
-        expect(response.text).toContain(JSON.stringify(proxyContent));
+        expect(response.text).toContain(JSON.stringify(proxiedContent));
       });
     });
   });
