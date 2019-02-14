@@ -1,6 +1,8 @@
 /* eslint @typescript-eslint/no-object-literal-type-assertion: 0 */
+import http from 'http';
 import path from 'path';
 
+import express from 'express';
 import request from 'supertest';
 import { RequestWithCookies } from 'universal-cookie-express';
 import Cookies from 'universal-cookie';
@@ -104,6 +106,109 @@ describe(__filename, () => {
 
         expect(_injectAuthenticationToken).toHaveBeenCalled();
         expect(response.text).toContain(expectedHTML);
+      });
+    });
+
+    describe('NODE_ENV=development', () => {
+      // This is meant to simulate the create-react-app dev server application.
+      let fakeCreateReactAppServerApp: express.Application;
+      // This is the actual HTTP server instance, which is needed to close it
+      // after each test case.
+      let fakeCreateReactAppServer: http.Server;
+
+      const devEnv = {
+        NODE_ENV: 'development',
+        REACT_APP_CRA_PORT: 60123,
+      };
+
+      beforeEach(() => {
+        fakeCreateReactAppServerApp = express();
+        fakeCreateReactAppServer = fakeCreateReactAppServerApp.listen(
+          devEnv.REACT_APP_CRA_PORT,
+        );
+        fakeCreateReactAppServer.on('error', (error) => {
+          // eslint-disable-next-line no-console
+          console.error('proxy error', error);
+        });
+      });
+
+      afterEach(() => {
+        fakeCreateReactAppServer.close();
+      });
+
+      it('creates an Express server that acts as a proxy for the CRA server', async () => {
+        const content = 'Hello, I am the create-react-app server';
+        fakeCreateReactAppServerApp.get('/*', (req, res) => res.send(content));
+
+        const server = request(
+          createServer({ env: devEnv as ServerEnvVars, rootPath }),
+        );
+
+        const response = await server.get('/');
+
+        expect(response.text).toContain(content);
+        expect(response.header).toHaveProperty(
+          'cache-control',
+          'private, no-store',
+        );
+      });
+
+      it('calls injectAuthenticationToken() and returns its output', async () => {
+        const expectedHTML = 'content with auth token';
+
+        const _injectAuthenticationToken = jest.fn();
+        _injectAuthenticationToken.mockReturnValue(expectedHTML);
+
+        const server = request(
+          createServer({
+            env: devEnv as ServerEnvVars,
+            rootPath,
+            _injectAuthenticationToken,
+          }),
+        );
+
+        const response = await server.get('/');
+
+        expect(_injectAuthenticationToken).toHaveBeenCalled();
+        expect(response.text).toContain(expectedHTML);
+      });
+
+      it('does not configure the `cache-control` header of non-HTML proxy responses', async () => {
+        const content = { foo: 'bar' };
+        fakeCreateReactAppServerApp.get('/*', (req, res) => res.json(content));
+
+        const server = request(
+          createServer({ env: devEnv as ServerEnvVars, rootPath }),
+        );
+
+        const response = await server.get('/');
+
+        expect(response.text).toContain(JSON.stringify(content));
+        expect(response.header).not.toHaveProperty(
+          'cache-control',
+          'private, no-store',
+        );
+      });
+
+      it('does not call injectAuthenticationToken() for non-HTML proxy responses', async () => {
+        const content = { foo: 'bar' };
+        fakeCreateReactAppServerApp.get('/*', (req, res) => res.json(content));
+
+        const _injectAuthenticationToken = jest.fn();
+        _injectAuthenticationToken.mockReturnValue('this is unexpected');
+
+        const server = request(
+          createServer({
+            env: devEnv as ServerEnvVars,
+            rootPath,
+            _injectAuthenticationToken,
+          }),
+        );
+
+        const response = await server.get('/');
+
+        expect(_injectAuthenticationToken).not.toHaveBeenCalled();
+        expect(response.text).toContain(JSON.stringify(content));
       });
     });
   });
