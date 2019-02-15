@@ -41,7 +41,7 @@
     "redux-devtools-extension": "2.13.8",
     "redux-logger": "3.0.6",
     "ts-node": "8.0.2",
-    "typesafe-actions": "3.0.0",
+    "typesafe-actions": "3.1.0",
     "typescript": "3.3.3",
     "universal-cookie": "3.0.7",
     "universal-cookie-express": "3.0.7"
