@@ -107,6 +107,81 @@ describe(__filename, () => {
         expect(_injectAuthenticationToken).toHaveBeenCalled();
         expect(response.text).toContain(expectedHTML);
       });
+
+      describe('with REACT_APP_USE_INSECURE_PROXY=true', () => {
+        const apiPort = '5678';
+        const apiResponseBody = 'API response body';
+        const prodEnvWithInsecureProxy = {
+          ...prodEnv,
+          REACT_APP_USE_INSECURE_PROXY: 'true',
+          REACT_APP_API_HOST: `http://localhost:${apiPort}`,
+        };
+
+        let fakeApiServer: http.Server;
+
+        beforeEach(() => {
+          // This Express app is used to simulate the API service.
+          const app = express();
+          app.get('*', (req, res) => {
+            res.cookie('auth_token', 'secret', {
+              // Cookies returned by the API are usually secure.
+              secure: true,
+            });
+            res.send(apiResponseBody);
+          });
+
+          fakeApiServer = app.listen(apiPort);
+          fakeApiServer.on('error', (error) => {
+            // eslint-disable-next-line no-console
+            console.error('proxy error', error);
+          });
+        });
+
+        afterEach(() => {
+          fakeApiServer.close();
+        });
+
+        it('forwards all the /api calls to the REACT_APP_API_HOST server', async () => {
+          const server = request(
+            createServer({
+              env: prodEnvWithInsecureProxy as ServerEnvVars,
+              rootPath,
+            }),
+          );
+
+          const response = await server.get('/api/foo');
+
+          expect(response.text).toEqual(apiResponseBody);
+        });
+
+        it('removes the secure attribute of cookies sent by the API', async () => {
+          const server = request(
+            createServer({
+              env: prodEnvWithInsecureProxy as ServerEnvVars,
+              rootPath,
+            }),
+          );
+
+          const response = await server.get('/api');
+
+          expect(response.header['set-cookie']).toEqual([
+            'auth_token=secret; Path=/',
+          ]);
+        });
+
+        it('does not forward requests that are not API requests', async () => {
+          const server = request(
+            createServer({
+              env: prodEnvWithInsecureProxy as ServerEnvVars,
+              rootPath,
+            }),
+          );
+
+          const response = await server.get('/foo');
+
+          expect(response.text).not.toEqual(apiResponseBody);
+        });
+      });
     });
 
     describe('NODE_ENV=development', () => {
