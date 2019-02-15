@@ -46,3 +46,8 @@ jobs:
     - name: storybook-smoke-test (node@production)
       <<: *node-prod
       script: yarn storybook-smoke-test
+    - stage: storybook deployment
+      <<: *node-prod
+      if: branch = master AND type = push AND fork = false
+      script: echo "Deploying to GitHub Pages..."
+      after_success: yarn storybook-deploy --ci
