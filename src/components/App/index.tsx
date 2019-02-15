@@ -8,17 +8,17 @@ import {
   withRouter,
 } from 'react-router-dom';
 import makeClassName from 'classnames';
+import log from 'loglevel';
 
 import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
 import styles from './styles.module.scss';
 import { ApiState, actions as apiActions } from '../../reducers/api';
 import {
-  ExternalUser,
   User,
   actions as userActions,
   getCurrentUser,
 } from '../../reducers/users';
-import * as api from '../../api';
+import { isErrorResponse, getCurrentUserProfile } from '../../api';
 import Navbar from '../Navbar';
 import Browse from '../../pages/Browse';
 import Index from '../../pages/Index';
@@ -27,6 +27,10 @@ import { gettext } from '../../utils';
 
 type PublicProps = {
   authToken: string | null;
+};
+
+export type DefaultProps = {
+  _log: typeof log;
 };
 
 type PropsFromState = {
@@ -38,11 +42,16 @@ type PropsFromState = {
 /* eslint-disable @typescript-eslint/indent */
 type Props = PublicProps &
   PropsFromState &
+  DefaultProps &
   ConnectedReduxProps &
   RouteComponentProps<{}>;
 /* eslint-enable @typescript-eslint/indent */
 
 export class AppBase extends React.Component<Props> {
+  static defaultProps = {
+    _log: log,
+  };
+
   componentDidMount() {
     const { authToken, dispatch } = this.props;
 
@@ -52,15 +61,14 @@ export class AppBase extends React.Component<Props> {
   }
 
   async componentDidUpdate(prevProps: Props) {
-    const { apiState, dispatch, profile } = this.props;
+    const { _log, apiState, dispatch, profile } = this.props;
 
     if (!profile && prevProps.apiState.authToken !== apiState.authToken) {
-      const response = (await api.callApi({
-        apiState,
-        endpoint: '/accounts/profile/',
-      })) as ExternalUser;
+      const response = await getCurrentUserProfile(apiState);
 
-      if (response && response.name) {
+      if (isErrorResponse(response)) {
+        _log.error(`TODO: handle this error response: ${response.error}`);
+      } else {
         dispatch(userActions.loadCurrentUser({ user: response }));
       }
     }

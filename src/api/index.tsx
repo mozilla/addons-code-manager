@@ -1,6 +1,8 @@
 import log from 'loglevel';
 
 import { ApiState } from '../reducers/api';
+import { ExternalUser } from '../reducers/users';
+import { ExternalVersion } from '../reducers/versions';
 
 export enum HttpMethod {
   DELETE = 'DELETE',
@@ -19,20 +21,37 @@ type CallApiParams = {
   lang?: string;
 };
 
-type CallApiResponse = object | { error: Error };
+type ErrorResponseType = { error: Error };
+
+type CallApiResponse<SuccessResponseType> =
+  | SuccessResponseType
+  | ErrorResponseType;
+
+// This function below is a user-defined type guard that we use to check
+// whether a callApi response object is successful or unsuccessful. We use
+// `any` on purpose because we don't know the exact type for
+// `SuccessResponseType`.
+export const isErrorResponse = (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  arg: CallApiResponse<any>,
+): arg is ErrorResponseType => {
+  return arg.error !== undefined;
+};
 
 type Headers = {
   [name: string]: string;
 };
 
-export const callApi = async ({
+// For the `extends {}` part, please see:
+// https://github.com/Microsoft/TypeScript/issues/4922
+export const callApi = async <SuccessResponseType extends {}>({
   apiState,
   endpoint,
   method = HttpMethod.GET,
   version = process.env.REACT_APP_DEFAULT_API_VERSION,
   query = {},
   lang = process.env.REACT_APP_DEFAULT_API_LANG as string,
-}: CallApiParams): Promise<CallApiResponse> => {
+}: CallApiParams): Promise<CallApiResponse<SuccessResponseType>> => {
   let adjustedEndpoint = endpoint;
   if (!adjustedEndpoint.startsWith('/')) {
     adjustedEndpoint = `/${adjustedEndpoint}`;
@@ -96,7 +115,7 @@ export const getVersion = async ({
   addonId,
   versionId,
 }: GetVersionParams) => {
-  return callApi({
+  return callApi<ExternalVersion>({
     apiState,
     endpoint: `reviewers/addon/${addonId}/versions/${versionId}`,
     query: path ? { file: path } : undefined,
@@ -104,9 +123,16 @@ export const getVersion = async ({
 };
 
 export const logOutFromServer = async (apiState: ApiState) => {
-  return callApi({
+  return callApi<{}>({
     apiState,
     endpoint: 'accounts/session',
     method: HttpMethod.DELETE,
+  });
+};
+
+export const getCurrentUserProfile = async (apiState: ApiState) => {
+  return callApi<ExternalUser>({
+    apiState,
+    endpoint: '/accounts/profile/',
   });
 };

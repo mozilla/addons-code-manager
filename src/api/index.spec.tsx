@@ -5,7 +5,14 @@ import {
   initialState as defaultApiState,
 } from '../reducers/api';
 
-import { HttpMethod, callApi, getVersion, logOutFromServer } from '.';
+import {
+  HttpMethod,
+  callApi,
+  getCurrentUserProfile,
+  getVersion,
+  isErrorResponse,
+  logOutFromServer,
+} from '.';
 
 describe(__filename, () => {
   const defaultLang = process.env.REACT_APP_DEFAULT_API_LANG;
@@ -179,6 +186,20 @@ describe(__filename, () => {
     });
   });
 
+  describe('isErrorResponse', () => {
+    it('returns true if a response object is an error', () => {
+      const response = { error: 'this is an error' };
+
+      expect(isErrorResponse(response)).toEqual(true);
+    });
+
+    it('returns false if a response object is not an error', () => {
+      const response = { id: 123 };
+
+      expect(isErrorResponse(response)).toEqual(false);
+    });
+  });
+
   describe('getVersion', () => {
     it('calls the API to retrieve version information', async () => {
       const addonId = 999;
@@ -230,6 +251,17 @@ describe(__filename, () => {
           method: HttpMethod.DELETE,
         },
       );
+    });
+  });
+
+  describe('getCurrentUserProfile', () => {
+    it('calls the API to retrieve the current logged-in user profile', async () => {
+      await getCurrentUserProfile(defaultApiState);
+
+      expect(fetch).toHaveBeenCalledWith(`/api/v4/accounts/profile/`, {
+        headers: {},
+        method: HttpMethod.GET,
+      });
     });
   });
 });

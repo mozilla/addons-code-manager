@@ -2,21 +2,25 @@ import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { Col } from 'react-bootstrap';
+import log from 'loglevel';
 
 import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
 import { ApiState } from '../../reducers/api';
-import { getVersion } from '../../api';
+import { isErrorResponse, getVersion } from '../../api';
 import FileTree from '../../components/FileTree';
 import {
   actions as versionActions,
   Version,
-  ExternalVersion,
   getVersionInfo,
 } from '../../reducers/versions';
 
 type PropsFromRouter = {
   addonId: string;
   versionId: string;
+};
+
+export type DefaultProps = {
+  _log: typeof log;
 };
 
 type PropsFromState = {
@@ -27,21 +31,28 @@ type PropsFromState = {
 /* eslint-disable @typescript-eslint/indent */
 type Props = RouteComponentProps<PropsFromRouter> &
   PropsFromState &
+  DefaultProps &
   ConnectedReduxProps;
 /* eslint-enable @typescript-eslint/indent */
 
 export class BrowseBase extends React.Component<Props> {
+  static defaultProps = {
+    _log: log,
+  };
+
   async componentDidMount() {
-    const { apiState, dispatch, match } = this.props;
+    const { _log, apiState, dispatch, match } = this.props;
     const { addonId, versionId } = match.params;
 
-    const response = (await getVersion({
+    const response = await getVersion({
       addonId: parseInt(addonId, 10),
       apiState,
       versionId: parseInt(versionId, 10),
-    })) as ExternalVersion;
+    });
 
-    if (response && response.id) {
+    if (isErrorResponse(response)) {
+      _log.error(`TODO: handle this error response: ${response.error}`);
+    } else {
       dispatch(versionActions.loadVersionInfo({ version: response }));
     }
   }

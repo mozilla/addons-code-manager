@@ -1,8 +1,10 @@
 import * as React from 'react';
+import { Store } from 'redux';
 
 import {
   createFakeHistory,
   fakeVersion,
+  getFakeLogger,
   shallowUntilTarget,
 } from '../../test-helpers';
 import * as api from '../../api';
@@ -13,7 +15,7 @@ import {
 } from '../../reducers/versions';
 import FileTree from '../../components/FileTree';
 
-import Browse, { BrowseBase } from '.';
+import Browse, { BrowseBase, DefaultProps } from '.';
 
 describe(__filename, () => {
   const createFakeRouteComponentProps = ({
@@ -35,13 +37,22 @@ describe(__filename, () => {
     };
   };
 
+  type RenderParams = {
+    _log?: DefaultProps['_log'];
+    addonId?: string;
+    versionId?: string;
+    store?: Store;
+  };
+
   const render = async ({
+    _log,
     addonId = '999',
     versionId = '123',
     store = configureStore(),
-  } = {}) => {
+  }: RenderParams = {}) => {
     const props = {
       ...createFakeRouteComponentProps({ params: { addonId, versionId } }),
+      _log,
     };
 
     return shallowUntilTarget(<Browse {...props} />, BrowseBase, {
@@ -101,5 +112,17 @@ describe(__filename, () => {
     expect(dispatch).toHaveBeenCalledWith(
       versionActions.loadVersionInfo({ version }),
     );
+  });
+
+  it('logs an error when the API request to retrieve the current user profile has failed', async () => {
+    const _log = getFakeLogger();
+    const error = new Error('server error');
+
+    const mockApi = jest.spyOn(api, 'getVersion');
+    mockApi.mockReturnValue(Promise.resolve({ error }));
+
+    await render({ _log });
+
+    expect(_log.error).toHaveBeenCalled();
   });
 });
