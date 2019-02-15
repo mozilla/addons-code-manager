@@ -19,6 +19,7 @@ describe(__filename, () => {
   const createFakeRouteComponentProps = ({
     history = createFakeHistory(),
     params = {
+      addonId: '999',
       versionId: '123',
     },
   } = {}) => {
@@ -35,11 +36,12 @@ describe(__filename, () => {
   };
 
   const render = async ({
+    addonId = '999',
     versionId = '123',
     store = configureStore(),
   } = {}) => {
     const props = {
-      ...createFakeRouteComponentProps({ params: { versionId } }),
+      ...createFakeRouteComponentProps({ params: { addonId, versionId } }),
     };
 
     return shallowUntilTarget(<Browse {...props} />, BrowseBase, {
@@ -73,6 +75,7 @@ describe(__filename, () => {
   });
 
   it('calls the API to load the version info on mount', async () => {
+    const addonId = 12345;
     const version = {
       ...fakeVersion,
       id: 999,
@@ -84,10 +87,15 @@ describe(__filename, () => {
     const store = configureStore();
     const dispatch = jest.spyOn(store, 'dispatch');
 
-    await render({ store, versionId: String(version.id) });
+    await render({
+      store,
+      addonId: String(addonId),
+      versionId: String(version.id),
+    });
 
     expect(mockApi).toHaveBeenCalledWith({
       apiState: store.getState().api,
+      addonId,
       versionId: version.id,
     });
     expect(dispatch).toHaveBeenCalledWith(
