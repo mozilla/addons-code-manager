@@ -57,24 +57,19 @@ const createRootReducer = () => {
 const configureStore = () => {
   const enhancedCreateStore = createStore as StoreCreator;
 
-  let enhancer = compose(install<ApplicationState>());
-
-  // if (typeof window === 'object' && window.__REDUX_DEVTOOLS_EXTENSION__) {
-  //   enhancer = compose(
-  //     install(),
-  //     window.__REDUX_DEVTOOLS_EXTENSION__({
-  //       serialize: {
-  //         options: true,
-  //       },
-  //     })
-  //   );
-  // }
+  let composeEnhancers = compose;
+  if (process.env.NODE_ENV === 'development') {
+    composeEnhancers = composeWithDevTools({});
+  }
+  const enhancer = composeEnhancers(install<ApplicationState>());
 
   return enhancedCreateStore<ApplicationState, Actions>(
     createRootReducer(),
     undefined,
     enhancer,
   );
+
+  // TODO: it should be possible to add middleware but TypeScript doesn't like it.
 
   // let composeEnhancers = compose;
   // const allMiddleware = [];
