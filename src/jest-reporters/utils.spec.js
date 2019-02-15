@@ -1,3 +1,4 @@
+/* eslint amo/only-tsx-files: 0 */
 import { filterFileNamesFromGitStatusOutput } from './utils';
 
 describe(__filename, () => {
