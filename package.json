@@ -113,5 +113,12 @@
   "storybook-deployer": {
     "commitMessage": "[skip ci] Deploy Storybook to Github Pages"
   },
-  "homepage": "/"
+  "homepage": "/",
+  "jest": {
+    "collectCoverageFrom": [
+      "src/**/*.{js,jsx,ts,tsx}",
+      "!<rootDir>/node_modules/",
+      "!src/jest-reporters/eslint-check.js"
+    ]
+  }
 }
