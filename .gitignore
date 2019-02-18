@@ -70,3 +70,6 @@ typings/
 
 # misc
 .DS_Store
+
+# Storybook
+storybook-static/
