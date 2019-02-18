@@ -2,9 +2,7 @@
 
 [![Build Status](https://travis-ci.com/mozilla/addons-code-manager.svg?branch=master)](https://travis-ci.com/mozilla/addons-code-manager) [![codecov](https://codecov.io/gh/mozilla/addons-code-manager/branch/master/graph/badge.svg)](https://codecov.io/gh/mozilla/addons-code-manager)
 
-This is a web application to manage add-on source code, such as reviewing code for add-ons submitted to https://addons.mozilla.org
-
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This is a web application to manage add-on source code, such as reviewing code for add-ons submitted to https://addons.mozilla.org. This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Requirements
 
@@ -57,7 +55,9 @@ export default StarIcon;
 
 ## Storybook
 
-We use [storybook](https://storybook.js.org/) to visualize the look and feel of our React components. Launch the development server like this:
+We use [storybook](https://storybook.js.org/) to visualize the look and feel of our React components. Our Storybook is deployed on GitHub Pages: https://mozilla.github.io/addons-code-manager/.
+
+Launch the development server like this:
 
 ```
 yarn storybook
