@@ -15,6 +15,7 @@ import {
 } from '../../reducers/versions';
 
 type PropsFromRouter = {
+  addonId: string;
   versionId: string;
 };
 
@@ -32,9 +33,10 @@ type Props = RouteComponentProps<PropsFromRouter> &
 export class BrowseBase extends React.Component<Props> {
   async componentDidMount() {
     const { apiState, dispatch, match } = this.props;
-    const { versionId } = match.params;
+    const { addonId, versionId } = match.params;
 
     const response = (await getVersionFile({
+      addonId: parseInt(addonId, 10),
       apiState,
       versionId: parseInt(versionId, 10),
     })) as ExternalVersion;

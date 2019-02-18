@@ -75,7 +75,7 @@ export class AppBase extends React.Component<Props> {
         <Route
           component={Browse}
           exact
-          path="/:lang/:application/files/browse/:versionId/"
+          path="/:lang/browse/:addonId/versions/:versionId/"
         />
         <Route component={NotFound} />
       </Switch>

@@ -147,12 +147,13 @@ describe(__filename, () => {
 
   describe('getVersionFile', () => {
     it('calls the API to retrieve default version file information', async () => {
+      const addonId = 999;
       const versionId = 123;
 
-      await getVersionFile({ apiState: defaultApiState, versionId });
+      await getVersionFile({ apiState: defaultApiState, addonId, versionId });
 
       expect(fetch).toHaveBeenCalledWith(
-        `/api/v4/reviewers/browse/${versionId}/`,
+        `/api/v4/reviewers/addon/${addonId}/versions/${versionId}/`,
         {
           headers: {},
           method: HttpMethod.GET,
@@ -161,12 +162,18 @@ describe(__filename, () => {
     });
     it('calls the API to retrieve information for a specific version file', async () => {
       const path = 'test.js';
+      const addonId = 999;
       const versionId = 123;
 
-      await getVersionFile({ apiState: defaultApiState, path, versionId });
+      await getVersionFile({
+        apiState: defaultApiState,
+        addonId,
+        path,
+        versionId,
+      });
 
       expect(fetch).toHaveBeenCalledWith(
-        `/api/v4/reviewers/browse/${versionId}/?file=${path}`,
+        `/api/v4/reviewers/addon/${addonId}/versions/${versionId}/?file=${path}`,
         {
           headers: {},
           method: HttpMethod.GET,

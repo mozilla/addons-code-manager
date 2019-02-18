@@ -9,7 +9,7 @@ export class IndexBase extends React.Component<PublicProps> {
       <div>
         <p>
           There is nothing you can do here, but try{' '}
-          <Link to="/en-US/firefox/files/browse/1541786/">
+          <Link to="/en-US/browse/502955/versions/1541798/">
             browsing this add-on version.
           </Link>
         </p>
