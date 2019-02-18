@@ -3,7 +3,7 @@ import http from 'http';
 import path from 'path';
 
 import express from 'express';
-import request from 'supertest';
+import request, { SuperTest, Test } from 'supertest';
 import { RequestWithCookies } from 'universal-cookie-express';
 import Cookies from 'universal-cookie';
 
@@ -106,6 +106,81 @@ describe(__filename, () => {
 
         expect(_injectAuthenticationToken).toHaveBeenCalled();
         expect(response.text).toContain(expectedHTML);
+      });
+
+      describe('with REACT_APP_USE_INSECURE_PROXY=true', () => {
+        const apiPort = '5678';
+        const apiResponseBody = 'API response body';
+        const prodEnvWithInsecureProxy = {
+          ...prodEnv,
+          REACT_APP_USE_INSECURE_PROXY: 'true',
+          REACT_APP_API_HOST: `http://localhost:${apiPort}`,
+        };
+
+        let app: express.Application;
+        let fakeApiServer: http.Server;
+        let server: SuperTest<Test>;
+
+        beforeEach(() => {
+          server = request(
+            createServer({
+              env: prodEnvWithInsecureProxy as ServerEnvVars,
+              rootPath,
+            }),
+          );
+
+          // This Express app is used to simulate the API service.
+          app = express();
+          // We create a handler to configure a response without cookies.
+          app.get('/api/no-cookie', (req, res) => {
+            res.send(apiResponseBody);
+          });
+          // This is a catch-all handler for all other requests.
+          app.get('*', (req, res) => {
+            res.cookie('auth_token', 'secret', {
+              // Cookies returned by the API are usually secure.
+              secure: true,
+            });
+            res.send(apiResponseBody);
+          });
+
+          fakeApiServer = app.listen(apiPort);
+          fakeApiServer.on('error', (error) => {
+            // eslint-disable-next-line no-console
+            console.error('proxy error', error);
+          });
+        });
+
+        afterEach(() => {
+          fakeApiServer.close();
+        });
+
+        it('forwards all the /api calls to the REACT_APP_API_HOST server', async () => {
+          const response = await server.get('/api/foo');
+
+          expect(response.text).toEqual(apiResponseBody);
+        });
+
+        it('removes the secure attribute of cookies sent by the API', async () => {
+          const response = await server.get('/api');
+
+          expect(response.header).toHaveProperty('set-cookie');
+          expect(response.header['set-cookie']).toEqual([
+            'auth_token=secret; Path=/',
+          ]);
+        });
+
+        it('does not forward requests that are not API requests', async () => {
+          const response = await server.get('/foo');
+
+          expect(response.text).not.toEqual(apiResponseBody);
+        });
+
+        it('does not modify the cookies when there is no cookie sent by the API', async () => {
+          const response = await server.get('/api/no-cookie');
+
+          expect(response.header).not.toHaveProperty('set-cookie');
+        });
       });
     });
 
