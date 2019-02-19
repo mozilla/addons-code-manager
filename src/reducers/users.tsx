@@ -56,6 +56,7 @@ const doLogOut = async (
   dispatch: Dispatch,
   getState: () => ApplicationState,
 ) => {
+  console.log('Doing the log out');
   await logOutFromServer(getState().api);
   dispatch(actions.logOut());
 };
