@@ -11,14 +11,14 @@ export type ClientEnvVars = {
 type ConfigureApplicationParams = {
   _Raven?: typeof Raven;
   _log?: typeof log;
-  env: ClientEnvVars;
+  env?: ClientEnvVars;
 };
 
 const configureApplication = ({
   _Raven = Raven,
   _log = log,
-  env,
-}: ConfigureApplicationParams) => {
+  env = (process.env as any) as ClientEnvVars,
+}: ConfigureApplicationParams = {}) => {
   if (env.NODE_ENV === 'production') {
     // The second parameter prevents the log level to be persisted in a cookie
     // or localStorage.

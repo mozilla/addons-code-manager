@@ -8,9 +8,7 @@ import App from './components/App';
 import configureApplication, { ClientEnvVars } from './configureApplication';
 import configureStore from './configureStore';
 
-configureApplication({
-  env: (process.env as any) as ClientEnvVars,
-});
+configureApplication();
 
 const store = configureStore();
 
