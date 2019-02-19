@@ -1,9 +1,17 @@
 import { configure } from '@storybook/react';
 
+import configureApplication, {
+  ClientEnvVars,
+} from '../../src/configureApplication';
+
 // Include application styles.
 import '../../src/styles.scss';
 // Apply some custom styles to storybook.
 import './styles.scss';
+
+configureApplication({
+  env: (process.env as any) as ClientEnvVars,
+});
 
 // Automatically import all files ending in *.stories.tsx
 const req = require.context('../', true, /.stories.tsx$/);
