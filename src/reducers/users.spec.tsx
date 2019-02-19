@@ -1,10 +1,9 @@
-import reducer, {
+import {
   actions,
   createInternalUser,
   getCurrentUser,
   initialState,
 } from './users';
-
 import { fakeUser } from '../test-helpers';
 import configureStore from '../configureStore';
 
@@ -60,6 +59,21 @@ describe(__filename, () => {
       const state = initialState;
 
       expect(getCurrentUser(state)).toEqual(null);
+    });
+  });
+
+  describe('requestLogOut', () => {
+    it('requests a log out', () => {
+      const user = fakeUser;
+      store.dispatch(actions.loadCurrentUser({ user }));
+      store.dispatch(actions.requestLogOut());
+
+      // This is where we'd check that the Cmd.run() declaration
+      // was reduced as expected but it actually executes the callback.
+      // https://redux-loop.js.org/docs/tutorial/Testing.html
+      // If we try to execute the reducer directly,
+      // there are typing errors.
+      expect(store.getState()).toEqual('state with Cmd.run()');
     });
   });
 });

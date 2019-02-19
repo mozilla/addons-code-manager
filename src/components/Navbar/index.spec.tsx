@@ -9,7 +9,7 @@ import { fakeUser } from '../../test-helpers';
 import { logOutFromServer } from '../../api';
 import { actions as userActions } from '../../reducers/users';
 
-import Navbar, { NavbarBase } from '.';
+import Navbar from '.';
 
 describe(__filename, () => {
   type RenderParams = {
@@ -80,37 +80,15 @@ describe(__filename, () => {
   });
 
   describe('Log out button', () => {
-    it('configures the click handler', () => {
-      const root = render({ store: storeWithUser() });
-      const instance = root.instance() as NavbarBase;
-
-      expect(root.find(`.${styles.logOut}`)).toHaveProp(
-        'onClick',
-        instance.logOut,
-      );
-    });
-
-    it('calls logOutFromServer when clicked', async () => {
-      const logOutFromServerMock = jest.fn();
-      const root = render({
-        _logOutFromServer: logOutFromServerMock,
-        store: storeWithUser(),
-      });
-
-      const instance = root.instance() as NavbarBase;
-      await instance.logOut();
-      expect(logOutFromServerMock).toHaveBeenCalled();
-    });
-
-    it('dispatches userActions.logOut when clicked', async () => {
+    it('dispatches requestLogOut when clicked', () => {
       const store = storeWithUser();
       const dispatch = jest.spyOn(store, 'dispatch');
 
       const root = render({ store });
 
-      const instance = root.instance() as NavbarBase;
-      await instance.logOut();
-      expect(dispatch).toHaveBeenCalledWith(userActions.logOut());
+      root.find(`.${styles.logOut}`).simulate('click');
+
+      expect(dispatch).toHaveBeenCalledWith(userActions.requestLogOut());
     });
   });
 });

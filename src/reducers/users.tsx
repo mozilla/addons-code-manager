@@ -1,4 +1,4 @@
-import { AnyAction, Dispatch, Reducer } from 'redux';
+import { AnyAction, Dispatch } from 'redux';
 import { Cmd, Loop, LoopReducer, loop } from 'redux-loop';
 import { ActionType, createAction, getType } from 'typesafe-actions';
 
@@ -88,6 +88,8 @@ const reducer: LoopReducer<UsersState, Actions> = (
   state: UsersState = initialState,
   // TODO: this type seems wrong because it removes any
   // type safety for action payloads.
+  // I think this has to be AnyAction because of a bug
+  // in redux-loop's type definitions.
   action: AnyAction,
 ): UsersState | Loop<UsersState, Actions> => {
   switch (action.type) {
