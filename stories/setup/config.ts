@@ -1,8 +1,6 @@
 import { configure } from '@storybook/react';
 
-import configureApplication, {
-  ClientEnvVars,
-} from '../../src/configureApplication';
+import configureApplication from '../../src/configureApplication';
 
 // Include application styles.
 import '../../src/styles.scss';

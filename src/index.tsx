@@ -5,7 +5,7 @@ import { Provider } from 'react-redux';
 
 import './styles.scss';
 import App from './components/App';
-import configureApplication, { ClientEnvVars } from './configureApplication';
+import configureApplication from './configureApplication';
 import configureStore from './configureStore';
 
 configureApplication();
