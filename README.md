@@ -113,9 +113,7 @@ This runs [Prettier][] on only your changed files. This is intended for developm
 
 ### `yarn stage`
 
-This runs the app in the development mode, with the [stage AMO API](https://addons-server.readthedocs.io/).
-
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser. The page will reload if you make edits. You will also see any lint errors in the console.
+This runs all development processes in a single column using [stmux][]. Open [http://localhost:3000](http://localhost:3000) to view the development site. **Press CTRL-a-? for help**. The application is configured to use the [stage AMO API](https://addons-server.readthedocs.io/).
 
 ### `yarn start-local-dev`
 
