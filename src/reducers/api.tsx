@@ -1,11 +1,6 @@
 import { Action, AnyAction, Reducer } from 'redux';
 import { ActionType, createAction, getType } from 'typesafe-actions';
-import {
-  Cmd,
-  Loop,
-  LoopReducer,
-  loop,
-} from 'redux-loop';
+import { Cmd, Loop, LoopReducer, loop } from 'redux-loop';
 
 type SetAuthTokenPayload = {
   authToken: string;
