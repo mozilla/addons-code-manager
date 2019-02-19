@@ -20,7 +20,10 @@ import {
 
 import api, { Actions as ApiActions, ApiState } from './reducers/api';
 import users, { Actions as UsersActions, UsersState } from './reducers/users';
-import versions, { VersionsState } from './reducers/versions';
+import versions, {
+  Actions as VersionsActions,
+  VersionsState,
+} from './reducers/versions';
 
 // TODO: move this somewhere better
 
@@ -44,7 +47,7 @@ export type ApplicationState = {
   versions: VersionsState;
 };
 
-type Actions = ApiActions | UsersActions;
+type Actions = ApiActions | UsersActions | VersionsActions;
 
 const createRootReducer = () => {
   return combineReducers<ApplicationState, Actions>({

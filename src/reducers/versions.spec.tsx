@@ -44,6 +44,7 @@ describe(__filename, () => {
         undefined,
         actions.loadVersionFile({ path: path1, version }),
       );
+      // @ts-ignore
       state = reducer(state, actions.loadVersionFile({ path: path2, version }));
 
       expect(state).toEqual({
@@ -167,6 +168,7 @@ describe(__filename, () => {
         actions.loadVersionFile({ path, version }),
       );
 
+      // @ts-ignore
       expect(getVersionFile(path, state, version.id)).toEqual(
         createInternalVersionFile(version.file),
       );
@@ -184,6 +186,7 @@ describe(__filename, () => {
       const version = fakeVersion;
       const state = reducer(undefined, actions.loadVersionInfo({ version }));
 
+      // @ts-ignore
       expect(getVersionInfo(state, version.id)).toEqual(
         createInternalVersion(version),
       );
@@ -192,6 +195,7 @@ describe(__filename, () => {
     it('returns undefined if there is no version found', () => {
       const state = initialState;
 
+      // @ts-ignore
       expect(getVersionInfo(state, 1)).toEqual(undefined);
     });
   });

@@ -1,5 +1,6 @@
-import { Reducer } from 'redux';
+import { AnyAction, Reducer } from 'redux';
 import { ActionType, createAction, getType } from 'typesafe-actions';
+import { Loop, LoopReducer } from 'redux-loop';
 
 type VersionId = number;
 
@@ -187,10 +188,12 @@ export const getVersionInfo = (
   return versions.versionInfo[versionId];
 };
 
-const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
+export type Actions = ActionType<typeof actions>;
+
+const reducer: LoopReducer<VersionsState, Actions> = (
   state = initialState,
-  action,
-): VersionsState => {
+  action: AnyAction,
+): VersionsState | Loop<VersionsState, Actions> => {
   switch (action.type) {
     case getType(actions.loadVersionInfo): {
       const { version } = action.payload;
