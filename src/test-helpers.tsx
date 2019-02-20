@@ -199,3 +199,37 @@ export const shallowUntilTarget = (
      gave up after ${maxTries} tries`,
   );
 };
+
+/*
+ * Creates a fake thunk for testing.
+ *
+ * Let's say you had a real thunk like this:
+ *
+ * const doLogout = () => {
+ *   return (dispatch, getState) => {
+ *     // Make a request to the API...
+ *     dispatch({ type: 'LOG_OUT' });
+ *   };
+ * };
+ *
+ * You can replace this thunk for testing as:
+ *
+ * const fakeThunk = createFakeThunk();
+ * render({ _doLogout: fakeThunk.createThunk });
+ *
+ * You can make an assertion that it was called like:
+ *
+ * expect(dispatch).toHaveBeenCalledWith(fakeThunk.dispatchCallback);
+ */
+export const createFakeThunk = () => {
+  // This is a placeholder for the dispatch callback function.
+  // In reality it would look like (dispatch, getState) => {}
+  // but here it gets set to a string for easy test assertions.
+  const dispatchCallback = '__dispatchCallbackReturnedByTheThunk__';
+
+  return {
+    // This is a function that creates the dispatch callback.
+    createThunk: jest.fn().mockReturnValue(dispatchCallback),
+    dispatchCallback,
+  };
+};

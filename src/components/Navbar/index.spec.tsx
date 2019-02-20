@@ -5,7 +5,7 @@ import { Store } from 'redux';
 import configureStore from '../../configureStore';
 import LoginButton from '../LoginButton';
 import styles from './styles.module.scss';
-import { fakeUser } from '../../test-helpers';
+import { createFakeThunk, fakeUser } from '../../test-helpers';
 import { actions as userActions, requestLogOut } from '../../reducers/users';
 
 import Navbar from '.';
@@ -79,19 +79,6 @@ describe(__filename, () => {
   });
 
   describe('Log out button', () => {
-    const createFakeThunk = () => {
-      // This is a placeholder for the dispatch callback function.
-      // In reality it would look like (dispatch, getState) => {}
-      // but here it gets set to a string for easy test assertions.
-      const dispatchCallback = '__dispatchCallbackReturnedByTheThunk__';
-
-      return {
-        // This is a function that creates the dispatch callback.
-        creator: jest.fn().mockReturnValue(dispatchCallback),
-        dispatchCallback,
-      };
-    };
-
     it('dispatches requestLogOut when clicked', () => {
       const store = storeWithUser();
       const dispatch = jest
@@ -101,7 +88,7 @@ describe(__filename, () => {
       const fakeThunk = createFakeThunk();
       const root = render({
         store,
-        _requestLogOut: fakeThunk.creator,
+        _requestLogOut: fakeThunk.createThunk,
       });
 
       root.find(`.${styles.logOut}`).simulate('click');
