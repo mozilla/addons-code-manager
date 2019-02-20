@@ -82,7 +82,9 @@ describe(__filename, () => {
     const createFakeThunk = () => {
       // This is a placeholder for the dispatch callback function.
       // In reality it would look like (dispatch, getState) => {}
-      const dispatchCallback = '__dispatchCallback__';
+      // but here it gets set to a string for easy test assertions.
+      const dispatchCallback = '__dispatchCallbackReturnedByTheThunk__';
+
       return {
         // This is a function that creates the dispatch callback.
         creator: jest.fn().mockReturnValue(dispatchCallback),
