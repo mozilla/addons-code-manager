@@ -1,8 +1,13 @@
 import { Reducer } from 'redux';
 import { ActionType, createAction, getType } from 'typesafe-actions';
+import log from 'loglevel';
 
 import { ThunkActionCreator } from '../configureStore';
-import { logOutFromServer } from '../api';
+import {
+  getCurrentUserProfile,
+  isErrorResponse,
+  logOutFromServer,
+} from '../api';
 
 type UserId = number;
 
@@ -78,6 +83,23 @@ export const createInternalUser = (user: ExternalUser): User => {
 
 export const getCurrentUser = (users: UsersState) => {
   return users.currentUser;
+};
+
+export const fetchCurrentUserProfile = ({
+  _getCurrentUserProfile = getCurrentUserProfile,
+  _log = log,
+} = {}): ThunkActionCreator => {
+  return async (dispatch, getState) => {
+    const { api: apiState } = getState();
+
+    const response = await _getCurrentUserProfile(apiState);
+
+    if (isErrorResponse(response)) {
+      _log.error(`TODO: handle this error response: ${response.error}`);
+    } else {
+      dispatch(actions.loadCurrentUser({ user: response }));
+    }
+  };
 };
 
 const reducer: Reducer<UsersState, ActionType<typeof actions>> = (

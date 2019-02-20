@@ -3,15 +3,15 @@ import { Store } from 'redux';
 
 import {
   createFakeHistory,
+  createFakeThunk,
   fakeVersion,
-  getFakeLogger,
   shallowUntilTarget,
 } from '../../test-helpers';
-import * as api from '../../api';
 import configureStore from '../../configureStore';
 import {
   actions as versionActions,
   createInternalVersion,
+  fetchVersion,
 } from '../../reducers/versions';
 import FileTree from '../../components/FileTree';
 
@@ -38,13 +38,15 @@ describe(__filename, () => {
   };
 
   type RenderParams = {
+    _fetchVersion?: typeof fetchVersion;
     _log?: DefaultProps['_log'];
     addonId?: string;
     versionId?: string;
     store?: Store;
   };
 
-  const render = async ({
+  const render = ({
+    _fetchVersion,
     _log,
     addonId = '999',
     versionId = '123',
@@ -52,6 +54,7 @@ describe(__filename, () => {
   }: RenderParams = {}) => {
     const props = {
       ...createFakeRouteComponentProps({ params: { addonId, versionId } }),
+      _fetchVersion,
       _log,
     };
 
@@ -62,21 +65,21 @@ describe(__filename, () => {
     });
   };
 
-  it('renders a page', async () => {
+  it('renders a page', () => {
     const versionId = '123456';
 
-    const root = await render({ versionId });
+    const root = render({ versionId });
 
     expect(root).toIncludeText(`Version ID: ${versionId}`);
   });
 
-  it('renders a FileTree component', async () => {
+  it('renders a FileTree component', () => {
     const version = fakeVersion;
 
     const store = configureStore();
     store.dispatch(versionActions.loadVersionInfo({ version }));
 
-    const root = await render({ store, versionId: String(version.id) });
+    const root = render({ store, versionId: String(version.id) });
 
     expect(root.find(FileTree)).toHaveLength(1);
     expect(root.find(FileTree)).toHaveProp(
@@ -85,44 +88,21 @@ describe(__filename, () => {
     );
   });
 
-  it('calls the API to load the version info on mount', async () => {
-    const addonId = 12345;
-    const version = {
-      ...fakeVersion,
-      id: 999,
-    };
-
-    const mockApi = jest.spyOn(api, 'getVersion');
-    mockApi.mockReturnValue(Promise.resolve(version));
+  it('dispatches fetchVersion() on mount', () => {
+    const version = fakeVersion;
 
     const store = configureStore();
-    const dispatch = jest.spyOn(store, 'dispatch');
+    const dispatch = jest
+      .spyOn(store, 'dispatch')
+      .mockImplementation(jest.fn());
+    const fakeThunk = createFakeThunk();
 
-    await render({
+    render({
+      _fetchVersion: fakeThunk.createThunk,
       store,
-      addonId: String(addonId),
       versionId: String(version.id),
     });
 
-    expect(mockApi).toHaveBeenCalledWith({
-      apiState: store.getState().api,
-      addonId,
-      versionId: version.id,
-    });
-    expect(dispatch).toHaveBeenCalledWith(
-      versionActions.loadVersionInfo({ version }),
-    );
-  });
-
-  it('logs an error when the API request to retrieve the current user profile has failed', async () => {
-    const _log = getFakeLogger();
-    const error = new Error('server error');
-
-    const mockApi = jest.spyOn(api, 'getVersion');
-    mockApi.mockReturnValue(Promise.resolve({ error }));
-
-    await render({ _log });
-
-    expect(_log.error).toHaveBeenCalled();
+    expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
   });
 });

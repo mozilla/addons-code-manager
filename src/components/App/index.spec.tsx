@@ -6,9 +6,13 @@ import { Route } from 'react-router-dom';
 import styles from './styles.module.scss';
 import configureStore from '../../configureStore';
 import { actions as apiActions } from '../../reducers/api';
-import { actions as userActions } from '../../reducers/users';
+import {
+  actions as userActions,
+  fetchCurrentUserProfile,
+} from '../../reducers/users';
 import {
   createContextWithFakeRouter,
+  createFakeThunk,
   fakeUser,
   shallowUntilTarget,
 } from '../../test-helpers';
@@ -18,13 +22,15 @@ import App, { AppBase } from '.';
 
 describe(__filename, () => {
   type RenderParams = {
+    _fetchCurrentUserProfile?: typeof fetchCurrentUserProfile;
     store?: Store;
     authToken?: string | null;
   };
 
   const render = ({
-    store = configureStore(),
+    _fetchCurrentUserProfile,
     authToken = 'some-token',
+    store = configureStore(),
   }: RenderParams = {}) => {
     const contextWithRouter = createContextWithFakeRouter();
     const context = {
@@ -35,7 +41,12 @@ describe(__filename, () => {
       },
     };
 
-    const root = shallowUntilTarget(<App authToken={authToken} />, AppBase, {
+    const props = {
+      _fetchCurrentUserProfile,
+      authToken,
+    };
+
+    const root = shallowUntilTarget(<App {...props} />, AppBase, {
       shallowOptions: { ...context },
     });
 
@@ -101,5 +112,71 @@ describe(__filename, () => {
 
     expect(root.find(Route)).toHaveLength(3);
     expect(root.find(`.${styles.loginMessage}`)).toHaveLength(0);
+  });
+
+  it('fetches the current user profile on update when there is no loaded profile and authToken changes', () => {
+    const store = configureStore();
+    const fakeThunk = createFakeThunk();
+
+    const root = render({
+      _fetchCurrentUserProfile: fakeThunk.createThunk,
+      authToken: null,
+      store,
+    });
+
+    store.dispatch(apiActions.setAuthToken({ authToken: 'some-token' }));
+    const { api: apiState } = store.getState();
+
+    const dispatch = jest
+      .spyOn(store, 'dispatch')
+      .mockImplementation(jest.fn());
+
+    root.setProps({ apiState, dispatch });
+
+    expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+  });
+
+  it('does not fetch the current user profile on update when there is no loaded profile and authToken is the same', () => {
+    const store = configureStore();
+    const fakeThunk = createFakeThunk();
+    store.dispatch(apiActions.setAuthToken({ authToken: 'some-token' }));
+
+    const root = render({
+      _fetchCurrentUserProfile: fakeThunk.createThunk,
+      store,
+    });
+
+    const { api: apiState } = store.getState();
+
+    const dispatch = jest
+      .spyOn(store, 'dispatch')
+      .mockImplementation(jest.fn());
+
+    root.setProps({ apiState, dispatch });
+
+    expect(dispatch).not.toHaveBeenCalled();
+  });
+
+  it('does not fetch the current user profile on update when the profile has been already loaded', () => {
+    const store = configureStore();
+    store.dispatch(userActions.loadCurrentUser({ user: fakeUser }));
+    const fakeThunk = createFakeThunk();
+
+    const root = render({
+      _fetchCurrentUserProfile: fakeThunk.createThunk,
+      authToken: null,
+      store,
+    });
+
+    store.dispatch(apiActions.setAuthToken({ authToken: 'some-token' }));
+    const { api: apiState } = store.getState();
+
+    const dispatch = jest
+      .spyOn(store, 'dispatch')
+      .mockImplementation(jest.fn());
+
+    root.setProps({ apiState, dispatch });
+
+    expect(dispatch).not.toHaveBeenCalled();
   });
 });

@@ -15,10 +15,9 @@ import styles from './styles.module.scss';
 import { ApiState, actions as apiActions } from '../../reducers/api';
 import {
   User,
-  actions as userActions,
+  fetchCurrentUserProfile,
   getCurrentUser,
 } from '../../reducers/users';
-import { isErrorResponse, getCurrentUserProfile } from '../../api';
 import Navbar from '../Navbar';
 import Browse from '../../pages/Browse';
 import Index from '../../pages/Index';
@@ -30,6 +29,7 @@ type PublicProps = {
 };
 
 export type DefaultProps = {
+  _fetchCurrentUserProfile: typeof fetchCurrentUserProfile;
   _log: typeof log;
 };
 
@@ -49,6 +49,7 @@ type Props = PublicProps &
 
 export class AppBase extends React.Component<Props> {
   static defaultProps = {
+    _fetchCurrentUserProfile: fetchCurrentUserProfile,
     _log: log,
   };
 
@@ -60,17 +61,13 @@ export class AppBase extends React.Component<Props> {
     }
   }
 
-  async componentDidUpdate(prevProps: Props) {
-    const { _log, apiState, dispatch, profile } = this.props;
+  componentDidUpdate(prevProps: Props) {
+    const { apiState, profile } = this.props;
 
     if (!profile && prevProps.apiState.authToken !== apiState.authToken) {
-      const response = await getCurrentUserProfile(apiState);
+      const { _fetchCurrentUserProfile, dispatch } = this.props;
 
-      if (isErrorResponse(response)) {
-        _log.error(`TODO: handle this error response: ${response.error}`);
-      } else {
-        dispatch(userActions.loadCurrentUser({ user: response }));
-      }
+      dispatch(_fetchCurrentUserProfile());
     }
   }
 

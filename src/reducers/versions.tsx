@@ -1,5 +1,9 @@
 import { Reducer } from 'redux';
 import { ActionType, createAction, getType } from 'typesafe-actions';
+import log from 'loglevel';
+
+import { ThunkActionCreator } from '../configureStore';
+import { getVersion, isErrorResponse } from '../api';
 
 type VersionId = number;
 
@@ -196,6 +200,36 @@ export const getVersionInfo = (
   versionId: VersionId,
 ) => {
   return versions.versionInfo[versionId];
+};
+
+type FetchVersionParams = {
+  _log?: typeof log;
+  _getVersion?: typeof getVersion;
+  addonId: number;
+  versionId: number;
+};
+
+export const fetchVersion = ({
+  _getVersion = getVersion,
+  _log = log,
+  addonId,
+  versionId,
+}: FetchVersionParams): ThunkActionCreator => {
+  return async (dispatch, getState) => {
+    const { api: apiState } = getState();
+
+    const response = await _getVersion({
+      addonId,
+      apiState,
+      versionId,
+    });
+
+    if (isErrorResponse(response)) {
+      _log.error(`TODO: handle this error response: ${response.error}`);
+    } else {
+      dispatch(actions.loadVersionInfo({ version: response }));
+    }
+  };
 };
 
 const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (

@@ -6,13 +6,8 @@ import log from 'loglevel';
 
 import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
 import { ApiState } from '../../reducers/api';
-import { isErrorResponse, getVersion } from '../../api';
 import FileTree from '../../components/FileTree';
-import {
-  actions as versionActions,
-  Version,
-  getVersionInfo,
-} from '../../reducers/versions';
+import { Version, fetchVersion, getVersionInfo } from '../../reducers/versions';
 
 type PropsFromRouter = {
   addonId: string;
@@ -20,6 +15,7 @@ type PropsFromRouter = {
 };
 
 export type DefaultProps = {
+  _fetchVersion: typeof fetchVersion;
   _log: typeof log;
 };
 
@@ -37,24 +33,20 @@ type Props = RouteComponentProps<PropsFromRouter> &
 
 export class BrowseBase extends React.Component<Props> {
   static defaultProps = {
+    _fetchVersion: fetchVersion,
     _log: log,
   };
 
   async componentDidMount() {
-    const { _log, apiState, dispatch, match } = this.props;
+    const { _fetchVersion, dispatch, match } = this.props;
     const { addonId, versionId } = match.params;
 
-    const response = await getVersion({
-      addonId: parseInt(addonId, 10),
-      apiState,
-      versionId: parseInt(versionId, 10),
-    });
-
-    if (isErrorResponse(response)) {
-      _log.error(`TODO: handle this error response: ${response.error}`);
-    } else {
-      dispatch(versionActions.loadVersionInfo({ version: response }));
-    }
+    dispatch(
+      _fetchVersion({
+        addonId: parseInt(addonId, 10),
+        versionId: parseInt(versionId, 10),
+      }),
+    );
   }
 
   render() {
