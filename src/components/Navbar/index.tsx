@@ -4,11 +4,7 @@ import { connect } from 'react-redux';
 
 import { gettext } from '../../utils';
 import LoginButton from '../LoginButton';
-import {
-  ApplicationState,
-  ConnectedReduxProps,
-  ThunkDispatch,
-} from '../../configureStore';
+import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
 import { User, getCurrentUser, requestLogOut } from '../../reducers/users';
 import styles from './styles.module.scss';
 

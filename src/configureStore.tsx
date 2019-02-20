@@ -1,7 +1,6 @@
 import {
   Action,
   AnyAction,
-  Dispatch,
   Middleware,
   Store,
   applyMiddleware,
