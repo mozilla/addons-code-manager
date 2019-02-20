@@ -8,11 +8,13 @@ import { Version, VersionEntryType } from '../../reducers/versions';
 type FileNode = {
   id: string;
   name: string;
+  expanded: boolean;
 };
 
 export type DirectoryNode = {
   id: string;
   name: string;
+  expanded: boolean;
   children: TreeNode[];
 };
 
@@ -49,6 +51,7 @@ export const buildFileTree = (
   const root: DirectoryNode = {
     id: `root-${versionId}`,
     name: versionId,
+    expanded: true,
     children: [],
   };
 
@@ -103,6 +106,7 @@ export const buildFileTree = (
       let node: TreeNode = {
         id: entry.path,
         name: entry.filename,
+        expanded: false,
       };
 
       // When the entry is a directory, we create a `DirectoryNode`.
@@ -129,19 +133,46 @@ type PublicProps = {
   version: Version;
 };
 
-export class FileTreeBase extends React.Component<PublicProps> {
+type State = {
+  tree: DirectoryNode;
+};
+
+export class FileTreeBase extends React.Component<PublicProps, State> {
+  constructor(props: PublicProps) {
+    super(props);
+
+    const { version } = props;
+
+    this.state = {
+      tree: buildFileTree(`${version.id}`, version.entries),
+    };
+  }
+
   renderNode = (props: TreefoldRenderProps<TreeNode>) => {
     return <FileTreeNode {...props} />;
   };
 
-  render() {
-    const { version } = this.props;
+  onToggleExpand = (node: TreeNode) => {
+    const { tree } = this.state;
 
-    const tree = buildFileTree(`${version.id}`, version.entries);
+    // This directly modifies the node.
+    // eslint-disable-next-line no-param-reassign
+    node.expanded = !node.expanded;
+    // Call `setState()` to refresh the UI.
+    this.setState({ tree });
+  };
+
+  render() {
+    const { tree } = this.state;
 
     return (
       <ListGroup>
-        <Treefold nodes={[tree]} render={this.renderNode} />
+        <Treefold
+          nodes={[tree]}
+          render={this.renderNode}
+          isNodeExpanded={(node: TreeNode) => node.expanded}
+          onToggleExpand={this.onToggleExpand}
+        />
       </ListGroup>
     );
   }

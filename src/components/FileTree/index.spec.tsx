@@ -25,6 +25,7 @@ describe(__filename, () => {
       expect(tree).toEqual({
         id: `root-${versionId}`,
         name: versionId,
+        expanded: true,
         children: [],
       });
     });
@@ -47,6 +48,7 @@ describe(__filename, () => {
         {
           id: entries[0].path,
           name: filename,
+          expanded: false,
         },
       ]);
     });
@@ -69,6 +71,7 @@ describe(__filename, () => {
         {
           id: entries[0].path,
           name: filename,
+          expanded: false,
           children: [],
         },
       ]);
@@ -101,10 +104,12 @@ describe(__filename, () => {
         {
           id: entries[0].path,
           name: directory,
+          expanded: false,
           children: [
             {
               id: entries[1].path,
               name: file,
+              expanded: false,
             },
           ],
         },
@@ -145,14 +150,17 @@ describe(__filename, () => {
         {
           id: entries[0].path,
           name: directoryName,
+          expanded: false,
           children: [
             {
               id: entries[1].path,
               name: directoryName,
+              expanded: false,
               children: [
                 {
                   id: entries[2].path,
                   name: fileName,
+                  expanded: false,
                 },
               ],
             },
@@ -187,16 +195,19 @@ describe(__filename, () => {
         {
           id: entries[0].path,
           name: 'B',
+          expanded: false,
           children: [],
         },
         {
           id: entries[2].path,
           name: 'C',
+          expanded: false,
           children: [],
         },
         {
           id: entries[1].path,
           name: 'A',
+          expanded: false,
         },
       ]);
     });
@@ -224,14 +235,17 @@ describe(__filename, () => {
         {
           id: entries[2].path,
           name: 'A',
+          expanded: false,
         },
         {
           id: entries[1].path,
           name: 'B',
+          expanded: false,
         },
         {
           id: entries[0].path,
           name: 'C',
+          expanded: false,
         },
       ]);
     });
@@ -257,11 +271,13 @@ describe(__filename, () => {
         {
           id: entries[1].path,
           name: 'A',
+          expanded: false,
           children: [],
         },
         {
           id: entries[0].path,
           name: 'B',
+          expanded: false,
           children: [],
         },
       ]);
@@ -297,10 +313,12 @@ describe(__filename, () => {
         {
           id: entries[2].path,
           name: 'A',
+          expanded: false,
         },
         {
           id: entries[1].path,
           name: 'B',
+          expanded: false,
         },
       ]);
     });
@@ -336,11 +354,13 @@ describe(__filename, () => {
         {
           id: entries[1].path,
           name: 'B',
+          expanded: false,
           children: [],
         },
         {
           id: entries[2].path,
           name: 'A',
+          expanded: false,
         },
       ]);
     });
@@ -368,6 +388,20 @@ describe(__filename, () => {
       expect(root.find(Treefold)).toHaveProp('nodes', [
         buildFileTree(String(version.id), version.entries),
       ]);
+    });
+
+    it('can collapse a node', () => {
+      const version = getVersion({ ...fakeVersion, id: 777 });
+
+      const root = render({ version });
+
+      const tree = root.state('tree');
+      // The root node is expanded by default.
+      expect(tree).toHaveProperty('expanded', true);
+
+      root.find(Treefold).prop('onToggleExpand')(tree);
+
+      expect(root.state('tree')).toHaveProperty('expanded', false);
     });
   });
 });

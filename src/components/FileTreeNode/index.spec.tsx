@@ -20,6 +20,7 @@ describe(__filename, () => {
       node: {
         id,
         name,
+        expanded: false,
       },
       getToggleProps,
       hasChildNodes,
