@@ -11800,7 +11800,7 @@ react-split-pane@^0.1.84:
     react-lifecycles-compat "^3.0.4"
     react-style-proptype "^3.0.0"
 
-react-storybook-addon-chapters@3.0.3:
+react-storybook-addon-chapters@^3.0.3:
   version "3.0.3"
   resolved "https://registry.yarnpkg.com/react-storybook-addon-chapters/-/react-storybook-addon-chapters-3.0.3.tgz#3907f6717b5c7c36e159b572ee619fe1d9857c1c"
   integrity sha512-WW7Q2AtCTbThs1bhvwiGT3JK9+emqs+ITlubuyJns1T+66GKCIjyPvFmjREmvKXPtbRSPtimYyLuIjFfJrcXsQ==
