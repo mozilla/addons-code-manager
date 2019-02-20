@@ -67,6 +67,7 @@
     "jest-fetch-mock": "^2.1.0",
     "prettier": "1.16.4",
     "pretty-quick": "^1.8.1",
+    "react-storybook-addon-chapters": "^3.0.3",
     "stmux": "^1.6.1",
     "supertest": "^3.4.2",
     "ts-node-dev": "^1.0.0-pre.32",

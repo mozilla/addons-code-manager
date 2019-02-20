@@ -30,23 +30,57 @@ const getProps = ({
   };
 };
 
-storiesOf('FileTreeNode', module)
-  .add('file node', () => <FileTreeNode {...getProps()} />)
-  .add('directory node', () => (
-    <FileTreeNode {...getProps({ isFolder: true })} />
-  ))
-  .add('directory, expanded, without children', () => (
-    <FileTreeNode {...getProps({ isFolder: true, isExpanded: true })} />
-  ))
-  .add('directory, expanded, with a child', () => {
-    const props = getProps({
-      hasChildNodes: true,
-      isExpanded: true,
-      isFolder: true,
-      renderChildNodes: () => {
-        return <FileTreeNode {...getProps({ level: 1 })} />;
-      },
-    });
+storiesOf('FileTreeNode', module).addWithChapters('all variants', {
+  chapters: [
+    {
+      sections: [
+        {
+          title: 'file node',
+          sectionFn: () => (
+            <FileTreeNode {...getProps({ nodeName: 'manifest.json' })} />
+          ),
+        },
+        {
+          title: 'directory node',
+          sectionFn: () => (
+            <FileTreeNode
+              {...getProps({ isFolder: true, nodeName: 'background-scripts' })}
+            />
+          ),
+        },
+        {
+          title: 'directory, expanded, without children',
+          sectionFn: () => (
+            <FileTreeNode
+              {...getProps({
+                isFolder: true,
+                isExpanded: true,
+                nodeName: 'background-scripts',
+              })}
+            />
+          ),
+        },
+        {
+          title: 'directory, expanded, with a child',
+          sectionFn: () => {
+            const props = getProps({
+              hasChildNodes: true,
+              isExpanded: true,
+              isFolder: true,
+              nodeName: 'background-scripts',
+              renderChildNodes: () => {
+                return (
+                  <FileTreeNode
+                    {...getProps({ level: 1, nodeName: 'background.js' })}
+                  />
+                );
+              },
+            });
 
-    return <FileTreeNode {...props} />;
-  });
+            return <FileTreeNode {...props} />;
+          },
+        },
+      ],
+    },
+  ],
+});
