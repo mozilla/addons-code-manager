@@ -20,10 +20,6 @@ import api, { ApiState } from './reducers/api';
 import users, { UsersState } from './reducers/users';
 import versions, { VersionsState } from './reducers/versions';
 
-export type ConnectedReduxProps<A extends Action = AnyAction> = {
-  dispatch: Dispatch<A>;
-};
-
 export type ApplicationState = {
   api: ApiState;
   users: UsersState;
@@ -37,11 +33,15 @@ export type ThunkActionCreator<PromiseResult = void> = ThunkAction<
   AnyAction
 >;
 
-export type ThunkDispatch = ReduxThunkDispatch<
+export type ThunkDispatch<A extends Action = AnyAction> = ReduxThunkDispatch<
   ApplicationState,
   undefined,
-  AnyAction
+  A
 >;
+
+export type ConnectedReduxProps<A extends Action = AnyAction> = {
+  dispatch: ThunkDispatch<A>;
+};
 
 const createRootReducer = () => {
   return combineReducers<ApplicationState>({ api, users, versions });
