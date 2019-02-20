@@ -83,7 +83,7 @@ type GetVersionFileParams = {
   versionId: number;
 };
 
-export const getVersionFile = async ({
+export const getVersion = async ({
   apiState,
   path,
   addonId,

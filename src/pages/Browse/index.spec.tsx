@@ -81,7 +81,7 @@ describe(__filename, () => {
       id: 999,
     };
 
-    const mockApi = jest.spyOn(api, 'getVersionFile');
+    const mockApi = jest.spyOn(api, 'getVersion');
     mockApi.mockReturnValue(Promise.resolve(version));
 
     const store = configureStore();
