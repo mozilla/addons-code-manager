@@ -5,7 +5,7 @@ import {
 } from '../reducers/api';
 import configureStore from '../configureStore';
 
-import { HttpMethod, callApi, getVersionFile, logOutFromServer } from '.';
+import { HttpMethod, callApi, getVersion, logOutFromServer } from '.';
 
 describe(__filename, () => {
   const getApiState = ({ authToken = '12345' } = {}) => {
@@ -145,12 +145,12 @@ describe(__filename, () => {
     });
   });
 
-  describe('getVersionFile', () => {
-    it('calls the API to retrieve default version file information', async () => {
+  describe('getVersion', () => {
+    it('calls the API to retrieve version information', async () => {
       const addonId = 999;
       const versionId = 123;
 
-      await getVersionFile({ apiState: defaultApiState, addonId, versionId });
+      await getVersion({ apiState: defaultApiState, addonId, versionId });
 
       expect(fetch).toHaveBeenCalledWith(
         `/api/v4/reviewers/addon/${addonId}/versions/${versionId}/`,
@@ -160,12 +160,13 @@ describe(__filename, () => {
         },
       );
     });
-    it('calls the API to retrieve information for a specific version file', async () => {
+
+    it('calls the API to retrieve information for a specific file', async () => {
       const path = 'test.js';
       const addonId = 999;
       const versionId = 123;
 
-      await getVersionFile({
+      await getVersion({
         apiState: defaultApiState,
         addonId,
         path,
