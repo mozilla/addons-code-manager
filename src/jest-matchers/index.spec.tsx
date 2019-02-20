@@ -72,3 +72,5 @@ describe(__filename, () => {
     });
   });
 });
+
+export {};
