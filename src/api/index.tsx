@@ -29,9 +29,9 @@ export const callApi = async ({
   apiState,
   endpoint,
   method = HttpMethod.GET,
-  version = 'v4dev',
+  version = process.env.REACT_APP_DEFAULT_API_VERSION,
   query = {},
-  lang = process.env.REACT_APP_DEFAULT_API_LANG,
+  lang = process.env.REACT_APP_DEFAULT_API_LANG as string,
 }: CallApiParams): Promise<CallApiResponse> => {
   let adjustedEndpoint = endpoint;
   if (!adjustedEndpoint.startsWith('/')) {
@@ -46,8 +46,12 @@ export const callApi = async ({
     headers.Authorization = `Bearer ${apiState.authToken}`;
   }
 
+  type QueryWithLang = {
+    [key: string]: string;
+  };
+
   // Add the lang parameter to the querystring
-  const queryWithLang = Object.assign({ lang }, query);
+  const queryWithLang: QueryWithLang = { ...query, lang };
 
   const queryString = Object.keys(queryWithLang)
     .map((k) => `${k}=${queryWithLang[k]}`)

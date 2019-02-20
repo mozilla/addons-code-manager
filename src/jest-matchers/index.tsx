@@ -1,5 +1,22 @@
 import url from 'url';
 
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace jest {
+    interface Matchers<R> {
+      urlWithTheseParams(params: {
+        [key: string]: string | void;
+      }): CustomMatcherResult;
+    }
+
+    interface Expect {
+      urlWithTheseParams(params: {
+        [key: string]: string | void;
+      }): CustomMatcherResult;
+    }
+  }
+}
+
 expect.extend({
   /*
    * A jest matcher to check if the URL contains the declared params.

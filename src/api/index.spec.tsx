@@ -8,8 +8,8 @@ import {
 import { HttpMethod, callApi, getVersion, logOutFromServer } from '.';
 
 describe(__filename, () => {
-  const defaultLang = process.env.REACT_APP_DEFAULT_API_LANG;
-  const defaultVersion = 'v4dev';
+  const defaultLang = process.env.REACT_APP_DEFAULT_API_LANG as string;
+  const defaultVersion = process.env.REACT_APP_DEFAULT_API_VERSION;
 
   const getApiState = ({ authToken = '12345' } = {}) => {
     const store = configureStore();
