@@ -5,8 +5,7 @@ import reducer, {
   initialState,
   requestLogOut,
 } from './users';
-import configureStore from '../configureStore';
-import { fakeUser } from '../test-helpers';
+import { fakeUser, thunkTester } from '../test-helpers';
 
 describe(__filename, () => {
   describe('reducer', () => {
@@ -58,16 +57,12 @@ describe(__filename, () => {
 
   describe('requestLogOut', () => {
     const prepareRequestLogOut = (params = {}) => {
-      const thunk = requestLogOut({ _logOutFromServer: jest.fn(), ...params });
+      const { dispatch, thunk, store } = thunkTester({
+        createThunk: () =>
+          requestLogOut({ _logOutFromServer: jest.fn(), ...params }),
+      });
 
-      const store = configureStore();
-      const dispatch = jest.fn();
-
-      return {
-        dispatch,
-        thunk: () => thunk(dispatch, () => store.getState(), undefined),
-        store,
-      };
+      return { dispatch, thunk, store };
     };
 
     it('calls logOutFromServer', async () => {
