@@ -36,16 +36,28 @@ storiesOf('FileTreeNode', module).addWithChapters('all variants', {
       sections: [
         {
           title: 'file node',
-          sectionFn: () => <FileTreeNode {...getProps()} />,
+          sectionFn: () => (
+            <FileTreeNode {...getProps({ nodeName: 'manifest.json' })} />
+          ),
         },
         {
           title: 'directory node',
-          sectionFn: () => <FileTreeNode {...getProps({ isFolder: true })} />,
+          sectionFn: () => (
+            <FileTreeNode
+              {...getProps({ isFolder: true, nodeName: 'background-scripts' })}
+            />
+          ),
         },
         {
           title: 'directory, expanded, without children',
           sectionFn: () => (
-            <FileTreeNode {...getProps({ isFolder: true, isExpanded: true })} />
+            <FileTreeNode
+              {...getProps({
+                isFolder: true,
+                isExpanded: true,
+                nodeName: 'background-scripts',
+              })}
+            />
           ),
         },
         {
@@ -55,8 +67,13 @@ storiesOf('FileTreeNode', module).addWithChapters('all variants', {
               hasChildNodes: true,
               isExpanded: true,
               isFolder: true,
+              nodeName: 'background-scripts',
               renderChildNodes: () => {
-                return <FileTreeNode {...getProps({ level: 1 })} />;
+                return (
+                  <FileTreeNode
+                    {...getProps({ level: 1, nodeName: 'background.js' })}
+                  />
+                );
               },
             });
 
