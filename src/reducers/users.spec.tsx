@@ -56,18 +56,11 @@ describe(__filename, () => {
   });
 
   describe('requestLogOut', () => {
-    const prepareRequestLogOut = (params = {}) => {
-      const { dispatch, thunk, store } = thunkTester({
-        createThunk: () =>
-          requestLogOut({ _logOutFromServer: jest.fn(), ...params }),
-      });
-
-      return { dispatch, thunk, store };
-    };
-
     it('calls logOutFromServer', async () => {
       const _logOutFromServer = jest.fn();
-      const { store, thunk } = prepareRequestLogOut({ _logOutFromServer });
+      const { store, thunk } = thunkTester({
+        createThunk: () => requestLogOut({ _logOutFromServer }),
+      });
 
       await thunk();
 
@@ -75,7 +68,9 @@ describe(__filename, () => {
     });
 
     it('dispatches logOut', async () => {
-      const { dispatch, thunk } = prepareRequestLogOut();
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () => requestLogOut({ _logOutFromServer: jest.fn() }),
+      });
 
       await thunk();
 
