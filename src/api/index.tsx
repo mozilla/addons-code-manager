@@ -76,7 +76,7 @@ export const callApi = async ({
   }
 };
 
-type GetVersionFileParams = {
+type GetVersionParams = {
   addonId: number;
   apiState: ApiState;
   path?: string;
@@ -88,7 +88,7 @@ export const getVersion = async ({
   path,
   addonId,
   versionId,
-}: GetVersionFileParams) => {
+}: GetVersionParams) => {
   return callApi({
     apiState,
     endpoint: `reviewers/addon/${addonId}/versions/${versionId}`,
