@@ -219,17 +219,18 @@ export const shallowUntilTarget = (
  *
  * You can make an assertion that it was called like:
  *
- * expect(dispatch).toHaveBeenCalledWith(fakeThunk.dispatchCallback);
+ * expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
  */
 export const createFakeThunk = () => {
-  // This is a placeholder for the dispatch callback function.
+  // This is a placeholder for the dispatch callback function,
+  // the thunk itself.
   // In reality it would look like (dispatch, getState) => {}
   // but here it gets set to a string for easy test assertions.
-  const dispatchCallback = '__dispatchCallbackReturnedByTheThunk__';
+  const dispatchCallback = '__thunkDispatchCallback__';
 
   return {
     // This is a function that creates the dispatch callback.
     createThunk: jest.fn().mockReturnValue(dispatchCallback),
-    dispatchCallback,
+    thunk: dispatchCallback,
   };
 };

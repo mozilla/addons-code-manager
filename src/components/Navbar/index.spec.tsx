@@ -92,7 +92,7 @@ describe(__filename, () => {
       });
 
       root.find(`.${styles.logOut}`).simulate('click');
-      expect(dispatch).toHaveBeenCalledWith(fakeThunk.dispatchCallback);
+      expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
     });
   });
 });
