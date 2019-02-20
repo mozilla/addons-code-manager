@@ -3,8 +3,9 @@ import reducer, {
   createInternalUser,
   getCurrentUser,
   initialState,
+  requestLogOut,
 } from './users';
-import { fakeUser } from '../test-helpers';
+import { fakeUser, thunkTester } from '../test-helpers';
 
 describe(__filename, () => {
   describe('reducer', () => {
@@ -51,6 +52,29 @@ describe(__filename, () => {
       const state = initialState;
 
       expect(getCurrentUser(state)).toEqual(null);
+    });
+  });
+
+  describe('requestLogOut', () => {
+    it('calls logOutFromServer', async () => {
+      const _logOutFromServer = jest.fn();
+      const { store, thunk } = thunkTester({
+        createThunk: () => requestLogOut({ _logOutFromServer }),
+      });
+
+      await thunk();
+
+      expect(_logOutFromServer).toHaveBeenCalledWith(store.getState().api);
+    });
+
+    it('dispatches logOut', async () => {
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () => requestLogOut({ _logOutFromServer: jest.fn() }),
+      });
+
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(actions.logOut());
     });
   });
 });

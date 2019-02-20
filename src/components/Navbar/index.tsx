@@ -4,22 +4,15 @@ import { connect } from 'react-redux';
 
 import { gettext } from '../../utils';
 import LoginButton from '../LoginButton';
-import { logOutFromServer } from '../../api';
 import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
-import { ApiState } from '../../reducers/api';
-import {
-  User,
-  actions as userActions,
-  getCurrentUser,
-} from '../../reducers/users';
+import { User, getCurrentUser, requestLogOut } from '../../reducers/users';
 import styles from './styles.module.scss';
 
 type PublicProps = {
-  _logOutFromServer: typeof logOutFromServer;
+  _requestLogOut: typeof requestLogOut;
 };
 
 type PropsFromState = {
-  apiState: ApiState;
   profile: User | null;
 };
 
@@ -27,14 +20,12 @@ type Props = PublicProps & PropsFromState & ConnectedReduxProps;
 
 export class NavbarBase extends React.Component<Props> {
   static defaultProps = {
-    _logOutFromServer: logOutFromServer,
+    _requestLogOut: requestLogOut,
   };
 
-  logOut = async () => {
-    const { _logOutFromServer, apiState, dispatch } = this.props;
-
-    await _logOutFromServer(apiState);
-    dispatch(userActions.logOut());
+  logOut = () => {
+    const { _requestLogOut, dispatch } = this.props;
+    dispatch(_requestLogOut());
   };
 
   render() {
@@ -62,7 +53,6 @@ export class NavbarBase extends React.Component<Props> {
 
 const mapStateToProps = (state: ApplicationState): PropsFromState => {
   return {
-    apiState: state.api,
     profile: getCurrentUser(state.users),
   };
 };

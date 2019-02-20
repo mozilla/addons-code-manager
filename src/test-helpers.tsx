@@ -1,7 +1,12 @@
 import PropTypes from 'prop-types';
 import { History, Location } from 'history';
 import { shallow } from 'enzyme';
+import { Store } from 'redux';
 
+import configureStore, {
+  ApplicationState,
+  ThunkActionCreator,
+} from './configureStore';
 import { ExternalUser } from './reducers/users';
 import {
   ExternalVersion,
@@ -167,7 +172,9 @@ type ShallowUntilTargetOptions = {
 };
 
 export const shallowUntilTarget = (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   componentInstance: React.ReactElement<any>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   targetComponent: React.JSXElementConstructor<any>,
   {
     maxTries = 10,
@@ -196,4 +203,80 @@ export const shallowUntilTarget = (
     `Could not find ${targetComponent} in rendered instance: ${componentInstance};
      gave up after ${maxTries} tries`,
   );
+};
+
+/*
+ * Creates a fake thunk for testing.
+ *
+ * Let's say you had a real thunk like this:
+ *
+ * const doLogout = () => {
+ *   return (dispatch, getState) => {
+ *     // Make a request to the API...
+ *     dispatch({ type: 'LOG_OUT' });
+ *   };
+ * };
+ *
+ * You can replace this thunk for testing as:
+ *
+ * const fakeThunk = createFakeThunk();
+ * render({ _doLogout: fakeThunk.createThunk });
+ *
+ * You can make an assertion that it was called like:
+ *
+ * expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+ */
+export const createFakeThunk = () => {
+  // This is a placeholder for the dispatch callback function,
+  // the thunk itself.
+  // In reality it would look like (dispatch, getState) => {}
+  // but here it gets set to a string for easy test assertions.
+  const dispatchCallback = '__thunkDispatchCallback__';
+
+  return {
+    // This is a function that creates the dispatch callback.
+    createThunk: jest.fn().mockReturnValue(dispatchCallback),
+    thunk: dispatchCallback,
+  };
+};
+
+/*
+ * Sets up a thunk for testing.
+ *
+ * Let's say you had a real thunk like this:
+ *
+ * const doLogout = () => {
+ *   return (dispatch, getState) => {
+ *     // Make a request to the API...
+ *     dispatch({ type: 'LOG_OUT' });
+ *   };
+ * };
+ *
+ * You can set it up for testing like this:
+ *
+ * const { dispatch, thunk, store } = thunkTester({
+ *   createThunk: () => doLogout(),
+ * });
+ *
+ * await thunk();
+ *
+ * expect(dispatch).toHaveBeenCalledWith({ type: 'LOG_OUT' });
+ *
+ */
+export const thunkTester = ({
+  store = configureStore(),
+  createThunk,
+}: {
+  store?: Store<ApplicationState>;
+  createThunk: () => ThunkActionCreator;
+}) => {
+  const thunk = createThunk();
+  const dispatch = jest.fn();
+
+  return {
+    dispatch,
+    // This simulates how the middleware will run the thunk.
+    thunk: () => thunk(dispatch, () => store.getState(), undefined),
+    store,
+  };
 };
