@@ -1,4 +1,8 @@
 import { configure, setAddon } from '@storybook/react';
+// For some reasons, the CRA build step fails because TypeScript cannot find a
+// valid declaration file for this module. Yet, there is a valid declaration
+// file and it works in all other contexts.
+// @ts-ignore
 import chaptersAddon, { setDefaults } from 'react-storybook-addon-chapters';
 
 import configureApplication from '../../src/configureApplication';
