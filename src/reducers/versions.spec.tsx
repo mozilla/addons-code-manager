@@ -4,16 +4,16 @@ import reducer, {
   actions,
   createInternalVersion,
   createInternalVersionAddon,
+  createInternalVersionEntries,
   createInternalVersionEntry,
   createInternalVersionFile,
   fetchVersion,
   fetchVersionFile,
-  getVersionFile,
-  getVersionFiles,
-  getVersionInfo,
+  getVersion,
   initialState,
 } from './versions';
 import {
+  createFakeVersionWithPaths,
   fakeVersion,
   fakeVersionAddon,
   fakeVersionEntry,
@@ -24,63 +24,69 @@ import {
 
 describe(__filename, () => {
   describe('reducer', () => {
-    it('loads a version file', () => {
-      const path = 'test.js';
-      const version = fakeVersion;
-      const state = reducer(
-        undefined,
-        actions.loadVersionFile({ path, version }),
-      );
-
-      expect(state).toEqual({
-        ...initialState,
-        versionFiles: {
-          [version.id]: {
-            [path]: createInternalVersionFile(version.file),
-          },
-        },
-      });
-    });
-
-    it('preserves existing files', () => {
-      const path1 = 'test1.js';
-      const path2 = 'test2.js';
-      const version = fakeVersion;
-
-      let state = reducer(
-        undefined,
-        actions.loadVersionFile({ path: path1, version }),
-      );
-      state = reducer(state, actions.loadVersionFile({ path: path2, version }));
-
-      expect(state).toEqual({
-        ...initialState,
-        versionFiles: {
-          [version.id]: {
-            [path1]: createInternalVersionFile(version.file),
-            [path2]: createInternalVersionFile(version.file),
-          },
-        },
-      });
-    });
-
     it('loads version info and the default file', () => {
       const version = fakeVersion;
       const state = reducer(undefined, actions.loadVersionInfo({ version }));
 
       expect(state).toEqual({
         ...initialState,
-        versionInfo: {
+        versions: {
           [version.id]: createInternalVersion(version),
         },
-        versionFiles: {
-          [version.id]: {
-            [version.file.selected_file]: createInternalVersionFile(
-              version.file,
-            ),
-          },
-        },
       });
+    });
+
+    it('loads only the default file', () => {
+      const path1 = 'test1.js';
+      const path2 = 'test2.js';
+      const version = createFakeVersionWithPaths([path1, path2]);
+      const state = reducer(undefined, actions.loadVersionInfo({ version }));
+
+      expect(state.versions[version.id].entries[path1].file).toHaveProperty(
+        'content',
+        fakeVersionFile.content,
+      );
+      expect(state.versions[version.id].entries[path2]).toHaveProperty(
+        'file',
+        null,
+      );
+    });
+
+    it('loads a version file', () => {
+      const path1 = 'test1.js';
+      const path2 = 'test2.js';
+      const otherContent = 'some other content';
+      const version = createFakeVersionWithPaths([path1, path2]);
+      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+
+      const versionWithDifferentFile = {
+        ...fakeVersion,
+        file: {
+          ...fakeVersionFile,
+          content: otherContent,
+          entries: {
+            [path2]: {
+              ...fakeVersionEntry,
+              path: path2,
+            },
+          },
+          // eslint-disable-next-line @typescript-eslint/camelcase
+          selected_file: path2,
+        },
+      };
+
+      state = reducer(
+        state,
+        actions.loadVersionFile({
+          path: path2,
+          version: versionWithDifferentFile,
+        }),
+      );
+
+      expect(state.versions[version.id].entries[path2].file).toHaveProperty(
+        'content',
+        otherContent,
+      );
     });
 
     it('updates a selected path for a given version', () => {
@@ -88,7 +94,7 @@ describe(__filename, () => {
       let state = reducer(undefined, actions.loadVersionInfo({ version }));
 
       expect(state).toHaveProperty(
-        `versionInfo.${version.id}.selectedPath`,
+        `versions.${version.id}.selectedPath`,
         version.file.selected_file,
       );
 
@@ -99,7 +105,7 @@ describe(__filename, () => {
       );
 
       expect(state).toHaveProperty(
-        `versionInfo.${version.id}.selectedPath`,
+        `versions.${version.id}.selectedPath`,
         selectedPath,
       );
     });
@@ -119,11 +125,32 @@ describe(__filename, () => {
   });
 
   describe('createInternalVersionEntry', () => {
-    it('creates a VersionEntry', () => {
-      const entry = { ...fakeVersionEntry, filename: 'entry' };
+    it('creates a VersionEntry with file info for a matching file', () => {
+      const path = 'test1.js';
+      const entry = { ...fakeVersionEntry, path };
+      // eslint-disable-next-line @typescript-eslint/camelcase
+      const file = { ...fakeVersionFile, selected_file: path };
 
-      expect(createInternalVersionEntry(entry)).toEqual({
+      expect(createInternalVersionEntry(entry, file)).toEqual({
         depth: entry.depth,
+        file: createInternalVersionFile(file),
+        filename: entry.filename,
+        mimeType: entry.mimetype,
+        modified: entry.modified,
+        path: entry.path,
+        type: entry.mime_category,
+      });
+    });
+
+    it('creates a VersionEntry without file info for a non-matching file', () => {
+      const path = 'test1.js';
+      const entry = { ...fakeVersionEntry, path };
+      // eslint-disable-next-line @typescript-eslint/camelcase
+      const file = { ...fakeVersionFile, selected_file: `${path}-1` };
+
+      expect(createInternalVersionEntry(entry, file)).toEqual({
+        depth: entry.depth,
+        file: null,
         filename: entry.filename,
         mimeType: entry.mimetype,
         modified: entry.modified,
@@ -140,7 +167,10 @@ describe(__filename, () => {
 
       expect(createInternalVersion(version)).toEqual({
         addon: createInternalVersionAddon(version.addon),
-        entries: [createInternalVersionEntry(entry)],
+        entries: createInternalVersionEntries({
+          ...fakeVersionFile,
+          entries: { [entry.path]: entry },
+        }),
         id: version.id,
         reviewed: version.reviewed,
         version: version.version,
@@ -162,10 +192,13 @@ describe(__filename, () => {
 
       expect(createInternalVersion(version)).toEqual({
         addon: createInternalVersionAddon(version.addon),
-        entries: [
-          createInternalVersionEntry(entry1),
-          createInternalVersionEntry(entry2),
-        ],
+        entries: createInternalVersionEntries({
+          ...fakeVersionFile,
+          entries: {
+            [entry1.path]: entry1,
+            [entry2.path]: entry2,
+          },
+        }),
         id: version.id,
         reviewed: version.reviewed,
         version: version.version,
@@ -174,57 +207,12 @@ describe(__filename, () => {
     });
   });
 
-  describe('getVersionFile', () => {
-    it('returns a version file', () => {
-      const path = 'test.js';
-      const version = fakeVersion;
-      const state = reducer(
-        undefined,
-        actions.loadVersionFile({ path, version }),
-      );
-
-      expect(getVersionFile(state, version.id, path)).toEqual(
-        createInternalVersionFile(version.file),
-      );
-    });
-
-    it('returns undefined if there is no version file found', () => {
-      const state = initialState;
-
-      expect(getVersionFile(state, 1, 'some-file-name.js')).toEqual(undefined);
-    });
-  });
-
-  describe('getVersionFiles', () => {
-    it('returns all the files for a given version', () => {
-      const path1 = 'test.js';
-      const path2 = 'function.js';
-      const version = fakeVersion;
-
-      let state = reducer(
-        undefined,
-        actions.loadVersionFile({ path: path1, version }),
-      );
-      state = reducer(state, actions.loadVersionFile({ path: path2, version }));
-
-      const internalVersionFile = createInternalVersionFile(version.file);
-      expect(getVersionFiles(state, version.id)).toEqual({
-        [path1]: internalVersionFile,
-        [path2]: internalVersionFile,
-      });
-    });
-
-    it('returns undefined if there are no files found', () => {
-      expect(getVersionFiles(initialState, 1)).toEqual(undefined);
-    });
-  });
-
-  describe('getVersionInfo', () => {
+  describe('getVersion', () => {
     it('returns version info', () => {
       const version = fakeVersion;
       const state = reducer(undefined, actions.loadVersionInfo({ version }));
 
-      expect(getVersionInfo(state, version.id)).toEqual(
+      expect(getVersion(state, version.id)).toEqual(
         createInternalVersion(version),
       );
     });
@@ -232,7 +220,7 @@ describe(__filename, () => {
     it('returns undefined if there is no version found', () => {
       const state = initialState;
 
-      expect(getVersionInfo(state, 1)).toEqual(undefined);
+      expect(getVersion(state, 1)).toEqual(undefined);
     });
   });
 

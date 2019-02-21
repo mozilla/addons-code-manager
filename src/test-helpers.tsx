@@ -12,6 +12,7 @@ import { ExternalUser } from './reducers/users';
 import {
   ExternalVersion,
   ExternalVersionAddon,
+  ExternalVersionEntries,
   ExternalVersionEntry,
   ExternalVersionFile,
   VersionEntryType,
@@ -84,6 +85,25 @@ export const fakeVersion: ExternalVersion = Object.freeze({
   validation_url_json: 'http://example.com/validation/json/',
   version: '1.0',
 });
+
+export const createFakeVersionWithPaths = (paths: string[]) => {
+  const entries: ExternalVersionEntries = {};
+  paths.forEach((path) => {
+    entries[path] = {
+      ...fakeVersionEntry,
+      path,
+    };
+  });
+
+  return {
+    ...fakeVersion,
+    file: {
+      ...fakeVersionFile,
+      entries,
+      selected_file: paths[0],
+    },
+  };
+};
 
 export const fakeUser: ExternalUser = Object.freeze({
   average_addon_rating: 4.3,

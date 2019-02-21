@@ -9,11 +9,9 @@ import { ApiState } from '../../reducers/api';
 import FileTree from '../../components/FileTree';
 import {
   Version,
-  VersionFile,
   fetchVersion,
   fetchVersionFile,
-  getVersionFile,
-  getVersionInfo,
+  getVersion,
 } from '../../reducers/versions';
 import { gettext } from '../../utils';
 import Loading from '../../components/Loading';
@@ -32,7 +30,6 @@ type PropsFromRouter = {
 
 type PropsFromState = {
   apiState: ApiState;
-  file: VersionFile | null | void;
   version: Version;
 };
 
@@ -74,7 +71,7 @@ export class BrowseBase extends React.Component<Props> {
   };
 
   render() {
-    const { file, version } = this.props;
+    const { version } = this.props;
 
     if (!version) {
       return (
@@ -84,9 +81,7 @@ export class BrowseBase extends React.Component<Props> {
       );
     }
 
-    // This is the easy/lazy way of fixing:
-    // https://github.com/mozilla/addons-code-manager/issues/248.
-    const entry = version.entries.find((e) => e.path === version.selectedPath);
+    const entry = version.entries[version.selectedPath];
 
     return (
       <React.Fragment>
@@ -94,8 +89,8 @@ export class BrowseBase extends React.Component<Props> {
           <FileTree version={version} onSelect={this.onSelectFile} />
         </Col>
         <Col md="9">
-          {file && entry ? (
-            <CodeView mimeType={entry.mimeType} content={file.content} />
+          {entry && entry.file ? (
+            <CodeView mimeType={entry.mimeType} content={entry.file.content} />
           ) : (
             <Loading message={gettext('Loading content...')} />
           )}
@@ -110,17 +105,10 @@ const mapStateToProps = (
   ownProps: RouteComponentProps<PropsFromRouter>,
 ): PropsFromState => {
   const { match } = ownProps;
-  const versionId = parseInt(match.params.versionId, 10);
-
-  const version = getVersionInfo(state.versions, versionId);
-  const file = version
-    ? getVersionFile(state.versions, versionId, version.selectedPath)
-    : null;
 
   return {
     apiState: state.api,
-    file,
-    version,
+    version: getVersion(state.versions, parseInt(match.params.versionId, 10)),
   };
 };
 

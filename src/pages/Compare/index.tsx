@@ -8,7 +8,7 @@ import { ApiState } from '../../reducers/api';
 import FileTree from '../../components/FileTree';
 import DiffView from '../../components/DiffView';
 import Loading from '../../components/Loading';
-import { Version, fetchVersion, getVersionInfo } from '../../reducers/versions';
+import { Version, fetchVersion, getVersion } from '../../reducers/versions';
 import { gettext } from '../../utils';
 import diffWithDeletions from '../../components/DiffView/fixtures/diffWithDeletions';
 
@@ -82,7 +82,7 @@ const mapStateToProps = (
   const { match } = ownProps;
   const baseVersionId = parseInt(match.params.baseVersionId, 10);
 
-  const version = getVersionInfo(state.versions, baseVersionId);
+  const version = getVersion(state.versions, baseVersionId);
 
   return {
     apiState: state.api,

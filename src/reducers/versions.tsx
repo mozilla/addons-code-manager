@@ -3,7 +3,7 @@ import { ActionType, createAction, getType } from 'typesafe-actions';
 import log from 'loglevel';
 
 import { ThunkActionCreator } from '../configureStore';
-import { getVersion, isErrorResponse } from '../api';
+import { getVersion as getExternalVersion, isErrorResponse } from '../api';
 import { LocalizedStringMap } from '../utils';
 
 type VersionId = number;
@@ -36,12 +36,14 @@ export type ExternalVersionEntry = {
   size: number | null;
 };
 
+export type ExternalVersionEntries = {
+  [nodeName: string]: ExternalVersionEntry;
+};
+
 export type ExternalVersionFile = {
   content: string;
   created: string;
-  entries: {
-    [nodeName: string]: ExternalVersionEntry;
-  };
+  entries: ExternalVersionEntries;
   hash: string;
   id: number;
   is_mozilla_signed_extension: boolean;
@@ -89,6 +91,7 @@ export type VersionFile = {
 
 type VersionEntry = {
   depth: number;
+  file: VersionFile | null;
   filename: string;
   mimeType: string;
   modified: string;
@@ -103,9 +106,13 @@ type VersionAddon = {
   slug: string;
 };
 
+type InternalVersionEntries = {
+  [path: string]: VersionEntry;
+};
+
 export type Version = {
   addon: VersionAddon;
-  entries: VersionEntry[];
+  entries: InternalVersionEntries;
   id: VersionId;
   reviewed: string;
   selectedPath: string;
@@ -126,20 +133,16 @@ export const actions = {
   }),
 };
 
+type Versions = {
+  [versionId: number]: Version;
+};
+
 export type VersionsState = {
-  versionInfo: {
-    [versionId: number]: Version;
-  };
-  versionFiles: {
-    [versionId: number]: {
-      [path: string]: VersionFile;
-    };
-  };
+  versions: Versions;
 };
 
 export const initialState: VersionsState = {
-  versionInfo: {},
-  versionFiles: {},
+  versions: {},
 };
 
 export const createInternalVersionFile = (
@@ -155,9 +158,14 @@ export const createInternalVersionFile = (
 
 export const createInternalVersionEntry = (
   entry: ExternalVersionEntry,
+  file?: ExternalVersionFile,
 ): VersionEntry => {
   return {
     depth: entry.depth,
+    file:
+      file && entry.path === file.selected_file
+        ? createInternalVersionFile(file)
+        : null,
     filename: entry.filename,
     mimeType: entry.mimetype,
     modified: entry.modified,
@@ -177,12 +185,22 @@ export const createInternalVersionAddon = (
   };
 };
 
+export const createInternalVersionEntries = (
+  file: ExternalVersionFile,
+): InternalVersionEntries => {
+  const internalEntries: InternalVersionEntries = {};
+  const { entries } = file;
+  Object.keys(entries).forEach((path) => {
+    const entry = entries[path];
+    internalEntries[entry.path] = createInternalVersionEntry(entry, file);
+  });
+  return internalEntries;
+};
+
 export const createInternalVersion = (version: ExternalVersion): Version => {
   return {
     addon: createInternalVersionAddon(version.addon),
-    entries: Object.keys(version.file.entries).map((nodeName) => {
-      return createInternalVersionEntry(version.file.entries[nodeName]);
-    }),
+    entries: createInternalVersionEntries(version.file),
     id: version.id,
     reviewed: version.reviewed,
     selectedPath: version.file.selected_file,
@@ -190,39 +208,27 @@ export const createInternalVersion = (version: ExternalVersion): Version => {
   };
 };
 
-export const getVersionFiles = (
+export const getVersionEntries = (
   versions: VersionsState,
   versionId: VersionId,
 ) => {
-  return versions.versionFiles[versionId];
+  const version = versions.versions[versionId];
+  return version ? version.entries : undefined;
 };
 
-export const getVersionFile = (
-  versions: VersionsState,
-  versionId: VersionId,
-  path: string,
-) => {
-  const filesForVersion = getVersionFiles(versions, versionId);
-
-  return filesForVersion ? filesForVersion[path] : undefined;
-};
-
-export const getVersionInfo = (
-  versions: VersionsState,
-  versionId: VersionId,
-) => {
-  return versions.versionInfo[versionId];
+export const getVersion = (versions: VersionsState, versionId: VersionId) => {
+  return versions.versions[versionId];
 };
 
 type FetchVersionParams = {
   _log?: typeof log;
-  _getVersion?: typeof getVersion;
+  _getVersion?: typeof getExternalVersion;
   addonId: number;
   versionId: number;
 };
 
 export const fetchVersion = ({
-  _getVersion = getVersion,
+  _getVersion = getExternalVersion,
   _log = log,
   addonId,
   versionId,
@@ -245,7 +251,7 @@ export const fetchVersion = ({
 };
 
 type FetchVersionFileParams = {
-  _getVersion?: typeof getVersion;
+  _getVersion?: typeof getExternalVersion;
   _log?: typeof log;
   addonId: number;
   path: string;
@@ -253,7 +259,7 @@ type FetchVersionFileParams = {
 };
 
 export const fetchVersionFile = ({
-  _getVersion = getVersion,
+  _getVersion = getExternalVersion,
   _log = log,
   addonId,
   path,
@@ -289,30 +295,43 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
 
       return {
         ...state,
-        versionInfo: {
-          ...state.versionInfo,
+        versions: {
+          ...state.versions,
           [version.id]: createInternalVersion(version),
-        },
-        versionFiles: {
-          [version.id]: {
-            ...state.versionFiles[version.id],
-            [version.file.selected_file]: createInternalVersionFile(
-              version.file,
-            ),
-          },
         },
       };
     }
     case getType(actions.loadVersionFile): {
       const { path, version } = action.payload;
 
+      const existingVersion = getVersion(state, version.id);
+      if (!existingVersion) {
+        throw new Error(
+          `Trying to load a VersionFile into an empty Version, id: ${
+            version.id
+          }`,
+        );
+      }
+
+      const existingEntry = existingVersion.entries[path];
+      if (!existingEntry) {
+        throw new Error(
+          `Trying to load a VersionFile into an empty VersionEntry, 
+          id: ${version.id}, path: ${path}`,
+        );
+      }
+
+      const versionFile = createInternalVersionFile(version.file);
       return {
         ...state,
-        versionFiles: {
-          ...state.versionFiles,
+        versions: {
+          ...state.versions,
           [version.id]: {
-            ...state.versionFiles[version.id],
-            [path]: createInternalVersionFile(version.file),
+            ...existingVersion,
+            entries: {
+              ...existingVersion.entries,
+              [path]: { ...existingEntry, file: versionFile },
+            },
           },
         },
       };
@@ -322,10 +341,10 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
 
       return {
         ...state,
-        versionInfo: {
-          ...state.versionInfo,
+        versions: {
+          ...state.versions,
           [versionId]: {
-            ...state.versionInfo[versionId],
+            ...state.versions[versionId],
             selectedPath,
           },
         },

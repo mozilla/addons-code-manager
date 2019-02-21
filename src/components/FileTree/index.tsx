@@ -55,9 +55,12 @@ export const buildFileTree = (
     children: [],
   };
 
+  // Convert the map of entries into an array
+  const entriesArray = Object.keys(entries).map((path) => entries[path]);
+
   // We need to know how depth the tree is because we'll build the Treebeard
   // tree depth by depth.
-  const maxDepth = entries.reduce((max, entry) => {
+  const maxDepth = entriesArray.reduce((max, entry) => {
     if (entry.depth > max) {
       return entry.depth;
     }
@@ -68,7 +71,7 @@ export const buildFileTree = (
   let currentDepth = 0;
   while (currentDepth <= maxDepth) {
     // We find the entries for the current depth.
-    const currentEntries = entries.filter(
+    const currentEntries = entriesArray.filter(
       // eslint-disable-next-line no-loop-func
       (entry) => entry.depth === currentDepth,
     );
