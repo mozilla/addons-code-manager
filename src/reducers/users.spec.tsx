@@ -1,11 +1,12 @@
 import reducer, {
   actions,
   createInternalUser,
+  fetchCurrentUserProfile,
   getCurrentUser,
   initialState,
   requestLogOut,
 } from './users';
-import { fakeUser, thunkTester } from '../test-helpers';
+import { getFakeLogger, fakeUser, thunkTester } from '../test-helpers';
 
 describe(__filename, () => {
   describe('reducer', () => {
@@ -75,6 +76,57 @@ describe(__filename, () => {
       await thunk();
 
       expect(dispatch).toHaveBeenCalledWith(actions.logOut());
+    });
+  });
+
+  describe('fetchCurrentUserProfile', () => {
+    it('calls getCurrentUserProfile', async () => {
+      const _getCurrentUserProfile = jest
+        .fn()
+        .mockReturnValue(Promise.resolve(fakeUser));
+
+      const { store, thunk } = thunkTester({
+        createThunk: () => fetchCurrentUserProfile({ _getCurrentUserProfile }),
+      });
+
+      await thunk();
+
+      expect(_getCurrentUserProfile).toHaveBeenCalledWith(store.getState().api);
+    });
+
+    it('dispatches loadCurrentUser when API response is successful', async () => {
+      const user = fakeUser;
+      const _getCurrentUserProfile = jest
+        .fn()
+        .mockReturnValue(Promise.resolve(user));
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () => fetchCurrentUserProfile({ _getCurrentUserProfile }),
+      });
+
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(actions.loadCurrentUser({ user }));
+    });
+
+    it('logs an error when API response is not successful', async () => {
+      const _log = getFakeLogger();
+
+      const _getCurrentUserProfile = jest.fn().mockReturnValue(
+        Promise.resolve({
+          error: new Error('Bad Request'),
+        }),
+      );
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () =>
+          fetchCurrentUserProfile({ _log, _getCurrentUserProfile }),
+      });
+
+      await thunk();
+
+      expect(_log.error).toHaveBeenCalled();
+      expect(dispatch).not.toHaveBeenCalled();
     });
   });
 });

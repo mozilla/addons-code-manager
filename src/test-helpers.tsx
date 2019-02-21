@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import { History, Location } from 'history';
 import { shallow } from 'enzyme';
 import { Store } from 'redux';
+import log from 'loglevel';
 
 import configureStore, {
   ApplicationState,
@@ -280,4 +281,20 @@ export const thunkTester = ({
     thunk: () => thunk(dispatch, () => store.getState(), undefined),
     store,
   };
+};
+
+export const getFakeLogger = () => {
+  return {
+    ...log,
+    debug: jest.fn(),
+    error: jest.fn(),
+    info: jest.fn(),
+  };
+};
+
+export const spyOn = <T extends {}>(
+  object: T,
+  method: jest.FunctionPropertyNames<T>,
+) => {
+  return jest.spyOn(object, method).mockImplementation(jest.fn());
 };

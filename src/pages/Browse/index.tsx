@@ -2,17 +2,17 @@ import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { Col } from 'react-bootstrap';
+import log from 'loglevel';
 
 import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
 import { ApiState } from '../../reducers/api';
-import { getVersion } from '../../api';
 import FileTree from '../../components/FileTree';
-import {
-  actions as versionActions,
-  Version,
-  ExternalVersion,
-  getVersionInfo,
-} from '../../reducers/versions';
+import { Version, fetchVersion, getVersionInfo } from '../../reducers/versions';
+
+export type PublicProps = {
+  _fetchVersion: typeof fetchVersion;
+  _log: typeof log;
+};
 
 type PropsFromRouter = {
   addonId: string;
@@ -27,23 +27,26 @@ type PropsFromState = {
 /* eslint-disable @typescript-eslint/indent */
 type Props = RouteComponentProps<PropsFromRouter> &
   PropsFromState &
+  PublicProps &
   ConnectedReduxProps;
 /* eslint-enable @typescript-eslint/indent */
 
 export class BrowseBase extends React.Component<Props> {
-  async componentDidMount() {
-    const { apiState, dispatch, match } = this.props;
+  static defaultProps = {
+    _fetchVersion: fetchVersion,
+    _log: log,
+  };
+
+  componentDidMount() {
+    const { _fetchVersion, dispatch, match } = this.props;
     const { addonId, versionId } = match.params;
 
-    const response = (await getVersion({
-      addonId: parseInt(addonId, 10),
-      apiState,
-      versionId: parseInt(versionId, 10),
-    })) as ExternalVersion;
-
-    if (response && response.id) {
-      dispatch(versionActions.loadVersionInfo({ version: response }));
-    }
+    dispatch(
+      _fetchVersion({
+        addonId: parseInt(addonId, 10),
+        versionId: parseInt(versionId, 10),
+      }),
+    );
   }
 
   render() {

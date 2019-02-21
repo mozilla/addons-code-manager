@@ -8,24 +8,25 @@ import {
   withRouter,
 } from 'react-router-dom';
 import makeClassName from 'classnames';
+import log from 'loglevel';
 
 import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
 import styles from './styles.module.scss';
 import { ApiState, actions as apiActions } from '../../reducers/api';
 import {
-  ExternalUser,
   User,
-  actions as userActions,
+  fetchCurrentUserProfile,
   getCurrentUser,
 } from '../../reducers/users';
-import * as api from '../../api';
 import Navbar from '../Navbar';
 import Browse from '../../pages/Browse';
 import Index from '../../pages/Index';
 import NotFound from '../../pages/NotFound';
 import { gettext } from '../../utils';
 
-type PublicProps = {
+export type PublicProps = {
+  _fetchCurrentUserProfile: typeof fetchCurrentUserProfile;
+  _log: typeof log;
   authToken: string | null;
 };
 
@@ -43,6 +44,11 @@ type Props = PublicProps &
 /* eslint-enable @typescript-eslint/indent */
 
 export class AppBase extends React.Component<Props> {
+  static defaultProps = {
+    _fetchCurrentUserProfile: fetchCurrentUserProfile,
+    _log: log,
+  };
+
   componentDidMount() {
     const { authToken, dispatch } = this.props;
 
@@ -51,18 +57,13 @@ export class AppBase extends React.Component<Props> {
     }
   }
 
-  async componentDidUpdate(prevProps: Props) {
-    const { apiState, dispatch, profile } = this.props;
+  componentDidUpdate(prevProps: Props) {
+    const { apiState, profile } = this.props;
 
     if (!profile && prevProps.apiState.authToken !== apiState.authToken) {
-      const response = (await api.callApi({
-        apiState,
-        endpoint: '/accounts/profile/',
-      })) as ExternalUser;
+      const { _fetchCurrentUserProfile, dispatch } = this.props;
 
-      if (response && response.name) {
-        dispatch(userActions.loadCurrentUser({ user: response }));
-      }
+      dispatch(_fetchCurrentUserProfile());
     }
   }
 

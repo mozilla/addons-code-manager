@@ -1,11 +1,13 @@
 import * as React from 'react';
+import { Store } from 'redux';
 
 import {
   createFakeHistory,
+  createFakeThunk,
   fakeVersion,
   shallowUntilTarget,
+  spyOn,
 } from '../../test-helpers';
-import * as api from '../../api';
 import configureStore from '../../configureStore';
 import {
   actions as versionActions,
@@ -13,7 +15,7 @@ import {
 } from '../../reducers/versions';
 import FileTree from '../../components/FileTree';
 
-import Browse, { BrowseBase } from '.';
+import Browse, { BrowseBase, PublicProps } from '.';
 
 describe(__filename, () => {
   const createFakeRouteComponentProps = ({
@@ -35,13 +37,25 @@ describe(__filename, () => {
     };
   };
 
-  const render = async ({
+  type RenderParams = {
+    _fetchVersion?: PublicProps['_fetchVersion'];
+    _log?: PublicProps['_log'];
+    addonId?: string;
+    versionId?: string;
+    store?: Store;
+  };
+
+  const render = ({
+    _fetchVersion,
+    _log,
     addonId = '999',
     versionId = '123',
     store = configureStore(),
-  } = {}) => {
+  }: RenderParams = {}) => {
     const props = {
       ...createFakeRouteComponentProps({ params: { addonId, versionId } }),
+      _fetchVersion,
+      _log,
     };
 
     return shallowUntilTarget(<Browse {...props} />, BrowseBase, {
@@ -51,21 +65,21 @@ describe(__filename, () => {
     });
   };
 
-  it('renders a page', async () => {
+  it('renders a page', () => {
     const versionId = '123456';
 
-    const root = await render({ versionId });
+    const root = render({ versionId });
 
     expect(root).toIncludeText(`Version ID: ${versionId}`);
   });
 
-  it('renders a FileTree component', async () => {
+  it('renders a FileTree component', () => {
     const version = fakeVersion;
 
     const store = configureStore();
     store.dispatch(versionActions.loadVersionInfo({ version }));
 
-    const root = await render({ store, versionId: String(version.id) });
+    const root = render({ store, versionId: String(version.id) });
 
     expect(root.find(FileTree)).toHaveLength(1);
     expect(root.find(FileTree)).toHaveProp(
@@ -74,32 +88,19 @@ describe(__filename, () => {
     );
   });
 
-  it('calls the API to load the version info on mount', async () => {
-    const addonId = 12345;
-    const version = {
-      ...fakeVersion,
-      id: 999,
-    };
-
-    const mockApi = jest.spyOn(api, 'getVersion');
-    mockApi.mockReturnValue(Promise.resolve(version));
+  it('dispatches fetchVersion() on mount', () => {
+    const version = fakeVersion;
 
     const store = configureStore();
-    const dispatch = jest.spyOn(store, 'dispatch');
+    const dispatch = spyOn(store, 'dispatch');
+    const fakeThunk = createFakeThunk();
 
-    await render({
+    render({
+      _fetchVersion: fakeThunk.createThunk,
       store,
-      addonId: String(addonId),
       versionId: String(version.id),
     });
 
-    expect(mockApi).toHaveBeenCalledWith({
-      apiState: store.getState().api,
-      addonId,
-      versionId: version.id,
-    });
-    expect(dispatch).toHaveBeenCalledWith(
-      versionActions.loadVersionInfo({ version }),
-    );
+    expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
   });
 });

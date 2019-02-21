@@ -5,7 +5,7 @@ import { Store } from 'redux';
 import configureStore from '../../configureStore';
 import LoginButton from '../LoginButton';
 import styles from './styles.module.scss';
-import { createFakeThunk, fakeUser } from '../../test-helpers';
+import { createFakeThunk, fakeUser, spyOn } from '../../test-helpers';
 import { actions as userActions, requestLogOut } from '../../reducers/users';
 
 import Navbar from '.';
@@ -81,9 +81,7 @@ describe(__filename, () => {
   describe('Log out button', () => {
     it('dispatches requestLogOut when clicked', () => {
       const store = storeWithUser();
-      const dispatch = jest
-        .spyOn(store, 'dispatch')
-        .mockImplementation(jest.fn());
+      const dispatch = spyOn(store, 'dispatch');
 
       const fakeThunk = createFakeThunk();
       const root = render({

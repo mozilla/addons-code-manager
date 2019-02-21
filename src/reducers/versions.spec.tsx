@@ -4,6 +4,7 @@ import reducer, {
   createInternalVersion,
   createInternalVersionEntry,
   createInternalVersionFile,
+  fetchVersion,
   getVersionEntryType,
   getVersionFile,
   getVersionFiles,
@@ -14,6 +15,8 @@ import {
   fakeVersion,
   fakeVersionEntry,
   fakeVersionFile,
+  getFakeLogger,
+  thunkTester,
 } from '../test-helpers';
 
 describe(__filename, () => {
@@ -227,6 +230,81 @@ describe(__filename, () => {
       const state = initialState;
 
       expect(getVersionInfo(state, 1)).toEqual(undefined);
+    });
+  });
+
+  describe('fetchVersion', () => {
+    it('calls getVersion', async () => {
+      const version = fakeVersion;
+      const _getVersion = jest.fn().mockReturnValue(Promise.resolve(version));
+
+      const addonId = 123;
+      const versionId = version.id;
+
+      const { store, thunk } = thunkTester({
+        createThunk: () => fetchVersion({ _getVersion, addonId, versionId }),
+      });
+
+      await thunk();
+
+      expect(_getVersion).toHaveBeenCalledWith({
+        addonId,
+        apiState: store.getState().api,
+        versionId,
+      });
+    });
+
+    it('dispatches loadVersionInfo when API response is successful', async () => {
+      const version = fakeVersion;
+      const _getVersion = jest.fn().mockReturnValue(Promise.resolve(version));
+
+      const addonId = 123;
+      const versionId = version.id;
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () =>
+          fetchVersion({
+            _getVersion,
+            addonId,
+            versionId,
+          }),
+      });
+
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(
+        actions.loadVersionInfo({
+          version,
+        }),
+      );
+    });
+
+    it('logs an error when API response is not successful', async () => {
+      const _log = getFakeLogger();
+
+      const _getVersion = jest.fn().mockReturnValue(
+        Promise.resolve({
+          error: new Error('Bad Request'),
+        }),
+      );
+
+      const addonId = 123;
+      const versionId = 456;
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () =>
+          fetchVersion({
+            _getVersion,
+            _log,
+            addonId,
+            versionId,
+          }),
+      });
+
+      await thunk();
+
+      expect(_log.error).toHaveBeenCalled();
+      expect(dispatch).not.toHaveBeenCalled();
     });
   });
 });
