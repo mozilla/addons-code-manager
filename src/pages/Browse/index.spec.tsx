@@ -1,5 +1,7 @@
 import * as React from 'react';
 import { Store } from 'redux';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import Highlight from 'react-highlight';
 
 import {
   createFakeHistory,
@@ -10,12 +12,13 @@ import {
 } from '../../test-helpers';
 import configureStore from '../../configureStore';
 import {
+  VersionFile,
   actions as versionActions,
   createInternalVersion,
 } from '../../reducers/versions';
 import FileTree from '../../components/FileTree';
 
-import Browse, { BrowseBase, PublicProps } from '.';
+import Browse, { BrowseBase, PublicProps, Props } from '.';
 
 describe(__filename, () => {
   const createFakeRouteComponentProps = ({
@@ -65,15 +68,16 @@ describe(__filename, () => {
     });
   };
 
-  it('renders a page', () => {
+  it('renders a page with a loading message', () => {
     const versionId = '123456';
 
     const root = render({ versionId });
 
-    expect(root).toIncludeText(`Version ID: ${versionId}`);
+    expect(root.find(FontAwesomeIcon)).toHaveLength(1);
+    expect(root).toIncludeText('Loading version');
   });
 
-  it('renders a FileTree component', () => {
+  it('renders a FileTree component when a version has been loaded', () => {
     const version = fakeVersion;
 
     const store = configureStore();
@@ -86,6 +90,42 @@ describe(__filename, () => {
       'version',
       createInternalVersion(version),
     );
+  });
+
+  it('renders the content of the default file when a version has been loaded', () => {
+    const version = fakeVersion;
+
+    const store = configureStore();
+    store.dispatch(versionActions.loadVersionInfo({ version }));
+
+    const root = render({ store, versionId: String(version.id) });
+
+    expect(root.find(Highlight)).toHaveLength(1);
+    expect(root.find(Highlight)).toHaveProp('className', 'auto');
+    expect(root.find(Highlight)).toHaveProp(
+      'children',
+      ((root.instance().props as Props).file as VersionFile).content,
+    );
+  });
+
+  it('renders a loading message when we do not have the content of a file yet', () => {
+    const version = fakeVersion;
+
+    const store = configureStore();
+    store.dispatch(versionActions.loadVersionInfo({ version }));
+
+    const root = render({ store, versionId: String(version.id) });
+    // This is used to force `file` to be `null` and test the path where the
+    // selected file has not been loaded. We cannot do anything else yet
+    // because there is no logic to select another file from the tree.
+    //
+    // TODO: remove this when
+    // https://github.com/mozilla/addons-code-manager/issues/108 lands.
+    root.setProps({ file: null });
+
+    expect(root.find(Highlight)).toHaveLength(0);
+    expect(root.find(FontAwesomeIcon)).toHaveLength(1);
+    expect(root).toIncludeText('Loading content');
   });
 
   it('dispatches fetchVersion() on mount', () => {

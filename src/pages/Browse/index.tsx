@@ -3,11 +3,22 @@ import { RouteComponentProps } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { Col } from 'react-bootstrap';
 import log from 'loglevel';
+import Highlight from 'react-highlight';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
 import { ApiState } from '../../reducers/api';
 import FileTree from '../../components/FileTree';
-import { Version, fetchVersion, getVersionInfo } from '../../reducers/versions';
+import {
+  Version,
+  VersionFile,
+  fetchVersion,
+  getVersionFile,
+  getVersionInfo,
+} from '../../reducers/versions';
+import { gettext } from '../../utils';
+
+import 'highlight.js/styles/github.css';
 
 export type PublicProps = {
   _fetchVersion: typeof fetchVersion;
@@ -21,11 +32,12 @@ type PropsFromRouter = {
 
 type PropsFromState = {
   apiState: ApiState;
+  file: VersionFile | null | void;
   version: Version;
 };
 
 /* eslint-disable @typescript-eslint/indent */
-type Props = RouteComponentProps<PropsFromRouter> &
+export type Props = RouteComponentProps<PropsFromRouter> &
   PropsFromState &
   PublicProps &
   ConnectedReduxProps;
@@ -50,13 +62,31 @@ export class BrowseBase extends React.Component<Props> {
   }
 
   render() {
-    const { version } = this.props;
+    const { file, version } = this.props;
+
+    if (!version) {
+      return (
+        <Col>
+          <FontAwesomeIcon icon="spinner" spin />{' '}
+          {gettext('Loading version...')}
+        </Col>
+      );
+    }
 
     return (
       <React.Fragment>
-        <Col md="3">{version && <FileTree version={version} />}</Col>
-        <Col>
-          <p>Version ID: {this.props.match.params.versionId}</p>
+        <Col md="3">
+          <FileTree version={version} />
+        </Col>
+        <Col md="9">
+          {file ? (
+            <Highlight className="auto">{file.content}</Highlight>
+          ) : (
+            <React.Fragment>
+              <FontAwesomeIcon icon="spinner" spin />{' '}
+              {gettext('Loading content...')}
+            </React.Fragment>
+          )}
         </Col>
       </React.Fragment>
     );
@@ -68,11 +98,17 @@ const mapStateToProps = (
   ownProps: RouteComponentProps<PropsFromRouter>,
 ): PropsFromState => {
   const { match } = ownProps;
-  const { versionId } = match.params;
+  const versionId = parseInt(match.params.versionId, 10);
+
+  const version = getVersionInfo(state.versions, versionId);
+  const file = version
+    ? getVersionFile(state.versions, versionId, version.selectedPath)
+    : null;
 
   return {
     apiState: state.api,
-    version: getVersionInfo(state.versions, parseInt(versionId, 10)),
+    file,
+    version,
   };
 };
 
