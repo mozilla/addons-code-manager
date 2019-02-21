@@ -96,8 +96,8 @@ export type Version = {
   entries: VersionEntry[];
   id: VersionId;
   reviewed: string;
-  version: string;
   selectedPath: string;
+  version: string;
 };
 
 export const actions = {
@@ -169,8 +169,8 @@ export const createInternalVersion = (version: ExternalVersion): Version => {
     }),
     id: version.id,
     reviewed: version.reviewed,
-    version: version.version,
     selectedPath: version.file.selected_file,
+    version: version.version,
   };
 };
 

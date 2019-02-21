@@ -191,15 +191,20 @@ describe(__filename, () => {
 
   describe('getVersionFiles', () => {
     it('returns all the files for a given version', () => {
-      const path = 'test.js';
+      const path1 = 'test.js';
+      const path2 = 'function.js';
       const version = fakeVersion;
-      const state = reducer(
-        undefined,
-        actions.loadVersionFile({ path, version }),
-      );
 
+      let state = reducer(
+        undefined,
+        actions.loadVersionFile({ path: path1, version }),
+      );
+      state = reducer(state, actions.loadVersionFile({ path: path2, version }));
+
+      const internalVersionFile = createInternalVersionFile(version.file);
       expect(getVersionFiles(state, version.id)).toEqual({
-        [path]: createInternalVersionFile(version.file),
+        [path1]: internalVersionFile,
+        [path2]: internalVersionFile,
       });
     });
 
