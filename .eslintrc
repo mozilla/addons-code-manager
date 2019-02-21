@@ -36,8 +36,7 @@
     // The beauty of TS is that it infers types quite well, so let's not write
     // too much code.
     "@typescript-eslint/explicit-function-return-type": "off",
-    // TODO: re-enable this rule once https://github.com/mozilla/addons-code-manager/issues/85 lands.
-    "amo/only-log-strings": "off",
+    "@typescript-eslint/no-explicit-any": "error"
   },
   "settings": {
     "import/resolver": {

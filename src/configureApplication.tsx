@@ -17,6 +17,7 @@ type ConfigureApplicationParams = {
 const configureApplication = ({
   _Raven = Raven,
   _log = log,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   env = (process.env as any) as ClientEnvVars,
 }: ConfigureApplicationParams = {}) => {
   if (env.NODE_ENV === 'production') {
