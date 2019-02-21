@@ -1,13 +1,16 @@
 /* global fetchMock */
+import configureStore from '../configureStore';
 import {
   actions as apiActions,
   initialState as defaultApiState,
 } from '../reducers/api';
-import configureStore from '../configureStore';
 
 import { HttpMethod, callApi, getVersion, logOutFromServer } from '.';
 
 describe(__filename, () => {
+  const defaultLang = process.env.REACT_APP_DEFAULT_API_LANG;
+  const defaultVersion = process.env.REACT_APP_DEFAULT_API_VERSION;
+
   const getApiState = ({ authToken = '12345' } = {}) => {
     const store = configureStore();
 
@@ -22,25 +25,45 @@ describe(__filename, () => {
       return callApi({ apiState: defaultApiState, endpoint: '/', ...params });
     };
 
-    it('calls the API', async () => {
-      await callApiWithDefaultApiState({ endpoint: '/foo/' });
+    it('calls the API with the expected defaults', async () => {
+      await callApiWithDefaultApiState();
 
-      expect(fetch).toHaveBeenCalledWith(`/api/v4/foo/`, {
-        headers: {},
-        method: 'GET',
-      });
+      expect(fetch).toHaveBeenCalledWith(
+        `/api/${defaultVersion}/?lang=${defaultLang}`,
+        {
+          headers: {},
+          method: 'GET',
+        },
+      );
+    });
+
+    it('calls the API using the default language', async () => {
+      await callApiWithDefaultApiState();
+
+      expect(fetch).toHaveBeenCalledWith(
+        expect.urlWithTheseParams({
+          lang: process.env.REACT_APP_DEFAULT_API_LANG,
+        }),
+        expect.any(Object),
+      );
     });
 
     it('adds a trailing slash to the endpoint if there is none', async () => {
       await callApiWithDefaultApiState({ endpoint: '/foo' });
 
-      expect(fetch).toHaveBeenCalledWith(`/api/v4/foo/`, expect.any(Object));
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringMatching('/foo/'),
+        expect.any(Object),
+      );
     });
 
     it('adds a leading slash to the endpoint if there is none', async () => {
       await callApiWithDefaultApiState({ endpoint: 'foo/' });
 
-      expect(fetch).toHaveBeenCalledWith(`/api/v4/foo/`, expect.any(Object));
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringMatching('/foo/'),
+        expect.any(Object),
+      );
     });
 
     it('accepts an HTTP method', async () => {
@@ -62,7 +85,18 @@ describe(__filename, () => {
       await callApiWithDefaultApiState({ endpoint: '/', version });
 
       expect(fetch).toHaveBeenCalledWith(
-        `/api/${version}/`,
+        expect.stringMatching(`/api/${version}/`),
+        expect.any(Object),
+      );
+    });
+
+    it('accepts an API lang', async () => {
+      const lang = 'en-CA';
+
+      await callApiWithDefaultApiState({ endpoint: '/', lang });
+
+      expect(fetch).toHaveBeenCalledWith(
+        expect.urlWithTheseParams({ lang }),
         expect.any(Object),
       );
     });
@@ -129,7 +163,7 @@ describe(__filename, () => {
 
       expect(response).toHaveProperty(
         'error',
-        new Error('Unexpected status for GET /: 400'),
+        new Error(`Unexpected status for GET /?lang=${defaultLang}: 400`),
       );
     });
 
@@ -139,7 +173,7 @@ describe(__filename, () => {
       await callApiWithDefaultApiState({ endpoint: '/url', query });
 
       expect(fetch).toHaveBeenCalledWith(
-        '/api/v4/url/?foo=1&bar=abc',
+        expect.urlWithTheseParams(query),
         expect.any(Object),
       );
     });
@@ -153,11 +187,10 @@ describe(__filename, () => {
       await getVersion({ apiState: defaultApiState, addonId, versionId });
 
       expect(fetch).toHaveBeenCalledWith(
-        `/api/v4/reviewers/addon/${addonId}/versions/${versionId}/`,
-        {
-          headers: {},
-          method: HttpMethod.GET,
-        },
+        expect.stringMatching(
+          `/api/${defaultVersion}/reviewers/addon/${addonId}/versions/${versionId}/`,
+        ),
+        expect.any(Object),
       );
     });
 
@@ -174,11 +207,14 @@ describe(__filename, () => {
       });
 
       expect(fetch).toHaveBeenCalledWith(
-        `/api/v4/reviewers/addon/${addonId}/versions/${versionId}/?file=${path}`,
-        {
-          headers: {},
-          method: HttpMethod.GET,
-        },
+        expect.stringMatching(
+          `/api/${defaultVersion}/reviewers/addon/${addonId}/versions/${versionId}/`,
+        ),
+        expect.any(Object),
+      );
+      expect(fetch).toHaveBeenCalledWith(
+        expect.urlWithTheseParams({ file: path }),
+        expect.any(Object),
       );
     });
   });
@@ -187,10 +223,13 @@ describe(__filename, () => {
     it(`calls the API to delete the user's session`, async () => {
       await logOutFromServer(defaultApiState);
 
-      expect(fetch).toHaveBeenCalledWith('/api/v4/accounts/session/', {
-        headers: {},
-        method: HttpMethod.DELETE,
-      });
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringMatching(`/api/${defaultVersion}/accounts/session/`),
+        {
+          headers: {},
+          method: HttpMethod.DELETE,
+        },
+      );
     });
   });
 });
