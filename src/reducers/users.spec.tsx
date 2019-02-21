@@ -80,7 +80,7 @@ describe(__filename, () => {
   });
 
   describe('fetchCurrentUserProfile', () => {
-    it('calls getCurrentuserProfile', async () => {
+    it('calls getCurrentUserProfile', async () => {
       const _getCurrentUserProfile = jest
         .fn()
         .mockReturnValue(Promise.resolve(fakeUser));

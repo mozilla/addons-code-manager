@@ -24,13 +24,10 @@ import Index from '../../pages/Index';
 import NotFound from '../../pages/NotFound';
 import { gettext } from '../../utils';
 
-type PublicProps = {
-  authToken: string | null;
-};
-
-export type DefaultProps = {
+export type PublicProps = {
   _fetchCurrentUserProfile: typeof fetchCurrentUserProfile;
   _log: typeof log;
+  authToken: string | null;
 };
 
 type PropsFromState = {
@@ -42,7 +39,6 @@ type PropsFromState = {
 /* eslint-disable @typescript-eslint/indent */
 type Props = PublicProps &
   PropsFromState &
-  DefaultProps &
   ConnectedReduxProps &
   RouteComponentProps<{}>;
 /* eslint-enable @typescript-eslint/indent */

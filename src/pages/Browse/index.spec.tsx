@@ -6,16 +6,16 @@ import {
   createFakeThunk,
   fakeVersion,
   shallowUntilTarget,
+  spyOn,
 } from '../../test-helpers';
 import configureStore from '../../configureStore';
 import {
   actions as versionActions,
   createInternalVersion,
-  fetchVersion,
 } from '../../reducers/versions';
 import FileTree from '../../components/FileTree';
 
-import Browse, { BrowseBase, DefaultProps } from '.';
+import Browse, { BrowseBase, PublicProps } from '.';
 
 describe(__filename, () => {
   const createFakeRouteComponentProps = ({
@@ -38,8 +38,8 @@ describe(__filename, () => {
   };
 
   type RenderParams = {
-    _fetchVersion?: typeof fetchVersion;
-    _log?: DefaultProps['_log'];
+    _fetchVersion?: PublicProps['_fetchVersion'];
+    _log?: PublicProps['_log'];
     addonId?: string;
     versionId?: string;
     store?: Store;
@@ -92,9 +92,7 @@ describe(__filename, () => {
     const version = fakeVersion;
 
     const store = configureStore();
-    const dispatch = jest
-      .spyOn(store, 'dispatch')
-      .mockImplementation(jest.fn());
+    const dispatch = spyOn(store, 'dispatch');
     const fakeThunk = createFakeThunk();
 
     render({

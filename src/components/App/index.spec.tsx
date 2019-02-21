@@ -6,29 +6,27 @@ import { Route } from 'react-router-dom';
 import styles from './styles.module.scss';
 import configureStore from '../../configureStore';
 import { actions as apiActions } from '../../reducers/api';
-import {
-  actions as userActions,
-  fetchCurrentUserProfile,
-} from '../../reducers/users';
+import { actions as userActions } from '../../reducers/users';
 import {
   createContextWithFakeRouter,
   createFakeThunk,
   fakeUser,
   shallowUntilTarget,
+  spyOn,
 } from '../../test-helpers';
 import Navbar from '../Navbar';
 
-import App, { AppBase } from '.';
+import App, { AppBase, PublicProps } from '.';
 
 describe(__filename, () => {
   type RenderParams = {
-    _fetchCurrentUserProfile?: typeof fetchCurrentUserProfile;
+    _fetchCurrentUserProfile?: PublicProps['_fetchCurrentUserProfile'];
+    authToken?: PublicProps['authToken'];
     store?: Store;
-    authToken?: string | null;
   };
 
   const render = ({
-    _fetchCurrentUserProfile,
+    _fetchCurrentUserProfile = createFakeThunk().createThunk,
     authToken = 'some-token',
     store = configureStore(),
   }: RenderParams = {}) => {
@@ -79,7 +77,7 @@ describe(__filename, () => {
   it('dispatches setAuthToken on mount when authToken is valid', () => {
     const authToken = 'my-token';
     const store = configureStore();
-    const dispatch = jest.spyOn(store, 'dispatch');
+    const dispatch = spyOn(store, 'dispatch');
 
     render({ authToken, store });
 
@@ -90,7 +88,7 @@ describe(__filename, () => {
 
   it('does not dispatch setAuthToken on mount when authToken is null', () => {
     const store = configureStore();
-    const dispatch = jest.spyOn(store, 'dispatch');
+    const dispatch = spyOn(store, 'dispatch');
 
     render({ authToken: null, store });
 
@@ -126,10 +124,7 @@ describe(__filename, () => {
 
     store.dispatch(apiActions.setAuthToken({ authToken: 'some-token' }));
     const { api: apiState } = store.getState();
-
-    const dispatch = jest
-      .spyOn(store, 'dispatch')
-      .mockImplementation(jest.fn());
+    const dispatch = spyOn(store, 'dispatch');
 
     root.setProps({ apiState, dispatch });
 
@@ -138,19 +133,12 @@ describe(__filename, () => {
 
   it('does not fetch the current user profile on update when there is no loaded profile and authToken is the same', () => {
     const store = configureStore();
-    const fakeThunk = createFakeThunk();
     store.dispatch(apiActions.setAuthToken({ authToken: 'some-token' }));
 
-    const root = render({
-      _fetchCurrentUserProfile: fakeThunk.createThunk,
-      store,
-    });
+    const root = render({ store });
 
     const { api: apiState } = store.getState();
-
-    const dispatch = jest
-      .spyOn(store, 'dispatch')
-      .mockImplementation(jest.fn());
+    const dispatch = spyOn(store, 'dispatch');
 
     root.setProps({ apiState, dispatch });
 
@@ -160,20 +148,12 @@ describe(__filename, () => {
   it('does not fetch the current user profile on update when the profile has been already loaded', () => {
     const store = configureStore();
     store.dispatch(userActions.loadCurrentUser({ user: fakeUser }));
-    const fakeThunk = createFakeThunk();
 
-    const root = render({
-      _fetchCurrentUserProfile: fakeThunk.createThunk,
-      authToken: null,
-      store,
-    });
+    const root = render({ authToken: null, store });
 
     store.dispatch(apiActions.setAuthToken({ authToken: 'some-token' }));
     const { api: apiState } = store.getState();
-
-    const dispatch = jest
-      .spyOn(store, 'dispatch')
-      .mockImplementation(jest.fn());
+    const dispatch = spyOn(store, 'dispatch');
 
     root.setProps({ apiState, dispatch });
 

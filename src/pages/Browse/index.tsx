@@ -9,14 +9,14 @@ import { ApiState } from '../../reducers/api';
 import FileTree from '../../components/FileTree';
 import { Version, fetchVersion, getVersionInfo } from '../../reducers/versions';
 
+export type PublicProps = {
+  _fetchVersion: typeof fetchVersion;
+  _log: typeof log;
+};
+
 type PropsFromRouter = {
   addonId: string;
   versionId: string;
-};
-
-export type DefaultProps = {
-  _fetchVersion: typeof fetchVersion;
-  _log: typeof log;
 };
 
 type PropsFromState = {
@@ -27,7 +27,7 @@ type PropsFromState = {
 /* eslint-disable @typescript-eslint/indent */
 type Props = RouteComponentProps<PropsFromRouter> &
   PropsFromState &
-  DefaultProps &
+  PublicProps &
   ConnectedReduxProps;
 /* eslint-enable @typescript-eslint/indent */
 
@@ -37,7 +37,7 @@ export class BrowseBase extends React.Component<Props> {
     _log: log,
   };
 
-  async componentDidMount() {
+  componentDidMount() {
     const { _fetchVersion, dispatch, match } = this.props;
     const { addonId, versionId } = match.params;
 

@@ -291,3 +291,10 @@ export const getFakeLogger = () => {
     info: jest.fn(),
   };
 };
+
+export const spyOn = <T extends {}>(
+  object: T,
+  method: jest.FunctionPropertyNames<T>,
+) => {
+  return jest.spyOn(object, method).mockImplementation(jest.fn());
+};
