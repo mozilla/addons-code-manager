@@ -74,7 +74,7 @@ export type ExternalVersion = {
   version: string;
 };
 
-type VersionFile = {
+export type VersionFile = {
   content: string;
   created: string;
   id: number;
