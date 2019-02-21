@@ -50,7 +50,7 @@ export const callApi = async <SuccessResponseType extends {}>({
   method = HttpMethod.GET,
   version = process.env.REACT_APP_DEFAULT_API_VERSION,
   query = {},
-  lang = process.env.REACT_APP_DEFAULT_API_LANG as string,
+  lang = process.env.REACT_APP_DEFAULT_API_LANG,
 }: CallApiParams): Promise<CallApiResponse<SuccessResponseType>> => {
   let adjustedEndpoint = endpoint;
   if (!adjustedEndpoint.startsWith('/')) {
@@ -69,8 +69,8 @@ export const callApi = async <SuccessResponseType extends {}>({
     [key: string]: string;
   };
 
-  // Add the lang parameter to the querystring
-  const queryWithLang: QueryWithLang = { ...query, lang };
+  // Add the lang parameter to the query string.
+  const queryWithLang: QueryWithLang = lang ? { ...query, lang } : query;
 
   const queryString = Object.keys(queryWithLang)
     .map((k) => `${k}=${queryWithLang[k]}`)

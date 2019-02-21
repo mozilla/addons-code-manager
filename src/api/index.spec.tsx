@@ -258,10 +258,13 @@ describe(__filename, () => {
     it('calls the API to retrieve the current logged-in user profile', async () => {
       await getCurrentUserProfile(defaultApiState);
 
-      expect(fetch).toHaveBeenCalledWith(`/api/v4/accounts/profile/`, {
-        headers: {},
-        method: HttpMethod.GET,
-      });
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringMatching(`/api/${defaultVersion}/accounts/profile/`),
+        {
+          headers: {},
+          method: HttpMethod.GET,
+        },
+      );
     });
   });
 });
