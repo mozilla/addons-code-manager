@@ -1,7 +1,7 @@
 /* eslint @typescript-eslint/camelcase: 0 */
 import * as React from 'react';
 import { shallow } from 'enzyme';
-import Treefold from 'react-treefold';
+import Treefold, { TreefoldRenderProps } from 'react-treefold';
 import { ListGroup } from 'react-bootstrap';
 
 import configureStore from '../../configureStore';
@@ -13,7 +13,7 @@ import {
 } from '../../reducers/versions';
 import { fakeVersion, fakeVersionEntry } from '../../test-helpers';
 
-import FileTree, { buildFileTree, DirectoryNode } from '.';
+import FileTree, { buildFileTree, TreeNode, DirectoryNode } from '.';
 
 describe(__filename, () => {
   describe('buildFileTree', () => {
@@ -355,8 +355,11 @@ describe(__filename, () => {
       return getVersionInfo(store.getState().versions, version.id);
     };
 
-    const render = ({ version = getVersion(fakeVersion) } = {}) => {
-      return shallow(<FileTree version={version} />);
+    const render = ({
+      onSelect = jest.fn(),
+      version = getVersion(fakeVersion),
+    } = {}) => {
+      return shallow(<FileTree version={version} onSelect={onSelect} />);
     };
 
     it('renders a ListGroup component with a Treefold', () => {
@@ -369,6 +372,21 @@ describe(__filename, () => {
       expect(root.find(Treefold)).toHaveProp('nodes', [
         buildFileTree(String(version.id), version.entries),
       ]);
+    });
+
+    it('passes the onSelect prop to FileTreeNode', () => {
+      const version = getVersion({ ...fakeVersion, id: 777 });
+      const onSelect = jest.fn();
+
+      const root = render({ version, onSelect });
+
+      const node = (root.instance() as FileTree).renderNode(
+        // It does not really matter which props are given here.
+        // eslint-disable-next-line @typescript-eslint/no-object-literal-type-assertion
+        {} as TreefoldRenderProps<TreeNode>,
+      );
+
+      expect(node.props.onSelect).toEqual(onSelect);
     });
   });
 });

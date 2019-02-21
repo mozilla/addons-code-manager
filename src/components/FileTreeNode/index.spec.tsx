@@ -7,14 +7,22 @@ import styles from './styles.module.scss';
 import FileTreeNode from '.';
 
 describe(__filename, () => {
+  const fakeGetToggleProps = () => ({
+    onClick: jest.fn(),
+    onKeyDown: jest.fn(),
+    role: 'button',
+    tabIndex: 0,
+  });
+
   const getTreefoldRenderProps = ({
-    getToggleProps = jest.fn(),
+    getToggleProps = fakeGetToggleProps,
     hasChildNodes = false,
     id = 'root',
     isExpanded = false,
     isFolder = true,
     name = 'root',
     renderChildNodes = jest.fn(),
+    onSelect = jest.fn(),
   } = {}) => {
     return {
       node: {
@@ -27,6 +35,7 @@ describe(__filename, () => {
       isFolder,
       level: 0,
       renderChildNodes,
+      onSelect,
     };
   };
 
@@ -74,6 +83,43 @@ describe(__filename, () => {
 
     expect(root.find(FontAwesomeIcon)).toHaveLength(1);
     expect(root.find(FontAwesomeIcon)).toHaveProp('icon', 'file');
+  });
+
+  it('sets an onClick handler to a simple node', () => {
+    const onSelect = jest.fn();
+    const id = 'some-node-id';
+    const renderProps = getTreefoldRenderProps({
+      id,
+      onSelect,
+      isFolder: false,
+    });
+
+    const root = render(renderProps);
+
+    expect(root.find(`.${styles.node}`)).toHaveProp('onClick');
+
+    root.find(`.${styles.node}`).simulate('click');
+
+    expect(onSelect).toHaveBeenCalledWith(id);
+  });
+
+  it('uses the onClick handler of the toggle props for a directory node', () => {
+    const onSelect = jest.fn();
+    const getToggleProps = fakeGetToggleProps();
+    const renderProps = getTreefoldRenderProps({
+      getToggleProps: () => getToggleProps,
+      onSelect,
+      isFolder: true,
+    });
+
+    const root = render(renderProps);
+
+    expect(root.find(`.${styles.node}`)).toHaveProp('onClick');
+
+    root.find(`.${styles.node}`).simulate('click');
+
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(getToggleProps.onClick).toHaveBeenCalled();
   });
 
   it('renders an expanded node', () => {

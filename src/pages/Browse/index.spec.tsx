@@ -42,6 +42,7 @@ describe(__filename, () => {
 
   type RenderParams = {
     _fetchVersion?: PublicProps['_fetchVersion'];
+    _fetchVersionFile?: PublicProps['_fetchVersionFile'];
     _log?: PublicProps['_log'];
     addonId?: string;
     versionId?: string;
@@ -50,6 +51,7 @@ describe(__filename, () => {
 
   const render = ({
     _fetchVersion,
+    _fetchVersionFile,
     _log,
     addonId = '999',
     versionId = '123',
@@ -58,6 +60,7 @@ describe(__filename, () => {
     const props = {
       ...createFakeRouteComponentProps({ params: { addonId, versionId } }),
       _fetchVersion,
+      _fetchVersionFile,
       _log,
     };
 
@@ -90,6 +93,10 @@ describe(__filename, () => {
       'version',
       createInternalVersion(version),
     );
+    expect(root.find(FileTree)).toHaveProp(
+      'onSelect',
+      (root.instance() as BrowseBase).onSelectFile,
+    );
   });
 
   it('renders the content of the default file when a version has been loaded', () => {
@@ -114,14 +121,15 @@ describe(__filename, () => {
     const store = configureStore();
     store.dispatch(versionActions.loadVersionInfo({ version }));
 
+    // The user clicks a different file to view.
+    store.dispatch(
+      versionActions.updateSelectedPath({
+        selectedPath: 'some/file.js',
+        versionId: version.id,
+      }),
+    );
+
     const root = render({ store, versionId: String(version.id) });
-    // This is used to force `file` to be `null` and test the path where the
-    // selected file has not been loaded. We cannot do anything else yet
-    // because there is no logic to select another file from the tree.
-    //
-    // TODO: remove this when
-    // https://github.com/mozilla/addons-code-manager/issues/108 lands.
-    root.setProps({ file: null });
 
     expect(root.find(Highlight)).toHaveLength(0);
     expect(root.find(FontAwesomeIcon)).toHaveLength(1);
@@ -140,6 +148,28 @@ describe(__filename, () => {
       store,
       versionId: String(version.id),
     });
+
+    expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+  });
+
+  it('dispatches fetchVersionFile when a file is selected', () => {
+    const version = fakeVersion;
+    const path = 'some-path';
+
+    const store = configureStore();
+    store.dispatch(versionActions.loadVersionInfo({ version }));
+
+    const dispatch = spyOn(store, 'dispatch');
+    const fakeThunk = createFakeThunk();
+
+    const root = render({
+      _fetchVersionFile: fakeThunk.createThunk,
+      store,
+      versionId: String(version.id),
+    });
+
+    // Simulate a click on a file.
+    (root.instance() as BrowseBase).onSelectFile(path);
 
     expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
   });

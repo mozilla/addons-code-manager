@@ -106,6 +106,10 @@ export const actions = {
   loadVersionInfo: createAction('LOAD_VERSION_INFO', (resolve) => {
     return (payload: { version: ExternalVersion }) => resolve(payload);
   }),
+  updateSelectedPath: createAction('UPDATE_SELECTED_PATH', (resolve) => {
+    return (payload: { selectedPath: string; versionId: VersionId }) =>
+      resolve(payload);
+  }),
 };
 
 export type VersionsState = {
@@ -213,6 +217,41 @@ export const fetchVersion = ({
   };
 };
 
+type FetchVersionFileParams = {
+  _log?: typeof log;
+  _getVersion?: typeof getVersion;
+  addonId: number;
+  versionId: number;
+  path: string;
+};
+
+export const fetchVersionFile = ({
+  _getVersion = getVersion,
+  _log = log,
+  addonId,
+  versionId,
+  path,
+}: FetchVersionFileParams): ThunkActionCreator => {
+  return async (dispatch, getState) => {
+    const { api: apiState } = getState();
+
+    dispatch(actions.updateSelectedPath({ selectedPath: path, versionId }));
+
+    const response = await _getVersion({
+      addonId,
+      apiState,
+      versionId,
+      path,
+    });
+
+    if (isErrorResponse(response)) {
+      _log.error(`TODO: handle this error response: ${response.error}`);
+    } else {
+      dispatch(actions.loadVersionFile({ path, version: response }));
+    }
+  };
+};
+
 const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
   state = initialState,
   action,
@@ -247,6 +286,20 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
           [version.id]: {
             ...state.versionFiles[version.id],
             [path]: createInternalVersionFile(version.file),
+          },
+        },
+      };
+    }
+    case getType(actions.updateSelectedPath): {
+      const { selectedPath, versionId } = action.payload;
+
+      return {
+        ...state,
+        versionInfo: {
+          ...state.versionInfo,
+          [versionId]: {
+            ...state.versionInfo[versionId],
+            selectedPath,
           },
         },
       };

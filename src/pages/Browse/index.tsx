@@ -13,6 +13,7 @@ import {
   Version,
   VersionFile,
   fetchVersion,
+  fetchVersionFile,
   getVersionFile,
   getVersionInfo,
 } from '../../reducers/versions';
@@ -22,6 +23,7 @@ import 'highlight.js/styles/github.css';
 
 export type PublicProps = {
   _fetchVersion: typeof fetchVersion;
+  _fetchVersionFile: typeof fetchVersionFile;
   _log: typeof log;
 };
 
@@ -46,6 +48,7 @@ export type Props = RouteComponentProps<PropsFromRouter> &
 export class BrowseBase extends React.Component<Props> {
   static defaultProps = {
     _fetchVersion: fetchVersion,
+    _fetchVersionFile: fetchVersionFile,
     _log: log,
   };
 
@@ -60,6 +63,19 @@ export class BrowseBase extends React.Component<Props> {
       }),
     );
   }
+
+  onSelectFile = (path: string) => {
+    const { _fetchVersionFile, dispatch, match } = this.props;
+    const { addonId, versionId } = match.params;
+
+    dispatch(
+      _fetchVersionFile({
+        addonId: parseInt(addonId, 10),
+        versionId: parseInt(versionId, 10),
+        path,
+      }),
+    );
+  };
 
   render() {
     const { file, version } = this.props;
@@ -76,7 +92,7 @@ export class BrowseBase extends React.Component<Props> {
     return (
       <React.Fragment>
         <Col md="3">
-          <FileTree version={version} />
+          <FileTree version={version} onSelect={this.onSelectFile} />
         </Col>
         <Col md="9">
           {file ? (
