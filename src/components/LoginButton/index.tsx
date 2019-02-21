@@ -5,18 +5,20 @@ import { gettext } from '../../utils';
 import styles from './styles.module.scss';
 
 type PublicProps = {
+  apiVersion: string;
   fxaConfig: string;
 };
 
 export class LoginButtonBase extends React.Component<PublicProps> {
   static defaultProps = {
+    apiVersion: process.env.REACT_APP_DEFAULT_API_VERSION,
     fxaConfig: process.env.REACT_APP_FXA_CONFIG,
   };
 
   getFxaURL() {
-    const { fxaConfig } = this.props;
+    const { apiVersion, fxaConfig } = this.props;
 
-    return `/api/v4/accounts/login/start/?config=${fxaConfig}&to=/`;
+    return `/api/${apiVersion}/accounts/login/start/?config=${fxaConfig}&to=/`;
   }
 
   render() {

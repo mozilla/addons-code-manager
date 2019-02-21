@@ -6,14 +6,17 @@ import LoginButton from '.';
 
 describe(__filename, () => {
   it('renders a page', () => {
+    const apiVersion = 'api-version';
     const fxaConfig = 'some-fxa-config';
 
-    const root = shallow(<LoginButton fxaConfig={fxaConfig} />);
+    const root = shallow(
+      <LoginButton fxaConfig={fxaConfig} apiVersion={apiVersion} />,
+    );
 
     expect(root.find(Button)).toHaveLength(1);
     expect(root.find(Button)).toHaveProp(
       'href',
-      `/api/v4/accounts/login/start/?config=${fxaConfig}&to=/`,
+      `/api/${apiVersion}/accounts/login/start/?config=${fxaConfig}&to=/`,
     );
   });
 });
