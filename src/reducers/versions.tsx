@@ -182,9 +182,9 @@ export const getVersionFiles = (
 };
 
 export const getVersionFile = (
-  path: string,
   versions: VersionsState,
   versionId: VersionId,
+  path: string,
 ) => {
   const filesForVersion = getVersionFiles(versions, versionId);
 

@@ -177,7 +177,7 @@ describe(__filename, () => {
         actions.loadVersionFile({ path, version }),
       );
 
-      expect(getVersionFile(path, state, version.id)).toEqual(
+      expect(getVersionFile(state, version.id, path)).toEqual(
         createInternalVersionFile(version.file),
       );
     });
@@ -185,7 +185,7 @@ describe(__filename, () => {
     it('returns undefined if there is no version file found', () => {
       const state = initialState;
 
-      expect(getVersionFile('some-file-name.js', state, 1)).toEqual(undefined);
+      expect(getVersionFile(state, 1, 'some-file-name.js')).toEqual(undefined);
     });
   });
 
