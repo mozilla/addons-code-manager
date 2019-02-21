@@ -47,6 +47,7 @@ export type ExternalVersionFile = {
   is_webextension: boolean;
   permissions: string[];
   platform: string;
+  selected_file: string;
   size: number;
   status: string;
   url: string;
@@ -95,6 +96,7 @@ export type Version = {
   entries: VersionEntry[];
   id: VersionId;
   reviewed: string;
+  selectedPath: string;
   version: string;
 };
 
@@ -167,8 +169,16 @@ export const createInternalVersion = (version: ExternalVersion): Version => {
     }),
     id: version.id,
     reviewed: version.reviewed,
+    selectedPath: version.file.selected_file,
     version: version.version,
   };
+};
+
+export const getVersionFiles = (
+  versions: VersionsState,
+  versionId: VersionId,
+) => {
+  return versions.versionFiles[versionId];
 };
 
 export const getVersionFile = (
@@ -176,7 +186,8 @@ export const getVersionFile = (
   versions: VersionsState,
   versionId: VersionId,
 ) => {
-  const filesForVersion = versions.versionFiles[versionId];
+  const filesForVersion = getVersionFiles(versions, versionId);
+
   return filesForVersion ? filesForVersion[path] : undefined;
 };
 
@@ -194,16 +205,26 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
   switch (action.type) {
     case getType(actions.loadVersionInfo): {
       const { version } = action.payload;
+
       return {
         ...state,
         versionInfo: {
           ...state.versionInfo,
           [version.id]: createInternalVersion(version),
         },
+        versionFiles: {
+          [version.id]: {
+            ...state.versionFiles[version.id],
+            [version.file.selected_file]: createInternalVersionFile(
+              version.file,
+            ),
+          },
+        },
       };
     }
     case getType(actions.loadVersionFile): {
       const { path, version } = action.payload;
+
       return {
         ...state,
         versionFiles: {

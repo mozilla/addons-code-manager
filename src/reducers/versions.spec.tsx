@@ -6,6 +6,7 @@ import reducer, {
   createInternalVersionFile,
   getVersionEntryType,
   getVersionFile,
+  getVersionFiles,
   getVersionInfo,
   initialState,
 } from './versions';
@@ -57,7 +58,7 @@ describe(__filename, () => {
       });
     });
 
-    it('loads version info', () => {
+    it('loads version info and the default file', () => {
       const version = fakeVersion;
       const state = reducer(undefined, actions.loadVersionInfo({ version }));
 
@@ -65,6 +66,13 @@ describe(__filename, () => {
         ...initialState,
         versionInfo: {
           [version.id]: createInternalVersion(version),
+        },
+        versionFiles: {
+          [version.id]: {
+            [version.file.selected_file]: createInternalVersionFile(
+              version.file,
+            ),
+          },
         },
       });
     });
@@ -94,6 +102,7 @@ describe(__filename, () => {
         id: version.id,
         reviewed: version.reviewed,
         version: version.version,
+        selectedPath: version.file.selected_file,
       });
     });
 
@@ -117,6 +126,7 @@ describe(__filename, () => {
         id: version.id,
         reviewed: version.reviewed,
         version: version.version,
+        selectedPath: version.file.selected_file,
       });
     });
   });
@@ -176,6 +186,30 @@ describe(__filename, () => {
       const state = initialState;
 
       expect(getVersionFile('some-file-name.js', state, 1)).toEqual(undefined);
+    });
+  });
+
+  describe('getVersionFiles', () => {
+    it('returns all the files for a given version', () => {
+      const path1 = 'test.js';
+      const path2 = 'function.js';
+      const version = fakeVersion;
+
+      let state = reducer(
+        undefined,
+        actions.loadVersionFile({ path: path1, version }),
+      );
+      state = reducer(state, actions.loadVersionFile({ path: path2, version }));
+
+      const internalVersionFile = createInternalVersionFile(version.file);
+      expect(getVersionFiles(state, version.id)).toEqual({
+        [path1]: internalVersionFile,
+        [path2]: internalVersionFile,
+      });
+    });
+
+    it('returns undefined if there are no files found', () => {
+      expect(getVersionFiles(initialState, 1)).toEqual(undefined);
     });
   });
 
