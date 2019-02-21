@@ -49,6 +49,7 @@ export type User = {
 };
 
 export const actions = {
+  abortLoadCurrentUser: createAction('ABORT_LOAD_CURRENT_USER'),
   beginLoadCurrentUser: createAction('BEGIN_LOAD_CURRENT_USER'),
   loadCurrentUser: createAction('LOAD_CURRENT_USER', (resolve) => {
     return (payload: { user: ExternalUser }) => resolve(payload);
@@ -102,6 +103,7 @@ export const fetchCurrentUserProfile = ({
 
     if (isErrorResponse(response)) {
       _log.error(`TODO: handle this error response: ${response.error}`);
+      dispatch(actions.abortLoadCurrentUser());
     } else {
       dispatch(actions.loadCurrentUser({ user: response }));
     }
@@ -117,6 +119,11 @@ const reducer: Reducer<UsersState, ActionType<typeof actions>> = (
       return {
         ...state,
         currentUser: undefined,
+      };
+    case getType(actions.abortLoadCurrentUser):
+      return {
+        ...state,
+        currentUser: initialState.currentUser,
       };
     case getType(actions.loadCurrentUser):
       return {

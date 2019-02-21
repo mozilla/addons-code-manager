@@ -40,6 +40,16 @@ describe(__filename, () => {
     });
   });
 
+  describe('abortLoadCurrentUser', () => {
+    it('resets the current user state', () => {
+      let state;
+      state = reducer(state, actions.beginLoadCurrentUser());
+      state = reducer(state, actions.abortLoadCurrentUser());
+
+      expect(getCurrentUser(state)).toEqual(null);
+    });
+  });
+
   describe('createInternalUser', () => {
     it('creates a User', () => {
       const user = fakeUser;
@@ -76,6 +86,14 @@ describe(__filename, () => {
       const state = reducer(undefined, actions.beginLoadCurrentUser());
 
       expect(currentUserIsLoading(state)).toEqual(true);
+    });
+
+    it('returns false after aborting loading the user', () => {
+      let state;
+      state = reducer(state, actions.beginLoadCurrentUser());
+      state = reducer(state, actions.abortLoadCurrentUser());
+
+      expect(currentUserIsLoading(state)).toEqual(false);
     });
 
     it('returns false when a user has loaded', () => {
@@ -191,6 +209,22 @@ describe(__filename, () => {
           type: getType(actions.loadCurrentUser),
         }),
       );
+    });
+
+    it('aborts loading a user when API response is not successful', async () => {
+      const _getCurrentUserProfile = jest.fn().mockReturnValue(
+        Promise.resolve({
+          error: new Error('Bad Request'),
+        }),
+      );
+
+      const { dispatch, thunk } = _fetchCurrentUserProfile({
+        _getCurrentUserProfile,
+      });
+
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(actions.abortLoadCurrentUser());
     });
   });
 });
