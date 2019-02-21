@@ -46,7 +46,7 @@
     "redux-thunk": "2.3.0",
     "ts-node": "8.0.2",
     "typesafe-actions": "3.1.0",
-    "typescript": "3.3.3",
+    "typescript": "3.3.3333",
     "universal-cookie": "3.0.7",
     "universal-cookie-express": "3.0.7"
   },
