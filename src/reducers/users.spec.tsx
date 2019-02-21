@@ -1,6 +1,9 @@
+import { getType } from 'typesafe-actions';
+
 import reducer, {
   actions,
   createInternalUser,
+  currentUserIsLoading,
   fetchCurrentUserProfile,
   getCurrentUser,
   initialState,
@@ -29,6 +32,14 @@ describe(__filename, () => {
     });
   });
 
+  describe('beginLoadCurrentUser', () => {
+    it('sets the current user to undefined', () => {
+      const state = reducer(undefined, actions.beginLoadCurrentUser());
+
+      expect(getCurrentUser(state)).toEqual(undefined);
+    });
+  });
+
   describe('createInternalUser', () => {
     it('creates a User', () => {
       const user = fakeUser;
@@ -53,6 +64,35 @@ describe(__filename, () => {
       const state = initialState;
 
       expect(getCurrentUser(state)).toEqual(null);
+    });
+  });
+
+  describe('currentUserIsLoading', () => {
+    it('returns false before a user has loaded', () => {
+      expect(currentUserIsLoading(initialState)).toEqual(false);
+    });
+
+    it('returns true while the user is loading', () => {
+      const state = reducer(undefined, actions.beginLoadCurrentUser());
+
+      expect(currentUserIsLoading(state)).toEqual(true);
+    });
+
+    it('returns false when a user has loaded', () => {
+      const state = reducer(
+        undefined,
+        actions.loadCurrentUser({ user: fakeUser }),
+      );
+
+      expect(currentUserIsLoading(state)).toEqual(false);
+    });
+
+    it('returns false after the user has logged out', () => {
+      let state;
+      state = reducer(state, actions.loadCurrentUser({ user: fakeUser }));
+      state = reducer(state, actions.logOut());
+
+      expect(currentUserIsLoading(state)).toEqual(false);
     });
   });
 
@@ -94,6 +134,21 @@ describe(__filename, () => {
       expect(_getCurrentUserProfile).toHaveBeenCalledWith(store.getState().api);
     });
 
+    it('dispatches beginLoadCurrentUser before an API request', async () => {
+      const user = fakeUser;
+      const _getCurrentUserProfile = jest
+        .fn()
+        .mockReturnValue(Promise.resolve(user));
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () => fetchCurrentUserProfile({ _getCurrentUserProfile }),
+      });
+
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(actions.beginLoadCurrentUser());
+    });
+
     it('dispatches loadCurrentUser when API response is successful', async () => {
       const user = fakeUser;
       const _getCurrentUserProfile = jest
@@ -126,7 +181,11 @@ describe(__filename, () => {
       await thunk();
 
       expect(_log.error).toHaveBeenCalled();
-      expect(dispatch).not.toHaveBeenCalled();
+      expect(dispatch).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: getType(actions.loadCurrentUser),
+        }),
+      );
     });
   });
 });

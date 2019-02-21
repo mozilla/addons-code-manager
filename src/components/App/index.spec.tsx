@@ -68,7 +68,9 @@ describe(__filename, () => {
   });
 
   it('displays a loading message until the user profile gets loaded', () => {
-    const root = render();
+    const store = configureStore();
+    store.dispatch(userActions.beginLoadCurrentUser());
+    const root = render({ store });
 
     expect(root).toIncludeText('Getting your workspace ready');
     expect(root.find(Navbar)).toHaveLength(0);

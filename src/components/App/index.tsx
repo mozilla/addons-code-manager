@@ -14,7 +14,8 @@ import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
 import styles from './styles.module.scss';
 import { ApiState, actions as apiActions } from '../../reducers/api';
 import {
-  User,
+  UsersState,
+  currentUserIsLoading,
   fetchCurrentUserProfile,
   getCurrentUser,
 } from '../../reducers/users';
@@ -33,7 +34,7 @@ export type PublicProps = {
 type PropsFromState = {
   apiState: ApiState;
   loading: boolean;
-  profile: User | null;
+  profile: UsersState['currentUser'];
 };
 
 /* eslint-disable @typescript-eslint/indent */
@@ -67,61 +68,65 @@ export class AppBase extends React.Component<Props> {
     }
   }
 
-  render() {
+  renderRow(content: JSX.Element, { className = '' } = {}) {
+    return (
+      <Row className={makeClassName(styles.content, className)}>{content}</Row>
+    );
+  }
+
+  renderContent() {
     const { loading, profile } = this.props;
 
-    const routesOrLoginMessage = profile ? (
-      <Switch>
-        <Route exact path="/" component={Index} />
-        <Route
-          component={Browse}
-          exact
-          path="/:lang/browse/:addonId/versions/:versionId/"
-        />
-        <Route component={NotFound} />
-      </Switch>
-    ) : (
-      <p className={styles.loginMessage}>
-        {gettext('Please log in to continue.')}
-      </p>
-    );
+    if (loading) {
+      return this.renderRow(
+        <React.Fragment>
+          <p>{gettext('Getting your workspace ready')}</p>
+          <p>{gettext(`Don't turn off your computer`)}</p>
+        </React.Fragment>,
+        {
+          className: styles.isLoading,
+        },
+      );
+    }
+
+    if (profile) {
+      return this.renderRow(
+        <Switch>
+          <Route exact path="/" component={Index} />
+          <Route
+            component={Browse}
+            exact
+            path="/:lang/browse/:addonId/versions/:versionId/"
+          />
+          <Route component={NotFound} />
+        </Switch>,
+      );
+    }
+
+    return this.renderRow(<p>{gettext('Please log in to continue.')}</p>, {
+      className: styles.loginMessage,
+    });
+  }
+
+  render() {
+    const { loading } = this.props;
 
     return (
       <React.Fragment>
         {!loading && <Navbar />}
-
         <Container className={styles.container} fluid>
-          <Row
-            className={makeClassName(styles.content, styles.isoading, {
-              [styles.isLoading]: loading,
-            })}
-          >
-            {loading ? (
-              <React.Fragment>
-                <p>{gettext('Getting your workspace ready')}</p>
-                <p>{gettext(`Don't turn off your computer`)}</p>
-              </React.Fragment>
-            ) : (
-              routesOrLoginMessage
-            )}
-          </Row>
+          {this.renderContent()}
         </Container>
       </React.Fragment>
     );
   }
 }
 
-const mapStateToProps = (
-  state: ApplicationState,
-  ownProps: PublicProps,
-): PropsFromState => {
-  const profile = getCurrentUser(state.users);
-  const loading = !!ownProps.authToken && !profile;
-
+const mapStateToProps = (state: ApplicationState): PropsFromState => {
   return {
     apiState: state.api,
-    loading,
-    profile,
+    loading: currentUserIsLoading(state.users),
+    profile: getCurrentUser(state.users),
   };
 };
 

@@ -5,7 +5,11 @@ import { connect } from 'react-redux';
 import { gettext } from '../../utils';
 import LoginButton from '../LoginButton';
 import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
-import { User, getCurrentUser, requestLogOut } from '../../reducers/users';
+import {
+  UsersState,
+  getCurrentUser,
+  requestLogOut,
+} from '../../reducers/users';
 import styles from './styles.module.scss';
 
 type PublicProps = {
@@ -13,7 +17,7 @@ type PublicProps = {
 };
 
 type PropsFromState = {
-  profile: User | null;
+  profile: UsersState['currentUser'];
 };
 
 type Props = PublicProps & PropsFromState & ConnectedReduxProps;

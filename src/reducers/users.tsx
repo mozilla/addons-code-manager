@@ -49,6 +49,7 @@ export type User = {
 };
 
 export const actions = {
+  beginLoadCurrentUser: createAction('BEGIN_LOAD_CURRENT_USER'),
   loadCurrentUser: createAction('LOAD_CURRENT_USER', (resolve) => {
     return (payload: { user: ExternalUser }) => resolve(payload);
   }),
@@ -65,7 +66,7 @@ export const requestLogOut = ({
 };
 
 export type UsersState = {
-  currentUser: User | null;
+  currentUser: User | null | undefined;
 };
 
 export const initialState: UsersState = {
@@ -85,12 +86,17 @@ export const getCurrentUser = (users: UsersState) => {
   return users.currentUser;
 };
 
+export const currentUserIsLoading = (users: UsersState) => {
+  return getCurrentUser(users) === undefined;
+};
+
 export const fetchCurrentUserProfile = ({
   _getCurrentUserProfile = getCurrentUserProfile,
   _log = log,
 } = {}): ThunkActionCreator => {
   return async (dispatch, getState) => {
     const { api: apiState } = getState();
+    dispatch(actions.beginLoadCurrentUser());
 
     const response = await _getCurrentUserProfile(apiState);
 
@@ -107,6 +113,11 @@ const reducer: Reducer<UsersState, ActionType<typeof actions>> = (
   action,
 ): UsersState => {
   switch (action.type) {
+    case getType(actions.beginLoadCurrentUser):
+      return {
+        ...state,
+        currentUser: undefined,
+      };
     case getType(actions.loadCurrentUser):
       return {
         ...state,
