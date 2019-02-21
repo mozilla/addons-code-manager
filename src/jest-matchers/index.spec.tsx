@@ -73,4 +73,6 @@ describe(__filename, () => {
   });
 });
 
+// We need this empty export or `tsc` thinks this is a global module and
+// compilation fails.
 export {};
