@@ -120,13 +120,25 @@ describe(__filename, () => {
   });
 
   describe('fetchCurrentUserProfile', () => {
+    const _fetchCurrentUserProfile = (params = {}) => {
+      return thunkTester({
+        createThunk: () =>
+          fetchCurrentUserProfile({
+            _getCurrentUserProfile: jest
+              .fn()
+              .mockReturnValue(Promise.resolve(fakeUser)),
+            ...params,
+          }),
+      });
+    };
+
     it('calls getCurrentUserProfile', async () => {
       const _getCurrentUserProfile = jest
         .fn()
         .mockReturnValue(Promise.resolve(fakeUser));
 
-      const { store, thunk } = thunkTester({
-        createThunk: () => fetchCurrentUserProfile({ _getCurrentUserProfile }),
+      const { store, thunk } = _fetchCurrentUserProfile({
+        _getCurrentUserProfile,
       });
 
       await thunk();
@@ -135,14 +147,7 @@ describe(__filename, () => {
     });
 
     it('dispatches beginLoadCurrentUser before an API request', async () => {
-      const user = fakeUser;
-      const _getCurrentUserProfile = jest
-        .fn()
-        .mockReturnValue(Promise.resolve(user));
-
-      const { dispatch, thunk } = thunkTester({
-        createThunk: () => fetchCurrentUserProfile({ _getCurrentUserProfile }),
-      });
+      const { dispatch, thunk } = _fetchCurrentUserProfile();
 
       await thunk();
 
@@ -155,8 +160,8 @@ describe(__filename, () => {
         .fn()
         .mockReturnValue(Promise.resolve(user));
 
-      const { dispatch, thunk } = thunkTester({
-        createThunk: () => fetchCurrentUserProfile({ _getCurrentUserProfile }),
+      const { dispatch, thunk } = _fetchCurrentUserProfile({
+        _getCurrentUserProfile,
       });
 
       await thunk();
@@ -173,9 +178,9 @@ describe(__filename, () => {
         }),
       );
 
-      const { dispatch, thunk } = thunkTester({
-        createThunk: () =>
-          fetchCurrentUserProfile({ _log, _getCurrentUserProfile }),
+      const { dispatch, thunk } = _fetchCurrentUserProfile({
+        _log,
+        _getCurrentUserProfile,
       });
 
       await thunk();
