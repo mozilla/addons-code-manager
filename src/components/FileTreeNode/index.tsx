@@ -8,7 +8,7 @@ import { gettext } from '../../utils';
 import { TreeNode } from '../FileTree';
 import styles from './styles.module.scss';
 
-type PublicProps = TreefoldRenderProps<TreeNode> & {
+export type PublicProps = TreefoldRenderProps<TreeNode> & {
   onSelect: (id: string) => void;
 };
 

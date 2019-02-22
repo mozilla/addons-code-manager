@@ -218,19 +218,19 @@ export const fetchVersion = ({
 };
 
 type FetchVersionFileParams = {
-  _log?: typeof log;
   _getVersion?: typeof getVersion;
+  _log?: typeof log;
   addonId: number;
-  versionId: number;
   path: string;
+  versionId: number;
 };
 
 export const fetchVersionFile = ({
   _getVersion = getVersion,
   _log = log,
   addonId,
-  versionId,
   path,
+  versionId,
 }: FetchVersionFileParams): ThunkActionCreator => {
   return async (dispatch, getState) => {
     const { api: apiState } = getState();
