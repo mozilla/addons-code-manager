@@ -26,11 +26,12 @@ type VersionLicense = {
   url: string;
 };
 
+export type VersionEntryType = 'image' | 'directory' | 'text' | 'binary';
+
 export type ExternalVersionEntry = {
-  binary: boolean | string;
   depth: number;
-  directory: boolean;
   filename: string;
+  mime_category: VersionEntryType;
   mimetype: string;
   modified: string;
   path: string;
@@ -81,13 +82,6 @@ export type VersionFile = {
   size: number;
 };
 
-export enum VersionEntryType {
-  image,
-  binary,
-  text,
-  directory,
-}
-
 type VersionEntry = {
   depth: number;
   filename: string;
@@ -130,19 +124,6 @@ export const initialState: VersionsState = {
   versionFiles: {},
 };
 
-export const getVersionEntryType = (entry: ExternalVersionEntry) => {
-  if (entry.directory) {
-    return VersionEntryType.directory;
-  }
-  if (entry.binary === 'image') {
-    return VersionEntryType.image;
-  }
-  if (entry.binary) {
-    return VersionEntryType.binary;
-  }
-  return VersionEntryType.text;
-};
-
 export const createInternalVersionFile = (
   file: ExternalVersionFile,
 ): VersionFile => {
@@ -162,7 +143,7 @@ export const createInternalVersionEntry = (
     filename: entry.filename,
     modified: entry.modified,
     path: entry.path,
-    type: getVersionEntryType(entry),
+    type: entry.mime_category,
   };
 };
 
