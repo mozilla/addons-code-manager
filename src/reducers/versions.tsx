@@ -4,12 +4,9 @@ import log from 'loglevel';
 
 import { ThunkActionCreator } from '../configureStore';
 import { getVersion, isErrorResponse } from '../api';
+import { LocalizedStringMap } from '../utils';
 
 type VersionId = number;
-
-type LocalizedString = {
-  [lang: string]: string;
-};
 
 type VersionCompatibility = {
   [appName: string]: {
@@ -21,8 +18,8 @@ type VersionCompatibility = {
 type VersionLicense = {
   id: number;
   isCustom: boolean;
-  name: LocalizedString;
-  text: LocalizedString;
+  name: LocalizedStringMap;
+  text: LocalizedStringMap;
   url: string;
 };
 
@@ -61,7 +58,7 @@ export type ExternalVersionFile = {
 export type ExternalVersionAddon = {
   icon_url: string;
   id: number;
-  name: LocalizedString;
+  name: LocalizedStringMap;
   slug: string;
 };
 
@@ -75,7 +72,7 @@ export type ExternalVersion = {
   id: VersionId;
   is_strict_compatibility_enabled: boolean;
   license: VersionLicense;
-  release_notes: LocalizedString | null;
+  release_notes: LocalizedStringMap | null;
   reviewed: string;
   url: string;
   validation_url: string;
@@ -101,7 +98,7 @@ type VersionEntry = {
 type VersionAddon = {
   iconUrl: string;
   id: number;
-  name: LocalizedString;
+  name: LocalizedStringMap;
   slug: string;
 };
 

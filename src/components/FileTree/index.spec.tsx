@@ -12,6 +12,7 @@ import {
   getVersionInfo,
 } from '../../reducers/versions';
 import { fakeVersion, fakeVersionEntry } from '../../test-helpers';
+import { getLocalizedString } from '../../utils';
 
 import FileTree, { buildFileTree, TreeNode, DirectoryNode } from '.';
 
@@ -370,7 +371,7 @@ describe(__filename, () => {
       expect(root.find(ListGroup)).toHaveLength(1);
       expect(root.find(Treefold)).toHaveLength(1);
       expect(root.find(Treefold)).toHaveProp('nodes', [
-        buildFileTree(String(version.id), version.entries),
+        buildFileTree(getLocalizedString(version.addon.name), version.entries),
       ]);
     });
 
