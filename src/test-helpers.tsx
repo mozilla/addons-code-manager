@@ -11,6 +11,7 @@ import configureStore, {
 import { ExternalUser } from './reducers/users';
 import {
   ExternalVersion,
+  ExternalVersionAddon,
   ExternalVersionEntry,
   ExternalVersionFile,
   VersionEntryType,
@@ -48,7 +49,15 @@ export const fakeVersionFile: ExternalVersionFile = Object.freeze({
   url: 'http://example.com/edit/',
 });
 
+export const fakeVersionAddon: ExternalVersionAddon = Object.freeze({
+  icon_url: 'some-icon-url',
+  id: 111,
+  name: { 'en-US': 'addon name' },
+  slug: 'addon-slug',
+});
+
 export const fakeVersion: ExternalVersion = Object.freeze({
+  addon: fakeVersionAddon,
   channel: 'some channel',
   compatibility: {
     firefox: {
