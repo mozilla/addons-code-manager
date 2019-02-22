@@ -4,10 +4,10 @@ import reducer, {
   actions,
   createInternalUser,
   currentUserIsLoading,
-  fetchCurrentUserProfile,
-  getCurrentUser,
+  fetchCurrentUser,
   initialState,
   requestLogOut,
+  selectCurrentUser,
 } from './users';
 import { getFakeLogger, fakeUser, thunkTester } from '../test-helpers';
 
@@ -28,7 +28,7 @@ describe(__filename, () => {
       let state = reducer(undefined, actions.loadCurrentUser({ user }));
       state = reducer(state, actions.logOut());
 
-      expect(getCurrentUser(state)).toEqual(null);
+      expect(selectCurrentUser(state)).toEqual(null);
     });
   });
 
@@ -46,7 +46,7 @@ describe(__filename, () => {
       state = reducer(state, actions.beginFetchCurrentUser());
       state = reducer(state, actions.abortFetchCurrentUser());
 
-      expect(getCurrentUser(state)).toEqual(null);
+      expect(selectCurrentUser(state)).toEqual(null);
     });
   });
 
@@ -62,24 +62,24 @@ describe(__filename, () => {
     });
   });
 
-  describe('getCurrentUser', () => {
+  describe('selectCurrentUser', () => {
     it('returns the current user', () => {
       const user = fakeUser;
       const state = reducer(undefined, actions.loadCurrentUser({ user }));
 
-      expect(getCurrentUser(state)).toEqual(createInternalUser(user));
+      expect(selectCurrentUser(state)).toEqual(createInternalUser(user));
     });
 
     it('returns null if there is no current user', () => {
       const state = initialState;
 
-      expect(getCurrentUser(state)).toEqual(null);
+      expect(selectCurrentUser(state)).toEqual(null);
     });
 
     it('returns null while the user is loading', () => {
       const state = reducer(undefined, actions.beginFetchCurrentUser());
 
-      expect(getCurrentUser(state)).toEqual(null);
+      expect(selectCurrentUser(state)).toEqual(null);
     });
   });
 
@@ -143,12 +143,12 @@ describe(__filename, () => {
     });
   });
 
-  describe('fetchCurrentUserProfile', () => {
-    const _fetchCurrentUserProfile = (params = {}) => {
+  describe('fetchCurrentUser', () => {
+    const _fetchCurrentUser = (params = {}) => {
       return thunkTester({
         createThunk: () =>
-          fetchCurrentUserProfile({
-            _getCurrentUserProfile: jest
+          fetchCurrentUser({
+            _getCurrentUser: jest
               .fn()
               .mockReturnValue(Promise.resolve(fakeUser)),
             ...params,
@@ -156,22 +156,20 @@ describe(__filename, () => {
       });
     };
 
-    it('calls getCurrentUserProfile', async () => {
-      const _getCurrentUserProfile = jest
+    it('calls selectCurrentUser', async () => {
+      const _getCurrentUser = jest
         .fn()
         .mockReturnValue(Promise.resolve(fakeUser));
 
-      const { store, thunk } = _fetchCurrentUserProfile({
-        _getCurrentUserProfile,
-      });
+      const { store, thunk } = _fetchCurrentUser({ _getCurrentUser });
 
       await thunk();
 
-      expect(_getCurrentUserProfile).toHaveBeenCalledWith(store.getState().api);
+      expect(_getCurrentUser).toHaveBeenCalledWith(store.getState().api);
     });
 
     it('dispatches beginFetchCurrentUser before an API request', async () => {
-      const { dispatch, thunk } = _fetchCurrentUserProfile();
+      const { dispatch, thunk } = _fetchCurrentUser();
 
       await thunk();
 
@@ -180,13 +178,9 @@ describe(__filename, () => {
 
     it('dispatches loadCurrentUser when API response is successful', async () => {
       const user = fakeUser;
-      const _getCurrentUserProfile = jest
-        .fn()
-        .mockReturnValue(Promise.resolve(user));
+      const _getCurrentUser = jest.fn().mockReturnValue(Promise.resolve(user));
 
-      const { dispatch, thunk } = _fetchCurrentUserProfile({
-        _getCurrentUserProfile,
-      });
+      const { dispatch, thunk } = _fetchCurrentUser({ _getCurrentUser });
 
       await thunk();
 
@@ -196,15 +190,15 @@ describe(__filename, () => {
     it('logs an error when API response is not successful', async () => {
       const _log = getFakeLogger();
 
-      const _getCurrentUserProfile = jest.fn().mockReturnValue(
+      const _getCurrentUser = jest.fn().mockReturnValue(
         Promise.resolve({
           error: new Error('Bad Request'),
         }),
       );
 
-      const { dispatch, thunk } = _fetchCurrentUserProfile({
+      const { dispatch, thunk } = _fetchCurrentUser({
         _log,
-        _getCurrentUserProfile,
+        _getCurrentUser,
       });
 
       await thunk();
@@ -218,15 +212,13 @@ describe(__filename, () => {
     });
 
     it('aborts loading a user when API response is not successful', async () => {
-      const _getCurrentUserProfile = jest.fn().mockReturnValue(
+      const _getCurrentUser = jest.fn().mockReturnValue(
         Promise.resolve({
           error: new Error('Bad Request'),
         }),
       );
 
-      const { dispatch, thunk } = _fetchCurrentUserProfile({
-        _getCurrentUserProfile,
-      });
+      const { dispatch, thunk } = _fetchCurrentUser({ _getCurrentUser });
 
       await thunk();
 

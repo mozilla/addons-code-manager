@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import { gettext } from '../../utils';
 import LoginButton from '../LoginButton';
 import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
-import { User, getCurrentUser, requestLogOut } from '../../reducers/users';
+import { User, selectCurrentUser, requestLogOut } from '../../reducers/users';
 import styles from './styles.module.scss';
 
 type PublicProps = {
@@ -53,7 +53,7 @@ export class NavbarBase extends React.Component<Props> {
 
 const mapStateToProps = (state: ApplicationState): PropsFromState => {
   return {
-    profile: getCurrentUser(state.users),
+    profile: selectCurrentUser(state.users),
   };
 };
 

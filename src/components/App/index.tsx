@@ -16,8 +16,8 @@ import { ApiState, actions as apiActions } from '../../reducers/api';
 import {
   User,
   currentUserIsLoading,
-  fetchCurrentUserProfile,
-  getCurrentUser,
+  fetchCurrentUser,
+  selectCurrentUser,
 } from '../../reducers/users';
 import Navbar from '../Navbar';
 import Browse from '../../pages/Browse';
@@ -26,7 +26,7 @@ import NotFound from '../../pages/NotFound';
 import { gettext } from '../../utils';
 
 export type PublicProps = {
-  _fetchCurrentUserProfile: typeof fetchCurrentUserProfile;
+  _fetchCurrentUser: typeof fetchCurrentUser;
   _log: typeof log;
   authToken: string | null;
 };
@@ -46,7 +46,7 @@ type Props = PublicProps &
 
 export class AppBase extends React.Component<Props> {
   static defaultProps = {
-    _fetchCurrentUserProfile: fetchCurrentUserProfile,
+    _fetchCurrentUser: fetchCurrentUser,
     _log: log,
   };
 
@@ -62,9 +62,9 @@ export class AppBase extends React.Component<Props> {
     const { apiState, profile } = this.props;
 
     if (!profile && prevProps.apiState.authToken !== apiState.authToken) {
-      const { _fetchCurrentUserProfile, dispatch } = this.props;
+      const { _fetchCurrentUser, dispatch } = this.props;
 
-      dispatch(_fetchCurrentUserProfile());
+      dispatch(_fetchCurrentUser());
     }
   }
 
@@ -126,7 +126,7 @@ const mapStateToProps = (state: ApplicationState): PropsFromState => {
   return {
     apiState: state.api,
     loading: currentUserIsLoading(state.users),
-    profile: getCurrentUser(state.users),
+    profile: selectCurrentUser(state.users),
   };
 };
 

@@ -4,7 +4,7 @@ import log from 'loglevel';
 
 import { ThunkActionCreator } from '../configureStore';
 import {
-  getCurrentUserProfile,
+  getCurrentUser,
   isErrorResponse,
   logOutFromServer,
 } from '../api';
@@ -83,7 +83,7 @@ export const createInternalUser = (user: ExternalUser): User => {
   };
 };
 
-export const getCurrentUser = (users: UsersState) => {
+export const selectCurrentUser = (users: UsersState) => {
   return users.currentUser || null;
 };
 
@@ -91,15 +91,15 @@ export const currentUserIsLoading = (users: UsersState) => {
   return users.currentUser === undefined;
 };
 
-export const fetchCurrentUserProfile = ({
-  _getCurrentUserProfile = getCurrentUserProfile,
+export const fetchCurrentUser = ({
+  _getCurrentUser = getCurrentUser,
   _log = log,
 } = {}): ThunkActionCreator => {
   return async (dispatch, getState) => {
     const { api: apiState } = getState();
     dispatch(actions.beginFetchCurrentUser());
 
-    const response = await _getCurrentUserProfile(apiState);
+    const response = await _getCurrentUser(apiState);
 
     if (isErrorResponse(response)) {
       _log.error(`TODO: handle this error response: ${response.error}`);

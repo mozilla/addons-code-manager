@@ -8,7 +8,7 @@ import {
 import {
   HttpMethod,
   callApi,
-  getCurrentUserProfile,
+  getCurrentUser,
   getVersion,
   isErrorResponse,
   logOutFromServer,
@@ -254,9 +254,9 @@ describe(__filename, () => {
     });
   });
 
-  describe('getCurrentUserProfile', () => {
+  describe('getCurrentUser', () => {
     it('calls the API to retrieve the current logged-in user profile', async () => {
-      await getCurrentUserProfile(defaultApiState);
+      await getCurrentUser(defaultApiState);
 
       expect(fetch).toHaveBeenCalledWith(
         expect.stringMatching(`/api/${defaultVersion}/accounts/profile/`),

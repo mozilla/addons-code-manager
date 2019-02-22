@@ -20,13 +20,13 @@ import App, { AppBase, PublicProps } from '.';
 
 describe(__filename, () => {
   type RenderParams = {
-    _fetchCurrentUserProfile?: PublicProps['_fetchCurrentUserProfile'];
+    _fetchCurrentUser?: PublicProps['_fetchCurrentUser'];
     authToken?: PublicProps['authToken'];
     store?: Store;
   };
 
   const render = ({
-    _fetchCurrentUserProfile = createFakeThunk().createThunk,
+    _fetchCurrentUser = createFakeThunk().createThunk,
     authToken = 'some-token',
     store = configureStore(),
   }: RenderParams = {}) => {
@@ -40,7 +40,7 @@ describe(__filename, () => {
     };
 
     const props = {
-      _fetchCurrentUserProfile,
+      _fetchCurrentUser,
       authToken,
     };
 
@@ -119,7 +119,7 @@ describe(__filename, () => {
     const fakeThunk = createFakeThunk();
 
     const root = render({
-      _fetchCurrentUserProfile: fakeThunk.createThunk,
+      _fetchCurrentUser: fakeThunk.createThunk,
       authToken: null,
       store,
     });
