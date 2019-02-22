@@ -2,7 +2,9 @@ import * as React from 'react';
 import Treefold, { TreefoldRenderProps } from 'react-treefold';
 import { ListGroup } from 'react-bootstrap';
 
-import FileTreeNode from '../FileTreeNode';
+import FileTreeNode, {
+  PublicProps as FileTreeNodeProps,
+} from '../FileTreeNode';
 import { Version } from '../../reducers/versions';
 
 type FileNode = {
@@ -126,12 +128,15 @@ export const buildFileTree = (
 };
 
 type PublicProps = {
+  onSelect: FileTreeNodeProps['onSelect'];
   version: Version;
 };
 
 export class FileTreeBase extends React.Component<PublicProps> {
   renderNode = (props: TreefoldRenderProps<TreeNode>) => {
-    return <FileTreeNode {...props} />;
+    const { onSelect } = this.props;
+
+    return <FileTreeNode {...props} onSelect={onSelect} />;
   };
 
   render() {

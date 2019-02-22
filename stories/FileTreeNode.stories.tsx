@@ -27,6 +27,7 @@ const getProps = ({
       name: nodeName,
     },
     renderChildNodes,
+    onSelect: () => {},
   };
 };
 

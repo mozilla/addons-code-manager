@@ -8,7 +8,9 @@ import { gettext } from '../../utils';
 import { TreeNode } from '../FileTree';
 import styles from './styles.module.scss';
 
-type PublicProps = TreefoldRenderProps<TreeNode>;
+export type PublicProps = TreefoldRenderProps<TreeNode> & {
+  onSelect: (id: string) => void;
+};
 
 class FileTreeNodeBase<TreeNodeType> extends React.Component<PublicProps> {
   render() {
@@ -20,12 +22,14 @@ class FileTreeNodeBase<TreeNodeType> extends React.Component<PublicProps> {
       getToggleProps,
       hasChildNodes,
       renderChildNodes,
+      onSelect,
     } = this.props;
 
     let listGroupItemProps = {
       className: makeClassName(styles.node, {
         [styles.directoryNode]: isFolder,
       }),
+      onClick: () => onSelect(node.id),
     };
 
     if (isFolder) {
