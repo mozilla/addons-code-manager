@@ -13,15 +13,15 @@ import {
   ExternalVersion,
   ExternalVersionEntry,
   ExternalVersionFile,
+  VersionEntryType,
 } from './reducers/versions';
 
 /* eslint-disable @typescript-eslint/camelcase */
 
 export const fakeVersionEntry: ExternalVersionEntry = Object.freeze({
-  binary: false,
   depth: 0,
-  directory: false,
   filename: 'manifest.json',
+  mime_category: 'text' as VersionEntryType,
   mimetype: 'application/octet-stream',
   modified: '2017-08-15T12:01:13Z',
   path: '/manifest.json',

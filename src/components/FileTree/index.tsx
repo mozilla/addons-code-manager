@@ -3,7 +3,7 @@ import Treefold, { TreefoldRenderProps } from 'react-treefold';
 import { ListGroup } from 'react-bootstrap';
 
 import FileTreeNode from '../FileTreeNode';
-import { Version, VersionEntryType } from '../../reducers/versions';
+import { Version } from '../../reducers/versions';
 
 type FileNode = {
   id: string;
@@ -106,7 +106,7 @@ export const buildFileTree = (
       };
 
       // When the entry is a directory, we create a `DirectoryNode`.
-      if (entry.type === VersionEntryType.directory) {
+      if (entry.type === 'directory') {
         node = {
           ...node,
           children: [],

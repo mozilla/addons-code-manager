@@ -1,3 +1,4 @@
+/* eslint @typescript-eslint/camelcase: 0 */
 import * as React from 'react';
 import { shallow } from 'enzyme';
 import Treefold from 'react-treefold';
@@ -36,7 +37,7 @@ describe(__filename, () => {
       const entries = [
         createInternalVersionEntry({
           ...fakeVersionEntry,
-          directory: false,
+          mime_category: 'text',
           filename,
         }),
       ];
@@ -58,7 +59,7 @@ describe(__filename, () => {
       const entries = [
         createInternalVersionEntry({
           ...fakeVersionEntry,
-          directory: true,
+          mime_category: 'directory',
           filename,
         }),
       ];
@@ -83,14 +84,14 @@ describe(__filename, () => {
       const entries = [
         createInternalVersionEntry({
           ...fakeVersionEntry,
-          directory: true,
           filename: directory,
+          mime_category: 'directory',
         }),
         createInternalVersionEntry({
           ...fakeVersionEntry,
-          directory: false,
           depth: 1,
           filename: file,
+          mime_category: 'text',
           path: `${directory}/${file}`,
         }),
       ];
@@ -120,21 +121,21 @@ describe(__filename, () => {
       const entries = [
         createInternalVersionEntry({
           ...fakeVersionEntry,
-          directory: true,
           filename: directoryName,
+          mime_category: 'directory',
         }),
         createInternalVersionEntry({
           ...fakeVersionEntry,
-          directory: true,
           depth: 1,
           filename: directoryName,
+          mime_category: 'directory',
           path: `${directoryName}/${directoryName}`,
         }),
         createInternalVersionEntry({
           ...fakeVersionEntry,
-          directory: false,
           depth: 2,
           filename: fileName,
+          mime_category: 'text',
           path: `${directoryName}/${directoryName}/${fileName}`,
         }),
       ];
@@ -166,18 +167,18 @@ describe(__filename, () => {
       const entries = [
         createInternalVersionEntry({
           ...fakeVersionEntry,
-          directory: true,
           filename: 'B',
+          mime_category: 'directory',
         }),
         createInternalVersionEntry({
           ...fakeVersionEntry,
-          directory: false,
           filename: 'A',
+          mime_category: 'text',
         }),
         createInternalVersionEntry({
           ...fakeVersionEntry,
-          directory: true,
           filename: 'C',
+          mime_category: 'directory',
         }),
       ];
 
@@ -241,13 +242,13 @@ describe(__filename, () => {
       const entries = [
         createInternalVersionEntry({
           ...fakeVersionEntry,
-          directory: true,
           filename: 'B',
+          mime_category: 'directory',
         }),
         createInternalVersionEntry({
           ...fakeVersionEntry,
-          directory: true,
           filename: 'A',
+          mime_category: 'directory',
         }),
       ];
 
@@ -272,8 +273,8 @@ describe(__filename, () => {
       const entries = [
         createInternalVersionEntry({
           ...fakeVersionEntry,
-          directory: true,
           filename: 'parent',
+          mime_category: 'directory',
           path: 'parent',
         }),
         createInternalVersionEntry({
@@ -310,15 +311,15 @@ describe(__filename, () => {
       const entries = [
         createInternalVersionEntry({
           ...fakeVersionEntry,
-          directory: true,
           filename: 'parent',
+          mime_category: 'directory',
           path: 'parent',
         }),
         createInternalVersionEntry({
           ...fakeVersionEntry,
           depth: 1,
-          directory: true,
           filename: 'B',
+          mime_category: 'directory',
           path: 'parent/B',
         }),
         createInternalVersionEntry({

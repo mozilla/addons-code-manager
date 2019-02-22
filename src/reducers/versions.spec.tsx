@@ -1,11 +1,9 @@
 import reducer, {
-  VersionEntryType,
   actions,
   createInternalVersion,
   createInternalVersionEntry,
   createInternalVersionFile,
   fetchVersion,
-  getVersionEntryType,
   getVersionFile,
   getVersionFiles,
   getVersionInfo,
@@ -90,7 +88,7 @@ describe(__filename, () => {
         filename: entry.filename,
         modified: entry.modified,
         path: entry.path,
-        type: getVersionEntryType(entry),
+        type: entry.mime_category,
       });
     });
   });
@@ -131,43 +129,6 @@ describe(__filename, () => {
         version: version.version,
         selectedPath: version.file.selected_file,
       });
-    });
-  });
-
-  describe('getVersionEntryType', () => {
-    it('returns the correct type for a directory', () => {
-      const entry = {
-        ...fakeVersionEntry,
-        directory: true,
-      };
-      expect(getVersionEntryType(entry)).toEqual(VersionEntryType.directory);
-    });
-
-    it('returns the correct type for an image', () => {
-      const entry = {
-        ...fakeVersionEntry,
-        binary: 'image',
-        directory: false,
-      };
-      expect(getVersionEntryType(entry)).toEqual(VersionEntryType.image);
-    });
-
-    it('returns the correct type for a binary file', () => {
-      const entry = {
-        ...fakeVersionEntry,
-        binary: true,
-        directory: false,
-      };
-      expect(getVersionEntryType(entry)).toEqual(VersionEntryType.binary);
-    });
-
-    it('returns the correct type for a text file', () => {
-      const entry = {
-        ...fakeVersionEntry,
-        binary: false,
-        directory: false,
-      };
-      expect(getVersionEntryType(entry)).toEqual(VersionEntryType.text);
     });
   });
 
