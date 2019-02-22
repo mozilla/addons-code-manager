@@ -14,7 +14,7 @@ import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
 import styles from './styles.module.scss';
 import { ApiState, actions as apiActions } from '../../reducers/api';
 import {
-  UsersState,
+  User,
   currentUserIsLoading,
   fetchCurrentUserProfile,
   getCurrentUser,
@@ -34,7 +34,7 @@ export type PublicProps = {
 type PropsFromState = {
   apiState: ApiState;
   loading: boolean;
-  profile: UsersState['currentUser'];
+  profile: User | null;
 };
 
 /* eslint-disable @typescript-eslint/indent */

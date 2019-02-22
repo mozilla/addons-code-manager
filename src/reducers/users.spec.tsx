@@ -36,7 +36,7 @@ describe(__filename, () => {
     it('sets the current user to undefined', () => {
       const state = reducer(undefined, actions.beginLoadCurrentUser());
 
-      expect(getCurrentUser(state)).toEqual(undefined);
+      expect(state.currentUser).toEqual(undefined);
     });
   });
 
@@ -72,6 +72,12 @@ describe(__filename, () => {
 
     it('returns null if there is no current user', () => {
       const state = initialState;
+
+      expect(getCurrentUser(state)).toEqual(null);
+    });
+
+    it('returns null while the user is loading', () => {
+      const state = reducer(undefined, actions.beginLoadCurrentUser());
 
       expect(getCurrentUser(state)).toEqual(null);
     });

@@ -84,11 +84,11 @@ export const createInternalUser = (user: ExternalUser): User => {
 };
 
 export const getCurrentUser = (users: UsersState) => {
-  return users.currentUser;
+  return users.currentUser || null;
 };
 
 export const currentUserIsLoading = (users: UsersState) => {
-  return getCurrentUser(users) === undefined;
+  return users.currentUser === undefined;
 };
 
 export const fetchCurrentUserProfile = ({
