@@ -5,7 +5,7 @@ import { Button } from 'react-bootstrap';
 import LoginButton from '.';
 
 describe(__filename, () => {
-  it('renders a page', () => {
+  it('renders a login button', () => {
     const apiVersion = 'api-version';
     const fxaConfig = 'some-fxa-config';
 
