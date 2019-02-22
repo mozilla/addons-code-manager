@@ -11,7 +11,11 @@ export class IndexBase extends React.Component<PublicProps> {
         <p>
           There is nothing you can do here, but try{' '}
           <Link to="/en-US/browse/502955/versions/1541798/">
-            browsing this add-on version.
+            browsing this add-on version
+          </Link>{' '}
+          or{' '}
+          <Link to="/en-US/compare/502955/versions/1541798...1541798/">
+            look at this compare view.
           </Link>
         </p>
       </Col>

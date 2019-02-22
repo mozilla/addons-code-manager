@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { Store } from 'redux';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Highlight from 'react-highlight';
 
 import {
@@ -17,6 +16,7 @@ import {
   createInternalVersion,
 } from '../../reducers/versions';
 import FileTree from '../../components/FileTree';
+import Loading from '../../components/Loading';
 
 import Browse, { BrowseBase, PublicProps, Props } from '.';
 
@@ -76,8 +76,8 @@ describe(__filename, () => {
 
     const root = render({ versionId });
 
-    expect(root.find(FontAwesomeIcon)).toHaveLength(1);
-    expect(root).toIncludeText('Loading version');
+    expect(root.find(Loading)).toHaveLength(1);
+    expect(root.find(Loading)).toHaveProp('message', 'Loading version...');
   });
 
   it('renders a FileTree component when a version has been loaded', () => {
@@ -132,8 +132,8 @@ describe(__filename, () => {
     const root = render({ store, versionId: String(version.id) });
 
     expect(root.find(Highlight)).toHaveLength(0);
-    expect(root.find(FontAwesomeIcon)).toHaveLength(1);
-    expect(root).toIncludeText('Loading content');
+    expect(root.find(Loading)).toHaveLength(1);
+    expect(root.find(Loading)).toHaveProp('message', 'Loading content...');
   });
 
   it('dispatches fetchVersion() on mount', () => {

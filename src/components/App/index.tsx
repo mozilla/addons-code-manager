@@ -22,6 +22,7 @@ import {
 } from '../../reducers/users';
 import Navbar from '../Navbar';
 import Browse from '../../pages/Browse';
+import Compare from '../../pages/Compare';
 import Index from '../../pages/Index';
 import NotFound from '../../pages/NotFound';
 import { gettext } from '../../utils';
@@ -101,6 +102,11 @@ export class AppBase extends React.Component<Props> {
             component={Browse}
             exact
             path="/:lang/browse/:addonId/versions/:versionId/"
+          />
+          <Route
+            component={Compare}
+            exact
+            path="/:lang/compare/:addonId/versions/:baseVersionId...:headVersionId/"
           />
           <Route component={NotFound} />
         </Switch>,

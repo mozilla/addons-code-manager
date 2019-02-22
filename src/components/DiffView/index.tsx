@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { Diff, DiffProps, parseDiff } from 'react-diff-view';
 
+import 'react-diff-view/style/index.css';
+
 type Props = {
   diff: string;
   viewType: DiffProps['viewType'];

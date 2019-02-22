@@ -110,7 +110,7 @@ describe(__filename, () => {
 
     const root = render({ store });
 
-    expect(root.find(Route)).toHaveLength(3);
+    expect(root.find(Route)).toHaveLength(4);
     expect(root.find(`.${styles.loginMessage}`)).toHaveLength(0);
   });
 

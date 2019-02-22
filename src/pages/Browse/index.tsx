@@ -4,7 +4,6 @@ import { connect } from 'react-redux';
 import { Col } from 'react-bootstrap';
 import log from 'loglevel';
 import Highlight from 'react-highlight';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
 import { ApiState } from '../../reducers/api';
@@ -18,6 +17,7 @@ import {
   getVersionInfo,
 } from '../../reducers/versions';
 import { gettext } from '../../utils';
+import Loading from '../../components/Loading';
 
 import 'highlight.js/styles/github.css';
 
@@ -83,8 +83,7 @@ export class BrowseBase extends React.Component<Props> {
     if (!version) {
       return (
         <Col>
-          <FontAwesomeIcon icon="spinner" spin />{' '}
-          {gettext('Loading version...')}
+          <Loading message={gettext('Loading version...')} />
         </Col>
       );
     }
@@ -98,10 +97,7 @@ export class BrowseBase extends React.Component<Props> {
           {file ? (
             <Highlight className="auto">{file.content}</Highlight>
           ) : (
-            <React.Fragment>
-              <FontAwesomeIcon icon="spinner" spin />{' '}
-              {gettext('Loading content...')}
-            </React.Fragment>
+            <Loading message={gettext('Loading content...')} />
           )}
         </Col>
       </React.Fragment>
