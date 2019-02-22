@@ -58,7 +58,7 @@ class FileTreeNodeBase<TreeNodeType> extends React.Component<PublicProps> {
             renderChildNodes()
           ) : (
             <ListGroup.Item
-              className={styles.emptyNodeDirectory}
+              className={makeClassName(styles.node, styles.emptyNodeDirectory)}
               style={{ paddingLeft: `${(level + 2) * 20}px` }}
             >
               {gettext('This folder is empty')}
