@@ -34,7 +34,7 @@ export type PublicProps = {
 type PropsFromState = {
   apiState: ApiState;
   loading: boolean;
-  profile: User | null;
+  user: User | null;
 };
 
 /* eslint-disable @typescript-eslint/indent */
@@ -59,9 +59,9 @@ export class AppBase extends React.Component<Props> {
   }
 
   componentDidUpdate(prevProps: Props) {
-    const { apiState, profile } = this.props;
+    const { apiState, user } = this.props;
 
-    if (!profile && prevProps.apiState.authToken !== apiState.authToken) {
+    if (!user && prevProps.apiState.authToken !== apiState.authToken) {
       const { _fetchCurrentUser, dispatch } = this.props;
 
       dispatch(_fetchCurrentUser());
@@ -75,7 +75,7 @@ export class AppBase extends React.Component<Props> {
   }
 
   renderContent() {
-    const { loading, profile } = this.props;
+    const { loading, user } = this.props;
 
     if (loading) {
       return this.renderRow(
@@ -89,7 +89,7 @@ export class AppBase extends React.Component<Props> {
       );
     }
 
-    if (profile) {
+    if (user) {
       return this.renderRow(
         <Switch>
           <Route exact path="/" component={Index} />
@@ -126,7 +126,7 @@ const mapStateToProps = (state: ApplicationState): PropsFromState => {
   return {
     apiState: state.api,
     loading: currentUserIsLoading(state.users),
-    profile: selectCurrentUser(state.users),
+    user: selectCurrentUser(state.users),
   };
 };
 
