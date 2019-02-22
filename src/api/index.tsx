@@ -130,7 +130,7 @@ export const logOutFromServer = async (apiState: ApiState) => {
   });
 };
 
-export const getCurrentUserProfile = async (apiState: ApiState) => {
+export const getCurrentUser = async (apiState: ApiState) => {
   return callApi<ExternalUser>({
     apiState,
     endpoint: '/accounts/profile/',

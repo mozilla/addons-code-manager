@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import { gettext } from '../../utils';
 import LoginButton from '../LoginButton';
 import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
-import { User, getCurrentUser, requestLogOut } from '../../reducers/users';
+import { User, selectCurrentUser, requestLogOut } from '../../reducers/users';
 import styles from './styles.module.scss';
 
 type PublicProps = {
@@ -13,7 +13,7 @@ type PublicProps = {
 };
 
 type PropsFromState = {
-  profile: User | null;
+  user: User | null;
 };
 
 type Props = PublicProps & PropsFromState & ConnectedReduxProps;
@@ -29,16 +29,14 @@ export class NavbarBase extends React.Component<Props> {
   };
 
   render() {
-    const { profile } = this.props;
+    const { user } = this.props;
 
     return (
       <Navbar bg="dark" className={styles.Navbar} expand="lg" variant="dark">
         <Navbar.Brand href="/">addons-code-manager</Navbar.Brand>
         <Navbar.Text>
-          {profile ? (
-            <span className={styles.username}>{profile.name}</span>
-          ) : null}
-          {profile ? (
+          {user ? <span className={styles.username}>{user.name}</span> : null}
+          {user ? (
             <Button className={styles.logOut} onClick={this.logOut}>
               {gettext('Log out')}
             </Button>
@@ -53,7 +51,7 @@ export class NavbarBase extends React.Component<Props> {
 
 const mapStateToProps = (state: ApplicationState): PropsFromState => {
   return {
-    profile: getCurrentUser(state.users),
+    user: selectCurrentUser(state.users),
   };
 };
 

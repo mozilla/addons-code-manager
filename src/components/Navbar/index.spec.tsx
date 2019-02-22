@@ -36,7 +36,7 @@ describe(__filename, () => {
     return store;
   };
 
-  describe('when a profile is provided', () => {
+  describe('when a user is provided', () => {
     it('renders a username', () => {
       const name = 'Bob';
       const store = storeWithUser({ ...fakeUser, name });
@@ -58,7 +58,7 @@ describe(__filename, () => {
     });
   });
 
-  describe('when profile is null', () => {
+  describe('when user is null', () => {
     it('does not render a username', () => {
       const root = render();
 

@@ -9,14 +9,16 @@ import {
 } from 'react-router-dom';
 import makeClassName from 'classnames';
 import log from 'loglevel';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
 import styles from './styles.module.scss';
 import { ApiState, actions as apiActions } from '../../reducers/api';
 import {
   User,
-  fetchCurrentUserProfile,
-  getCurrentUser,
+  currentUserIsLoading,
+  fetchCurrentUser,
+  selectCurrentUser,
 } from '../../reducers/users';
 import Navbar from '../Navbar';
 import Browse from '../../pages/Browse';
@@ -25,7 +27,7 @@ import NotFound from '../../pages/NotFound';
 import { gettext } from '../../utils';
 
 export type PublicProps = {
-  _fetchCurrentUserProfile: typeof fetchCurrentUserProfile;
+  _fetchCurrentUser: typeof fetchCurrentUser;
   _log: typeof log;
   authToken: string | null;
 };
@@ -33,7 +35,7 @@ export type PublicProps = {
 type PropsFromState = {
   apiState: ApiState;
   loading: boolean;
-  profile: User | null;
+  user: User | null;
 };
 
 /* eslint-disable @typescript-eslint/indent */
@@ -45,7 +47,7 @@ type Props = PublicProps &
 
 export class AppBase extends React.Component<Props> {
   static defaultProps = {
-    _fetchCurrentUserProfile: fetchCurrentUserProfile,
+    _fetchCurrentUser: fetchCurrentUser,
     _log: log,
   };
 
@@ -58,70 +60,77 @@ export class AppBase extends React.Component<Props> {
   }
 
   componentDidUpdate(prevProps: Props) {
-    const { apiState, profile } = this.props;
+    const { apiState, user } = this.props;
 
-    if (!profile && prevProps.apiState.authToken !== apiState.authToken) {
-      const { _fetchCurrentUserProfile, dispatch } = this.props;
+    if (!user && prevProps.apiState.authToken !== apiState.authToken) {
+      const { _fetchCurrentUser, dispatch } = this.props;
 
-      dispatch(_fetchCurrentUserProfile());
+      dispatch(_fetchCurrentUser());
     }
   }
 
-  render() {
-    const { loading, profile } = this.props;
-
-    const routesOrLoginMessage = profile ? (
-      <Switch>
-        <Route exact path="/" component={Index} />
-        <Route
-          component={Browse}
-          exact
-          path="/:lang/browse/:addonId/versions/:versionId/"
-        />
-        <Route component={NotFound} />
-      </Switch>
-    ) : (
-      <p className={styles.loginMessage}>
-        {gettext('Please log in to continue.')}
-      </p>
+  renderRow(content: JSX.Element, { className = '' } = {}) {
+    return (
+      <Row className={makeClassName(styles.content, className)}>{content}</Row>
     );
+  }
+
+  renderContent() {
+    const { loading, user } = this.props;
+
+    if (loading) {
+      return this.renderRow(
+        <React.Fragment>
+          <p>
+            <FontAwesomeIcon icon="spinner" size="3x" spin />
+          </p>
+          <p>{gettext('Getting your workspace ready')}</p>
+          <p>{gettext("Don't turn off your computer")}</p>
+        </React.Fragment>,
+        {
+          className: styles.isLoading,
+        },
+      );
+    }
+
+    if (user) {
+      return this.renderRow(
+        <Switch>
+          <Route exact path="/" component={Index} />
+          <Route
+            component={Browse}
+            exact
+            path="/:lang/browse/:addonId/versions/:versionId/"
+          />
+          <Route component={NotFound} />
+        </Switch>,
+      );
+    }
+
+    return this.renderRow(<p>{gettext('Please log in to continue.')}</p>, {
+      className: styles.loginMessage,
+    });
+  }
+
+  render() {
+    const { loading } = this.props;
 
     return (
       <React.Fragment>
         {!loading && <Navbar />}
-
         <Container className={styles.container} fluid>
-          <Row
-            className={makeClassName(styles.content, styles.isoading, {
-              [styles.isLoading]: loading,
-            })}
-          >
-            {loading ? (
-              <React.Fragment>
-                <p>{gettext('Getting your workspace ready')}</p>
-                <p>{gettext(`Don't turn off your computer`)}</p>
-              </React.Fragment>
-            ) : (
-              routesOrLoginMessage
-            )}
-          </Row>
+          {this.renderContent()}
         </Container>
       </React.Fragment>
     );
   }
 }
 
-const mapStateToProps = (
-  state: ApplicationState,
-  ownProps: PublicProps,
-): PropsFromState => {
-  const profile = getCurrentUser(state.users);
-  const loading = !!ownProps.authToken && !profile;
-
+const mapStateToProps = (state: ApplicationState): PropsFromState => {
   return {
     apiState: state.api,
-    loading,
-    profile,
+    loading: currentUserIsLoading(state.users),
+    user: selectCurrentUser(state.users),
   };
 };
 

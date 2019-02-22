@@ -20,13 +20,13 @@ import App, { AppBase, PublicProps } from '.';
 
 describe(__filename, () => {
   type RenderParams = {
-    _fetchCurrentUserProfile?: PublicProps['_fetchCurrentUserProfile'];
+    _fetchCurrentUser?: PublicProps['_fetchCurrentUser'];
     authToken?: PublicProps['authToken'];
     store?: Store;
   };
 
   const render = ({
-    _fetchCurrentUserProfile = createFakeThunk().createThunk,
+    _fetchCurrentUser = createFakeThunk().createThunk,
     authToken = 'some-token',
     store = configureStore(),
   }: RenderParams = {}) => {
@@ -40,7 +40,7 @@ describe(__filename, () => {
     };
 
     const props = {
-      _fetchCurrentUserProfile,
+      _fetchCurrentUser,
       authToken,
     };
 
@@ -67,8 +67,10 @@ describe(__filename, () => {
     expect(root.find(Navbar)).toHaveLength(1);
   });
 
-  it('displays a loading message until the user profile gets loaded', () => {
-    const root = render();
+  it('displays a loading message until the user gets loaded', () => {
+    const store = configureStore();
+    store.dispatch(userActions.beginFetchCurrentUser());
+    const root = render({ store });
 
     expect(root).toIncludeText('Getting your workspace ready');
     expect(root.find(Navbar)).toHaveLength(0);
@@ -112,12 +114,12 @@ describe(__filename, () => {
     expect(root.find(`.${styles.loginMessage}`)).toHaveLength(0);
   });
 
-  it('fetches the current user profile on update when there is no loaded profile and authToken changes', () => {
+  it('fetches the current user on update when there is no loaded user and authToken changes', () => {
     const store = configureStore();
     const fakeThunk = createFakeThunk();
 
     const root = render({
-      _fetchCurrentUserProfile: fakeThunk.createThunk,
+      _fetchCurrentUser: fakeThunk.createThunk,
       authToken: null,
       store,
     });
@@ -131,7 +133,7 @@ describe(__filename, () => {
     expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
   });
 
-  it('does not fetch the current user profile on update when there is no loaded profile and authToken is the same', () => {
+  it('does not fetch the current user on update when there is no loaded user and authToken is the same', () => {
     const store = configureStore();
     store.dispatch(apiActions.setAuthToken({ authToken: 'some-token' }));
 
@@ -145,7 +147,7 @@ describe(__filename, () => {
     expect(dispatch).not.toHaveBeenCalled();
   });
 
-  it('does not fetch the current user profile on update when the profile has been already loaded', () => {
+  it('does not fetch the current user on update when the user has been already loaded', () => {
     const store = configureStore();
     store.dispatch(userActions.loadCurrentUser({ user: fakeUser }));
 

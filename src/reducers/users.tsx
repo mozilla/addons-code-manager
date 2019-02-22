@@ -3,11 +3,7 @@ import { ActionType, createAction, getType } from 'typesafe-actions';
 import log from 'loglevel';
 
 import { ThunkActionCreator } from '../configureStore';
-import {
-  getCurrentUserProfile,
-  isErrorResponse,
-  logOutFromServer,
-} from '../api';
+import { getCurrentUser, isErrorResponse, logOutFromServer } from '../api';
 
 type UserId = number;
 
@@ -49,6 +45,8 @@ export type User = {
 };
 
 export const actions = {
+  abortFetchCurrentUser: createAction('ABORT_FETCH_CURRENT_USER'),
+  beginFetchCurrentUser: createAction('BEGIN_FETCH_CURRENT_USER'),
   loadCurrentUser: createAction('LOAD_CURRENT_USER', (resolve) => {
     return (payload: { user: ExternalUser }) => resolve(payload);
   }),
@@ -65,7 +63,7 @@ export const requestLogOut = ({
 };
 
 export type UsersState = {
-  currentUser: User | null;
+  currentUser: User | null | undefined;
 };
 
 export const initialState: UsersState = {
@@ -81,21 +79,27 @@ export const createInternalUser = (user: ExternalUser): User => {
   };
 };
 
-export const getCurrentUser = (users: UsersState) => {
-  return users.currentUser;
+export const selectCurrentUser = (users: UsersState) => {
+  return users.currentUser || null;
 };
 
-export const fetchCurrentUserProfile = ({
-  _getCurrentUserProfile = getCurrentUserProfile,
+export const currentUserIsLoading = (users: UsersState) => {
+  return users.currentUser === undefined;
+};
+
+export const fetchCurrentUser = ({
+  _getCurrentUser = getCurrentUser,
   _log = log,
 } = {}): ThunkActionCreator => {
   return async (dispatch, getState) => {
     const { api: apiState } = getState();
+    dispatch(actions.beginFetchCurrentUser());
 
-    const response = await _getCurrentUserProfile(apiState);
+    const response = await _getCurrentUser(apiState);
 
     if (isErrorResponse(response)) {
       _log.error(`TODO: handle this error response: ${response.error}`);
+      dispatch(actions.abortFetchCurrentUser());
     } else {
       dispatch(actions.loadCurrentUser({ user: response }));
     }
@@ -107,6 +111,16 @@ const reducer: Reducer<UsersState, ActionType<typeof actions>> = (
   action,
 ): UsersState => {
   switch (action.type) {
+    case getType(actions.beginFetchCurrentUser):
+      return {
+        ...state,
+        currentUser: undefined,
+      };
+    case getType(actions.abortFetchCurrentUser):
+      return {
+        ...state,
+        currentUser: initialState.currentUser,
+      };
     case getType(actions.loadCurrentUser):
       return {
         ...state,
