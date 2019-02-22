@@ -9,6 +9,7 @@ import {
 } from 'react-router-dom';
 import makeClassName from 'classnames';
 import log from 'loglevel';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
 import styles from './styles.module.scss';
@@ -80,6 +81,7 @@ export class AppBase extends React.Component<Props> {
     if (loading) {
       return this.renderRow(
         <React.Fragment>
+          <p><FontAwesomeIcon icon="spinner" size="3x" spin /></p>
           <p>{gettext('Getting your workspace ready')}</p>
           <p>{gettext("Don't turn off your computer")}</p>
         </React.Fragment>,
