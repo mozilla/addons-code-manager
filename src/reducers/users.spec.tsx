@@ -32,19 +32,19 @@ describe(__filename, () => {
     });
   });
 
-  describe('beginLoadCurrentUser', () => {
+  describe('beginFetchCurrentUser', () => {
     it('sets the current user to undefined', () => {
-      const state = reducer(undefined, actions.beginLoadCurrentUser());
+      const state = reducer(undefined, actions.beginFetchCurrentUser());
 
       expect(state.currentUser).toEqual(undefined);
     });
   });
 
-  describe('abortLoadCurrentUser', () => {
+  describe('abortFetchCurrentUser', () => {
     it('resets the current user state', () => {
       let state;
-      state = reducer(state, actions.beginLoadCurrentUser());
-      state = reducer(state, actions.abortLoadCurrentUser());
+      state = reducer(state, actions.beginFetchCurrentUser());
+      state = reducer(state, actions.abortFetchCurrentUser());
 
       expect(getCurrentUser(state)).toEqual(null);
     });
@@ -77,7 +77,7 @@ describe(__filename, () => {
     });
 
     it('returns null while the user is loading', () => {
-      const state = reducer(undefined, actions.beginLoadCurrentUser());
+      const state = reducer(undefined, actions.beginFetchCurrentUser());
 
       expect(getCurrentUser(state)).toEqual(null);
     });
@@ -89,15 +89,15 @@ describe(__filename, () => {
     });
 
     it('returns true while the user is loading', () => {
-      const state = reducer(undefined, actions.beginLoadCurrentUser());
+      const state = reducer(undefined, actions.beginFetchCurrentUser());
 
       expect(currentUserIsLoading(state)).toEqual(true);
     });
 
     it('returns false after aborting loading the user', () => {
       let state;
-      state = reducer(state, actions.beginLoadCurrentUser());
-      state = reducer(state, actions.abortLoadCurrentUser());
+      state = reducer(state, actions.beginFetchCurrentUser());
+      state = reducer(state, actions.abortFetchCurrentUser());
 
       expect(currentUserIsLoading(state)).toEqual(false);
     });
@@ -170,12 +170,12 @@ describe(__filename, () => {
       expect(_getCurrentUserProfile).toHaveBeenCalledWith(store.getState().api);
     });
 
-    it('dispatches beginLoadCurrentUser before an API request', async () => {
+    it('dispatches beginFetchCurrentUser before an API request', async () => {
       const { dispatch, thunk } = _fetchCurrentUserProfile();
 
       await thunk();
 
-      expect(dispatch).toHaveBeenCalledWith(actions.beginLoadCurrentUser());
+      expect(dispatch).toHaveBeenCalledWith(actions.beginFetchCurrentUser());
     });
 
     it('dispatches loadCurrentUser when API response is successful', async () => {
@@ -230,7 +230,7 @@ describe(__filename, () => {
 
       await thunk();
 
-      expect(dispatch).toHaveBeenCalledWith(actions.abortLoadCurrentUser());
+      expect(dispatch).toHaveBeenCalledWith(actions.abortFetchCurrentUser());
     });
   });
 });

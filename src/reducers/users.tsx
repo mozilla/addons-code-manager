@@ -49,8 +49,8 @@ export type User = {
 };
 
 export const actions = {
-  abortLoadCurrentUser: createAction('ABORT_LOAD_CURRENT_USER'),
-  beginLoadCurrentUser: createAction('BEGIN_LOAD_CURRENT_USER'),
+  abortFetchCurrentUser: createAction('ABORT_FETCH_CURRENT_USER'),
+  beginFetchCurrentUser: createAction('BEGIN_FETCH_CURRENT_USER'),
   loadCurrentUser: createAction('LOAD_CURRENT_USER', (resolve) => {
     return (payload: { user: ExternalUser }) => resolve(payload);
   }),
@@ -97,13 +97,13 @@ export const fetchCurrentUserProfile = ({
 } = {}): ThunkActionCreator => {
   return async (dispatch, getState) => {
     const { api: apiState } = getState();
-    dispatch(actions.beginLoadCurrentUser());
+    dispatch(actions.beginFetchCurrentUser());
 
     const response = await _getCurrentUserProfile(apiState);
 
     if (isErrorResponse(response)) {
       _log.error(`TODO: handle this error response: ${response.error}`);
-      dispatch(actions.abortLoadCurrentUser());
+      dispatch(actions.abortFetchCurrentUser());
     } else {
       dispatch(actions.loadCurrentUser({ user: response }));
     }
@@ -115,12 +115,12 @@ const reducer: Reducer<UsersState, ActionType<typeof actions>> = (
   action,
 ): UsersState => {
   switch (action.type) {
-    case getType(actions.beginLoadCurrentUser):
+    case getType(actions.beginFetchCurrentUser):
       return {
         ...state,
         currentUser: undefined,
       };
-    case getType(actions.abortLoadCurrentUser):
+    case getType(actions.abortFetchCurrentUser):
       return {
         ...state,
         currentUser: initialState.currentUser,

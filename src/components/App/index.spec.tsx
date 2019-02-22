@@ -69,7 +69,7 @@ describe(__filename, () => {
 
   it('displays a loading message until the user profile gets loaded', () => {
     const store = configureStore();
-    store.dispatch(userActions.beginLoadCurrentUser());
+    store.dispatch(userActions.beginFetchCurrentUser());
     const root = render({ store });
 
     expect(root).toIncludeText('Getting your workspace ready');
