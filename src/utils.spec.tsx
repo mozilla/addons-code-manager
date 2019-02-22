@@ -6,6 +6,7 @@ describe(__filename, () => {
       const lang = 'fr';
       const value = 'un peu de contenu';
       const localizedStringMap = {
+        en: 'some content',
         [lang]: value,
       };
 
