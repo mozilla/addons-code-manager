@@ -82,7 +82,7 @@ describe(__filename, () => {
 
   describe('createInternalVersionAddon', () => {
     it('creates a VersionAddon', () => {
-      const addon = { ...fakeVersionAddon, id: 1234 };
+      const addon = fakeVersionAddon;
 
       expect(createInternalVersionAddon(addon)).toEqual({
         iconUrl: addon.icon_url,
