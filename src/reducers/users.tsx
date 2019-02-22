@@ -3,11 +3,7 @@ import { ActionType, createAction, getType } from 'typesafe-actions';
 import log from 'loglevel';
 
 import { ThunkActionCreator } from '../configureStore';
-import {
-  getCurrentUser,
-  isErrorResponse,
-  logOutFromServer,
-} from '../api';
+import { getCurrentUser, isErrorResponse, logOutFromServer } from '../api';
 
 type UserId = number;
 
