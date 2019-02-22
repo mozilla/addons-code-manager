@@ -4,6 +4,7 @@ import { ListGroup } from 'react-bootstrap';
 
 import FileTreeNode from '../FileTreeNode';
 import { Version } from '../../reducers/versions';
+import { getLocalizedString } from '../../utils';
 
 type FileNode = {
   id: string;
@@ -137,7 +138,10 @@ export class FileTreeBase extends React.Component<PublicProps> {
   render() {
     const { version } = this.props;
 
-    const tree = buildFileTree(`${version.id}`, version.entries);
+    const tree = buildFileTree(
+      getLocalizedString(version.addon.name),
+      version.entries,
+    );
 
     return (
       <ListGroup>
