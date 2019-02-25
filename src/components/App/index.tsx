@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Container, Row } from 'react-bootstrap';
+import { hot } from 'react-hot-loader';
 import {
   Route,
   RouteComponentProps,
@@ -138,4 +139,8 @@ const mapStateToProps = (state: ApplicationState): PropsFromState => {
   };
 };
 
-export default withRouter(connect(mapStateToProps)(AppBase));
+const WrappedApp = withRouter(connect(mapStateToProps)(AppBase));
+
+export default (process.env.NODE_ENV === 'development'
+  ? hot(module)(WrappedApp)
+  : WrappedApp);
