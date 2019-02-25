@@ -137,22 +137,30 @@ describe(__filename, () => {
   });
 
   it('dispatches fetchVersion() on mount', () => {
+    const addonId = 123456;
     const version = fakeVersion;
 
     const store = configureStore();
     const dispatch = spyOn(store, 'dispatch');
     const fakeThunk = createFakeThunk();
+    const _fetchVersion = fakeThunk.createThunk;
 
     render({
-      _fetchVersion: fakeThunk.createThunk,
+      _fetchVersion,
       store,
+      addonId: String(addonId),
       versionId: String(version.id),
     });
 
     expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(_fetchVersion).toHaveBeenCalledWith({
+      addonId,
+      versionId: version.id,
+    });
   });
 
-  it('dispatches fetchVersionFile when a file is selected', () => {
+  it('dispatches fetchVersionFile() when a file is selected', () => {
+    const addonId = 123456;
     const version = fakeVersion;
     const path = 'some-path';
 
@@ -161,10 +169,12 @@ describe(__filename, () => {
 
     const dispatch = spyOn(store, 'dispatch');
     const fakeThunk = createFakeThunk();
+    const _fetchVersionFile = fakeThunk.createThunk;
 
     const root = render({
-      _fetchVersionFile: fakeThunk.createThunk,
+      _fetchVersionFile,
       store,
+      addonId: String(addonId),
       versionId: String(version.id),
     });
 
@@ -172,5 +182,10 @@ describe(__filename, () => {
     (root.instance() as BrowseBase).onSelectFile(path);
 
     expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(_fetchVersionFile).toHaveBeenCalledWith({
+      addonId,
+      versionId: version.id,
+      path,
+    });
   });
 });
