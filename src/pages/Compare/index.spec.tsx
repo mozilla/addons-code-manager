@@ -115,20 +115,27 @@ describe(__filename, () => {
   });
 
   it('dispatches fetchVersion() on mount', () => {
+    const addonId = 123456;
     const baseVersion = fakeVersion;
     const headVersion = { ...fakeVersion, id: baseVersion.id + 1 };
 
     const store = configureStore();
     const dispatch = spyOn(store, 'dispatch');
     const fakeThunk = createFakeThunk();
+    const _fetchVersion = fakeThunk.createThunk;
 
     render({
-      _fetchVersion: fakeThunk.createThunk,
+      _fetchVersion,
       store,
+      addonId: String(addonId),
       baseVersionId: String(baseVersion.id),
       headVersionId: String(headVersion.id),
     });
 
     expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(_fetchVersion).toHaveBeenCalledWith({
+      addonId,
+      versionId: baseVersion.id,
+    });
   });
 });
