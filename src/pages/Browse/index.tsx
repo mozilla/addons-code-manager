@@ -38,12 +38,10 @@ type PropsFromState = {
   version: Version;
 };
 
-/* eslint-disable @typescript-eslint/indent */
 export type Props = RouteComponentProps<PropsFromRouter> &
   PropsFromState &
   PublicProps &
   ConnectedReduxProps;
-/* eslint-enable @typescript-eslint/indent */
 
 export class BrowseBase extends React.Component<Props> {
   static defaultProps = {

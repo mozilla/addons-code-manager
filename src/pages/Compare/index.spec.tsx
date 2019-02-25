@@ -77,36 +77,38 @@ describe(__filename, () => {
   });
 
   it('renders a FileTree component when a version has been loaded', () => {
-    const version = fakeVersion;
+    const baseVersion = fakeVersion;
+    const headVersion = { ...fakeVersion, id: baseVersion.id + 1 };
 
     const store = configureStore();
-    store.dispatch(versionActions.loadVersionInfo({ version }));
+    store.dispatch(versionActions.loadVersionInfo({ version: baseVersion }));
+    store.dispatch(versionActions.loadVersionInfo({ version: headVersion }));
 
     const root = render({
       store,
-      baseVersionId: String(version.id),
-      // TODO: ideally, we should have different version IDs.
-      headVersionId: String(version.id),
+      baseVersionId: String(baseVersion.id),
+      headVersionId: String(headVersion.id),
     });
 
     expect(root.find(FileTree)).toHaveLength(1);
     expect(root.find(FileTree)).toHaveProp(
       'version',
-      createInternalVersion(version),
+      createInternalVersion(baseVersion),
     );
   });
 
   it('renders a DiffView', () => {
-    const version = fakeVersion;
+    const baseVersion = fakeVersion;
+    const headVersion = { ...fakeVersion, id: baseVersion.id + 1 };
 
     const store = configureStore();
-    store.dispatch(versionActions.loadVersionInfo({ version }));
+    store.dispatch(versionActions.loadVersionInfo({ version: baseVersion }));
+    store.dispatch(versionActions.loadVersionInfo({ version: headVersion }));
 
     const root = render({
       store,
-      baseVersionId: String(version.id),
-      // TODO: ideally, we should have different version IDs.
-      headVersionId: String(version.id),
+      baseVersionId: String(baseVersion.id),
+      headVersionId: String(headVersion.id),
     });
 
     expect(root.find(DiffView)).toHaveLength(1);

@@ -27,12 +27,10 @@ type PropsFromState = {
   version: Version;
 };
 
-/* eslint-disable @typescript-eslint/indent */
 type Props = RouteComponentProps<PropsFromRouter> &
   PropsFromState &
   PublicProps &
   ConnectedReduxProps;
-/* eslint-enable @typescript-eslint/indent */
 
 export class CompareBase extends React.Component<Props> {
   static defaultProps = {
@@ -51,6 +49,8 @@ export class CompareBase extends React.Component<Props> {
     );
   }
 
+  onSelectFile = () => {};
+
   render() {
     const { version } = this.props;
 
@@ -65,7 +65,7 @@ export class CompareBase extends React.Component<Props> {
     return (
       <React.Fragment>
         <Col md="3">
-          <FileTree version={version} />
+          <FileTree version={version} onSelect={this.onSelectFile} />
         </Col>
         <Col md="9">
           <DiffView diff={basicDiff} />

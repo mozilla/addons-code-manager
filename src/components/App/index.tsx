@@ -39,12 +39,10 @@ type PropsFromState = {
   user: User | null;
 };
 
-/* eslint-disable @typescript-eslint/indent */
 type Props = PublicProps &
   PropsFromState &
   ConnectedReduxProps &
   RouteComponentProps<{}>;
-/* eslint-enable @typescript-eslint/indent */
 
 export class AppBase extends React.Component<Props> {
   static defaultProps = {
