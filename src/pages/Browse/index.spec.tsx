@@ -93,10 +93,6 @@ describe(__filename, () => {
       'version',
       createInternalVersion(version),
     );
-    expect(root.find(FileTree)).toHaveProp(
-      'onSelect',
-      (root.instance() as BrowseBase).onSelectFile,
-    );
   });
 
   it('renders the content of the default file when a version has been loaded', () => {
@@ -178,8 +174,11 @@ describe(__filename, () => {
       versionId: String(version.id),
     });
 
-    // Simulate a click on a file.
-    (root.instance() as BrowseBase).onSelectFile(path);
+    const fileTree = root.find(FileTree);
+    expect(fileTree).toHaveProp('onSelect');
+
+    const onSelectFile = fileTree.prop('onSelect');
+    onSelectFile(path);
 
     expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
     expect(_fetchVersionFile).toHaveBeenCalledWith({
