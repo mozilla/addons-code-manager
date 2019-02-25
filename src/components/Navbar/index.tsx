@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Button, Navbar } from 'react-bootstrap';
 import { connect } from 'react-redux';
+import { Link } from 'react-router-dom';
 
 import { gettext } from '../../utils';
 import LoginButton from '../LoginButton';
@@ -25,6 +26,7 @@ export class NavbarBase extends React.Component<Props> {
 
   logOut = () => {
     const { _requestLogOut, dispatch } = this.props;
+
     dispatch(_requestLogOut());
   };
 
@@ -33,7 +35,9 @@ export class NavbarBase extends React.Component<Props> {
 
     return (
       <Navbar bg="dark" className={styles.Navbar} expand="lg" variant="dark">
-        <Navbar.Brand href="/">addons-code-manager</Navbar.Brand>
+        <Navbar.Brand className={styles.brand}>
+          <Link to="/">addons-code-manager</Link>
+        </Navbar.Brand>
         <Navbar.Text>
           {user ? <span className={styles.username}>{user.name}</span> : null}
           {user ? (
