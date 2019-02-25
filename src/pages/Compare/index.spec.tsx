@@ -115,7 +115,8 @@ describe(__filename, () => {
   });
 
   it('dispatches fetchVersion() on mount', () => {
-    const version = fakeVersion;
+    const baseVersion = fakeVersion;
+    const headVersion = { ...fakeVersion, id: baseVersion.id + 1 };
 
     const store = configureStore();
     const dispatch = spyOn(store, 'dispatch');
@@ -124,9 +125,8 @@ describe(__filename, () => {
     render({
       _fetchVersion: fakeThunk.createThunk,
       store,
-      baseVersionId: String(version.id),
-      // TODO: ideally, we should have different version IDs.
-      headVersionId: String(version.id),
+      baseVersionId: String(baseVersion.id),
+      headVersionId: String(headVersion.id),
     });
 
     expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
