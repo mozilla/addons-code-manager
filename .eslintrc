@@ -9,9 +9,6 @@
     "browser": true,
   },
   "rules": {
-    // TS configuration for the `indent` rule.
-    // https://github.com/typescript-eslint/typescript-eslint/blob/5b0b3d9edbcb3ab588a34c431037d9deece30824/packages/eslint-plugin/docs/rules/indent.md#options
-    "@typescript-eslint/indent": ["error", 2],
     "import/no-extraneous-dependencies": ["error", {
         "devDependencies": [
             "**/*.spec.*",
@@ -36,6 +33,7 @@
     "no-mixed-operators": "off",
     "operator-linebreak": "off",
     "react/jsx-one-expression-per-line": "off",
+    "@typescript-eslint/indent": "off",
     // Report an error when a variable is not used.
     "@typescript-eslint/no-unused-vars": "error",
     // The beauty of TS is that it infers types quite well, so let's not write

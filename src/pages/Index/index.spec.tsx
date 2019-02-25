@@ -8,6 +8,6 @@ describe(__filename, () => {
   it('renders a page', () => {
     const root = shallow(<Index />);
 
-    expect(root.find(Link)).toHaveLength(1);
+    expect(root.find(Link)).toExist();
   });
 });
