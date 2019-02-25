@@ -1,8 +1,6 @@
 import { shallow } from 'enzyme';
 import React from 'react';
 import { Store } from 'redux';
-import { NavbarBrand } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
 
 import configureStore from '../../configureStore';
 import LoginButton from '../LoginButton';
@@ -37,14 +35,6 @@ describe(__filename, () => {
     store.dispatch(userActions.loadCurrentUser({ user }));
     return store;
   };
-
-  it('renders a brand link', () => {
-    const root = render();
-
-    expect(root.find(NavbarBrand)).toHaveLength(1);
-    expect(root.find(NavbarBrand).find(Link)).toHaveLength(1);
-    expect(root.find(NavbarBrand).find(Link)).toHaveProp('to', '/');
-  });
 
   describe('when a user is provided', () => {
     it('renders a username', () => {
