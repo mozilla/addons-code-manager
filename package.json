@@ -23,7 +23,7 @@
     "bootstrap": "4.3.1",
     "classnames": "2.2.6",
     "express": "4.16.4",
-    "highlight.js": "9.14.2",
+    "highlight.js": "9.15.5",
     "history": "4.7.2",
     "http-proxy-middleware": "0.19.1",
     "http-proxy-response-rewrite": "0.0.1",
