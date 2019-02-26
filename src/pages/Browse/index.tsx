@@ -3,7 +3,6 @@ import { RouteComponentProps } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { Col } from 'react-bootstrap';
 import log from 'loglevel';
-import Highlight from 'react-highlight';
 
 import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
 import { ApiState } from '../../reducers/api';
@@ -18,8 +17,7 @@ import {
 } from '../../reducers/versions';
 import { gettext } from '../../utils';
 import Loading from '../../components/Loading';
-
-import 'highlight.js/styles/github.css';
+import CodeView from '../../components/CodeView';
 
 export type PublicProps = {
   _fetchVersion: typeof fetchVersion;
@@ -93,7 +91,7 @@ export class BrowseBase extends React.Component<Props> {
         </Col>
         <Col md="9">
           {file ? (
-            <Highlight className="auto">{file.content}</Highlight>
+            <CodeView mimeType={'application/json'} file={file} />
           ) : (
             <Loading message={gettext('Loading content...')} />
           )}

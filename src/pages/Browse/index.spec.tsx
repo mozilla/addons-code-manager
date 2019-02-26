@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { Store } from 'redux';
-import Highlight from 'react-highlight';
 
 import {
   createFakeHistory,
@@ -17,6 +16,7 @@ import {
 } from '../../reducers/versions';
 import FileTree from '../../components/FileTree';
 import Loading from '../../components/Loading';
+import CodeView from '../../components/CodeView';
 
 import Browse, { BrowseBase, PublicProps, Props } from '.';
 
@@ -103,12 +103,7 @@ describe(__filename, () => {
 
     const root = render({ store, versionId: String(version.id) });
 
-    expect(root.find(Highlight)).toHaveLength(1);
-    expect(root.find(Highlight)).toHaveProp('className', 'auto');
-    expect(root.find(Highlight)).toHaveProp(
-      'children',
-      ((root.instance().props as Props).file as VersionFile).content,
-    );
+    expect(root.find(CodeView)).toHaveLength(1);
   });
 
   it('renders a loading message when we do not have the content of a file yet', () => {
@@ -127,7 +122,7 @@ describe(__filename, () => {
 
     const root = render({ store, versionId: String(version.id) });
 
-    expect(root.find(Highlight)).toHaveLength(0);
+    expect(root.find(CodeView)).toHaveLength(0);
     expect(root.find(Loading)).toHaveLength(1);
     expect(root.find(Loading)).toHaveProp('message', 'Loading content...');
   });
