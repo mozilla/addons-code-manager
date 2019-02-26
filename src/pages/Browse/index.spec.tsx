@@ -10,7 +10,6 @@ import {
 } from '../../test-helpers';
 import configureStore from '../../configureStore';
 import {
-  VersionFile,
   actions as versionActions,
   createInternalVersion,
 } from '../../reducers/versions';
@@ -18,7 +17,7 @@ import FileTree from '../../components/FileTree';
 import Loading from '../../components/Loading';
 import CodeView from '../../components/CodeView';
 
-import Browse, { BrowseBase, PublicProps, Props } from '.';
+import Browse, { BrowseBase, PublicProps } from '.';
 
 describe(__filename, () => {
   const createFakeRouteComponentProps = ({

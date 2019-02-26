@@ -1,0 +1,18 @@
+@import '../../scss/variables';
+
+.CodeView {
+  border: 1px solid $light-gray;
+  padding: 10px;
+}
+
+.lineNumbers {
+  display: grid;
+  float: left;
+  padding-right: 10px;
+
+  * {
+    font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+    font-size: inherit;
+    line-height: 1.5;
+  }
+}

@@ -84,14 +84,18 @@ export class BrowseBase extends React.Component<Props> {
       );
     }
 
+    // This is the easy/lazy way of fixing:
+    // https://github.com/mozilla/addons-code-manager/issues/248.
+    const entry = version.entries.find((e) => e.path === version.selectedPath);
+
     return (
       <React.Fragment>
         <Col md="3">
           <FileTree version={version} onSelect={this.onSelectFile} />
         </Col>
         <Col md="9">
-          {file ? (
-            <CodeView mimeType={'application/json'} file={file} />
+          {file && entry ? (
+            <CodeView mimeType={entry.mimeType} content={file.content} />
           ) : (
             <Loading message={gettext('Loading content...')} />
           )}
