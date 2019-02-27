@@ -1,0 +1,41 @@
+@import '../../scss/variables';
+
+.DiffView {
+}
+
+.diff {
+  border-bottom-left-radius: 0.25rem;
+  border-bottom-right-radius: 0.25rem;
+  border: 1px solid $light-gray;
+  margin-bottom: 20px;
+}
+
+.header {
+  background-color: lighten($light-gray, 2);
+  border-top-left-radius: 0.25rem;
+  border-top-right-radius: 0.25rem;
+  border: 1px solid $light-gray;
+  padding: 10px;
+}
+
+.stats {
+  font-size: 0.8em;
+  font-weight: 600;
+}
+
+.statsAdditions {
+  color: green;
+}
+
+.statsDeletions {
+  color: red;
+  margin-left: 10px;
+}
+
+.hunkSeparator {
+  color: darken($light-gray, 20);
+  display: block;
+  height: 24px;
+  line-height: 1;
+  text-align: center;
+}
