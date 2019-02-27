@@ -1,7 +1,9 @@
 import * as React from 'react';
-import Refractor from 'react-refractor/all';
+import refractor from 'refractor';
 
 import styles from './styles.module.scss';
+import text from './text-language';
+import { getLanguage, getLines, mapWithDepth } from './utils';
 import './prism.css';
 
 type PublicProps = {
@@ -9,26 +11,22 @@ type PublicProps = {
   content: string;
 };
 
-export const getLanguage = (mimeType: string) => {
-  switch (mimeType) {
-    case 'application/javascript':
-    case 'text/javascript':
-      return 'js';
-    case 'application/json':
-      return 'json';
-    case 'application/xml':
-      return 'xml';
-    case 'text/css':
-      return 'css';
-    case 'text/html':
-      return 'html';
-    default:
-      return null;
-  }
-};
+// This is needed to provide a fallback in `getLanguage()` when the mime type
+// has no corresponding syntax highlighting language.
+refractor.register(text);
 
-export const getLines = (content: string) => {
-  return content.replace(/\n$/, '').split('\n');
+// This function mimics what https://github.com/rexxars/react-refractor does,
+// but we need a different layout to inline comments so we cannot use this
+// component.
+const renderHighlightedCode = (code: string, language: string) => {
+  const ast = refractor.highlight(code, language);
+  const value = ast.length === 0 ? code : ast.map(mapWithDepth(0));
+
+  return (
+    <pre className={styles.highlightedCode}>
+      <code className={`language-${language}`}>{value}</code>
+    </pre>
+  );
 };
 
 const CodeViewBase = ({ mimeType, content }: PublicProps) => {
@@ -36,28 +34,23 @@ const CodeViewBase = ({ mimeType, content }: PublicProps) => {
 
   return (
     <div className={styles.CodeView}>
-      <pre>
-        <code className={styles.lineNumbers}>
-          {getLines(content).map((_, i) => {
-            const lineNumber = i + 1;
+      <table className={styles.table}>
+        <tbody className={styles.tableBody}>
+          {getLines(content).map((code, i) => {
+            const line = i + 1;
 
             return (
-              <span key={`line-number-${lineNumber}`}>{`${lineNumber}`}</span>
+              <tr key={`row-${line}`}>
+                <td className={styles.lineNumber}>{`${line}`}</td>
+
+                <td className={styles.code}>
+                  {renderHighlightedCode(code, language)}
+                </td>
+              </tr>
             );
           })}
-        </code>
-
-        {language ? (
-          <Refractor
-            className={styles.content}
-            language={language}
-            value={content}
-            inline
-          />
-        ) : (
-          <code className={styles.content}>{content}</code>
-        )}
-      </pre>
+        </tbody>
+      </table>
     </div>
   );
 };

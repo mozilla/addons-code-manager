@@ -31,8 +31,7 @@ const CSS = `html, body {
 
 .hidden {
   display: none;
-}
-`;
+}`;
 
 storiesOf('CodeView', module).addWithChapters('all variants', {
   chapters: [

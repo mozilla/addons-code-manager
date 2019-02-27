@@ -5,14 +5,30 @@
   padding: 10px;
 }
 
-.lineNumbers {
-  display: grid;
-  float: left;
-  padding-right: 10px;
+.table {
+  display: block;
+  width: 100%;
+}
 
-  * {
-    font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
-    font-size: inherit;
-    line-height: 1.5;
-  }
+.tableBody {
+  display: block;
+  overflow: auto;
+  width: 100%;
+}
+
+.lineNumber {
+  padding-right: 10px;
+  text-align: right;
+  user-select: none;
+}
+
+.code,
+.lineNumber {
+  font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+  font-size: inherit;
+  line-height: 1.5;
+}
+
+.highlightedCode {
+  margin: 0;
 }
