@@ -1,0 +1,26 @@
+@import '../../scss/variables.scss';
+
+.container {
+  padding: $default-padding;
+  width: 100%;
+}
+
+.comment,
+.form {
+  background-color: $light-gray;
+  border: 1px solid darken($light-gray, 10);
+  padding: $default-padding;
+}
+
+.textarea {
+  display: block;
+  margin-bottom: $default-padding;
+  width: 100%;
+}
+
+.comment {
+  display: grid;
+  // The FontAwesome icon size is 32px.
+  grid-template-columns: 32px + $default-padding auto;
+  width: 100%;
+}
