@@ -1,21 +1,22 @@
 @import '../../scss/variables';
 
-.DiffView {
-}
-
 .diff {
-  border-bottom-left-radius: 0.25rem;
-  border-bottom-right-radius: 0.25rem;
-  border: 1px solid $light-gray;
+  border-bottom-left-radius: $border-radius;
+  border-bottom-right-radius: $border-radius;
+  border-collapse: separate !important;
+  border-color: $light-gray;
+  border-spacing: 0;
+  border-style: solid;
+  border-width: 0 1px 1px 1px;
   margin-bottom: 20px;
 }
 
 .header {
   background-color: lighten($light-gray, 2);
-  border-top-left-radius: 0.25rem;
-  border-top-right-radius: 0.25rem;
+  border-top-left-radius: $border-radius;
+  border-top-right-radius: $border-radius;
   border: 1px solid $light-gray;
-  padding: 10px;
+  padding: $default-padding;
 }
 
 .stats {
@@ -29,7 +30,7 @@
 
 .statsDeletions {
   color: red;
-  margin-left: 10px;
+  margin-left: $default-padding;
 }
 
 .hunkSeparator {
