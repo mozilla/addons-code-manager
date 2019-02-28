@@ -1,19 +1,13 @@
 import * as React from 'react';
-import refractor from 'refractor';
 
 import styles from './styles.module.scss';
-import text from './text-language';
 import { getLanguage, getLines, mapWithDepth } from './utils';
-import './prism.css';
+import refractor from '../../refractor';
 
 type PublicProps = {
   mimeType: string;
   content: string;
 };
-
-// This is needed to provide a fallback in `getLanguage()` when the mime type
-// has no corresponding syntax highlighting language.
-refractor.register(text);
 
 // This function mimics what https://github.com/rexxars/react-refractor does,
 // but we need a different layout to inline comments so we cannot use this
