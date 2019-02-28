@@ -2,7 +2,8 @@ import * as React from 'react';
 import { shallow } from 'enzyme';
 
 import refractor from '../../refractor';
-import { getLanguage, mapWithDepth } from './utils';
+import { mapWithDepth } from './utils';
+import { getLanguageFromMimeType } from '../../utils';
 import styles from './styles.module.scss';
 
 import CodeView from '.';
@@ -38,7 +39,9 @@ describe(__filename, () => {
     expect(root.find('.language-json')).toHaveLength(1);
     expect(root.find('.language-json')).toHaveProp(
       'children',
-      refractor.highlight(content, getLanguage(mimeType)).map(mapWithDepth(0)),
+      refractor
+        .highlight(content, getLanguageFromMimeType(mimeType))
+        .map(mapWithDepth(0)),
     );
   });
 

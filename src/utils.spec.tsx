@@ -1,4 +1,4 @@
-import { getLocalizedString } from './utils';
+import { getLanguageFromMimeType, getLocalizedString } from './utils';
 
 describe(__filename, () => {
   describe('getLocalizedString', () => {
@@ -28,6 +28,23 @@ describe(__filename, () => {
       };
 
       expect(getLocalizedString(localizedStringMap)).toEqual(value);
+    });
+  });
+
+  describe('getLanguageFromMimeType', () => {
+    it('returns "text" when mime type is unsupported', () => {
+      expect(getLanguageFromMimeType('unknown/mimetype')).toEqual('text');
+    });
+
+    it.each([
+      ['application/javascript', 'js'],
+      ['text/javascript', 'js'],
+      ['application/json', 'json'],
+      ['application/xml', 'xml'],
+      ['text/css', 'css'],
+      ['text/html', 'html'],
+    ])('supports %s', (mimeType, language) => {
+      expect(getLanguageFromMimeType(mimeType)).toEqual(language);
     });
   });
 });

@@ -1,8 +1,9 @@
 import * as React from 'react';
 
 import styles from './styles.module.scss';
-import { getLanguage, getLines, mapWithDepth } from './utils';
+import { getLines, mapWithDepth } from './utils';
 import refractor from '../../refractor';
+import { getLanguageFromMimeType } from '../../utils';
 
 type PublicProps = {
   mimeType: string;
@@ -24,7 +25,7 @@ const renderHighlightedCode = (code: string, language: string) => {
 };
 
 const CodeViewBase = ({ mimeType, content }: PublicProps) => {
-  const language = getLanguage(mimeType);
+  const language = getLanguageFromMimeType(mimeType);
 
   return (
     <div className={styles.CodeView}>

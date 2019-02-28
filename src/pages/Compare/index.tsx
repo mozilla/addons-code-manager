@@ -68,7 +68,7 @@ export class CompareBase extends React.Component<Props> {
           <FileTree version={version} onSelect={this.onSelectFile} />
         </Col>
         <Col md="9">
-          <DiffView diff={diffWithDeletions} />
+          <DiffView diff={diffWithDeletions} mimeType="text/javascript" />
         </Col>
       </React.Fragment>
     );

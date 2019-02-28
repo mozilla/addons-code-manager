@@ -5,13 +5,16 @@ import { Diff, parseDiff } from 'react-diff-view';
 import basicDiff from './fixtures/basicDiff';
 import multipleDiff from './fixtures/multipleDiff';
 import diffWithDeletions from './fixtures/diffWithDeletions';
+import { getLanguageFromMimeType } from '../../utils';
 import styles from './styles.module.scss';
 
 import DiffView from '.';
 
 describe(__filename, () => {
   const render = (props = {}) => {
-    return shallow(<DiffView diff={basicDiff} {...props} />);
+    return shallow(
+      <DiffView diff={basicDiff} mimeType="text/plain" {...props} />,
+    );
   };
 
   it('defaults the viewType to unified', () => {
@@ -75,5 +78,23 @@ describe(__filename, () => {
       // There are less separators than hunks.
       parsedDiff.hunks.length - 1,
     );
+  });
+
+  it('tokenizes the hunks to add syntax highlighting', () => {
+    const diff = multipleDiff;
+    const parsedDiffs = parseDiff(diff);
+    const mimeType = 'application/javascript';
+    const _tokenize = jest.fn();
+
+    render({ _tokenize, diff, mimeType });
+
+    parsedDiffs.forEach((parsedDiff) => {
+      expect(_tokenize).toHaveBeenCalledWith(parsedDiff.hunks, {
+        highlight: true,
+        language: getLanguageFromMimeType(mimeType),
+        refractor: expect.any(Object),
+      });
+    });
+    expect(_tokenize).toHaveBeenCalledTimes(parsedDiffs.length);
   });
 });
