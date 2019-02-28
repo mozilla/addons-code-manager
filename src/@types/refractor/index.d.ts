@@ -3,7 +3,6 @@ declare module 'refractor' {
 
   type RefractorNode = {
     children: RefractorNode[];
-    properties: object;
     tagName: string;
     type: string;
     value: string;

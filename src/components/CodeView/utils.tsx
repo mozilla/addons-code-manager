@@ -8,14 +8,17 @@ const mapChild = (
   depth: number,
 ): React.ReactElement | string => {
   if (child.tagName) {
-    // @ts-ignore
-    const className = makeClassName(child.properties.className);
+    const className = makeClassName(
+      child.properties && child.properties.className,
+    );
 
     return React.createElement(
       child.tagName,
-      Object.assign({ key: `code-child-${depth}-${i}` }, child.properties, {
+      {
+        key: `code-child-${depth}-${i}`,
+        ...child.properties,
         className,
-      }),
+      },
       // eslint-disable-next-line no-use-before-define, @typescript-eslint/no-use-before-define
       child.children && child.children.map(mapWithDepth(depth + 1)),
     );

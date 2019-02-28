@@ -26,7 +26,7 @@ describe(__filename, () => {
       expect(getLines(content)).toEqual(lines);
     });
 
-    it('supports Windnows line endings', () => {
+    it('supports Windows line endings', () => {
       const lines = ['foo', 'bar'];
       const content = `${lines.join('\r\n')}`;
 
