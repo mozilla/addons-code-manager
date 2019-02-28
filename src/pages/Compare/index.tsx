@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Col } from 'react-bootstrap';
+import { Col, Row } from 'react-bootstrap';
 import { RouteComponentProps } from 'react-router-dom';
 import { connect } from 'react-redux';
 
@@ -8,9 +8,11 @@ import { ApiState } from '../../reducers/api';
 import FileTree from '../../components/FileTree';
 import DiffView from '../../components/DiffView';
 import Loading from '../../components/Loading';
+import VersionChooser from '../../components/VersionChooser';
 import { Version, fetchVersion, getVersionInfo } from '../../reducers/versions';
 import { gettext } from '../../utils';
 import diffWithDeletions from '../../components/DiffView/fixtures/diffWithDeletions';
+import { fakeVersions } from '../../test-helpers';
 
 export type PublicProps = {
   _fetchVersion: typeof fetchVersion;
@@ -68,7 +70,16 @@ export class CompareBase extends React.Component<Props> {
           <FileTree version={version} onSelect={this.onSelectFile} />
         </Col>
         <Col md="9">
-          <DiffView diff={diffWithDeletions} mimeType="text/javascript" />
+          <Row>
+            <Col>
+              <VersionChooser versions={fakeVersions} />
+            </Col>
+          </Row>
+          <Row>
+            <Col>
+              <DiffView diff={diffWithDeletions} mimeType="text/javascript" />
+            </Col>
+          </Row>
         </Col>
       </React.Fragment>
     );
