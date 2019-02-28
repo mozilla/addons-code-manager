@@ -1,8 +1,10 @@
 @import '../../scss/variables';
 
 .CodeView {
+  border-radius: $border-radius;
   border: 1px solid $light-gray;
-  padding: 10px;
+  margin-bottom: $default-padding;
+  padding: $default-padding;
 }
 
 .table {
@@ -17,7 +19,7 @@
 }
 
 .lineNumber {
-  padding-right: 10px;
+  padding-right: $default-padding;
   text-align: right;
   user-select: none;
 }
