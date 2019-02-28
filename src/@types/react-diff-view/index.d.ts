@@ -44,6 +44,9 @@ declare module 'react-diff-view' {
   type ViewType = 'split' | 'unified';
 
   type DiffProps = {
+    // Don't ask why `children` is a function...
+    // https://github.com/otakustay/react-diff-view/blob/882f85adc46431f065a3458104e13f6233cdfcfd/src/Diff/__test__/Diff.test.jsx#L18
+    children: (hunks: HunkInfo[]) => ReactNode;
     className?: string;
     diffType: string;
     hunks: Hunks;

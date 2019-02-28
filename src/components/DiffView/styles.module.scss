@@ -1,9 +1,10 @@
 @import '../../scss/variables';
 
-.diff {
+// We add `.diff` to override the react-diff-view default style.
+.diff.diff {
   border-bottom-left-radius: $border-radius;
   border-bottom-right-radius: $border-radius;
-  border-collapse: separate !important;
+  border-collapse: separate;
   border-color: $light-gray;
   border-spacing: 0;
   border-style: solid;
@@ -25,11 +26,11 @@
 }
 
 .statsAdditions {
-  color: green;
+  color: $text-green;
 }
 
 .statsDeletions {
-  color: red;
+  color: $text-red;
   margin-left: $default-padding;
 }
 

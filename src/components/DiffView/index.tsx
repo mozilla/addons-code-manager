@@ -47,7 +47,7 @@ class DiffView extends React.Component<Props> {
     );
   }
 
-  renderHunk(hunk: HunkInfo, index: number) {
+  renderHunk = (hunk: HunkInfo, index: number) => {
     const components = [
       <Hunk key={`hunk-${hunk.content}`} hunk={hunk} className={styles.hunk} />,
     ];
@@ -63,7 +63,7 @@ class DiffView extends React.Component<Props> {
     }
 
     return components;
-  }
+  };
 
   renderHunks = (hunks: HunkInfo[]) => {
     return hunks.map(this.renderHunk);
@@ -88,7 +88,6 @@ class DiffView extends React.Component<Props> {
                 hunks={hunks}
                 viewType={viewType}
               >
-                {/* Don't ask... https://github.com/otakustay/react-diff-view/blob/882f85adc46431f065a3458104e13f6233cdfcfd/src/Diff/__test__/Diff.test.jsx#L18 */}
                 {this.renderHunks}
               </Diff>
             </React.Fragment>
