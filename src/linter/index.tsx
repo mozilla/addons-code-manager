@@ -1,6 +1,6 @@
 type Message = {
   column: number | null;
-  description: string;
+  description: string | string[];
   file: string;
   line: number | null;
   message: string;
