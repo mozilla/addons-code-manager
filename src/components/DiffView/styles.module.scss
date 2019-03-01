@@ -41,3 +41,12 @@
   line-height: 1;
   text-align: center;
 }
+
+:global {
+  .diff-code,
+  .diff-gutter {
+    font-family: $code-font-family;
+    font-size: $code-font-size;
+    line-height: $code-line-height;
+  }
+}
