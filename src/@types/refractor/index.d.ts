@@ -2,8 +2,8 @@ declare module 'refractor' {
   declare function register(language: object): void;
 
   type RefractorNode = {
-    children: RefractorNode[];
-    tagName: string;
+    children?: RefractorNode[];
+    tagName?: string;
     type: string;
     value: string;
     properties?: {
