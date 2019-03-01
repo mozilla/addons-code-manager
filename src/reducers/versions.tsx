@@ -90,6 +90,7 @@ export type VersionFile = {
 type VersionEntry = {
   depth: number;
   filename: string;
+  mimeType: string;
   modified: string;
   path: string;
   type: VersionEntryType;
@@ -158,6 +159,7 @@ export const createInternalVersionEntry = (
   return {
     depth: entry.depth,
     filename: entry.filename,
+    mimeType: entry.mimetype,
     modified: entry.modified,
     path: entry.path,
     type: entry.mime_category,

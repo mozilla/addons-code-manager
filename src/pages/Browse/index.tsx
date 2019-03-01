@@ -3,7 +3,6 @@ import { RouteComponentProps } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { Col } from 'react-bootstrap';
 import log from 'loglevel';
-import Highlight from 'react-highlight';
 
 import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
 import { ApiState } from '../../reducers/api';
@@ -18,8 +17,7 @@ import {
 } from '../../reducers/versions';
 import { gettext } from '../../utils';
 import Loading from '../../components/Loading';
-
-import 'highlight.js/styles/github.css';
+import CodeView from '../../components/CodeView';
 
 export type PublicProps = {
   _fetchVersion: typeof fetchVersion;
@@ -86,14 +84,18 @@ export class BrowseBase extends React.Component<Props> {
       );
     }
 
+    // This is the easy/lazy way of fixing:
+    // https://github.com/mozilla/addons-code-manager/issues/248.
+    const entry = version.entries.find((e) => e.path === version.selectedPath);
+
     return (
       <React.Fragment>
         <Col md="3">
           <FileTree version={version} onSelect={this.onSelectFile} />
         </Col>
         <Col md="9">
-          {file ? (
-            <Highlight className="auto">{file.content}</Highlight>
+          {file && entry ? (
+            <CodeView mimeType={entry.mimeType} content={file.content} />
           ) : (
             <Loading message={gettext('Loading content...')} />
           )}

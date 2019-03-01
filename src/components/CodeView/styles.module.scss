@@ -1,0 +1,36 @@
+@import '../../scss/variables';
+
+.CodeView {
+  border-radius: $border-radius;
+  border: 1px solid $light-gray;
+  margin-bottom: $default-padding;
+  padding: $default-padding;
+}
+
+.table {
+  display: block;
+  width: 100%;
+}
+
+.tableBody {
+  display: block;
+  overflow: auto;
+  width: 100%;
+}
+
+.lineNumber {
+  padding-right: $default-padding;
+  text-align: right;
+  user-select: none;
+}
+
+.code,
+.lineNumber {
+  font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+  font-size: inherit;
+  line-height: 1.5;
+}
+
+.highlightedCode {
+  margin: 0;
+}

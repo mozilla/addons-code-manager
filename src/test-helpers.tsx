@@ -23,9 +23,9 @@ export const fakeVersionEntry: ExternalVersionEntry = Object.freeze({
   depth: 0,
   filename: 'manifest.json',
   mime_category: 'text' as VersionEntryType,
-  mimetype: 'application/octet-stream',
+  mimetype: 'application/json',
   modified: '2017-08-15T12:01:13Z',
-  path: '/manifest.json',
+  path: 'manifest.json',
   sha256: 'some-sha',
   size: 123,
 });

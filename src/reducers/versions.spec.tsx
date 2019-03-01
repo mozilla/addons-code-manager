@@ -125,6 +125,7 @@ describe(__filename, () => {
       expect(createInternalVersionEntry(entry)).toEqual({
         depth: entry.depth,
         filename: entry.filename,
+        mimeType: entry.mimetype,
         modified: entry.modified,
         path: entry.path,
         type: entry.mime_category,
