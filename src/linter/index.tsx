@@ -16,7 +16,7 @@ export type ExternalMessage = Message & {
   tier: number;
 };
 
-type ExternalValidation = {
+type ExternalLinterResult = {
   error: null | string;
   full_report_url: string;
   upload: string;
@@ -53,10 +53,10 @@ type MessageMap = {
   };
 };
 
-export const getMessageMap = (validation: ExternalValidation) => {
+export const getMessageMap = (result: ExternalLinterResult) => {
   const msgMap: MessageMap = {};
 
-  validation.validation.messages.forEach((message) => {
+  result.validation.messages.forEach((message) => {
     if (!msgMap[message.file]) {
       msgMap[message.file] = { global: [], byLine: {} };
     }

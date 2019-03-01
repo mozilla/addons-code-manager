@@ -3,7 +3,7 @@
 import { ExternalMessage, getMessageMap } from '.';
 
 describe(__filename, () => {
-  const validationSample = {
+  const resultSample = {
     error: null,
     full_report_url: '/upload/d5d993a5a2fa4b759ae2fa3b2eda2a38',
     upload: 'd5d993a5a2fa4b759ae2fa3b2eda2a38',
@@ -39,9 +39,9 @@ describe(__filename, () => {
 
   const _getMessageMap = (messages: Partial<ExternalMessage>[]) => {
     return getMessageMap({
-      ...validationSample,
+      ...resultSample,
       validation: {
-        ...validationSample.validation,
+        ...resultSample.validation,
         messages: messages.map((msg) => {
           return { ...externalMessageSample, ...msg };
         }),
