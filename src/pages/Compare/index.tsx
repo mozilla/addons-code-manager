@@ -10,7 +10,7 @@ import DiffView from '../../components/DiffView';
 import Loading from '../../components/Loading';
 import { Version, fetchVersion, getVersionInfo } from '../../reducers/versions';
 import { gettext } from '../../utils';
-import basicDiff from '../../components/DiffView/fixtures/basicDiff';
+import diffWithDeletions from '../../components/DiffView/fixtures/diffWithDeletions';
 
 export type PublicProps = {
   _fetchVersion: typeof fetchVersion;
@@ -68,7 +68,7 @@ export class CompareBase extends React.Component<Props> {
           <FileTree version={version} onSelect={this.onSelectFile} />
         </Col>
         <Col md="9">
-          <DiffView diff={basicDiff} />
+          <DiffView diff={diffWithDeletions} />
         </Col>
       </React.Fragment>
     );
