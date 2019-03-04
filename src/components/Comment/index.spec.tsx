@@ -11,12 +11,10 @@ describe(__filename, () => {
     content: 'This is a review comment',
   };
 
-  type RenderParams = {
-    comment?: PublicProps['comment'];
-    readOnly?: PublicProps['readOnly'];
-  };
-
-  const render = ({ comment = null, readOnly = true }: RenderParams = {}) => {
+  const render = ({
+    comment = null,
+    readOnly = true,
+  }: Partial<PublicProps> = {}) => {
     return shallow(<Comment comment={comment} readOnly={readOnly} />);
   };
 

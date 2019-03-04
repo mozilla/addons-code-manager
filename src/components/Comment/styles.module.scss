@@ -15,12 +15,11 @@
 .textarea {
   display: block;
   margin-bottom: $default-padding;
+  padding: 2px 5px;
   width: 100%;
 }
 
 .comment {
-  display: grid;
-  // The FontAwesome icon size is 32px.
-  grid-template-columns: 32px + $default-padding auto;
+  display: flex;
   width: 100%;
 }
