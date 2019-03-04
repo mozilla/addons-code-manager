@@ -65,7 +65,7 @@ export const createServer = ({
     }
 
     app.use(
-      proxy('/api', {
+      proxy(['/api/**', '/**/validation.json'], {
         target: env.REACT_APP_API_HOST,
         autoRewrite: true,
         changeOrigin: true,
