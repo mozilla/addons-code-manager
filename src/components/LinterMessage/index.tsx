@@ -51,11 +51,11 @@ const LinterMessage = ({ description, message, type }: PublicProps) => {
     <Alert variant={getAlertVariant(type)}>
       <Alert.Heading>{message}</Alert.Heading>
       <p className={styles.description}>
-        {description.reduce((lines: React.ReactNode[], desc, index) => {
+        {description.reduce((lines: React.ReactNode[], text, index) => {
           if (index > 0) {
-            lines.push(<br key={desc} />);
+            lines.push(<br key={text} />);
           }
-          lines.push(renderDescriptionPart(desc));
+          lines.push(renderDescriptionPart(text));
           return lines;
         }, [])}
       </p>
