@@ -3,7 +3,7 @@ import { ActionType, createAction, getType } from 'typesafe-actions';
 import log from 'loglevel';
 
 import { ThunkActionCreator } from '../configureStore';
-import { getVersion, isErrorResponse } from '../api';
+import { getVersion, getVersionsList, isErrorResponse } from '../api';
 import { LocalizedStringMap } from '../utils';
 
 type VersionId = number;
@@ -123,6 +123,23 @@ export type Version = {
   version: string;
 };
 
+type VersionsListItem = {
+  channel: 'unlisted' | 'listed';
+  id: VersionId;
+  version: string;
+};
+
+type ExternalVersionsListItem = VersionsListItem;
+
+export type ExternalVersionsList = ExternalVersionsListItem[];
+
+export type VersionsList = VersionsListItem[];
+
+export type VersionsLists = {
+  listed: VersionsList;
+  unlisted: VersionsList;
+};
+
 export const actions = {
   loadVersionFile: createAction('LOAD_VERSION_FILE', (resolve) => {
     return (payload: { path: string; version: ExternalVersion }) =>
@@ -135,9 +152,16 @@ export const actions = {
     return (payload: { selectedPath: string; versionId: VersionId }) =>
       resolve(payload);
   }),
+  loadVersionsList: createAction('LOAD_VERSIONS_LIST', (resolve) => {
+    return (payload: { addonId: number; versions: ExternalVersionsList }) =>
+      resolve(payload);
+  }),
 };
 
 export type VersionsState = {
+  byAddonId: {
+    [addonId: number]: VersionsLists;
+  };
   versionInfo: {
     [versionId: number]: Version;
   };
@@ -149,6 +173,7 @@ export type VersionsState = {
 };
 
 export const initialState: VersionsState = {
+  byAddonId: {},
   versionInfo: {},
   versionFiles: {},
 };
@@ -313,6 +338,42 @@ export const fetchVersionFile = ({
   };
 };
 
+export const createVersionsLists = (
+  versions: ExternalVersionsList,
+): VersionsLists => {
+  const listed = versions.filter((version) => version.channel === 'listed');
+  const unlisted = versions.filter((version) => version.channel === 'unlisted');
+
+  return {
+    listed,
+    unlisted,
+  };
+};
+
+type FetchVersionsListParams = {
+  _getVersionsList?: typeof getVersionsList;
+  _log?: typeof log;
+  addonId: number;
+};
+
+export const fetchVersionsList = ({
+  _getVersionsList = getVersionsList,
+  _log = log,
+  addonId,
+}: FetchVersionsListParams): ThunkActionCreator => {
+  return async (dispatch, getState) => {
+    const { api: apiState } = getState();
+
+    const response = await _getVersionsList({ addonId, apiState });
+
+    if (isErrorResponse(response)) {
+      _log.error(`TODO: handle this error response: ${response.error}`);
+    } else {
+      dispatch(actions.loadVersionsList({ addonId, versions: response }));
+    }
+  };
+};
+
 const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
   state = initialState,
   action,
@@ -362,6 +423,17 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
             ...state.versionInfo[versionId],
             selectedPath,
           },
+        },
+      };
+    }
+    case getType(actions.loadVersionsList): {
+      const { addonId, versions } = action.payload;
+
+      return {
+        ...state,
+        byAddonId: {
+          ...state.byAddonId,
+          [addonId]: createVersionsLists(versions),
         },
       };
     }

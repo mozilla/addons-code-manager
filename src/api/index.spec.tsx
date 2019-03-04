@@ -10,6 +10,7 @@ import {
   callApi,
   getCurrentUser,
   getVersion,
+  getVersionsList,
   isErrorResponse,
   logOutFromServer,
 } from '.';
@@ -235,6 +236,21 @@ describe(__filename, () => {
       );
       expect(fetch).toHaveBeenCalledWith(
         expect.urlWithTheseParams({ file: path }),
+        expect.any(Object),
+      );
+    });
+  });
+
+  describe('getVersionsList', () => {
+    it('calls the API to retrieve the list of versions for an add-on', async () => {
+      const addonId = 999;
+
+      await getVersionsList({ apiState: defaultApiState, addonId });
+
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringMatching(
+          `/api/${defaultVersion}/reviewers/addon/${addonId}/versions/`,
+        ),
         expect.any(Object),
       );
     });

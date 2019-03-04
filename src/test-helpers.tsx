@@ -15,6 +15,7 @@ import {
   ExternalVersionAddon,
   ExternalVersionEntry,
   ExternalVersionFile,
+  ExternalVersionsList,
   VersionEntryType,
 } from './reducers/versions';
 
@@ -146,7 +147,7 @@ export const fakeExternalLinterMessage = Object.freeze({
 
 /* eslint-enable @typescript-eslint/camelcase */
 
-export const fakeVersions = [
+export const fakeVersionsList: ExternalVersionsList = [
   {
     id: 1541798,
     channel: 'unlisted',

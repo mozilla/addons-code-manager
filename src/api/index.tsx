@@ -2,7 +2,7 @@ import log from 'loglevel';
 
 import { ApiState } from '../reducers/api';
 import { ExternalUser } from '../reducers/users';
-import { ExternalVersion } from '../reducers/versions';
+import { ExternalVersion, ExternalVersionsList } from '../reducers/versions';
 
 export enum HttpMethod {
   DELETE = 'DELETE',
@@ -119,6 +119,21 @@ export const getVersion = async ({
     apiState,
     endpoint: `reviewers/addon/${addonId}/versions/${versionId}`,
     query: path ? { file: path } : undefined,
+  });
+};
+
+type GetVersionsListParams = {
+  addonId: number;
+  apiState: ApiState;
+};
+
+export const getVersionsList = async ({
+  apiState,
+  addonId,
+}: GetVersionsListParams) => {
+  return callApi<ExternalVersionsList>({
+    apiState,
+    endpoint: `reviewers/addon/${addonId}/versions/`,
   });
 };
 

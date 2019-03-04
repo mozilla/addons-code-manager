@@ -1,24 +1,40 @@
 import * as React from 'react';
 import { Col, Form, Row } from 'react-bootstrap';
+import { connect } from 'react-redux';
 
-import VersionSelect, { Version } from '../VersionSelect';
+import Loading from '../Loading';
+import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
+import VersionSelect from '../VersionSelect';
+import { VersionsLists, fetchVersionsList } from '../../reducers/versions';
 import { gettext } from '../../utils';
 import styles from './styles.module.scss';
 
-type PublicProps = {
-  versions: Version[];
+export type PublicProps = {
+  _fetchVersionsList: typeof fetchVersionsList;
+  addonId: number;
 };
 
-class VersionChooserBase extends React.Component<PublicProps> {
-  render() {
-    const { versions } = this.props;
+type PropsFromState = {
+  versionsLists: VersionsLists;
+};
 
-    const listedVersions = versions.filter(
-      (version) => version.channel === 'listed',
-    );
-    const unlistedVersions = versions.filter(
-      (version) => version.channel === 'unlisted',
-    );
+type Props = PropsFromState & PublicProps & ConnectedReduxProps;
+
+export class VersionChooserBase extends React.Component<Props> {
+  static defaultProps = {
+    _fetchVersionsList: fetchVersionsList,
+  };
+
+  componentDidMount() {
+    const { _fetchVersionsList, addonId, dispatch, versionsLists } = this.props;
+
+    if (!versionsLists) {
+      dispatch(_fetchVersionsList({ addonId }));
+    }
+  }
+
+  render() {
+    const { versionsLists } = this.props;
 
     return (
       <div className={styles.VersionChooser}>
@@ -29,24 +45,41 @@ class VersionChooserBase extends React.Component<PublicProps> {
             </Col>
           </Row>
 
-          <Form.Row>
-            <VersionSelect
-              label={gettext('Choose an old version')}
-              listedVersions={listedVersions}
-              unlistedVersions={unlistedVersions}
-            />
+          {versionsLists ? (
+            <Form.Row>
+              <VersionSelect
+                label={gettext('Choose an old version')}
+                listedVersions={versionsLists.listed}
+                unlistedVersions={versionsLists.unlisted}
+              />
 
-            <VersionSelect
-              label={gettext('Choose a new version')}
-              listedVersions={listedVersions}
-              unlistedVersions={unlistedVersions}
-              withLeftArrow
+              <VersionSelect
+                label={gettext('Choose a new version')}
+                listedVersions={versionsLists.listed}
+                unlistedVersions={versionsLists.unlisted}
+                withLeftArrow
+              />
+            </Form.Row>
+          ) : (
+            <Loading
+              message={gettext('Retrieving all the versions of this add-on...')}
             />
-          </Form.Row>
+          )}
         </Form>
       </div>
     );
   }
 }
 
-export default VersionChooserBase;
+const mapStateToProps = (
+  state: ApplicationState,
+  ownProps: PublicProps,
+): PropsFromState => {
+  const versionsLists = state.versions.byAddonId[ownProps.addonId];
+
+  return {
+    versionsLists,
+  };
+};
+
+export default connect(mapStateToProps)(VersionChooserBase);

@@ -4,7 +4,6 @@ import { RouteComponentProps } from 'react-router-dom';
 import { connect } from 'react-redux';
 
 import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
-import { ApiState } from '../../reducers/api';
 import FileTree from '../../components/FileTree';
 import DiffView from '../../components/DiffView';
 import Loading from '../../components/Loading';
@@ -12,7 +11,6 @@ import VersionChooser from '../../components/VersionChooser';
 import { Version, fetchVersion, getVersionInfo } from '../../reducers/versions';
 import { gettext } from '../../utils';
 import diffWithDeletions from '../../components/DiffView/fixtures/diffWithDeletions';
-import { fakeVersions } from '../../test-helpers';
 
 export type PublicProps = {
   _fetchVersion: typeof fetchVersion;
@@ -25,7 +23,7 @@ type PropsFromRouter = {
 };
 
 type PropsFromState = {
-  apiState: ApiState;
+  addonId: number;
   version: Version;
 };
 
@@ -54,7 +52,7 @@ export class CompareBase extends React.Component<Props> {
   onSelectFile = () => {};
 
   render() {
-    const { version } = this.props;
+    const { addonId, version } = this.props;
 
     if (!version) {
       return (
@@ -72,7 +70,7 @@ export class CompareBase extends React.Component<Props> {
         <Col md="9">
           <Row>
             <Col>
-              <VersionChooser versions={fakeVersions} />
+              <VersionChooser addonId={addonId} />
             </Col>
           </Row>
           <Row>
@@ -91,12 +89,13 @@ const mapStateToProps = (
   ownProps: RouteComponentProps<PropsFromRouter>,
 ): PropsFromState => {
   const { match } = ownProps;
+  const addonId = parseInt(match.params.addonId, 10);
   const baseVersionId = parseInt(match.params.baseVersionId, 10);
 
   const version = getVersionInfo(state.versions, baseVersionId);
 
   return {
-    apiState: state.api,
+    addonId,
     version,
   };
 };

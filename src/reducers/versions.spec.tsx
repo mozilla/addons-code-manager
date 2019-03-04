@@ -1,14 +1,17 @@
 import { getType } from 'typesafe-actions';
 
 import reducer, {
+  ExternalVersionsList,
   VersionEntryType,
   actions,
   createInternalVersion,
   createInternalVersionAddon,
   createInternalVersionEntry,
   createInternalVersionFile,
+  createVersionsLists,
   fetchVersion,
   fetchVersionFile,
+  fetchVersionsList,
   getVersionFile,
   getVersionFiles,
   getVersionInfo,
@@ -19,6 +22,7 @@ import {
   fakeVersionAddon,
   fakeVersionEntry,
   fakeVersionFile,
+  fakeVersionsList,
   getFakeLogger,
   thunkTester,
 } from '../test-helpers';
@@ -103,6 +107,18 @@ describe(__filename, () => {
         `versionInfo.${version.id}.selectedPath`,
         selectedPath,
       );
+    });
+
+    it('stores lists of versions by add-on ID', () => {
+      const addonId = 1245;
+      const versions = fakeVersionsList;
+
+      const state = reducer(
+        undefined,
+        actions.loadVersionsList({ addonId, versions }),
+      );
+
+      expect(state.byAddonId[addonId]).toEqual(createVersionsLists(versions));
     });
   });
 
@@ -470,6 +486,121 @@ describe(__filename, () => {
           type: getType(actions.loadVersionFile),
         }),
       );
+    });
+  });
+
+  describe('fetchVersionsList', () => {
+    const _fetchVersionsList = ({
+      _getVersionsList = jest
+        .fn()
+        .mockReturnValue(Promise.resolve(fakeVersionsList)),
+      _log = getFakeLogger(),
+      addonId = 123,
+    } = {}) => {
+      return thunkTester({
+        createThunk: () =>
+          fetchVersionsList({
+            _getVersionsList,
+            _log,
+            addonId,
+          }),
+      });
+    };
+
+    it('calls getVersionsList', async () => {
+      const addonId = 123;
+      const _getVersionsList = jest
+        .fn()
+        .mockReturnValue(Promise.resolve(fakeVersionsList));
+
+      const { store, thunk } = _fetchVersionsList({
+        _getVersionsList,
+        addonId,
+      });
+
+      await thunk();
+
+      expect(_getVersionsList).toHaveBeenCalledWith({
+        addonId,
+        apiState: store.getState().api,
+      });
+    });
+
+    it('dispatches loadVersionsList when API response is successful', async () => {
+      const addonId = 123;
+      const versions = fakeVersionsList;
+      const _getVersionsList = jest
+        .fn()
+        .mockReturnValue(Promise.resolve(versions));
+
+      const { dispatch, thunk } = _fetchVersionsList({
+        _getVersionsList,
+        addonId,
+      });
+
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(
+        actions.loadVersionsList({ addonId, versions }),
+      );
+    });
+
+    it('logs an error when API response is not successful', async () => {
+      const _log = getFakeLogger();
+      const _getVersionsList = jest.fn().mockReturnValue(
+        Promise.resolve({
+          error: new Error('Bad Request'),
+        }),
+      );
+
+      const { dispatch, thunk } = _fetchVersionsList({
+        _getVersionsList,
+        _log,
+      });
+
+      await thunk();
+
+      expect(_log.error).toHaveBeenCalled();
+      expect(dispatch).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: getType(actions.loadVersionsList),
+        }),
+      );
+    });
+  });
+
+  describe('createVersionsLists', () => {
+    it('splits a list of versions into listed and unlisted versions', () => {
+      const listedVersions: ExternalVersionsList = [
+        {
+          ...fakeVersionsList[0],
+          channel: 'listed',
+        },
+      ];
+      const unlistedVersions: ExternalVersionsList = [
+        {
+          ...fakeVersionsList[1],
+          channel: 'unlisted',
+        },
+        {
+          ...fakeVersionsList[2],
+          channel: 'unlisted',
+        },
+      ];
+      const versions = [...listedVersions, ...unlistedVersions];
+
+      const { listed, unlisted } = createVersionsLists(versions);
+
+      expect(listed).toHaveLength(listedVersions.length);
+      expect(unlisted).toHaveLength(unlistedVersions.length);
+
+      listedVersions.forEach((version, index) => {
+        expect(listed[index]).toEqual(version);
+      });
+
+      unlistedVersions.forEach((version, index) => {
+        expect(unlisted[index]).toEqual(version);
+      });
     });
   });
 });

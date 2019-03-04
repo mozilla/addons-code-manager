@@ -2,28 +2,32 @@ import * as React from 'react';
 import { shallow } from 'enzyme';
 import { Form } from 'react-bootstrap';
 
-import { fakeVersions } from '../../test-helpers';
+import configureStore from '../../configureStore';
+import {
+  ExternalVersionsList,
+  actions as versionActions,
+} from '../../reducers/versions';
+import { fakeVersionsList } from '../../test-helpers';
 import styles from './styles.module.scss';
 
 import VersionSelect from '.';
 
 describe(__filename, () => {
-  const render = (props = {}) => {
+  const render = ({
+    label = 'select a version',
+    versions = fakeVersionsList,
+    withLeftArrow = false,
+  } = {}) => {
+    const addonId = 123;
+    const store = configureStore();
+    store.dispatch(versionActions.loadVersionsList({ addonId, versions }));
+    const versionsLists = store.getState().versions.byAddonId[addonId];
+
     const allProps = {
-      label: 'select a version',
-      listedVersions: [
-        {
-          ...fakeVersions[0],
-          channel: 'listed',
-        },
-      ],
-      unlistedVersions: [
-        {
-          ...fakeVersions[1],
-          channel: 'unlisted',
-        },
-      ],
-      ...props,
+      label,
+      listedVersions: versionsLists.listed,
+      unlistedVersions: versionsLists.unlisted,
+      withLeftArrow,
     };
 
     return shallow(<VersionSelect {...allProps} />);
@@ -50,14 +54,14 @@ describe(__filename, () => {
   });
 
   it('renders two lists of versions', () => {
-    const listedVersions = [
+    const listedVersions: ExternalVersionsList = [
       {
         id: 123,
         channel: 'listed',
         version: 'v1',
       },
     ];
-    const unlistedVersions = [
+    const unlistedVersions: ExternalVersionsList = [
       {
         id: 456,
         channel: 'unlisted',
@@ -65,7 +69,7 @@ describe(__filename, () => {
       },
     ];
 
-    const root = render({ listedVersions, unlistedVersions });
+    const root = render({ versions: [...listedVersions, ...unlistedVersions] });
 
     expect(root.find(`.${styles.listedGroup}`)).toHaveProp('label', 'Listed');
     expect(root.find('option').at(0)).toHaveProp('value', listedVersions[0].id);
