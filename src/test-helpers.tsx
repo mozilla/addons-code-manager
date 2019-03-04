@@ -110,7 +110,7 @@ export const fakeUser: ExternalUser = Object.freeze({
   username: 'user-1234',
 });
 
-export const externalLinterResultSample: ExternalLinterResult = Object.freeze({
+export const fakeExternalLinterResult = Object.freeze({
   error: null,
   full_report_url: '/upload/d5d993a5a2fa4b759ae2fa3b2eda2a38',
   upload: 'd5d993a5a2fa4b759ae2fa3b2eda2a38',
@@ -126,9 +126,9 @@ export const externalLinterResultSample: ExternalLinterResult = Object.freeze({
     success: false,
     warnings: 5,
   },
-});
+}) as ExternalLinterResult;
 
-export const externalLinterMessageSample = Object.freeze({
+export const fakeExternalLinterMessage = Object.freeze({
   column: 2,
   context: ['<code>'],
   description: 'To prevent vulnerabilities...',

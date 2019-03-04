@@ -1,6 +1,6 @@
 import {
-  externalLinterResultSample,
-  externalLinterMessageSample,
+  fakeExternalLinterResult,
+  fakeExternalLinterMessage,
 } from '../test-helpers';
 
 import { createInternalMessage, ExternalLinterMessage, getMessageMap } from '.';
@@ -8,11 +8,11 @@ import { createInternalMessage, ExternalLinterMessage, getMessageMap } from '.';
 describe(__filename, () => {
   const _getMessageMap = (messages: Partial<ExternalLinterMessage>[]) => {
     return getMessageMap({
-      ...externalLinterResultSample,
+      ...fakeExternalLinterResult,
       validation: {
-        ...externalLinterResultSample.validation,
+        ...fakeExternalLinterResult.validation,
         messages: messages.map((msg) => {
-          return { ...externalLinterMessageSample, ...msg };
+          return { ...fakeExternalLinterMessage, ...msg };
         }),
       },
     });
@@ -158,7 +158,7 @@ describe(__filename, () => {
       const description = 'This is a detailed message about a code problem';
       expect(
         createInternalMessage({
-          ...externalLinterMessageSample,
+          ...fakeExternalLinterMessage,
           description,
         }),
       ).toMatchObject({
@@ -170,7 +170,7 @@ describe(__filename, () => {
       const description = ['This is a detailed message about a code problem'];
       expect(
         createInternalMessage({
-          ...externalLinterMessageSample,
+          ...fakeExternalLinterMessage,
           description,
         }),
       ).toMatchObject({
@@ -189,7 +189,7 @@ describe(__filename, () => {
 
       expect(
         createInternalMessage({
-          ...externalLinterMessageSample,
+          ...fakeExternalLinterMessage,
           column,
           description,
           file,
