@@ -48,6 +48,7 @@ declare module 'react-diff-view' {
     className?: string;
     diffType: string;
     hunks: Hunks;
+    tokens?: Tokens;
     viewType: ViewType;
   };
 
@@ -68,4 +69,25 @@ declare module 'react-diff-view' {
 
   // eslint-disable-next-line no-undef
   export class Hunk extends React.Component<HunkProps, {}> {}
+
+  type TokenizeOptions = {
+    highlight: boolean;
+    language: string;
+    refractor: typeof import('refractor');
+  };
+
+  type Token = {
+    type: string;
+    value: string;
+  };
+
+  type Tokens = {
+    old: Token[];
+    new: Token[];
+  };
+
+  declare function tokenize(
+    hunks: HunkInfo[],
+    options: TokenizeOptions,
+  ): Tokens;
 }

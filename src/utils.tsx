@@ -10,3 +10,21 @@ export const getLocalizedString = (
 ) => {
   return localizedStringMap[lang];
 };
+
+export const getLanguageFromMimeType = (mimeType: string) => {
+  switch (mimeType) {
+    case 'application/javascript':
+    case 'text/javascript':
+      return 'js';
+    case 'application/json':
+      return 'json';
+    case 'application/xml':
+      return 'xml';
+    case 'text/css':
+      return 'css';
+    case 'text/html':
+      return 'html';
+    default:
+      return 'text';
+  }
+};

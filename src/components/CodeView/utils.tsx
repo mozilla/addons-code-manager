@@ -33,24 +33,6 @@ export const mapWithDepth = (depth: number) => {
   };
 };
 
-export const getLanguage = (mimeType: string) => {
-  switch (mimeType) {
-    case 'application/javascript':
-    case 'text/javascript':
-      return 'js';
-    case 'application/json':
-      return 'json';
-    case 'application/xml':
-      return 'xml';
-    case 'text/css':
-      return 'css';
-    case 'text/html':
-      return 'html';
-    default:
-      return 'text';
-  }
-};
-
 export const getLines = (content: string) => {
   return content.replace('\r\n', '\n').split('\n');
 };
