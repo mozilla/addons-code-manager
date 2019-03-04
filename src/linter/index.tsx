@@ -8,7 +8,7 @@ type Message = {
   uid: string;
 };
 
-export type ExternalMessage = Message & {
+export type ExternalLinterMessage = Message & {
   // These are some extra properties that we don't need to work with.
   context: string[];
   for_appversions: object;
@@ -16,7 +16,7 @@ export type ExternalMessage = Message & {
   tier: number;
 };
 
-type ExternalLinterResult = {
+export type ExternalLinterResult = {
   error: null | string;
   full_report_url: string;
   upload: string;
@@ -26,7 +26,7 @@ type ExternalLinterResult = {
     ending_tier: number;
     errors: number;
     message_tree: object;
-    messages: ExternalMessage[];
+    messages: ExternalLinterMessage[];
     metadata: object;
     notices: number;
     success: boolean;
@@ -34,7 +34,7 @@ type ExternalLinterResult = {
   };
 };
 
-const createInternalMessage = (message: ExternalMessage): Message => {
+const createInternalMessage = (message: ExternalLinterMessage): Message => {
   return {
     column: message.column,
     description: message.description,

@@ -1,49 +1,20 @@
 /* eslint-disable @typescript-eslint/camelcase */
 
-import { ExternalMessage, getMessageMap } from '.';
+import {
+  externalLinterResultSample,
+  externalLinterMessageSample,
+} from '../test-helpers';
+
+import { ExternalLinterMessage, getMessageMap } from '.';
 
 describe(__filename, () => {
-  const resultSample = {
-    error: null,
-    full_report_url: '/upload/d5d993a5a2fa4b759ae2fa3b2eda2a38',
-    upload: 'd5d993a5a2fa4b759ae2fa3b2eda2a38',
-    url: '/upload/d5d993a5a2fa4b759ae2fa3b2eda2a38/json',
-    validation: {
-      detected_type: 'extension',
-      ending_tier: 5,
-      errors: 0,
-      message_tree: {},
-      messages: [],
-      metadata: {},
-      notices: 2,
-      success: false,
-      warnings: 5,
-    },
-  };
-
-  const externalMessageSample: ExternalMessage = {
-    column: 2,
-    context: ['<code>'],
-    description: 'To prevent vulnerabilities...',
-    file: 'chrome/content/youtune.js',
-    for_appversions: {
-      '{ec8030f7-c20a-464f-9b0e-13a3a9e97384}': ['4.0b1'],
-    },
-    id: [],
-    line: 226,
-    message: 'on* attribute being set using setAttribute',
-    tier: 3,
-    type: 'notice',
-    uid: '9a07163bb74e476c96a2bd467a2bbe52',
-  };
-
-  const _getMessageMap = (messages: Partial<ExternalMessage>[]) => {
+  const _getMessageMap = (messages: Partial<ExternalLinterMessage>[]) => {
     return getMessageMap({
-      ...resultSample,
+      ...externalLinterResultSample,
       validation: {
-        ...resultSample.validation,
+        ...externalLinterResultSample.validation,
         messages: messages.map((msg) => {
-          return { ...externalMessageSample, ...msg };
+          return { ...externalLinterMessageSample, ...msg };
         }),
       },
     });
