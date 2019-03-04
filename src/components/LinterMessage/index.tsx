@@ -24,20 +24,22 @@ const getAlertVariant = (type: PublicProps['type']) => {
 
 const urlPattern = /^https?:\/\//;
 
-const renderDescription = (description: string) => {
-  return description
+const renderDescriptionPart = (part: string) => {
+  // Split a description into words to intercept and replace
+  // URLs with JSX links.
+  return part
     .trim()
     .split(' ')
-    .reduce((all: React.ReactNode[], desc, index) => {
+    .reduce((all: React.ReactNode[], word, index) => {
       if (index > 0) {
         // Put back the space.
         all.push(' ');
       }
 
-      if (urlPattern.test(desc)) {
-        all.push(<Alert.Link href={desc}>{desc}</Alert.Link>);
+      if (urlPattern.test(word)) {
+        all.push(<Alert.Link href={word}>{word}</Alert.Link>);
       } else {
-        all.push(desc);
+        all.push(word);
       }
 
       return all;
@@ -53,7 +55,7 @@ const LinterMessage = ({ description, message, type }: PublicProps) => {
           if (index > 0) {
             lines.push(<br key={desc} />);
           }
-          lines.push(renderDescription(desc));
+          lines.push(renderDescriptionPart(desc));
           return lines;
         }, [])}
       </p>
