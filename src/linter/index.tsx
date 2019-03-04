@@ -55,7 +55,8 @@ export const createInternalMessage = (
 };
 
 type LinterMessageMap = {
-  [relativeFileName: string]: {
+  // The 'path' key matches the key of ExternalVersionFile['entries']
+  [path: string]: {
     global: LinterMessage[];
     byLine: { [line: number]: LinterMessage[] };
   };
