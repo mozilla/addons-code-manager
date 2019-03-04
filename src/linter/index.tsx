@@ -1,6 +1,5 @@
-type Message = {
+type MessageBase = {
   column: number | null;
-  description: string | string[];
   file: string;
   line: number | null;
   message: string;
@@ -8,7 +7,12 @@ type Message = {
   uid: string;
 };
 
-export type ExternalLinterMessage = Message & {
+type Message = MessageBase & {
+  description: string[];
+};
+
+export type ExternalLinterMessage = MessageBase & {
+  description: string | string[];
   // These are some extra properties that we don't need to work with.
   context: string[];
   for_appversions: object;
@@ -34,10 +38,12 @@ export type ExternalLinterResult = {
   };
 };
 
-const createInternalMessage = (message: ExternalLinterMessage): Message => {
+export const createInternalMessage = (message: ExternalLinterMessage): Message => {
   return {
     column: message.column,
-    description: message.description,
+    description: Array.isArray(message.description)
+      ? message.description
+      : [message.description],
     file: message.file,
     line: message.line,
     message: message.message,

@@ -5,7 +5,7 @@ import {
   externalLinterMessageSample,
 } from '../test-helpers';
 
-import { ExternalLinterMessage, getMessageMap } from '.';
+import { createInternalMessage, ExternalLinterMessage, getMessageMap } from '.';
 
 describe(__filename, () => {
   const _getMessageMap = (messages: Partial<ExternalLinterMessage>[]) => {
@@ -25,7 +25,7 @@ describe(__filename, () => {
       const uid = '9a07163bb74e476c96a2bd467a2bbe52';
       const type = 'notice';
       const message = 'on* attribute being set using setAttribute';
-      const description = 'To prevent vulnerabilities...';
+      const description = ['To prevent vulnerabilities...'];
 
       const file = 'chrome/content/youtune.js';
       const line = 226;
@@ -66,7 +66,7 @@ describe(__filename, () => {
       const uid = '9a07163bb74e476c96a2bd467a2bbe52';
       const type = 'notice';
       const message = 'on* attribute being set using setAttribute';
-      const description = 'To prevent vulnerabilities...';
+      const description = ['To prevent vulnerabilities...'];
 
       const file = 'chrome/content/youtune.js';
       const line = null;
@@ -152,6 +152,63 @@ describe(__filename, () => {
 
     it('maps zero messages', () => {
       expect(_getMessageMap([])).toEqual({});
+    });
+  });
+
+  describe('createInternalMessage', () => {
+    it('converts the description to an array', () => {
+      const description = 'This is a detailed message about a code problem';
+      expect(
+        createInternalMessage({
+          ...externalLinterMessageSample,
+          description,
+        }),
+      ).toMatchObject({
+        description: [description],
+      });
+    });
+
+    it('does not convert descriptions already in array form', () => {
+      const description = ['This is a detailed message about a code problem'];
+      expect(
+        createInternalMessage({
+          ...externalLinterMessageSample,
+          description,
+        }),
+      ).toMatchObject({
+        description,
+      });
+    });
+
+    it('maps a subset of external fields', () => {
+      const column = 2;
+      const description = ['To prevent vulnerabilities...'];
+      const file = 'chrome/content/youtune.js';
+      const line = 226;
+      const message = 'on* attribute being set using setAttribute';
+      const type = 'notice';
+      const uid = '9a07163bb74e476c96a2bd467a2bbe52';
+
+      expect(
+        createInternalMessage({
+          ...externalLinterMessageSample,
+          column,
+          description,
+          file,
+          line,
+          message,
+          type,
+          uid,
+        }),
+      ).toEqual({
+        column,
+        description,
+        file,
+        line,
+        message,
+        type,
+        uid,
+      });
     });
   });
 });
