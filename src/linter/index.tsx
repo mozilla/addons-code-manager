@@ -1,4 +1,4 @@
-type MessageBase = {
+type LinterMessageBase = {
   column: number | null;
   file: string;
   line: number | null;
@@ -7,11 +7,11 @@ type MessageBase = {
   uid: string;
 };
 
-type Message = MessageBase & {
+type LinterMessage = LinterMessageBase & {
   description: string[];
 };
 
-export type ExternalLinterMessage = MessageBase & {
+export type ExternalLinterMessage = LinterMessageBase & {
   description: string | string[];
   // These are some extra properties that we don't need to work with.
   context: string[];
@@ -38,7 +38,9 @@ export type ExternalLinterResult = {
   };
 };
 
-export const createInternalMessage = (message: ExternalLinterMessage): Message => {
+export const createInternalMessage = (
+  message: ExternalLinterMessage,
+): LinterMessage => {
   return {
     column: message.column,
     description: Array.isArray(message.description)
@@ -52,15 +54,15 @@ export const createInternalMessage = (message: ExternalLinterMessage): Message =
   };
 };
 
-type MessageMap = {
+type LinterMessageMap = {
   [relativeFileName: string]: {
-    global: Message[];
-    byLine: { [line: number]: Message[] };
+    global: LinterMessage[];
+    byLine: { [line: number]: LinterMessage[] };
   };
 };
 
 export const getMessageMap = (result: ExternalLinterResult) => {
-  const msgMap: MessageMap = {};
+  const msgMap: LinterMessageMap = {};
 
   result.validation.messages.forEach((message) => {
     if (!msgMap[message.file]) {
