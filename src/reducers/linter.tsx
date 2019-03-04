@@ -7,7 +7,7 @@ type LinterMessageBase = {
   uid: string;
 };
 
-type LinterMessage = LinterMessageBase & {
+export type LinterMessage = LinterMessageBase & {
   description: string[];
 };
 

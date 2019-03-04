@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Alert } from 'react-bootstrap';
 
 import styles from './styles.module.scss';
+import { LinterMessage as LinterMessageType } from '../../linter';
 
 const getAlertVariant = (type: PublicProps['type']) => {
   switch (type) {
@@ -38,22 +39,17 @@ const renderDescription = (description: string) => {
 };
 
 export type PublicProps = {
-  // TODO: Reference Message types once https://github.com/mozilla/addons-code-manager/issues/294 lands
-  description: string | string[];
-  message: string;
-  type: 'notice' | 'error' | 'warning';
+  description: LinterMessageType['description'];
+  message: LinterMessageType['message'];
+  type: LinterMessageType['type'];
 };
 
 const LinterMessage = ({ description, message, type }: PublicProps) => {
-  const descriptionLines = Array.isArray(description)
-    ? description
-    : [description];
-
   return (
     <Alert variant={getAlertVariant(type)}>
       <Alert.Heading>{message}</Alert.Heading>
       <p className={styles.description}>
-        {descriptionLines.reduce((lines: React.ReactNode[], desc, index) => {
+        {description.reduce((lines: React.ReactNode[], desc, index) => {
           if (index > 0) {
             lines.push(<br key={desc} />);
           }

@@ -9,7 +9,9 @@ import LinterMessage, { PublicProps } from '.';
 describe(__filename, () => {
   const render = (moreProps = {}) => {
     const props: PublicProps = {
-      description: 'Your add-on uses a JavaScript library we consider unsafe.',
+      description: [
+        'Your add-on uses a JavaScript library we consider unsafe.',
+      ],
       message: 'Banned 3rd-party JS library',
       type: 'error',
       ...moreProps,
@@ -30,11 +32,11 @@ describe(__filename, () => {
 
   it('renders a message and description', () => {
     const message = 'Markup parsing error';
-    const description = 'There was an error parsing...';
+    const description = ['There was an error parsing...'];
     const root = render({ message, description });
 
     expect(root.find(Alert.Heading)).toHaveText(message);
-    expect(root.find(`.${styles.description}`)).toHaveText(description);
+    expect(root.find(`.${styles.description}`)).toIncludeText(description[0]);
   });
 
   it('renders a line break for multi-line messages', () => {
@@ -66,8 +68,10 @@ describe(__filename, () => {
 
   it('renders a link for URLs', () => {
     const url = 'https://bit.ly/1TRIyZY';
-    const description = `Your add-on uses a JavaScript library we
-      consider unsafe. Read more: ${url}`;
+    const description = [
+      `Your add-on uses a JavaScript library we
+      consider unsafe. Read more: ${url}`,
+    ];
     const root = render({ description });
 
     const link = root.find(Alert.Link);
@@ -85,7 +89,7 @@ describe(__filename, () => {
       'https://bit.ly/second-link',
       'https://bit.ly/third-link',
     ];
-    const root = render({ description: urls.join(' ') });
+    const root = render({ description: [urls.join(' ')] });
 
     const link = root.find(Alert.Link);
     expect(link).toHaveLength(urls.length);

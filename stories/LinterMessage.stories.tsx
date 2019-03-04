@@ -14,7 +14,9 @@ storiesOf('LinterMessage', module).addWithChapters('all variants', {
             <LinterMessage
               type="error"
               message="The value of &lt;em:id&gt; is invalid"
-              description="The values supplied for &lt;em:id&gt; in the install.rdf file is not a valid UUID string."
+              description={[
+                'The values supplied for &lt;em:id&gt; in the install.rdf file is not a valid UUID string.',
+              ]}
             />
           ),
         },
@@ -24,7 +26,9 @@ storiesOf('LinterMessage', module).addWithChapters('all variants', {
             <LinterMessage
               type="warning"
               message="The manifest contains a dictionary but no id property."
-              description="A dictionary was found in the manifest, but there was no id set."
+              description={[
+                'A dictionary was found in the manifest, but there was no id set.',
+              ]}
             />
           ),
         },
@@ -34,8 +38,10 @@ storiesOf('LinterMessage', module).addWithChapters('all variants', {
             <LinterMessage
               type="notice"
               message="Known JS library detected"
-              description={`JavaScript libraries are discouraged for
-                simple add-ons, but are generally accepted.`}
+              description={[
+                `JavaScript libraries are discouraged for
+                simple add-ons, but are generally accepted.`,
+              ]}
             />
           ),
         },
@@ -58,8 +64,10 @@ storiesOf('LinterMessage', module).addWithChapters('all variants', {
             <LinterMessage
               type="error"
               message="Banned 3rd-party JS library"
-              description={`Your add-on uses a JavaScript library we
-                consider unsafe. Read more: https://bit.ly/1TRIyZY`}
+              description={[
+                `Your add-on uses a JavaScript library we
+                consider unsafe. Read more: https://bit.ly/1TRIyZY`,
+              ]}
             />
           ),
         },
