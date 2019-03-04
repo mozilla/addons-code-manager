@@ -37,7 +37,7 @@ const renderDescription = (description: string) => {
     }, []);
 };
 
-type PublicProps = {
+export type PublicProps = {
   // TODO: Reference Message types once https://github.com/mozilla/addons-code-manager/issues/294 lands
   description: string | string[];
   message: string;
@@ -55,7 +55,7 @@ const LinterMessage = ({ description, message, type }: PublicProps) => {
       <p className={styles.description}>
         {descriptionLines.reduce((lines: React.ReactNode[], desc, index) => {
           if (index > 0) {
-            lines.push(<br />);
+            lines.push(<br key={desc} />);
           }
           lines.push(renderDescription(desc));
           return lines;
