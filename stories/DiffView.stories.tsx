@@ -5,5 +5,5 @@ import DiffView from '../src/components/DiffView';
 import diffWithDeletions from '../src/components/DiffView/fixtures/diffWithDeletions';
 
 storiesOf('DiffView', module).add('default', () => (
-  <DiffView diff={diffWithDeletions} />
+  <DiffView diff={diffWithDeletions} mimeType="application/javascript" />
 ));
