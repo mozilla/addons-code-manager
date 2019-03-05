@@ -101,4 +101,44 @@ describe(__filename, () => {
     expect(link.at(1)).toHaveProp('href', urls[1]);
     expect(link.at(2)).toHaveProp('href', urls[2]);
   });
+
+  it('renders HTML entities in messages', () => {
+    const message = 'The value of &lt;em:id&gt; is invalid';
+    const root = renderMessage({ message });
+
+    expect(root.find(Alert.Heading).html()).toContain(message);
+  });
+
+  it('renders HTML entities in descriptions', () => {
+    const description = [
+      'The values supplied for &lt;em:id&gt; in the install.rdf file is not a valid UUID string.',
+    ];
+    const root = renderMessage({ description });
+
+    expect(root.find(`.${styles.description}`).html()).toContain(
+      description[0],
+    );
+  });
+
+  it('escapes HTML in messages', () => {
+    // This is not a realistic input value. In real life, the HTML
+    // would be escaped.
+    const message = 'The value of <em:id> is invalid';
+    const root = renderMessage({ message });
+
+    expect(root.find(Alert.Heading).html()).toContain('&lt;em:id&gt;');
+  });
+
+  it('escapes HTML in descriptions', () => {
+    // This is not a realistic input value. In real life, the HTML
+    // would be escaped.
+    const description = [
+      'The values supplied for <em:id> in the install.rdf file...',
+    ];
+    const root = renderMessage({ description });
+
+    expect(root.find(`.${styles.description}`).html()).toContain(
+      '&lt;em:id&gt;',
+    );
+  });
 });

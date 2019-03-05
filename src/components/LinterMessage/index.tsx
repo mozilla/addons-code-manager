@@ -1,4 +1,5 @@
 import * as React from 'react';
+import unescape from 'lodash.unescape';
 import { Alert } from 'react-bootstrap';
 
 import styles from './styles.module.scss';
@@ -13,6 +14,13 @@ const getAlertVariant = (type: LinterMessageType['type']) => {
     default:
       return 'secondary';
   }
+};
+
+const unescapeHtmlEntities = (text: string) => {
+  // This unescapes HTML entities (like &lt;) so that React will
+  // escape them again. Without this, React will double escape the
+  // HTML entities
+  return unescape(text);
 };
 
 const renderDescription = (description: LinterMessageType['description']) => {
@@ -37,7 +45,7 @@ const renderDescription = (description: LinterMessageType['description']) => {
           if (urlPattern.test(word)) {
             allWords.push(<Alert.Link href={word}>{word}</Alert.Link>);
           } else {
-            allWords.push(word);
+            allWords.push(unescapeHtmlEntities(word));
           }
 
           return allWords;
@@ -56,7 +64,7 @@ const LinterMessage = (props: PublicProps) => {
   const { description, message, type } = props.message;
   return (
     <Alert variant={getAlertVariant(type)}>
-      <Alert.Heading>{message}</Alert.Heading>
+      <Alert.Heading>{unescapeHtmlEntities(message)}</Alert.Heading>
       <p className={styles.description}>{renderDescription(description)}</p>
     </Alert>
   );

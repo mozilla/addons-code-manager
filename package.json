@@ -25,6 +25,7 @@
     "history": "4.7.2",
     "http-proxy-middleware": "0.19.1",
     "http-proxy-response-rewrite": "0.0.1",
+    "lodash.unescape": "4.0.1",
     "loglevel": "1.6.1",
     "node-sass": "4.11.0",
     "prop-types": "15.7.2",
