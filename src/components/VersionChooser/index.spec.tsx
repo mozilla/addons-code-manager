@@ -28,11 +28,11 @@ describe(__filename, () => {
     expect(root.find(VersionSelect)).toHaveLength(2);
     expect(root.find(VersionSelect).at(0)).toHaveProp(
       'label',
-      'Choose a base version',
+      'Choose an old version',
     );
     expect(root.find(VersionSelect).at(1)).toHaveProp(
       'label',
-      'Choose a head version',
+      'Choose a new version',
     );
     expect(root.find(`.${styles.arrow}`)).toHaveLength(1);
   });

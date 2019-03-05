@@ -21,8 +21,8 @@ class VersionSelectBase extends React.Component<PublicProps> {
 
     return (
       <Form.Group as={Col}>
+        <Form.Label>{label}</Form.Label>
         <Form.Control as="select">
-          <option>{label}</option>
           {listedVersions.length && (
             <optgroup label={gettext('Listed')}>
               {listedVersions.map((version) => (

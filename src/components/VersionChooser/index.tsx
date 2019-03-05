@@ -32,7 +32,7 @@ class VersionChooserBase extends React.Component<PublicProps> {
 
           <Form.Row>
             <VersionSelect
-              label={gettext('Choose a base version')}
+              label={gettext('Choose an old version')}
               listedVersions={listedVersions}
               unlistedVersions={unlistedVersions}
             />
@@ -42,7 +42,7 @@ class VersionChooserBase extends React.Component<PublicProps> {
             </div>
 
             <VersionSelect
-              label={gettext('Choose a head version')}
+              label={gettext('Choose a new version')}
               listedVersions={listedVersions}
               unlistedVersions={unlistedVersions}
             />
