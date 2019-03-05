@@ -4,3 +4,8 @@
 $border-radius: 0.25rem;
 $default-padding: 10px;
 $light-gray: $gray-200;
+
+// Shared style for the CodeView and DiffView components.
+$code-font-family: Consolas, Courier, monospace;
+$code-font-size: 16px;
+$code-line-height: 1.5;
