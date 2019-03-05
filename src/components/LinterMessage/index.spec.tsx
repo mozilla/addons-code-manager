@@ -42,6 +42,15 @@ describe(__filename, () => {
     expect(root.find(`.${styles.description}`)).toIncludeText(description[0]);
   });
 
+  it('handles descriptions with extra whitespace', () => {
+    const description = ['  lots    of    space     between'];
+    const root = renderMessage({ description });
+
+    expect(root.find(`.${styles.description}`)).toIncludeText(
+      description[0].trim(),
+    );
+  });
+
   it('renders a line break for multi-line messages', () => {
     const description = [
       'There was an error parsing the markup document.',

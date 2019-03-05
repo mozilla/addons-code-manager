@@ -35,20 +35,15 @@ const renderDescription = (description: LinterMessageType['description']) => {
       // Intercept and replace URLs with JSX links.
       line
         .trim()
-        .split(' ')
-        .reduce((allWords: React.ReactNode[], word, wordIndex) => {
-          if (wordIndex > 0) {
-            // Put back the space.
-            allWords.push(' ');
-          }
-
-          if (urlPattern.test(word)) {
-            allWords.push(<Alert.Link href={word}>{word}</Alert.Link>);
+        .split(/(\s+)/)
+        .reduce((allParts: React.ReactNode[], part) => {
+          if (urlPattern.test(part)) {
+            allParts.push(<Alert.Link href={part}>{part}</Alert.Link>);
           } else {
-            allWords.push(unescapeHtmlEntities(word));
+            allParts.push(unescapeHtmlEntities(part));
           }
 
-          return allWords;
+          return allParts;
         }, []),
     );
 
