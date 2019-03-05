@@ -4,13 +4,11 @@ import { Alert } from 'react-bootstrap';
 import styles from './styles.module.scss';
 import { LinterMessage as LinterMessageType } from '../../linter';
 
-export type PublicProps = {
-  description: LinterMessageType['description'];
-  message: LinterMessageType['message'];
-  type: LinterMessageType['type'];
+type PublicProps = {
+  message: LinterMessageType,
 };
 
-const getAlertVariant = (type: PublicProps['type']) => {
+const getAlertVariant = (type: LinterMessageType['type']) => {
   switch (type) {
     case 'error':
       return 'danger';
@@ -44,7 +42,8 @@ const renderDescriptionPart = (part: string) => {
     }, []);
 };
 
-const LinterMessage = ({ description, message, type }: PublicProps) => {
+const LinterMessage = (props: PublicProps) => {
+  const { description, message, type } = props.message;
   return (
     <Alert variant={getAlertVariant(type)}>
       <Alert.Heading>{message}</Alert.Heading>

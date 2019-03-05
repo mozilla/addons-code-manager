@@ -2,21 +2,24 @@ import * as React from 'react';
 import { shallow } from 'enzyme';
 import { Alert } from 'react-bootstrap';
 
+import { createInternalMessage } from '../../linter';
+import { fakeExternalLinterMessage } from '../../test-helpers';
 import styles from './styles.module.scss';
 
-import LinterMessage, { PublicProps } from '.';
+import LinterMessage from '.';
 
 describe(__filename, () => {
-  const render = (moreProps = {}) => {
-    const props: PublicProps = {
+  const renderMessage = (attributes = {}) => {
+    const message = createInternalMessage({
+      ...fakeExternalLinterMessage,
       description: [
         'Your add-on uses a JavaScript library we consider unsafe.',
       ],
       message: 'Banned 3rd-party JS library',
       type: 'error',
-      ...moreProps,
-    };
-    return shallow(<LinterMessage {...props} />);
+      ...attributes,
+    });
+    return shallow(<LinterMessage message={message} />);
   };
 
   it.each([
@@ -24,7 +27,7 @@ describe(__filename, () => {
     ['warning', 'warning'],
     ['secondary', 'notice'],
   ])('renders the Alert variant "%s" for "%s"', (alertVariant, messageType) => {
-    expect(render({ type: messageType }).find(Alert)).toHaveProp(
+    expect(renderMessage({ type: messageType }).find(Alert)).toHaveProp(
       'variant',
       alertVariant,
     );
@@ -33,7 +36,7 @@ describe(__filename, () => {
   it('renders a message and description', () => {
     const message = 'Markup parsing error';
     const description = ['There was an error parsing...'];
-    const root = render({ message, description });
+    const root = renderMessage({ message, description });
 
     expect(root.find(Alert.Heading)).toHaveText(message);
     expect(root.find(`.${styles.description}`)).toIncludeText(description[0]);
@@ -44,7 +47,7 @@ describe(__filename, () => {
       'There was an error parsing the markup document.',
       'malformed start tag, at line 1, column 26',
     ];
-    const root = render({ description });
+    const root = renderMessage({ description });
 
     const descNode = root.find(`.${styles.description}`);
     expect(descNode).toIncludeText(description[0]);
@@ -59,7 +62,7 @@ describe(__filename, () => {
       'third line',
       'so many lines',
     ];
-    const root = render({ description });
+    const root = renderMessage({ description });
 
     expect(root.find(`.${styles.description}`).find('br')).toHaveLength(
       description.length - 1,
@@ -72,7 +75,7 @@ describe(__filename, () => {
       `Your add-on uses a JavaScript library we
       consider unsafe. Read more: ${url}`,
     ];
-    const root = render({ description });
+    const root = renderMessage({ description });
 
     const link = root.find(Alert.Link);
     expect(link).toHaveText(url);
@@ -89,7 +92,7 @@ describe(__filename, () => {
       'https://bit.ly/second-link',
       'https://bit.ly/third-link',
     ];
-    const root = render({ description: [urls.join(' ')] });
+    const root = renderMessage({ description: [urls.join(' ')] });
 
     const link = root.find(Alert.Link);
     expect(link).toHaveLength(urls.length);
