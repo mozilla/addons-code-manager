@@ -11,6 +11,7 @@
     "@types/http-proxy": "1.16.2",
     "@types/http-proxy-middleware": "0.19.2",
     "@types/jest": "24.0.9",
+    "@types/lodash.unescape": "4.0.6",
     "@types/loglevel": "1.5.4",
     "@types/node": "10.12.29",
     "@types/react": "16.8.6",
