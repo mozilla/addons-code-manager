@@ -5,7 +5,7 @@ import styles from './styles.module.scss';
 import { LinterMessage as LinterMessageType } from '../../linter';
 
 type PublicProps = {
-  message: LinterMessageType,
+  message: LinterMessageType;
 };
 
 const getAlertVariant = (type: LinterMessageType['type']) => {
@@ -42,20 +42,22 @@ const renderDescriptionPart = (part: string) => {
     }, []);
 };
 
+const renderDescription = (description: LinterMessageType['description']) => {
+  return description.reduce((lines: React.ReactNode[], text, index) => {
+    if (index > 0) {
+      lines.push(<br key={text} />);
+    }
+    lines.push(renderDescriptionPart(text));
+    return lines;
+  }, []);
+};
+
 const LinterMessage = (props: PublicProps) => {
   const { description, message, type } = props.message;
   return (
     <Alert variant={getAlertVariant(type)}>
       <Alert.Heading>{message}</Alert.Heading>
-      <p className={styles.description}>
-        {description.reduce((lines: React.ReactNode[], text, index) => {
-          if (index > 0) {
-            lines.push(<br key={text} />);
-          }
-          lines.push(renderDescriptionPart(text));
-          return lines;
-        }, [])}
-      </p>
+      <p className={styles.description}>{renderDescription(description)}</p>
     </Alert>
   );
 };
