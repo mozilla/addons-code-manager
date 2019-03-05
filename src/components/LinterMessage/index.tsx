@@ -19,36 +19,36 @@ const getAlertVariant = (type: LinterMessageType['type']) => {
   }
 };
 
-const renderDescriptionPart = (part: string) => {
-  // Split a description into words to intercept and replace
-  // URLs with JSX links.
-  const urlPattern = /^https?:\/\//;
-  return part
-    .trim()
-    .split(' ')
-    .reduce((all: React.ReactNode[], word, index) => {
-      if (index > 0) {
-        // Put back the space.
-        all.push(' ');
-      }
-
-      if (urlPattern.test(word)) {
-        all.push(<Alert.Link href={word}>{word}</Alert.Link>);
-      } else {
-        all.push(word);
-      }
-
-      return all;
-    }, []);
-};
-
 const renderDescription = (description: LinterMessageType['description']) => {
-  return description.reduce((lines: React.ReactNode[], text, index) => {
-    if (index > 0) {
-      lines.push(<br key={text} />);
+  const urlPattern = /^https?:\/\//;
+
+  return description.reduce((allLines: React.ReactNode[], line, lineIndex) => {
+    if (lineIndex > 0) {
+      allLines.push(<br key={line} />);
     }
-    lines.push(renderDescriptionPart(text));
-    return lines;
+
+    allLines.push(
+      // Intercept and replace URLs with JSX links.
+      line
+        .trim()
+        .split(' ')
+        .reduce((allWords: React.ReactNode[], word, wordIndex) => {
+          if (wordIndex > 0) {
+            // Put back the space.
+            allWords.push(' ');
+          }
+
+          if (urlPattern.test(word)) {
+            allWords.push(<Alert.Link href={word}>{word}</Alert.Link>);
+          } else {
+            allWords.push(word);
+          }
+
+          return allWords;
+        }, []),
+    );
+
+    return allLines;
   }, []);
 };
 
