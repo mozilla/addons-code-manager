@@ -3,26 +3,15 @@ import { shallow } from 'enzyme';
 
 import VersionSelect from '../VersionSelect';
 import { fakeVersions } from '../../test-helpers';
-import styles from './styles.module.scss';
 
 import VersionChooser from '.';
 
 describe(__filename, () => {
   const render = ({ versions = fakeVersions } = {}) => {
-    const props = {
-      versions,
-    };
-
-    return shallow(<VersionChooser {...props} />);
+    return shallow(<VersionChooser versions={versions} />);
   };
 
-  it('renders a title', () => {
-    const root = render();
-
-    expect(root.find(`.${styles.heading}`)).toHaveLength(1);
-  });
-
-  it('renders two VersionSelect components and an arrow', () => {
+  it('renders a VersionChooser', () => {
     const root = render();
 
     expect(root.find(VersionSelect)).toHaveLength(2);
@@ -34,7 +23,7 @@ describe(__filename, () => {
       'label',
       'Choose a new version',
     );
-    expect(root.find(`.${styles.arrow}`)).toHaveLength(1);
+    expect(root.find(VersionSelect).at(1)).toHaveProp('withLeftArrow', true);
   });
 
   it('splits the list of versions into listed and unlisted lists', () => {

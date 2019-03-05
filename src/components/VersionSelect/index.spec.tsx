@@ -3,6 +3,7 @@ import { shallow } from 'enzyme';
 import { Form } from 'react-bootstrap';
 
 import { fakeVersions } from '../../test-helpers';
+import styles from './styles.module.scss';
 
 import VersionSelect from '.';
 
@@ -28,19 +29,24 @@ describe(__filename, () => {
     return shallow(<VersionSelect {...allProps} />);
   };
 
-  it('renders a select form control', () => {
-    const root = render();
-
-    expect(root.find(Form.Control)).toHaveLength(1);
-    expect(root.find(Form.Control)).toHaveProp('as', 'select');
-  });
-
   it('renders a label', () => {
     const label = 'some label';
     const root = render({ label });
 
     expect(root.find(Form.Label)).toHaveLength(1);
     expect(root.find(Form.Label)).toIncludeText(label);
+  });
+
+  it('does not render an arrow by default', () => {
+    const root = render();
+
+    expect(root.find(`.${styles.arrow}`)).toHaveLength(0);
+  });
+
+  it('renders an arrow when withLeftArrow is true', () => {
+    const root = render({ withLeftArrow: true });
+
+    expect(root.find(`.${styles.arrow}`)).toHaveLength(1);
   });
 
   it('renders two lists of versions', () => {
@@ -61,11 +67,14 @@ describe(__filename, () => {
 
     const root = render({ listedVersions, unlistedVersions });
 
-    expect(root.find('optgroup').at(0)).toHaveProp('label', 'Listed');
+    expect(root.find(`.${styles.listedGroup}`)).toHaveProp('label', 'Listed');
     expect(root.find('option').at(0)).toHaveProp('value', listedVersions[0].id);
     expect(root.find('option').at(0)).toIncludeText(listedVersions[0].version);
 
-    expect(root.find('optgroup').at(1)).toHaveProp('label', 'Unlisted');
+    expect(root.find(`.${styles.unlistedGroup}`)).toHaveProp(
+      'label',
+      'Unlisted',
+    );
     expect(root.find('option').at(1)).toHaveProp(
       'value',
       unlistedVersions[0].id,

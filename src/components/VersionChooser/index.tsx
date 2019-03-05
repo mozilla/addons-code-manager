@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { Col, Form, Row } from 'react-bootstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import VersionSelect, { Version } from '../VersionSelect';
 import { gettext } from '../../utils';
@@ -26,7 +25,7 @@ class VersionChooserBase extends React.Component<PublicProps> {
         <Form>
           <Row className={styles.heading}>
             <Col>
-              <h3>{gettext('Compare changes between two versions')}</h3>
+              <h3>{gettext('Compare changes')}</h3>
             </Col>
           </Row>
 
@@ -37,14 +36,11 @@ class VersionChooserBase extends React.Component<PublicProps> {
               unlistedVersions={unlistedVersions}
             />
 
-            <div className={styles.arrow}>
-              <FontAwesomeIcon icon="long-arrow-alt-left" />
-            </div>
-
             <VersionSelect
               label={gettext('Choose a new version')}
               listedVersions={listedVersions}
               unlistedVersions={unlistedVersions}
+              withLeftArrow
             />
           </Form.Row>
         </Form>
