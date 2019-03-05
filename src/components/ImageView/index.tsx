@@ -1,6 +1,8 @@
 import log from 'loglevel';
 import * as React from 'react';
 
+import styles from './styles.module.scss';
+
 type PublicProps = {
   _btoa?: typeof btoa;
   _log?: typeof log;
@@ -30,7 +32,9 @@ export const convertImageData = ({
 const ImageViewBase = ({ _btoa, _log, content, mimeType }: PublicProps) => {
   const imageData = convertImageData({ _btoa, _log, content });
   return imageData ? (
-    <img alt="" src={`data:${mimeType};base64,${imageData}`} />
+    <div className={styles.ImageView}>
+      <img alt="" src={`data:${mimeType};base64,${imageData}`} />
+    </div>
   ) : null;
 };
 

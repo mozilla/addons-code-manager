@@ -44,15 +44,7 @@ describe(__filename, () => {
     expect(root.find('img')).toHaveLength(0);
   });
 
-  it('calls btoa to convert image data', () => {
-    const _btoa = jest.fn();
-
-    render({ _btoa });
-
-    expect(_btoa).toHaveBeenCalled();
-  });
-
-  it('logs a warning when btoa fails', () => {
+  it('logs a debug message when btoa fails', () => {
     const _btoa = jest.fn().mockImplementation(() => {
       throw new Error();
     });
