@@ -21,11 +21,10 @@ const getAlertVariant = (type: PublicProps['type']) => {
   }
 };
 
-const urlPattern = /^https?:\/\//;
-
 const renderDescriptionPart = (part: string) => {
   // Split a description into words to intercept and replace
   // URLs with JSX links.
+  const urlPattern = /^https?:\/\//;
   return part
     .trim()
     .split(' ')
