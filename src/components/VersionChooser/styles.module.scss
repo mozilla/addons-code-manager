@@ -1,0 +1,13 @@
+@import '../../scss/variables';
+
+.VersionChooser {
+  border-radius: $border-radius;
+  border: 1px solid $light-gray;
+  margin-bottom: $default-padding;
+  padding: $default-padding;
+  width: 100%;
+}
+
+.heading {
+  margin-bottom: $default-padding;
+}

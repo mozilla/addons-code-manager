@@ -146,6 +146,24 @@ export const fakeExternalLinterMessage = Object.freeze({
 
 /* eslint-enable @typescript-eslint/camelcase */
 
+export const fakeVersions = [
+  {
+    id: 1541798,
+    channel: 'unlisted',
+    version: '1.5.0',
+  },
+  {
+    id: 1541794,
+    channel: 'listed',
+    version: '1.4.0',
+  },
+  {
+    id: 1541786,
+    channel: 'listed',
+    version: '1.3.0',
+  },
+];
+
 export const createFakeLocation = (props = {}): Location<{}> => {
   return {
     hash: '',
