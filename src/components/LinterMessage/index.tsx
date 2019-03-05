@@ -17,7 +17,6 @@ const getAlertVariant = (type: PublicProps['type']) => {
     case 'warning':
       return 'warning';
     default:
-    case 'notice':
       return 'secondary';
   }
 };
