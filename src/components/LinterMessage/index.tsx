@@ -34,7 +34,6 @@ const renderDescription = (description: LinterMessageType['description']) => {
     allLines.push(
       // Intercept and replace URLs with JSX links.
       line
-        .trim()
         .split(/(\s+)/)
         .reduce((allParts: React.ReactNode[], part) => {
           if (urlPattern.test(part)) {

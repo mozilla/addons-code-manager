@@ -47,7 +47,7 @@ describe(__filename, () => {
     const root = renderMessage({ description });
 
     expect(root.find(`.${styles.description}`)).toIncludeText(
-      description[0].trim(),
+      description[0],
     );
   });
 
