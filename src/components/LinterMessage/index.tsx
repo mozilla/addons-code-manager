@@ -35,7 +35,11 @@ const renderDescription = (description: LinterMessage['description']) => {
       // Intercept and replace URLs with JSX links.
       line.split(/(\s+)/).reduce((allParts: React.ReactNode[], part) => {
         if (urlPattern.test(part)) {
-          allParts.push(<Alert.Link href={part}>{part}</Alert.Link>);
+          allParts.push(
+            <Alert.Link key={`link:${part}`} href={part}>
+              {part}
+            </Alert.Link>,
+          );
         } else {
           allParts.push(unescapeHtmlEntities(part));
         }
