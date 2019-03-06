@@ -195,7 +195,7 @@ export const createFakeHistory = ({
 
 export const createContextWithFakeRouter = ({
   history = createFakeHistory(),
-  location = null,
+  location = null as Location<{}> | null,
   match = {},
   ...overrides
 } = {}) => {

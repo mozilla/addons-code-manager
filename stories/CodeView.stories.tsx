@@ -2,6 +2,7 @@ import * as React from 'react';
 import { storiesOf } from '@storybook/react';
 
 import CodeView from '../src/components/CodeView';
+import { renderWithStoreAndRouter } from './utils';
 
 const JS = `/**
  * There was an error executing the script.
@@ -39,17 +40,22 @@ storiesOf('CodeView', module).addWithChapters('all variants', {
       sections: [
         {
           title: 'unsupported mime type',
-          sectionFn: () => <CodeView mimeType="" content={JS} />,
+          sectionFn: () =>
+            renderWithStoreAndRouter(<CodeView mimeType="" content={JS} />),
         },
         {
           title: 'application/javascript',
-          sectionFn: () => (
-            <CodeView mimeType="application/javascript" content={JS} />
-          ),
+          sectionFn: () =>
+            renderWithStoreAndRouter(
+              <CodeView mimeType="application/javascript" content={JS} />,
+            ),
         },
         {
           title: 'text/css',
-          sectionFn: () => <CodeView mimeType="text/css" content={CSS} />,
+          sectionFn: () =>
+            renderWithStoreAndRouter(
+              <CodeView mimeType="text/css" content={CSS} />,
+            ),
         },
       ],
     },

@@ -18,10 +18,29 @@
   width: 100%;
 }
 
+.selectedLine {
+  background-color: $light-gray;
+}
+
 .lineNumber {
   padding-right: $default-padding;
   text-align: right;
   user-select: none;
+
+  a {
+    color: $gray;
+
+    .selectedLine &,
+    &:focus,
+    &:hover {
+      color: darken($gray, 30);
+      font-weight: 500;
+    }
+  }
+}
+
+.code {
+  width: 100%;
 }
 
 .lineNumber,
