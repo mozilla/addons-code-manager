@@ -2,8 +2,11 @@ import {
   fakeExternalLinterResult,
   fakeExternalLinterMessage,
 } from '../test-helpers';
-
-import { createInternalMessage, ExternalLinterMessage, getMessageMap } from '.';
+import {
+  createInternalMessage,
+  ExternalLinterMessage,
+  getMessageMap,
+} from './linter';
 
 describe(__filename, () => {
   const _getMessageMap = (messages: Partial<ExternalLinterMessage>[]) => {

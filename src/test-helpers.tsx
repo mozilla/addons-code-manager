@@ -8,7 +8,7 @@ import configureStore, {
   ApplicationState,
   ThunkActionCreator,
 } from './configureStore';
-import { ExternalLinterResult, ExternalLinterMessage } from './linter';
+import { ExternalLinterResult, ExternalLinterMessage } from './reducers/linter';
 import { ExternalUser } from './reducers/users';
 import {
   ExternalVersion,
