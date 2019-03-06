@@ -3,9 +3,9 @@ import unescape from 'lodash.unescape';
 import { Alert } from 'react-bootstrap';
 
 import styles from './styles.module.scss';
-import { LinterMessage as LinterMessageType } from '../../reducers/linter';
+import { LinterMessage } from '../../reducers/linter';
 
-const getAlertVariant = (type: LinterMessageType['type']) => {
+const getAlertVariant = (type: LinterMessage['type']) => {
   switch (type) {
     case 'error':
       return 'danger';
@@ -23,7 +23,7 @@ const unescapeHtmlEntities = (text: string) => {
   return unescape(text);
 };
 
-const renderDescription = (description: LinterMessageType['description']) => {
+const renderDescription = (description: LinterMessage['description']) => {
   const urlPattern = /^https?:\/\//;
 
   return description.reduce((allLines: React.ReactNode[], line, lineIndex) => {
@@ -33,17 +33,15 @@ const renderDescription = (description: LinterMessageType['description']) => {
 
     allLines.push(
       // Intercept and replace URLs with JSX links.
-      line
-        .split(/(\s+)/)
-        .reduce((allParts: React.ReactNode[], part) => {
-          if (urlPattern.test(part)) {
-            allParts.push(<Alert.Link href={part}>{part}</Alert.Link>);
-          } else {
-            allParts.push(unescapeHtmlEntities(part));
-          }
+      line.split(/(\s+)/).reduce((allParts: React.ReactNode[], part) => {
+        if (urlPattern.test(part)) {
+          allParts.push(<Alert.Link href={part}>{part}</Alert.Link>);
+        } else {
+          allParts.push(unescapeHtmlEntities(part));
+        }
 
-          return allParts;
-        }, []),
+        return allParts;
+      }, []),
     );
 
     return allLines;
@@ -51,10 +49,10 @@ const renderDescription = (description: LinterMessageType['description']) => {
 };
 
 type PublicProps = {
-  message: LinterMessageType;
+  message: LinterMessage;
 };
 
-const LinterMessage = (props: PublicProps) => {
+const LinterMessageBase = (props: PublicProps) => {
   const { description, message, type } = props.message;
   return (
     <Alert variant={getAlertVariant(type)}>
@@ -64,4 +62,4 @@ const LinterMessage = (props: PublicProps) => {
   );
 };
 
-export default LinterMessage;
+export default LinterMessageBase;

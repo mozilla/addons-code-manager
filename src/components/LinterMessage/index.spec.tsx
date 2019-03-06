@@ -46,9 +46,7 @@ describe(__filename, () => {
     const description = ['  lots    of    space     between'];
     const root = renderMessage({ description });
 
-    expect(root.find(`.${styles.description}`)).toIncludeText(
-      description[0],
-    );
+    expect(root.find(`.${styles.description}`)).toIncludeText(description[0]);
   });
 
   it('renders a line break for multi-line messages', () => {
