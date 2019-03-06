@@ -2,6 +2,7 @@ import log from 'loglevel';
 import Raven from 'raven-js';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { fas } from '@fortawesome/free-solid-svg-icons';
+import { far } from '@fortawesome/free-regular-svg-icons';
 
 export type ClientEnvVars = {
   NODE_ENV: string;
@@ -36,8 +37,8 @@ const configureApplication = ({
       .install();
   }
 
-  // Import all the "free solid FontAwesome" icons
-  library.add(fas);
+  // Import all the FontAwesome icons.
+  library.add(fas, far);
 };
 
 export default configureApplication;

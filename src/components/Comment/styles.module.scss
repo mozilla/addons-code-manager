@@ -1,0 +1,25 @@
+@import '../../scss/variables.scss';
+
+.container {
+  padding: $default-padding;
+  width: 100%;
+}
+
+.comment,
+.form {
+  background-color: $light-gray;
+  border: 1px solid darken($light-gray, 10);
+  padding: $default-padding;
+}
+
+.textarea {
+  display: block;
+  margin-bottom: $default-padding;
+  padding: 2px 5px;
+  width: 100%;
+}
+
+.comment {
+  display: flex;
+  width: 100%;
+}
