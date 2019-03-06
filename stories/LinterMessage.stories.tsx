@@ -3,7 +3,7 @@ import * as React from 'react';
 import { storiesOf } from '@storybook/react';
 
 import LinterMessage from '../src/components/LinterMessage';
-import { createInternalMessage } from '../src/linter';
+import { createInternalMessage } from '../src/reducers/linter';
 import { fakeExternalLinterMessage } from '../src/test-helpers';
 
 const createMessage = (attributes = {}) => {

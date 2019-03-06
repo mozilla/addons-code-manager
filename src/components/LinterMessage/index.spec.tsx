@@ -2,7 +2,7 @@ import * as React from 'react';
 import { shallow } from 'enzyme';
 import { Alert } from 'react-bootstrap';
 
-import { createInternalMessage } from '../../linter';
+import { createInternalMessage } from '../../reducers/linter';
 import { fakeExternalLinterMessage } from '../../test-helpers';
 import styles from './styles.module.scss';
 

@@ -3,7 +3,7 @@ import unescape from 'lodash.unescape';
 import { Alert } from 'react-bootstrap';
 
 import styles from './styles.module.scss';
-import { LinterMessage as LinterMessageType } from '../../linter';
+import { LinterMessage as LinterMessageType } from '../../reducers/linter';
 
 const getAlertVariant = (type: LinterMessageType['type']) => {
   switch (type) {
