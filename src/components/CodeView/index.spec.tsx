@@ -157,7 +157,6 @@ describe(__filename, () => {
       const element = {
         // Create a HTMLTableRowElement that we can override.
         ...document.createElement('tr'),
-        id: 'L2',
         scrollIntoView: jest.fn(),
       };
 
