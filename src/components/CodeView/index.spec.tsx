@@ -20,33 +20,33 @@ describe(__filename, () => {
     location?: Location<{}>;
   };
 
-  const render = ({
-    location = createFakeLocation(),
-    ...otherProps
-  }: RenderParams = {}) => {
-    const props = {
+  const getProps = (otherProps = {}) => {
+    return {
       content: 'some content',
       mimeType: 'mime/type',
       ...otherProps,
     };
+  };
 
-    return shallowUntilTarget(<CodeView {...props} />, CodeViewBase, {
-      shallowOptions: createContextWithFakeRouter({ location }),
-    });
+  const render = ({
+    location = createFakeLocation(),
+    ...otherProps
+  }: RenderParams = {}) => {
+    return shallowUntilTarget(
+      <CodeView {...getProps(otherProps)} />,
+      CodeViewBase,
+      {
+        shallowOptions: createContextWithFakeRouter({ location }),
+      },
+    );
   };
 
   const renderWithMount = ({
     location = createFakeLocation(),
     ...otherProps
   }: RenderParams = {}) => {
-    const props = {
-      content: 'some content',
-      mimeType: 'mime/type',
-      ...otherProps,
-    };
-
     return mount(
-      <CodeView {...props} />,
+      <CodeView {...getProps(otherProps)} />,
       createContextWithFakeRouter({ location }),
     );
   };
@@ -116,6 +116,10 @@ describe(__filename, () => {
     const root = render({ content: 'line 1\nline 2', location });
 
     expect(root.find(`.${styles.selectedLine}`)).toHaveLength(1);
+    expect(root.find(`.${styles.selectedLine}`)).toHaveProp(
+      'id',
+      `L${selectedLine}`,
+    );
   });
 
   it('renders a link for each line number', () => {
