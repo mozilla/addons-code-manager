@@ -65,7 +65,7 @@
     "@typescript-eslint/eslint-plugin": "^1.2.0",
     "@typescript-eslint/parser": "^1.2.0",
     "babel-loader": "8.0.5",
-    "babel-preset-react-app": "7.0.0",
+    "babel-preset-react-app": "7.0.2",
     "chalk": "^2.4.2",
     "codecov": "^3.1.0",
     "enzyme": "^3.8.0",
@@ -137,6 +137,6 @@
     ]
   },
   "resolutions": {
-    "babel-preset-react-app": "7.0.0"
+    "babel-preset-react-app": "7.0.2"
   }
 }
