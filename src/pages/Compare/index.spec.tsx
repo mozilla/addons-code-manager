@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Store } from 'redux';
+import { History } from 'history';
 
 import {
   createFakeHistory,
@@ -26,6 +27,7 @@ describe(__filename, () => {
       addonId: '999',
       baseVersionId: '1',
       headVersionId: '2',
+      lang: 'fr',
     },
   } = {}) => {
     return {
@@ -45,6 +47,8 @@ describe(__filename, () => {
     addonId?: string;
     baseVersionId?: string;
     headVersionId?: string;
+    history?: History;
+    lang?: string;
     store?: Store;
   };
 
@@ -53,11 +57,14 @@ describe(__filename, () => {
     addonId = '999',
     baseVersionId = '1',
     headVersionId = '2',
+    history = createFakeHistory(),
+    lang = 'fr',
     store = configureStore(),
   }: RenderParams = {}) => {
     const props = {
       ...createFakeRouteComponentProps({
-        params: { addonId, baseVersionId, headVersionId },
+        history,
+        params: { lang, addonId, baseVersionId, headVersionId },
       }),
       _fetchVersion,
     };
@@ -136,6 +143,41 @@ describe(__filename, () => {
     expect(_fetchVersion).toHaveBeenCalledWith({
       addonId,
       versionId: baseVersion.id,
+    });
+  });
+
+  it('makes sure the old version ID is older than the new version ID', () => {
+    const addonId = 123456;
+    const baseVersion = fakeVersion;
+    const headVersion = { ...fakeVersion, id: baseVersion.id - 1 };
+    const lang = 'es';
+
+    const store = configureStore();
+    const dispatch = spyOn(store, 'dispatch');
+    const fakeThunk = createFakeThunk();
+    const _fetchVersion = fakeThunk.createThunk;
+    const history = createFakeHistory();
+    const push = spyOn(history, 'push');
+
+    render({
+      _fetchVersion,
+      store,
+      addonId: String(addonId),
+      baseVersionId: String(baseVersion.id),
+      headVersionId: String(headVersion.id),
+      history,
+      lang,
+    });
+
+    expect(push).toHaveBeenCalledWith(
+      `/${lang}/compare/${addonId}/versions/${headVersion.id}...${
+        baseVersion.id
+      }/`,
+    );
+    expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(_fetchVersion).toHaveBeenCalledWith({
+      addonId,
+      versionId: headVersion.id,
     });
   });
 });

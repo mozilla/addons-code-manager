@@ -20,6 +20,7 @@ type PropsFromRouter = {
   addonId: string;
   baseVersionId: string;
   headVersionId: string;
+  lang: string;
 };
 
 type PropsFromState = {
@@ -38,13 +39,25 @@ export class CompareBase extends React.Component<Props> {
   };
 
   componentDidMount() {
-    const { _fetchVersion, dispatch, match } = this.props;
-    const { addonId, baseVersionId } = match.params;
+    const { _fetchVersion, dispatch, history, match } = this.props;
+    const { lang, addonId, baseVersionId, headVersionId } = match.params;
+
+    let oldVersionId = parseInt(baseVersionId, 10);
+    let newVersionId = parseInt(headVersionId, 10);
+
+    // We ensure the new version ID is newer than the old version ID.
+    if (oldVersionId > newVersionId) {
+      history.push(
+        `/${lang}/compare/${addonId}/versions/${headVersionId}...${baseVersionId}/`,
+      );
+      oldVersionId = newVersionId;
+      newVersionId = parseInt(baseVersionId, 10);
+    }
 
     dispatch(
       _fetchVersion({
         addonId: parseInt(addonId, 10),
-        versionId: parseInt(baseVersionId, 10),
+        versionId: oldVersionId,
       }),
     );
   }
