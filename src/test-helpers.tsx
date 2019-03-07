@@ -206,7 +206,8 @@ export const createFakeHistory = ({
 
 export const createContextWithFakeRouter = ({
   history = createFakeHistory(),
-  location = null,
+  // We tell TS that `location` is a nullable Location object.
+  location = null as Location | null,
   match = {},
   ...overrides
 } = {}) => {
