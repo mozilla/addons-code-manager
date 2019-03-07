@@ -1,6 +1,7 @@
 import { getType } from 'typesafe-actions';
 
 import reducer, {
+  VersionEntryType,
   actions,
   createInternalVersion,
   createInternalVersionAddon,
@@ -175,23 +176,86 @@ describe(__filename, () => {
   });
 
   describe('getVersionFile', () => {
+    /* eslint-disable @typescript-eslint/camelcase */
     it('returns a version file', () => {
+      const mimeType = 'mime/type';
       const path = 'test.js';
-      const version = fakeVersion;
-      const state = reducer(
-        undefined,
-        actions.loadVersionFile({ path, version }),
-      );
+      const type = 'text';
+      const version = {
+        ...fakeVersion,
+        file: {
+          ...fakeVersionFile,
+          entries: {
+            [path]: {
+              ...fakeVersionEntry,
+              mime_category: type as VersionEntryType,
+              mimetype: mimeType,
+              path,
+            },
+          },
+          selected_file: path,
+        },
+      };
+      const state = reducer(undefined, actions.loadVersionInfo({ version }));
 
-      expect(getVersionFile(state, version.id, path)).toEqual(
-        createInternalVersionFile(version.file),
-      );
+      expect(getVersionFile(state, version.id, path)).toEqual({
+        ...createInternalVersionFile(version.file),
+        mimeType,
+        type,
+      });
     });
+    /* eslint-enable @typescript-eslint/camelcase */
 
-    it('returns undefined if there is no version file found', () => {
+    it('returns undefined if there is no version found', () => {
       const state = initialState;
 
       expect(getVersionFile(state, 1, 'some-file-name.js')).toEqual(undefined);
+    });
+
+    it('returns undefined if there is no file for the path', () => {
+      const version = fakeVersion;
+      const state = reducer(
+        undefined,
+        actions.loadVersionInfo({ version: fakeVersion }),
+      );
+
+      expect(getVersionFile(state, version.id, 'path-to-unknown-file')).toEqual(
+        undefined,
+      );
+    });
+
+    it('returns undefined if there is no entry for the path', () => {
+      const version = fakeVersion;
+      const state = reducer(
+        undefined,
+        actions.loadVersionInfo({ version: fakeVersion }),
+      );
+
+      // We have to manually remove the entry to test this. This is because the
+      // condition that checks for a file will return undefined before we reach
+      // this test under normal circumstances.
+      state.versionInfo[version.id].entries = [];
+      expect(
+        getVersionFile(state, version.id, version.file.selected_file),
+      ).toEqual(undefined);
+    });
+
+    it('logs a debug message if there is no entry for the path', async () => {
+      const _log = getFakeLogger();
+
+      const version = fakeVersion;
+      const state = reducer(
+        undefined,
+        actions.loadVersionInfo({ version: fakeVersion }),
+      );
+
+      // We have to manually remove the entry to test this. This is because the
+      // condition that checks for a file will return undefined before we reach
+      // this test under normal circumstances.
+      state.versionInfo[version.id].entries = [];
+      getVersionFile(state, version.id, version.file.selected_file, { _log });
+
+      expect(_log.debug).toHaveBeenCalled();
     });
   });
 
