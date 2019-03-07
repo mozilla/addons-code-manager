@@ -219,6 +219,7 @@ export const getVersionFile = (
   versions: VersionsState,
   versionId: VersionId,
   path: string,
+  _log = log,
 ): VersionFile | void => {
   const version = getVersionInfo(versions, versionId);
   const filesForVersion = getVersionFiles(versions, versionId);
@@ -228,7 +229,13 @@ export const getVersionFile = (
     const entry = versions.versionInfo[versionId].entries.find(
       (e) => e.path === path,
     );
-    if (entry && file) {
+
+    if (!entry) {
+      _log.debug(`Entry missing for path: ${path}, versionId: ${versionId}`);
+      return undefined;
+    }
+
+    if (file) {
       return {
         ...file,
         mimeType: entry.mimeType,
@@ -237,7 +244,7 @@ export const getVersionFile = (
     }
   }
 
-  // The version or an entry was not found.
+  // The version or file was not found.
   return undefined;
 };
 

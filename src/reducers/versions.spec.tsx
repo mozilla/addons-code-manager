@@ -219,9 +219,9 @@ describe(__filename, () => {
         actions.loadVersionInfo({ version: fakeVersion }),
       );
 
-      expect(
-        getVersionFile(state, version.id, `${version.file.selected_file}-1`),
-      ).toEqual(undefined);
+      expect(getVersionFile(state, version.id, 'path-to-unknown-file')).toEqual(
+        undefined,
+      );
     });
 
     it('returns undefined if there is no entry for the path', () => {
@@ -238,6 +238,24 @@ describe(__filename, () => {
       expect(
         getVersionFile(state, version.id, version.file.selected_file),
       ).toEqual(undefined);
+    });
+
+    it('logs a debug message if there is no entry for the path', async () => {
+      const _log = getFakeLogger();
+
+      const version = fakeVersion;
+      const state = reducer(
+        undefined,
+        actions.loadVersionInfo({ version: fakeVersion }),
+      );
+
+      // We have to manually remove the entry to test this. This is because the
+      // condition that checks for a file will return undefined before we reach
+      // this test under normal circumstances.
+      state.versionInfo[version.id].entries = [];
+      getVersionFile(state, version.id, version.file.selected_file, _log);
+
+      expect(_log.debug).toHaveBeenCalled();
     });
   });
 
