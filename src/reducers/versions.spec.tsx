@@ -129,6 +129,7 @@ describe(__filename, () => {
         mimeType: entry.mimetype,
         modified: entry.modified,
         path: entry.path,
+        sha256: entry.sha256,
         type: entry.mime_category,
       });
     });
@@ -180,7 +181,9 @@ describe(__filename, () => {
     it('returns a version file', () => {
       const mimeType = 'mime/type';
       const path = 'test.js';
+      const sha256 = 'some-sha';
       const type = 'text';
+      const versionString = '1.0.1';
       const version = {
         ...fakeVersion,
         file: {
@@ -188,20 +191,26 @@ describe(__filename, () => {
           entries: {
             [path]: {
               ...fakeVersionEntry,
+              filename: path,
               mime_category: type as VersionEntryType,
               mimetype: mimeType,
               path,
+              sha256,
             },
           },
           selected_file: path,
         },
+        version: versionString,
       };
       const state = reducer(undefined, actions.loadVersionInfo({ version }));
 
       expect(getVersionFile(state, version.id, path)).toEqual({
         ...createInternalVersionFile(version.file),
+        filename: path,
         mimeType,
+        sha256,
         type,
+        version: versionString,
       });
     });
     /* eslint-enable @typescript-eslint/camelcase */
