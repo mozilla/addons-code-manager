@@ -6,7 +6,7 @@ import {
   ExternalVersionsList,
   createVersionsMap,
 } from '../../reducers/versions';
-import { fakeVersionsList } from '../../test-helpers';
+import { fakeVersionsList, fakeVersionsListItem } from '../../test-helpers';
 import styles from './styles.module.scss';
 
 import VersionSelect from '.';
@@ -52,6 +52,7 @@ describe(__filename, () => {
   it('renders two lists of versions', () => {
     const listedVersions: ExternalVersionsList = [
       {
+        ...fakeVersionsListItem,
         id: 123,
         channel: 'listed',
         version: 'v1',
@@ -59,6 +60,7 @@ describe(__filename, () => {
     ];
     const unlistedVersions: ExternalVersionsList = [
       {
+        ...fakeVersionsListItem,
         id: 456,
         channel: 'unlisted',
         version: 'v2',
