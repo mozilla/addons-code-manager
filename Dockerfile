@@ -28,9 +28,8 @@ RUN yarn install --pure-lockfile --production=true
 
 # Add the compiled client-side application
 COPY --from=build /app/build/ ./build
-# Add the server code
-COPY --from=build /app/src/server/ ./src/server
-COPY --from=build /app/src/@types/ ./src/@types
+# Add the source code for the server
+COPY --from=build /app/src/ ./src
 COPY --from=build /app/scripts/ ./scripts
 # The TS config is required to run the server code
 COPY --from=build /app/tsconfig.json ./
