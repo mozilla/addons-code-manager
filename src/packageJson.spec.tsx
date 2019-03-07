@@ -7,6 +7,8 @@ describe(__filename, () => {
     'babel-loader',
     // Prettier recommends to pin the version to avoid unreviewed changes.
     'prettier',
+    // See: https://github.com/mozilla/addons-code-manager/issues/339
+    'babel-preset-react-app',
   ];
 
   it.each(Object.keys(packageJson.dependencies))(
