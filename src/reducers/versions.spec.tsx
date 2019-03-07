@@ -8,7 +8,7 @@ import reducer, {
   createInternalVersionAddon,
   createInternalVersionEntry,
   createInternalVersionFile,
-  createVersionsLists,
+  createVersionsMap,
   fetchVersion,
   fetchVersionFile,
   fetchVersionsList,
@@ -23,6 +23,7 @@ import {
   fakeVersionEntry,
   fakeVersionFile,
   fakeVersionsList,
+  fakeVersionsListItem,
   getFakeLogger,
   thunkTester,
 } from '../test-helpers';
@@ -118,7 +119,7 @@ describe(__filename, () => {
         actions.loadVersionsList({ addonId, versions }),
       );
 
-      expect(state.byAddonId[addonId]).toEqual(createVersionsLists(versions));
+      expect(state.byAddonId[addonId]).toEqual(createVersionsMap(versions));
     });
   });
 
@@ -569,27 +570,30 @@ describe(__filename, () => {
     });
   });
 
-  describe('createVersionsLists', () => {
+  describe('createVersionsMap', () => {
     it('splits a list of versions into listed and unlisted versions', () => {
       const listedVersions: ExternalVersionsList = [
         {
-          ...fakeVersionsList[0],
+          ...fakeVersionsListItem,
+          id: 1,
           channel: 'listed',
         },
       ];
       const unlistedVersions: ExternalVersionsList = [
         {
-          ...fakeVersionsList[1],
+          ...fakeVersionsListItem,
+          id: 2,
           channel: 'unlisted',
         },
         {
-          ...fakeVersionsList[2],
+          ...fakeVersionsListItem,
+          id: 3,
           channel: 'unlisted',
         },
       ];
       const versions = [...listedVersions, ...unlistedVersions];
 
-      const { listed, unlisted } = createVersionsLists(versions);
+      const { listed, unlisted } = createVersionsMap(versions);
 
       expect(listed).toHaveLength(listedVersions.length);
       expect(unlisted).toHaveLength(unlistedVersions.length);

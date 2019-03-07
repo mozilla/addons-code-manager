@@ -129,13 +129,13 @@ type VersionsListItem = {
   version: string;
 };
 
-type ExternalVersionsListItem = VersionsListItem;
+export type ExternalVersionsListItem = VersionsListItem;
 
 export type ExternalVersionsList = ExternalVersionsListItem[];
 
 export type VersionsList = VersionsListItem[];
 
-export type VersionsLists = {
+export type VersionsMap = {
   listed: VersionsList;
   unlisted: VersionsList;
 };
@@ -160,7 +160,7 @@ export const actions = {
 
 export type VersionsState = {
   byAddonId: {
-    [addonId: number]: VersionsLists;
+    [addonId: number]: VersionsMap;
   };
   versionInfo: {
     [versionId: number]: Version;
@@ -338,9 +338,9 @@ export const fetchVersionFile = ({
   };
 };
 
-export const createVersionsLists = (
+export const createVersionsMap = (
   versions: ExternalVersionsList,
-): VersionsLists => {
+): VersionsMap => {
   const listed = versions.filter((version) => version.channel === 'listed');
   const unlisted = versions.filter((version) => version.channel === 'unlisted');
 
@@ -433,7 +433,7 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
         ...state,
         byAddonId: {
           ...state.byAddonId,
-          [addonId]: createVersionsLists(versions),
+          [addonId]: createVersionsMap(versions),
         },
       };
     }

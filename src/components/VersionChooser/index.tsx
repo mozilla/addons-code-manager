@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import Loading from '../Loading';
 import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
 import VersionSelect from '../VersionSelect';
-import { VersionsLists, fetchVersionsList } from '../../reducers/versions';
+import { VersionsMap, fetchVersionsList } from '../../reducers/versions';
 import { gettext } from '../../utils';
 import styles from './styles.module.scss';
 
@@ -15,7 +15,7 @@ export type PublicProps = {
 };
 
 type PropsFromState = {
-  versionsLists: VersionsLists;
+  versionsMap: VersionsMap;
 };
 
 type Props = PropsFromState & PublicProps & ConnectedReduxProps;
@@ -26,15 +26,15 @@ export class VersionChooserBase extends React.Component<Props> {
   };
 
   componentDidMount() {
-    const { _fetchVersionsList, addonId, dispatch, versionsLists } = this.props;
+    const { _fetchVersionsList, addonId, dispatch, versionsMap } = this.props;
 
-    if (!versionsLists) {
+    if (!versionsMap) {
       dispatch(_fetchVersionsList({ addonId }));
     }
   }
 
   render() {
-    const { versionsLists } = this.props;
+    const { versionsMap } = this.props;
 
     return (
       <div className={styles.VersionChooser}>
@@ -45,18 +45,18 @@ export class VersionChooserBase extends React.Component<Props> {
             </Col>
           </Row>
 
-          {versionsLists ? (
+          {versionsMap ? (
             <Form.Row>
               <VersionSelect
                 label={gettext('Choose an old version')}
-                listedVersions={versionsLists.listed}
-                unlistedVersions={versionsLists.unlisted}
+                listedVersions={versionsMap.listed}
+                unlistedVersions={versionsMap.unlisted}
               />
 
               <VersionSelect
                 label={gettext('Choose a new version')}
-                listedVersions={versionsLists.listed}
-                unlistedVersions={versionsLists.unlisted}
+                listedVersions={versionsMap.listed}
+                unlistedVersions={versionsMap.unlisted}
                 withLeftArrow
               />
             </Form.Row>
@@ -75,10 +75,10 @@ const mapStateToProps = (
   state: ApplicationState,
   ownProps: PublicProps,
 ): PropsFromState => {
-  const versionsLists = state.versions.byAddonId[ownProps.addonId];
+  const versionsMap = state.versions.byAddonId[ownProps.addonId];
 
   return {
-    versionsLists,
+    versionsMap,
   };
 };
 

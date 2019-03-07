@@ -11,6 +11,7 @@ import {
 import {
   createFakeThunk,
   fakeVersionsList,
+  fakeVersionsListItem,
   shallowUntilTarget,
   spyOn,
 } from '../../test-helpers';
@@ -76,13 +77,15 @@ describe(__filename, () => {
     const addonId = 999;
     const listedVersions: ExternalVersionsList = [
       {
-        ...fakeVersionsList[0],
+        ...fakeVersionsListItem,
+        id: 1,
         channel: 'listed',
       },
     ];
     const unlistedVersions: ExternalVersionsList = [
       {
-        ...fakeVersionsList[1],
+        ...fakeVersionsListItem,
+        id: 2,
         channel: 'unlisted',
       },
     ];
@@ -122,5 +125,22 @@ describe(__filename, () => {
     render({ _fetchVersionsList: fakeThunk.createThunk, addonId, store });
 
     expect(dispatch).not.toHaveBeenCalled();
+  });
+
+  it('dispatches fetchVersionsList() on mount when a different addonId is passed', () => {
+    const addonId = 888;
+    const store = configureStore();
+    _loadVersionsList(store, addonId, []);
+
+    const dispatch = spyOn(store, 'dispatch');
+    const fakeThunk = createFakeThunk();
+    const _fetchVersionsList = fakeThunk.createThunk;
+
+    const secondAddonId = addonId + 123;
+
+    render({ _fetchVersionsList, addonId: secondAddonId, store });
+
+    expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(_fetchVersionsList).toHaveBeenCalledWith({ addonId: secondAddonId });
   });
 });

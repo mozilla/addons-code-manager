@@ -2,10 +2,9 @@ import * as React from 'react';
 import { shallow } from 'enzyme';
 import { Form } from 'react-bootstrap';
 
-import configureStore from '../../configureStore';
 import {
   ExternalVersionsList,
-  actions as versionActions,
+  createVersionsMap,
 } from '../../reducers/versions';
 import { fakeVersionsList } from '../../test-helpers';
 import styles from './styles.module.scss';
@@ -18,15 +17,12 @@ describe(__filename, () => {
     versions = fakeVersionsList,
     withLeftArrow = false,
   } = {}) => {
-    const addonId = 123;
-    const store = configureStore();
-    store.dispatch(versionActions.loadVersionsList({ addonId, versions }));
-    const versionsLists = store.getState().versions.byAddonId[addonId];
+    const versionsMap = createVersionsMap(versions);
 
     const allProps = {
       label,
-      listedVersions: versionsLists.listed,
-      unlistedVersions: versionsLists.unlisted,
+      listedVersions: versionsMap.listed,
+      unlistedVersions: versionsMap.unlisted,
       withLeftArrow,
     };
 
