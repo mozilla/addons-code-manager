@@ -2,19 +2,14 @@ import * as React from 'react';
 import { Col, Form } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
+import { VersionsList } from '../../reducers/versions';
 import { gettext } from '../../utils';
 import styles from './styles.module.scss';
 
-export type Version = {
-  channel: string;
-  id: number;
-  version: string;
-};
-
 type PublicProps = {
   label: string;
-  listedVersions: Version[];
-  unlistedVersions: Version[];
+  listedVersions: VersionsList;
+  unlistedVersions: VersionsList;
   withLeftArrow: boolean;
 };
 

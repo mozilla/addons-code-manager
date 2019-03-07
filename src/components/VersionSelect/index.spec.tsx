@@ -2,28 +2,28 @@ import * as React from 'react';
 import { shallow } from 'enzyme';
 import { Form } from 'react-bootstrap';
 
-import { fakeVersions } from '../../test-helpers';
+import {
+  ExternalVersionsList,
+  createVersionsMap,
+} from '../../reducers/versions';
+import { fakeVersionsList, fakeVersionsListItem } from '../../test-helpers';
 import styles from './styles.module.scss';
 
 import VersionSelect from '.';
 
 describe(__filename, () => {
-  const render = (props = {}) => {
+  const render = ({
+    label = 'select a version',
+    versions = fakeVersionsList,
+    withLeftArrow = false,
+  } = {}) => {
+    const versionsMap = createVersionsMap(versions);
+
     const allProps = {
-      label: 'select a version',
-      listedVersions: [
-        {
-          ...fakeVersions[0],
-          channel: 'listed',
-        },
-      ],
-      unlistedVersions: [
-        {
-          ...fakeVersions[1],
-          channel: 'unlisted',
-        },
-      ],
-      ...props,
+      label,
+      listedVersions: versionsMap.listed,
+      unlistedVersions: versionsMap.unlisted,
+      withLeftArrow,
     };
 
     return shallow(<VersionSelect {...allProps} />);
@@ -50,22 +50,24 @@ describe(__filename, () => {
   });
 
   it('renders two lists of versions', () => {
-    const listedVersions = [
+    const listedVersions: ExternalVersionsList = [
       {
+        ...fakeVersionsListItem,
         id: 123,
         channel: 'listed',
         version: 'v1',
       },
     ];
-    const unlistedVersions = [
+    const unlistedVersions: ExternalVersionsList = [
       {
+        ...fakeVersionsListItem,
         id: 456,
         channel: 'unlisted',
         version: 'v2',
       },
     ];
 
-    const root = render({ listedVersions, unlistedVersions });
+    const root = render({ versions: [...listedVersions, ...unlistedVersions] });
 
     expect(root.find(`.${styles.listedGroup}`)).toHaveProp('label', 'Listed');
     expect(root.find('option').at(0)).toHaveProp('value', listedVersions[0].id);
