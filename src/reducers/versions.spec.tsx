@@ -253,7 +253,7 @@ describe(__filename, () => {
       // condition that checks for a file will return undefined before we reach
       // this test under normal circumstances.
       state.versionInfo[version.id].entries = [];
-      getVersionFile(state, version.id, version.file.selected_file, _log);
+      getVersionFile(state, version.id, version.file.selected_file, { _log });
 
       expect(_log.debug).toHaveBeenCalled();
     });

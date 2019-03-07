@@ -219,7 +219,7 @@ export const getVersionFile = (
   versions: VersionsState,
   versionId: VersionId,
   path: string,
-  _log = log,
+  { _log = log } = {},
 ): VersionFile | void => {
   const version = getVersionInfo(versions, versionId);
   const filesForVersion = getVersionFiles(versions, versionId);
