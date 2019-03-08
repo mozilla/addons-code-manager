@@ -9,6 +9,7 @@ import {
   HttpMethod,
   callApi,
   getCurrentUser,
+  getDiff,
   getVersion,
   getVersionsList,
   isErrorResponse,
@@ -280,6 +281,48 @@ describe(__filename, () => {
           headers: {},
           method: HttpMethod.GET,
         },
+      );
+    });
+  });
+
+  describe('getDiff', () => {
+    it('calls the API to retrieve a diff of the default file between two versions', async () => {
+      const addonId = 999;
+      const baseVersionId = 1;
+      const headVersionId = 2;
+
+      await getDiff({
+        apiState: defaultApiState,
+        addonId,
+        baseVersionId,
+        headVersionId,
+      });
+
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringMatching(
+          `/api/${defaultVersion}/reviewers/addon/${addonId}/versions/${baseVersionId}/compare_to/${headVersionId}/`,
+        ),
+        expect.any(Object),
+      );
+    });
+
+    it('calls the API to retrieve a diff of a specific file between two versions', async () => {
+      const addonId = 999;
+      const baseVersionId = 1;
+      const headVersionId = 2;
+      const path = 'test.js';
+
+      await getDiff({
+        apiState: defaultApiState,
+        addonId,
+        baseVersionId,
+        headVersionId,
+        path,
+      });
+
+      expect(fetch).toHaveBeenCalledWith(
+        expect.urlWithTheseParams({ file: path }),
+        expect.any(Object),
       );
     });
   });

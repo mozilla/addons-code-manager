@@ -80,6 +80,55 @@ export type ExternalVersion = {
   version: string;
 };
 
+type ExternalChange = {
+  content: string;
+  new_line_number: number;
+  old_line_number: number;
+  type: 'normal' | 'delete' | 'insert';
+};
+
+type ExternalHunk = {
+  changes: ExternalChange[];
+  header: string;
+  new_lines: number;
+  new_start: number;
+  old_lines: number;
+  old_start: number;
+};
+
+type ExternalDiff = {
+  hash: string;
+  hunks: ExternalHunk[];
+  is_binary: boolean;
+  lines_added: number;
+  lines_deleted: number;
+  mode: string;
+  old_path: string;
+  parent: string;
+  path: string;
+  size: number;
+};
+
+// An `ExternalVersionFileWithDiff` object is very similar to an
+// `ExternalVersionFile` object: instead of having a `content` field, it has a
+// `diff` field.
+export type ExternalVersionFileWithDiff = Pick<
+  ExternalVersionFile,
+  Exclude<keyof ExternalVersionFile, 'content'>
+> & {
+  diff: ExternalDiff[];
+};
+
+// An `ExternalVersionWithDiff` object is an `ExternalVersion` object with a
+// `file` field of type `ExternalVersionFileWithDiff` instead of
+// `ExternalVersionFile`.
+export type ExternalVersionWithDiff = Pick<
+  ExternalVersion,
+  Exclude<keyof ExternalVersion, 'file'>
+> & {
+  file: ExternalVersionFileWithDiff;
+};
+
 // This is how we store file information, but the getVersionFile selector
 // returns more info, which is defined in VersionFile, below.
 type InternalVersionFile = {
