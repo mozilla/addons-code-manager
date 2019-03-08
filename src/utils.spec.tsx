@@ -1,4 +1,7 @@
+import filesize from 'filesize';
+
 import {
+  formatFilesize,
   getLanguageFromMimeType,
   getLocalizedString,
   nl2br,
@@ -142,6 +145,13 @@ describe(__filename, () => {
       expect(nl2br(htmlValue)).toEqual(
         '<strong>A title:</strong><br /><a href="something">A link</a><br />Some text',
       );
+    });
+  });
+
+  describe('formatFilesize', () => {
+    it('returns a size formatted using the iec standard', () => {
+      const size = 12345;
+      expect(formatFilesize(size)).toEqual(filesize(size, { standard: 'iec' }));
     });
   });
 });
