@@ -28,9 +28,12 @@ import NotFound from '../../pages/NotFound';
 import { gettext } from '../../utils';
 
 export type PublicProps = {
+  authToken: string | null;
+};
+
+export type DefaultProps = {
   _fetchCurrentUser: typeof fetchCurrentUser;
   _log: typeof log;
-  authToken: string | null;
 };
 
 type PropsFromState = {
@@ -39,10 +42,13 @@ type PropsFromState = {
   user: User | null;
 };
 
+type RouterProps = RouteComponentProps<{}>;
+
 type Props = PublicProps &
+  DefaultProps &
   PropsFromState &
   ConnectedReduxProps &
-  RouteComponentProps<{}>;
+  RouterProps;
 
 export class AppBase extends React.Component<Props> {
   static defaultProps = {
@@ -138,4 +144,6 @@ const mapStateToProps = (state: ApplicationState): PropsFromState => {
   };
 };
 
-export default withRouter(connect(mapStateToProps)(AppBase));
+export default withRouter<PublicProps & Partial<DefaultProps> & RouterProps>(
+  connect(mapStateToProps)(AppBase),
+);
