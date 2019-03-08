@@ -14,10 +14,12 @@ import {
 } from '../../test-helpers';
 import styles from './styles.module.scss';
 
-import DiffView, { DiffViewBase, PublicProps } from '.';
+import DiffView, { DiffViewBase, DefaultProps, PublicProps } from '.';
 
 describe(__filename, () => {
-  type RenderParams = { location?: Location<{}> } & Partial<PublicProps>;
+  type RenderParams = { location?: Location } & Partial<
+    PublicProps & DefaultProps
+  >;
 
   const render = ({
     location = createFakeLocation(),
@@ -131,12 +133,12 @@ describe(__filename, () => {
     expect(root.find(Diff)).toHaveProp('selectedChanges', [selectedChange]);
   });
 
-  it('does not pass any selected changes when location hash is empty', () => {
+  it('passes an empty list of selected changes when location hash is empty', () => {
     const location = createFakeLocation({ hash: '' });
 
     const root = render({ location });
 
-    expect(root.find(Diff)).toHaveProp('selectedChanges');
+    expect(root.find(Diff)).toHaveProp('selectedChanges', []);
   });
 
   it('tries to find the selected line element on mount', () => {

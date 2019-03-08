@@ -18,20 +18,25 @@ import styles from './styles.module.scss';
 import 'react-diff-view/style/index.css';
 
 export type PublicProps = {
-  _document: typeof document;
-  _tokenize: typeof tokenize;
   diff: string;
   mimeType: string;
+};
+
+export type DefaultProps = {
+  _document: typeof document;
+  _tokenize: typeof tokenize;
   viewType: DiffProps['viewType'];
 };
 
-type Props = PublicProps & RouteComponentProps;
+export type RouterProps = RouteComponentProps<{}>;
+
+type Props = PublicProps & DefaultProps & RouterProps;
 
 export class DiffViewBase extends React.Component<Props> {
-  static defaultProps = {
+  static defaultProps: DefaultProps = {
     _document: document,
     _tokenize: tokenize,
-    viewType: 'unified' as PublicProps['viewType'],
+    viewType: 'unified',
   };
 
   componentDidMount() {
@@ -107,7 +112,7 @@ export class DiffViewBase extends React.Component<Props> {
 
     const selectedChanges =
       // Remove the `#` if `location.hash` is defined
-      location.hash.length > 2 ? [location.hash.substring(1)] : undefined;
+      location.hash.length > 2 ? [location.hash.substring(1)] : [];
 
     return (
       <div className={styles.DiffView}>
@@ -138,7 +143,6 @@ export class DiffViewBase extends React.Component<Props> {
   }
 }
 
-// TODO: I can't make it work, I don't understand what's going on between
-// public, default and router props. TS gets confused by `withRouter` HOC.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export default withRouter(DiffViewBase) as any;
+export default withRouter(DiffViewBase) as React.ComponentType<
+  PublicProps & Partial<DefaultProps>
+>;
