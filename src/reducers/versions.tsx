@@ -92,10 +92,13 @@ type InternalVersionFile = {
 export type VersionFile = {
   content: string;
   created: string;
+  filename: string;
   id: number;
   mimeType: string;
+  sha256: string;
   size: number;
   type: VersionEntryType;
+  version: string;
 };
 
 type VersionEntry = {
@@ -104,6 +107,7 @@ type VersionEntry = {
   mimeType: string;
   modified: string;
   path: string;
+  sha256: string;
   type: VersionEntryType;
 };
 
@@ -198,6 +202,7 @@ export const createInternalVersionEntry = (
     mimeType: entry.mimetype,
     modified: entry.modified,
     path: entry.path,
+    sha256: entry.sha256,
     type: entry.mime_category,
   };
 };
@@ -263,8 +268,11 @@ export const getVersionFile = (
     if (file) {
       return {
         ...file,
+        filename: entry.filename,
         mimeType: entry.mimeType,
+        sha256: entry.sha256,
         type: entry.type,
+        version: version.version,
       };
     }
   }
