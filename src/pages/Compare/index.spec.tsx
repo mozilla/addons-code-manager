@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Store } from 'redux';
+import { History } from 'history';
 
 import {
   createFakeHistory,
@@ -26,6 +27,7 @@ describe(__filename, () => {
       addonId: '999',
       baseVersionId: '1',
       headVersionId: '2',
+      lang: 'fr',
     },
   } = {}) => {
     return {
@@ -45,6 +47,8 @@ describe(__filename, () => {
     addonId?: string;
     baseVersionId?: string;
     headVersionId?: string;
+    history?: History;
+    lang?: string;
     store?: Store;
   };
 
@@ -53,11 +57,14 @@ describe(__filename, () => {
     addonId = '999',
     baseVersionId = '1',
     headVersionId = '2',
+    history = createFakeHistory(),
+    lang = 'fr',
     store = configureStore(),
   }: RenderParams = {}) => {
     const props = {
       ...createFakeRouteComponentProps({
-        params: { addonId, baseVersionId, headVersionId },
+        history,
+        params: { lang, addonId, baseVersionId, headVersionId },
       }),
       _fetchVersion,
     };
@@ -67,6 +74,24 @@ describe(__filename, () => {
         context: { store },
       },
     });
+  };
+
+  type GetRouteParamsParams = {
+    addonId?: number;
+    baseVersionId?: number;
+    headVersionId?: number;
+  };
+
+  const getRouteParams = ({
+    addonId = 9999,
+    baseVersionId = 1,
+    headVersionId = 1000,
+  }: GetRouteParamsParams) => {
+    return {
+      addonId: String(addonId),
+      baseVersionId: String(baseVersionId),
+      headVersionId: String(headVersionId),
+    };
   };
 
   it('renders a page with a loading message', () => {
@@ -117,7 +142,6 @@ describe(__filename, () => {
   it('dispatches fetchVersion() on mount', () => {
     const addonId = 123456;
     const baseVersion = fakeVersion;
-    const headVersion = { ...fakeVersion, id: baseVersion.id + 1 };
 
     const store = configureStore();
     const dispatch = spyOn(store, 'dispatch');
@@ -127,9 +151,185 @@ describe(__filename, () => {
     render({
       _fetchVersion,
       store,
+      ...getRouteParams({
+        addonId,
+        baseVersionId: baseVersion.id,
+      }),
+    });
+
+    expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(_fetchVersion).toHaveBeenCalledWith({
+      addonId,
+      versionId: baseVersion.id,
+    });
+  });
+
+  it('redirects to a new compare url when the "old" version is newer than the "new" version', () => {
+    const addonId = 123456;
+    const baseVersion = fakeVersion;
+    const headVersion = { ...fakeVersion, id: baseVersion.id - 1 };
+    const lang = 'es';
+
+    const store = configureStore();
+    const dispatch = spyOn(store, 'dispatch');
+    const fakeThunk = createFakeThunk();
+    const _fetchVersion = fakeThunk.createThunk;
+    const history = createFakeHistory();
+    const push = spyOn(history, 'push');
+
+    render({
+      _fetchVersion,
+      store,
+      ...getRouteParams({
+        addonId,
+        baseVersionId: baseVersion.id,
+        headVersionId: headVersion.id,
+      }),
+      history,
+      lang,
+    });
+
+    expect(push).toHaveBeenCalledWith(
+      `/${lang}/compare/${addonId}/versions/${headVersion.id}...${
+        baseVersion.id
+      }/`,
+    );
+    expect(dispatch).not.toHaveBeenCalled();
+  });
+
+  it('does not dispatch fetchVersion() on update if no parameter has changed', () => {
+    const addonId = 123456;
+    const baseVersion = fakeVersion;
+    const headVersion = { ...fakeVersion, id: baseVersion.id + 1 };
+
+    const store = configureStore();
+    const fakeThunk = createFakeThunk();
+    const dispatch = spyOn(store, 'dispatch');
+
+    const root = render({
+      _fetchVersion: fakeThunk.createThunk,
       addonId: String(addonId),
       baseVersionId: String(baseVersion.id),
       headVersionId: String(headVersion.id),
+      store,
+    });
+
+    dispatch.mockClear();
+    root.setProps({
+      match: {
+        params: {
+          addonId: String(addonId),
+          baseVersionId: String(baseVersion.id),
+          headVersionId: String(headVersion.id),
+        },
+      },
+    });
+
+    expect(dispatch).not.toHaveBeenCalled();
+  });
+
+  it('dispatches fetchVersion() on update if base version is different', () => {
+    const addonId = 123456;
+    const baseVersion = fakeVersion;
+
+    const store = configureStore();
+    const fakeThunk = createFakeThunk();
+    const _fetchVersion = fakeThunk.createThunk;
+    const dispatch = spyOn(store, 'dispatch');
+
+    const root = render({
+      _fetchVersion,
+      ...getRouteParams({
+        addonId,
+        baseVersionId: baseVersion.id - 10,
+      }),
+      store,
+    });
+
+    dispatch.mockClear();
+    _fetchVersion.mockClear();
+    root.setProps({
+      match: {
+        params: getRouteParams({
+          addonId,
+          baseVersionId: baseVersion.id,
+        }),
+      },
+    });
+
+    expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(_fetchVersion).toHaveBeenCalledWith({
+      addonId,
+      versionId: baseVersion.id,
+    });
+  });
+
+  it('dispatches fetchVersion() on update if head version is different', () => {
+    const addonId = 123456;
+    const baseVersion = fakeVersion;
+    const headVersion = { ...fakeVersion, id: baseVersion.id + 1 };
+
+    const store = configureStore();
+    const fakeThunk = createFakeThunk();
+    const _fetchVersion = fakeThunk.createThunk;
+    const dispatch = spyOn(store, 'dispatch');
+
+    const root = render({
+      _fetchVersion,
+      ...getRouteParams({
+        addonId,
+        baseVersionId: baseVersion.id,
+        headVersionId: headVersion.id + 10,
+      }),
+      store,
+    });
+
+    dispatch.mockClear();
+    _fetchVersion.mockClear();
+    root.setProps({
+      match: {
+        params: getRouteParams({
+          addonId,
+          baseVersionId: baseVersion.id,
+          headVersionId: headVersion.id,
+        }),
+      },
+    });
+
+    expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(_fetchVersion).toHaveBeenCalledWith({
+      addonId,
+      versionId: baseVersion.id,
+    });
+  });
+
+  it('dispatches fetchVersion() on update if addon ID is different', () => {
+    const addonId = 123456;
+    const baseVersion = fakeVersion;
+
+    const store = configureStore();
+    const fakeThunk = createFakeThunk();
+    const _fetchVersion = fakeThunk.createThunk;
+    const dispatch = spyOn(store, 'dispatch');
+
+    const root = render({
+      _fetchVersion,
+      ...getRouteParams({
+        addonId: addonId + 10,
+        baseVersionId: baseVersion.id,
+      }),
+      store,
+    });
+
+    dispatch.mockClear();
+    _fetchVersion.mockClear();
+    root.setProps({
+      match: {
+        params: getRouteParams({
+          addonId,
+          baseVersionId: baseVersion.id,
+        }),
+      },
     });
 
     expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
