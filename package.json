@@ -56,7 +56,9 @@
     "universal-cookie-express": "3.0.7"
   },
   "devDependencies": {
-    "@storybook/react": "^4.1.11",
+    "@emotion/core": "^10.0.7",
+    "@emotion/styled": "^10.0.7",
+    "@storybook/react": "^5.0.0",
     "@storybook/storybook-deployer": "^2.8.1",
     "@types/enzyme": "^3.1.15",
     "@types/enzyme-adapter-react-16": "^1.0.3",
@@ -77,7 +79,7 @@
     "jest-fetch-mock": "^2.1.0",
     "prettier": "1.16.4",
     "pretty-quick": "^1.8.1",
-    "react-storybook-addon-chapters": "^3.0.3",
+    "react-storybook-addon-chapters": "^3.1.1",
     "stmux": "^1.6.1",
     "supertest": "^3.4.2",
     "ts-node-dev": "^1.0.0-pre.32",

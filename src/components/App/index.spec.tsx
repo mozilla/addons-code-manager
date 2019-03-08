@@ -16,11 +16,11 @@ import {
 } from '../../test-helpers';
 import Navbar from '../Navbar';
 
-import App, { AppBase, PublicProps } from '.';
+import App, { AppBase, DefaultProps, PublicProps } from '.';
 
 describe(__filename, () => {
   type RenderParams = {
-    _fetchCurrentUser?: PublicProps['_fetchCurrentUser'];
+    _fetchCurrentUser?: DefaultProps['_fetchCurrentUser'];
     authToken?: PublicProps['authToken'];
     store?: Store;
   };
