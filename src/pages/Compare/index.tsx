@@ -71,12 +71,11 @@ export class CompareBase extends React.Component<Props> {
       headVersionId !== prevProps.match.params.headVersionId
     ) {
       const { dispatch, _fetchVersion } = this.props;
-      const oldVersionId = parseInt(baseVersionId, 10);
 
       dispatch(
         _fetchVersion({
           addonId: parseInt(addonId, 10),
-          versionId: oldVersionId,
+          versionId: parseInt(baseVersionId, 10),
         }),
       );
     }

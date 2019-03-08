@@ -77,15 +77,15 @@ describe(__filename, () => {
   };
 
   type GetRouteParamsParams = {
-    addonId: number;
-    baseVersionId: number;
-    headVersionId: number;
+    addonId?: number;
+    baseVersionId?: number;
+    headVersionId?: number;
   };
 
   const getRouteParams = ({
-    addonId,
-    baseVersionId,
-    headVersionId,
+    addonId = 9999,
+    baseVersionId = 1,
+    headVersionId = 1000,
   }: GetRouteParamsParams) => {
     return {
       addonId: String(addonId),
@@ -142,7 +142,6 @@ describe(__filename, () => {
   it('dispatches fetchVersion() on mount', () => {
     const addonId = 123456;
     const baseVersion = fakeVersion;
-    const headVersion = { ...fakeVersion, id: baseVersion.id + 1 };
 
     const store = configureStore();
     const dispatch = spyOn(store, 'dispatch');
@@ -155,7 +154,6 @@ describe(__filename, () => {
       ...getRouteParams({
         addonId,
         baseVersionId: baseVersion.id,
-        headVersionId: headVersion.id,
       }),
     });
 
@@ -233,7 +231,6 @@ describe(__filename, () => {
   it('dispatches fetchVersion() on update if base version is different', () => {
     const addonId = 123456;
     const baseVersion = fakeVersion;
-    const headVersion = { ...fakeVersion, id: baseVersion.id + 1 };
 
     const store = configureStore();
     const fakeThunk = createFakeThunk();
@@ -245,7 +242,6 @@ describe(__filename, () => {
       ...getRouteParams({
         addonId,
         baseVersionId: baseVersion.id - 10,
-        headVersionId: headVersion.id,
       }),
       store,
     });
@@ -257,7 +253,6 @@ describe(__filename, () => {
         params: getRouteParams({
           addonId,
           baseVersionId: baseVersion.id,
-          headVersionId: headVersion.id,
         }),
       },
     });
@@ -311,7 +306,6 @@ describe(__filename, () => {
   it('dispatches fetchVersion() on update if addon ID is different', () => {
     const addonId = 123456;
     const baseVersion = fakeVersion;
-    const headVersion = { ...fakeVersion, id: baseVersion.id + 1 };
 
     const store = configureStore();
     const fakeThunk = createFakeThunk();
@@ -323,7 +317,6 @@ describe(__filename, () => {
       ...getRouteParams({
         addonId: addonId + 10,
         baseVersionId: baseVersion.id,
-        headVersionId: headVersion.id,
       }),
       store,
     });
@@ -335,7 +328,6 @@ describe(__filename, () => {
         params: getRouteParams({
           addonId,
           baseVersionId: baseVersion.id,
-          headVersionId: headVersion.id,
         }),
       },
     });
