@@ -1,9 +1,11 @@
 import { getType } from 'typesafe-actions';
 
 import reducer, {
+  ExternalVersionWithDiff,
   ExternalVersionsList,
   VersionEntryType,
   actions,
+  createInternalDiffs,
   createInternalVersion,
   createInternalVersionAddon,
   createInternalVersionEntry,
@@ -18,6 +20,7 @@ import reducer, {
   initialState,
 } from './versions';
 import {
+  fakeExternalDiff,
   fakeVersion,
   fakeVersionAddon,
   fakeVersionEntry,
@@ -615,6 +618,231 @@ describe(__filename, () => {
       unlistedVersions.forEach((version, index) => {
         expect(unlisted[index]).toEqual(version);
       });
+    });
+  });
+
+  describe('createInternalDiffs', () => {
+    type CreateInternalDiffsParams = {
+      baseVersionId?: number;
+      headVersionId?: number;
+      version: ExternalVersionWithDiff;
+    };
+
+    const _createInternalDiffs = ({
+      baseVersionId = 1,
+      headVersionId = 2,
+      version,
+    }: CreateInternalDiffsParams) => {
+      return createInternalDiffs({ baseVersionId, headVersionId, version });
+    };
+
+    const createVersionWithChange = (change = {}) => {
+      return {
+        ...fakeVersion,
+        file: {
+          ...fakeVersion.file,
+          diff: [
+            {
+              ...fakeExternalDiff,
+              hunks: [
+                {
+                  ...fakeExternalDiff.hunks[0],
+                  changes: [
+                    {
+                      ...fakeExternalDiff.hunks[0].changes[0],
+                      ...change,
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      };
+    };
+
+    it('creates an array of DiffInfo objects from a version with diff', () => {
+      const baseVersionId = 132;
+      const headVersionId = 133;
+      const externalDiffs = [fakeExternalDiff];
+      const version = {
+        ...fakeVersion,
+        file: {
+          ...fakeVersion.file,
+          diff: externalDiffs,
+        },
+      };
+
+      const diffs = _createInternalDiffs({
+        baseVersionId,
+        headVersionId,
+        version,
+      });
+
+      expect(diffs).toHaveLength(externalDiffs.length);
+      diffs.forEach((diff, index) => {
+        expect(diff).toHaveProperty('oldRevision', String(baseVersionId));
+        expect(diff).toHaveProperty('newRevision', String(headVersionId));
+        expect(diff).toHaveProperty('oldMode', externalDiffs[index].mode);
+        expect(diff).toHaveProperty('newMode', externalDiffs[index].mode);
+        expect(diff).toHaveProperty('oldPath', externalDiffs[index].old_path);
+        expect(diff).toHaveProperty('newPath', externalDiffs[index].path);
+        expect(diff).toHaveProperty('oldEndingNewLine', false);
+        expect(diff).toHaveProperty('newEndingNewLine', false);
+
+        // These props will be tested later.
+        expect(diff).toHaveProperty('type');
+        expect(diff).toHaveProperty('hunks');
+      });
+    });
+
+    it.each([
+      ['add', 'A'],
+      ['copy', 'C'],
+      ['delete', 'D'],
+      ['modify', 'M'],
+      ['rename', 'R'],
+      // This simulates an unknown mode.
+      ['modify', 'unknown'],
+    ])('sets type "%s" for mode "%s"', (type, mode) => {
+      const version = {
+        ...fakeVersion,
+        file: {
+          ...fakeVersion.file,
+          diff: [{ ...fakeExternalDiff, mode }],
+        },
+      };
+
+      const diff = _createInternalDiffs({ version })[0];
+
+      expect(diff.type).toEqual(type);
+    });
+
+    it('creates hunks from external diff hunks', () => {
+      const version = {
+        ...fakeVersion,
+        file: {
+          ...fakeVersion.file,
+          diff: [fakeExternalDiff],
+        },
+      };
+
+      const diff = _createInternalDiffs({ version })[0];
+
+      expect(diff.hunks).toHaveLength(fakeExternalDiff.hunks.length);
+      diff.hunks.forEach((hunk, index) => {
+        const externalHunk = fakeExternalDiff.hunks[index];
+
+        expect(hunk).toHaveProperty('content', externalHunk.header);
+        expect(hunk).toHaveProperty('isPlain', false);
+        expect(hunk).toHaveProperty('oldLines', externalHunk.old_lines);
+        expect(hunk).toHaveProperty('newLines', externalHunk.new_lines);
+        expect(hunk).toHaveProperty('oldStart', externalHunk.old_start);
+        expect(hunk).toHaveProperty('newStart', externalHunk.new_start);
+
+        // This prop will be tested later.
+        expect(hunk).toHaveProperty('changes');
+      });
+    });
+
+    it('creates changes from external diff changes', () => {
+      const version = {
+        ...fakeVersion,
+        file: {
+          ...fakeVersion.file,
+          diff: [fakeExternalDiff],
+        },
+      };
+
+      const diff = _createInternalDiffs({ version })[0];
+
+      const firstHunk = diff.hunks[0];
+      const firstExternalHunk = fakeExternalDiff.hunks[0];
+
+      expect(firstHunk.changes).toHaveLength(firstExternalHunk.changes.length);
+      firstHunk.changes.forEach((change, index) => {
+        const externalChange = firstExternalHunk.changes[index];
+
+        expect(change).toHaveProperty('content', externalChange.content);
+        expect(change).toHaveProperty('type', externalChange.type);
+        expect(change).toHaveProperty(
+          'oldLineNumber',
+          externalChange.old_line_number,
+        );
+        expect(change).toHaveProperty(
+          'newLineNumber',
+          externalChange.new_line_number,
+        );
+
+        // These props will be tested later.
+        expect(change).toHaveProperty('lineNumber');
+        expect(change).toHaveProperty('isDelete');
+        expect(change).toHaveProperty('isInsert');
+        expect(change).toHaveProperty('isNormal');
+      });
+    });
+
+    it('creates "delete" changes', () => {
+      const type = 'delete';
+      const oldLineNumber = 123;
+      const version = createVersionWithChange({
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        old_line_number: oldLineNumber,
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        new_line_number: oldLineNumber + 1,
+        type,
+      });
+
+      const diff = _createInternalDiffs({ version })[0];
+      const change = diff.hunks[0].changes[0];
+
+      expect(change).toHaveProperty('type', type);
+      expect(change).toHaveProperty('isDelete', true);
+      expect(change).toHaveProperty('isInsert', false);
+      expect(change).toHaveProperty('isNormal', false);
+      expect(change).toHaveProperty('lineNumber', oldLineNumber);
+    });
+
+    it('creates "insert" changes', () => {
+      const type = 'insert';
+      const newLineNumber = 123;
+      const version = createVersionWithChange({
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        old_line_number: newLineNumber - 1,
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        new_line_number: newLineNumber,
+        type,
+      });
+
+      const diff = _createInternalDiffs({ version })[0];
+      const change = diff.hunks[0].changes[0];
+
+      expect(change).toHaveProperty('type', type);
+      expect(change).toHaveProperty('isDelete', false);
+      expect(change).toHaveProperty('isInsert', true);
+      expect(change).toHaveProperty('isNormal', false);
+      expect(change).toHaveProperty('lineNumber', newLineNumber);
+    });
+
+    it('creates "normal" changes', () => {
+      const type = 'normal';
+      const oldLineNumber = 123;
+      const version = createVersionWithChange({
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        old_line_number: oldLineNumber,
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        new_line_number: oldLineNumber + 1,
+        type,
+      });
+
+      const diff = _createInternalDiffs({ version })[0];
+      const change = diff.hunks[0].changes[0];
+
+      expect(change).toHaveProperty('type', type);
+      expect(change).toHaveProperty('isDelete', false);
+      expect(change).toHaveProperty('isInsert', false);
+      expect(change).toHaveProperty('isNormal', true);
+      expect(change).toHaveProperty('lineNumber', oldLineNumber);
     });
   });
 });
