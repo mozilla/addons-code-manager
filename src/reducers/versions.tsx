@@ -124,6 +124,7 @@ export type Version = {
   id: VersionId;
   reviewed: string;
   selectedPath: string;
+  validationURL: string;
   version: string;
 };
 
@@ -228,6 +229,7 @@ export const createInternalVersion = (version: ExternalVersion): Version => {
     reviewed: version.reviewed,
     selectedPath: version.file.selected_file,
     version: version.version,
+    validationURL: version.validation_url_json,
   };
 };
 

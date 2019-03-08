@@ -164,6 +164,7 @@ describe(__filename, () => {
         reviewed: version.reviewed,
         version: version.version,
         selectedPath: version.file.selected_file,
+        validationURL: fakeVersion.validation_url_json,
       });
     });
 
@@ -179,7 +180,7 @@ describe(__filename, () => {
       };
       const version = { ...fakeVersion, file };
 
-      expect(createInternalVersion(version)).toEqual({
+      expect(createInternalVersion(version)).toMatchObject({
         addon: createInternalVersionAddon(version.addon),
         entries: [
           createInternalVersionEntry(entry1),
