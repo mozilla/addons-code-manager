@@ -76,6 +76,24 @@ describe(__filename, () => {
     });
   };
 
+  type GetRouteParamsParams = {
+    addonId: number;
+    baseVersionId: number;
+    headVersionId: number;
+  };
+
+  const getRouteParams = ({
+    addonId,
+    baseVersionId,
+    headVersionId,
+  }: GetRouteParamsParams) => {
+    return {
+      addonId: String(addonId),
+      baseVersionId: String(baseVersionId),
+      headVersionId: String(headVersionId),
+    };
+  };
+
   it('renders a page with a loading message', () => {
     const root = render();
 
@@ -134,9 +152,11 @@ describe(__filename, () => {
     render({
       _fetchVersion,
       store,
-      addonId: String(addonId),
-      baseVersionId: String(baseVersion.id),
-      headVersionId: String(headVersion.id),
+      ...getRouteParams({
+        addonId,
+        baseVersionId: baseVersion.id,
+        headVersionId: headVersion.id,
+      }),
     });
 
     expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
@@ -146,7 +166,7 @@ describe(__filename, () => {
     });
   });
 
-  it('makes sure the old version ID is older than the new version ID', () => {
+  it('redirects to a new compare url when the "old" version is newer than the "new" version', () => {
     const addonId = 123456;
     const baseVersion = fakeVersion;
     const headVersion = { ...fakeVersion, id: baseVersion.id - 1 };
@@ -162,9 +182,11 @@ describe(__filename, () => {
     render({
       _fetchVersion,
       store,
-      addonId: String(addonId),
-      baseVersionId: String(baseVersion.id),
-      headVersionId: String(headVersion.id),
+      ...getRouteParams({
+        addonId,
+        baseVersionId: baseVersion.id,
+        headVersionId: headVersion.id,
+      }),
       history,
       lang,
     });
@@ -174,10 +196,154 @@ describe(__filename, () => {
         baseVersion.id
       }/`,
     );
+    expect(dispatch).not.toHaveBeenCalled();
+  });
+
+  it('does not dispatch fetchVersion() on update if no parameter has changed', () => {
+    const addonId = 123456;
+    const baseVersion = fakeVersion;
+    const headVersion = { ...fakeVersion, id: baseVersion.id + 1 };
+
+    const store = configureStore();
+    const fakeThunk = createFakeThunk();
+    const dispatch = spyOn(store, 'dispatch');
+
+    const root = render({
+      _fetchVersion: fakeThunk.createThunk,
+      addonId: String(addonId),
+      baseVersionId: String(baseVersion.id),
+      headVersionId: String(headVersion.id),
+      store,
+    });
+
+    dispatch.mockClear();
+    root.setProps({
+      match: {
+        params: {
+          addonId: String(addonId),
+          baseVersionId: String(baseVersion.id),
+          headVersionId: String(headVersion.id),
+        },
+      },
+    });
+
+    expect(dispatch).not.toHaveBeenCalled();
+  });
+
+  it('dispatches fetchVersion() on update if base version is different', () => {
+    const addonId = 123456;
+    const baseVersion = fakeVersion;
+    const headVersion = { ...fakeVersion, id: baseVersion.id + 1 };
+
+    const store = configureStore();
+    const fakeThunk = createFakeThunk();
+    const _fetchVersion = fakeThunk.createThunk;
+    const dispatch = spyOn(store, 'dispatch');
+
+    const root = render({
+      _fetchVersion,
+      ...getRouteParams({
+        addonId,
+        baseVersionId: baseVersion.id - 10,
+        headVersionId: headVersion.id,
+      }),
+      store,
+    });
+
+    dispatch.mockClear();
+    _fetchVersion.mockClear();
+    root.setProps({
+      match: {
+        params: getRouteParams({
+          addonId,
+          baseVersionId: baseVersion.id,
+          headVersionId: headVersion.id,
+        }),
+      },
+    });
+
     expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
     expect(_fetchVersion).toHaveBeenCalledWith({
       addonId,
-      versionId: headVersion.id,
+      versionId: baseVersion.id,
+    });
+  });
+
+  it('dispatches fetchVersion() on update if head version is different', () => {
+    const addonId = 123456;
+    const baseVersion = fakeVersion;
+    const headVersion = { ...fakeVersion, id: baseVersion.id + 1 };
+
+    const store = configureStore();
+    const fakeThunk = createFakeThunk();
+    const _fetchVersion = fakeThunk.createThunk;
+    const dispatch = spyOn(store, 'dispatch');
+
+    const root = render({
+      _fetchVersion,
+      ...getRouteParams({
+        addonId,
+        baseVersionId: baseVersion.id,
+        headVersionId: headVersion.id + 10,
+      }),
+      store,
+    });
+
+    dispatch.mockClear();
+    _fetchVersion.mockClear();
+    root.setProps({
+      match: {
+        params: getRouteParams({
+          addonId,
+          baseVersionId: baseVersion.id,
+          headVersionId: headVersion.id,
+        }),
+      },
+    });
+
+    expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(_fetchVersion).toHaveBeenCalledWith({
+      addonId,
+      versionId: baseVersion.id,
+    });
+  });
+
+  it('dispatches fetchVersion() on update if addon ID is different', () => {
+    const addonId = 123456;
+    const baseVersion = fakeVersion;
+    const headVersion = { ...fakeVersion, id: baseVersion.id + 1 };
+
+    const store = configureStore();
+    const fakeThunk = createFakeThunk();
+    const _fetchVersion = fakeThunk.createThunk;
+    const dispatch = spyOn(store, 'dispatch');
+
+    const root = render({
+      _fetchVersion,
+      ...getRouteParams({
+        addonId: addonId + 10,
+        baseVersionId: baseVersion.id,
+        headVersionId: headVersion.id,
+      }),
+      store,
+    });
+
+    dispatch.mockClear();
+    _fetchVersion.mockClear();
+    root.setProps({
+      match: {
+        params: getRouteParams({
+          addonId,
+          baseVersionId: baseVersion.id,
+          headVersionId: headVersion.id,
+        }),
+      },
+    });
+
+    expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(_fetchVersion).toHaveBeenCalledWith({
+      addonId,
+      versionId: baseVersion.id,
     });
   });
 });

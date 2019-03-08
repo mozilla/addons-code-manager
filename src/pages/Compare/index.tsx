@@ -39,27 +39,47 @@ export class CompareBase extends React.Component<Props> {
   };
 
   componentDidMount() {
-    const { _fetchVersion, dispatch, history, match } = this.props;
+    const { history, match } = this.props;
     const { lang, addonId, baseVersionId, headVersionId } = match.params;
 
-    let oldVersionId = parseInt(baseVersionId, 10);
-    let newVersionId = parseInt(headVersionId, 10);
+    const oldVersionId = parseInt(baseVersionId, 10);
+    const newVersionId = parseInt(headVersionId, 10);
 
     // We ensure the new version ID is newer than the old version ID.
     if (oldVersionId > newVersionId) {
       history.push(
         `/${lang}/compare/${addonId}/versions/${headVersionId}...${baseVersionId}/`,
       );
-      oldVersionId = newVersionId;
-      newVersionId = parseInt(baseVersionId, 10);
+      return;
     }
 
-    dispatch(
-      _fetchVersion({
-        addonId: parseInt(addonId, 10),
-        versionId: oldVersionId,
-      }),
-    );
+    this.loadData();
+  }
+
+  componentDidUpdate(prevProps: Props) {
+    this.loadData(prevProps);
+  }
+
+  loadData(prevProps?: Props) {
+    const { match } = this.props;
+    const { addonId, baseVersionId, headVersionId } = match.params;
+
+    if (
+      !prevProps ||
+      addonId !== prevProps.match.params.addonId ||
+      baseVersionId !== prevProps.match.params.baseVersionId ||
+      headVersionId !== prevProps.match.params.headVersionId
+    ) {
+      const { dispatch, _fetchVersion } = this.props;
+      const oldVersionId = parseInt(baseVersionId, 10);
+
+      dispatch(
+        _fetchVersion({
+          addonId: parseInt(addonId, 10),
+          versionId: oldVersionId,
+        }),
+      );
+    }
   }
 
   onSelectFile = () => {};
