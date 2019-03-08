@@ -50,6 +50,9 @@ declare module 'react-diff-view' {
     hunks: Hunks;
     tokens?: Tokens;
     viewType: ViewType;
+    gutterType?: 'default' | 'anchor' | 'none';
+    generateAnchorID?: (change: ChangeInfo) => string;
+    selectedChanges?: string[];
   };
 
   // eslint-disable-next-line no-undef
@@ -90,4 +93,6 @@ declare module 'react-diff-view' {
     hunks: HunkInfo[],
     options: TokenizeOptions,
   ): Tokens;
+
+  declare function getChangeKey(change: ChangeInfo): string;
 }

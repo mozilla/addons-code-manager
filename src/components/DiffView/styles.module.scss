@@ -49,4 +49,9 @@
     font-size: $code-font-size;
     line-height: $code-line-height;
   }
+
+  .diff-line .diff-gutter-selected,
+  .diff-line .diff-code-selected {
+    background-color: $light-gray;
+  }
 }
