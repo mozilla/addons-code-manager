@@ -12521,7 +12521,16 @@ redux@^3.6.0:
     loose-envify "^1.1.0"
     symbol-observable "^1.0.3"
 
-refractor@2.6.2, refractor@^2.4.1:
+refractor@2.7.0:
+  version "2.7.0"
+  resolved "https://registry.yarnpkg.com/refractor/-/refractor-2.7.0.tgz#3ed9a96a619e75326a429e644241dea51be070a3"
+  integrity sha512-v5W1SF8ysJOKvcJcpZpM7AP6xIAFDI2iKwTBeo5hd3MIzYv2wcWVcZ6HpPRz8iInJmKWeelCIDhZb2ixZEzzpw==
+  dependencies:
+    hastscript "^5.0.0"
+    parse-entities "^1.1.2"
+    prismjs "~1.15.0"
+
+refractor@^2.4.1:
   version "2.6.2"
   resolved "https://registry.yarnpkg.com/refractor/-/refractor-2.6.2.tgz#8e0877ab8864165275aafeea5d9c8eebe871552f"
   integrity sha512-AMNEGkhaXfhoa0/0mW0bHdfizDJnuHDK29/D5oQaKICf6DALQ+kDEHW/36oDHCdfva4XrZ+cdMhRvPsTI4OIjA==
