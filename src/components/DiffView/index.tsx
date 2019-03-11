@@ -7,7 +7,6 @@ import {
   Hunk,
   HunkInfo,
   getChangeKey,
-  parseDiff,
   tokenize,
 } from 'react-diff-view';
 import { withRouter, RouteComponentProps } from 'react-router-dom';
@@ -18,7 +17,7 @@ import styles from './styles.module.scss';
 import 'react-diff-view/style/index.css';
 
 export type PublicProps = {
-  diff: string;
+  diffs: DiffInfo[];
   mimeType: string;
 };
 
@@ -101,9 +100,8 @@ export class DiffViewBase extends React.Component<Props> {
   };
 
   render() {
-    const { _tokenize, diff, mimeType, viewType, location } = this.props;
+    const { _tokenize, diffs, mimeType, viewType, location } = this.props;
 
-    const files = parseDiff(diff);
     const options = {
       highlight: true,
       language: getLanguageFromMimeType(mimeType),
@@ -116,12 +114,12 @@ export class DiffViewBase extends React.Component<Props> {
 
     return (
       <div className={styles.DiffView}>
-        {files.map((file) => {
-          const { oldRevision, newRevision, hunks, type } = file;
+        {diffs.map((diff) => {
+          const { oldRevision, newRevision, hunks, type } = diff;
 
           return (
             <React.Fragment key={`${oldRevision}-${newRevision}`}>
-              {this.renderHeader(file)}
+              {this.renderHeader(diff)}
 
               <Diff
                 className={styles.diff}

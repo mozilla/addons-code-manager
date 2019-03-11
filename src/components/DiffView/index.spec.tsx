@@ -26,7 +26,11 @@ describe(__filename, () => {
     ...props
   }: RenderParams = {}) => {
     return shallowUntilTarget(
-      <DiffView diff={basicDiff} mimeType="text/plain" {...props} />,
+      <DiffView
+        diffs={parseDiff(basicDiff)}
+        mimeType="text/plain"
+        {...props}
+      />,
       DiffViewBase,
       {
         shallowOptions: createContextWithFakeRouter({ location }),
@@ -48,19 +52,20 @@ describe(__filename, () => {
   });
 
   it('passes parsed diff information to DiffView', () => {
-    const parsedDiff = parseDiff(basicDiff)[0];
-    const root = render({ diff: basicDiff });
+    const diffs = parseDiff(basicDiff);
+    const root = render({ diffs });
 
-    expect(root.find(Diff)).toHaveProp('diffType', parsedDiff.type);
-    expect(root.find(Diff)).toHaveProp('hunks', parsedDiff.hunks);
+    expect(diffs).toHaveLength(1);
+    expect(root.find(Diff)).toHaveProp('diffType', diffs[0].type);
+    expect(root.find(Diff)).toHaveProp('hunks', diffs[0].hunks);
   });
 
   it('creates multiple Diff instances when there are multiple files in the diff', () => {
-    const parsedDiff = parseDiff(multipleDiff);
-    const root = render({ diff: multipleDiff });
+    const diffs = parseDiff(multipleDiff);
+    const root = render({ diffs });
 
-    expect(root.find(Diff)).toHaveLength(parsedDiff.length);
-    parsedDiff.forEach((diff, index) => {
+    expect(root.find(Diff)).toHaveLength(diffs.length);
+    diffs.forEach((diff, index) => {
       expect(root.find(Diff).at(index)).toHaveProp('diffType', diff.type);
       expect(root.find(Diff).at(index)).toHaveProp('hunks', diff.hunks);
     });
@@ -75,7 +80,7 @@ describe(__filename, () => {
   });
 
   it('renders a header with diff stats for multiple hunks', () => {
-    const root = render({ diff: diffWithDeletions });
+    const root = render({ diffs: parseDiff(diffWithDeletions) });
 
     expect(root.find(`.${styles.header}`)).toHaveLength(1);
     expect(root.find(`.${styles.stats}`)).toHaveLength(1);
@@ -83,36 +88,35 @@ describe(__filename, () => {
   });
 
   it('renders hunks with separators', () => {
-    const parsedDiff = parseDiff(diffWithDeletions)[0];
-    const root = render({ diff: diffWithDeletions });
+    const diffs = parseDiff(diffWithDeletions);
+    const root = render({ diffs });
 
     // Simulate the interface of <Diff />
     const children = root.find(Diff).prop('children');
-    const diff = shallow(<div>{children(parsedDiff.hunks)}</div>);
+    const diff = shallow(<div>{children(diffs[0].hunks)}</div>);
 
-    expect(diff.find(`.${styles.hunk}`)).toHaveLength(parsedDiff.hunks.length);
+    expect(diff.find(`.${styles.hunk}`)).toHaveLength(diffs[0].hunks.length);
     expect(diff.find(`.${styles.hunkSeparator}`)).toHaveLength(
       // There are less separators than hunks.
-      parsedDiff.hunks.length - 1,
+      diffs[0].hunks.length - 1,
     );
   });
 
   it('tokenizes the hunks to add syntax highlighting', () => {
-    const diff = multipleDiff;
-    const parsedDiffs = parseDiff(diff);
+    const diffs = parseDiff(multipleDiff);
     const mimeType = 'application/javascript';
     const _tokenize = jest.fn();
 
-    render({ _tokenize, diff, mimeType });
+    render({ _tokenize, diffs, mimeType });
 
-    parsedDiffs.forEach((parsedDiff) => {
-      expect(_tokenize).toHaveBeenCalledWith(parsedDiff.hunks, {
+    diffs.forEach((diff) => {
+      expect(_tokenize).toHaveBeenCalledWith(diff.hunks, {
         highlight: true,
         language: getLanguageFromMimeType(mimeType),
         refractor: expect.any(Object),
       });
     });
-    expect(_tokenize).toHaveBeenCalledTimes(parsedDiffs.length);
+    expect(_tokenize).toHaveBeenCalledTimes(diffs.length);
   });
 
   it('configures anchors/links on each line number', () => {
