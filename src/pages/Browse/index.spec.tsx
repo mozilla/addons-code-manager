@@ -346,10 +346,7 @@ describe(__filename, () => {
 
   it('renders a global LinterMessage', () => {
     const file = 'lib/react.js';
-    const externalMessage = globalExternalMessage({
-      file,
-      message: 'This is a known third party library',
-    });
+    const externalMessage = globalExternalMessage({ file });
 
     const root = renderWithMessages({
       file,
