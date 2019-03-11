@@ -2,7 +2,11 @@ import log from 'loglevel';
 
 import { ApiState } from '../reducers/api';
 import { ExternalUser } from '../reducers/users';
-import { ExternalVersion, ExternalVersionsList } from '../reducers/versions';
+import {
+  ExternalVersionWithContent,
+  ExternalVersionWithDiff,
+  ExternalVersionsList,
+} from '../reducers/versions';
 
 export enum HttpMethod {
   DELETE = 'DELETE',
@@ -115,7 +119,7 @@ export const getVersion = async ({
   addonId,
   versionId,
 }: GetVersionParams) => {
-  return callApi<ExternalVersion>({
+  return callApi<ExternalVersionWithContent>({
     apiState,
     endpoint: `reviewers/addon/${addonId}/versions/${versionId}`,
     query: path ? { file: path } : undefined,
@@ -149,5 +153,27 @@ export const getCurrentUser = async (apiState: ApiState) => {
   return callApi<ExternalUser>({
     apiState,
     endpoint: '/accounts/profile/',
+  });
+};
+
+type GetDiffParams = {
+  addonId: number;
+  apiState: ApiState;
+  baseVersionId: number;
+  headVersionId: number;
+  path?: string;
+};
+
+export const getDiff = async ({
+  addonId,
+  apiState,
+  baseVersionId,
+  headVersionId,
+  path,
+}: GetDiffParams) => {
+  return callApi<ExternalVersionWithDiff>({
+    apiState,
+    endpoint: `reviewers/addon/${addonId}/versions/${baseVersionId}/compare_to/${headVersionId}`,
+    query: path ? { file: path } : undefined,
   });
 };
