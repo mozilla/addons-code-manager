@@ -14,6 +14,7 @@ import {
 import configureStore from '../../configureStore';
 import {
   ExternalLinterMessage,
+  ExternalLinterResult,
   actions as linterActions,
   createInternalMessage,
 } from '../../reducers/linter';
@@ -121,18 +122,20 @@ describe(__filename, () => {
   };
 
   const renderWithMessages = ({
+    externalMessages = [],
     file,
-    externalMessages,
+    result,
     versionId,
   }: {
+    externalMessages?: ExternalLinterMessage[];
     file: string;
-    externalMessages: ExternalLinterMessage[];
+    result?: ExternalLinterResult;
     versionId?: string;
   }) => {
     const store = configureStore();
 
     // Prepare a result with all messages for the selected file.
-    const externalResult = {
+    const externalResult = result || {
       ...fakeExternalLinterResult,
       validation: {
         ...fakeExternalLinterResult.validation,
@@ -388,6 +391,28 @@ describe(__filename, () => {
       externalMessages: [globalExternalMessage({ file })],
       // Render an unrelated version.
       versionId: '432132',
+    });
+
+    const message = root.find(LinterMessage);
+    expect(message).toHaveLength(0);
+  });
+
+  it('ignores global messages for the wrong file', () => {
+    const result = {
+      ...fakeExternalLinterResult,
+      validation: {
+        ...fakeExternalLinterResult.validation,
+        messages: [
+          // Define a message for an unrelated file.
+          globalExternalMessage({ file: 'scripts/background.js' }),
+        ],
+      },
+    };
+
+    const root = renderWithMessages({
+      // Render this as the selected file.
+      file: 'lib/react.js',
+      result,
     });
 
     const message = root.find(LinterMessage);
