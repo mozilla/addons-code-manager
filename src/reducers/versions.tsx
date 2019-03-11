@@ -36,8 +36,7 @@ export type ExternalVersionEntry = {
   size: number | null;
 };
 
-export type ExternalVersionFile = {
-  content: string;
+type PartialExternalVersionFile = {
   created: string;
   entries: {
     [nodeName: string]: ExternalVersionEntry;
@@ -62,12 +61,11 @@ export type ExternalVersionAddon = {
   slug: string;
 };
 
-export type ExternalVersion = {
+type PartialExternalVersion = {
   addon: ExternalVersionAddon;
   channel: string;
   compatibility: VersionCompatibility;
   edit_url: string;
-  file: ExternalVersionFile;
   has_been_validated: boolean;
   id: VersionId;
   is_strict_compatibility_enabled: boolean;
@@ -109,23 +107,19 @@ type ExternalDiff = {
   size: number;
 };
 
-// An `ExternalVersionFileWithDiff` object is very similar to an
-// `ExternalVersionFile` object: instead of having a `content` field, it has a
-// `diff` field.
-export type ExternalVersionFileWithDiff = Pick<
-  ExternalVersionFile,
-  Exclude<keyof ExternalVersionFile, 'content'>
-> & {
+export type ExternalVersionFileWithContent = PartialExternalVersionFile & {
+  content: string;
+};
+
+export type ExternalVersionFileWithDiff = PartialExternalVersionFile & {
   diff: ExternalDiff[];
 };
 
-// An `ExternalVersionWithDiff` object is an `ExternalVersion` object with a
-// `file` field of type `ExternalVersionFileWithDiff` instead of
-// `ExternalVersionFile`.
-export type ExternalVersionWithDiff = Pick<
-  ExternalVersion,
-  Exclude<keyof ExternalVersion, 'file'>
-> & {
+export type ExternalVersionWithContent = PartialExternalVersion & {
+  file: ExternalVersionFileWithContent;
+};
+
+export type ExternalVersionWithDiff = PartialExternalVersion & {
   file: ExternalVersionFileWithDiff;
 };
 
@@ -195,11 +189,12 @@ export type VersionsMap = {
 
 export const actions = {
   loadVersionFile: createAction('LOAD_VERSION_FILE', (resolve) => {
-    return (payload: { path: string; version: ExternalVersion }) =>
+    return (payload: { path: string; version: ExternalVersionWithContent }) =>
       resolve(payload);
   }),
   loadVersionInfo: createAction('LOAD_VERSION_INFO', (resolve) => {
-    return (payload: { version: ExternalVersion }) => resolve(payload);
+    return (payload: { version: ExternalVersionWithContent }) =>
+      resolve(payload);
   }),
   updateSelectedPath: createAction('UPDATE_SELECTED_PATH', (resolve) => {
     return (payload: { selectedPath: string; versionId: VersionId }) =>
@@ -232,7 +227,7 @@ export const initialState: VersionsState = {
 };
 
 export const createInternalVersionFile = (
-  file: ExternalVersionFile,
+  file: ExternalVersionFileWithContent,
 ): InternalVersionFile => {
   return {
     content: file.content,
@@ -267,7 +262,9 @@ export const createInternalVersionAddon = (
   };
 };
 
-export const createInternalVersion = (version: ExternalVersion): Version => {
+export const createInternalVersion = (
+  version: ExternalVersionWithContent,
+): Version => {
   return {
     addon: createInternalVersionAddon(version.addon),
     entries: Object.keys(version.file.entries).map((nodeName) => {

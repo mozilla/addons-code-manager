@@ -3,7 +3,7 @@ import log from 'loglevel';
 import { ApiState } from '../reducers/api';
 import { ExternalUser } from '../reducers/users';
 import {
-  ExternalVersion,
+  ExternalVersionWithContent,
   ExternalVersionWithDiff,
   ExternalVersionsList,
 } from '../reducers/versions';
@@ -119,7 +119,7 @@ export const getVersion = async ({
   addonId,
   versionId,
 }: GetVersionParams) => {
-  return callApi<ExternalVersion>({
+  return callApi<ExternalVersionWithContent>({
     apiState,
     endpoint: `reviewers/addon/${addonId}/versions/${versionId}`,
     query: path ? { file: path } : undefined,

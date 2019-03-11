@@ -11,10 +11,10 @@ import configureStore, {
 import { ExternalLinterResult, ExternalLinterMessage } from './reducers/linter';
 import { ExternalUser } from './reducers/users';
 import {
-  ExternalVersion,
   ExternalVersionAddon,
   ExternalVersionEntry,
-  ExternalVersionFile,
+  ExternalVersionFileWithContent,
+  ExternalVersionWithContent,
   ExternalVersionsList,
   ExternalVersionsListItem,
   VersionEntryType,
@@ -33,7 +33,7 @@ export const fakeVersionEntry: ExternalVersionEntry = Object.freeze({
   size: 123,
 });
 
-export const fakeVersionFile: ExternalVersionFile = Object.freeze({
+export const fakeVersionFile: ExternalVersionFileWithContent = Object.freeze({
   content: 'some file content',
   created: '2017-08-15T12:01:13Z',
   entries: {
@@ -59,7 +59,7 @@ export const fakeVersionAddon: ExternalVersionAddon = Object.freeze({
   slug: 'addon-slug',
 });
 
-export const fakeVersion: ExternalVersion = Object.freeze({
+export const fakeVersion: ExternalVersionWithContent = Object.freeze({
   addon: fakeVersionAddon,
   channel: 'some channel',
   compatibility: {
