@@ -40,7 +40,7 @@ type PropsFromRouter = {
 type PropsFromState = {
   apiState: ApiState;
   file: VersionFile | null | void;
-  linterMessages: undefined | null | LinterMessageMap;
+  linterMessages: LinterMessageMap | null | void;
   linterMessagesAreLoading: boolean;
   version: Version;
 };
