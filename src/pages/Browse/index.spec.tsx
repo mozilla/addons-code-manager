@@ -191,7 +191,6 @@ describe(__filename, () => {
 
     const store = configureStore();
     store.dispatch(versionActions.loadVersionInfo({ version }));
-    spyOn(store, 'dispatch');
 
     const root = render({ store, versionId: String(version.id) });
 
