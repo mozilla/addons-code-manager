@@ -6,7 +6,7 @@ import { createInternalMessage } from '../../reducers/linter';
 import { fakeExternalLinterMessage } from '../../test-helpers';
 import styles from './styles.module.scss';
 
-import LinterMessage from '.';
+import LinterMessage, { decodeHtmlEntities } from '.';
 
 describe(__filename, () => {
   const renderMessage = (attributes = {}) => {
@@ -147,5 +147,16 @@ describe(__filename, () => {
     expect(root.find(`.${styles.description}`).html()).toContain(
       '&lt;em:id&gt;',
     );
+  });
+
+  describe('decodeHtmlEntities', () => {
+    it('handles decimal HTML entities', () => {
+      // &#34; is the decimal encoding of a quotation mark.
+      expect(
+        decodeHtmlEntities(
+          'The &#34;update_url&#34; is not used by Firefox...',
+        ),
+      ).toContain('The "update_url"');
+    });
   });
 });
