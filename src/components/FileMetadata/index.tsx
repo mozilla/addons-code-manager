@@ -17,8 +17,10 @@ const FileMetadataBase = ({ file }: PublicProps) => {
         <dt>{gettext('Size')}</dt>
         <dd className={styles.size}>{file.size}</dd>
         <dt>{gettext('SHA256 hash')}</dt>
-        <dd className={styles.sha256}>{file.sha256}</dd>
-        <dt>{gettext('Mimetype')}</dt>
+        <dd className={styles.sha256}>
+          <code>{file.sha256}</code>
+        </dd>
+        <dt>{gettext('MIME type')}</dt>
         <dd className={styles.mimeType}>{file.mimeType}</dd>
       </dl>
     </div>

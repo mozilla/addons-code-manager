@@ -1,14 +1,28 @@
 import * as React from 'react';
 import { shallow } from 'enzyme';
 
-import { testVersionFile } from '../../test-helpers';
+import configureStore from '../../configureStore';
+import {
+  actions as versionActions,
+  getVersionFile,
+  VersionFile,
+} from '../../reducers/versions';
+import { fakeVersion } from '../../test-helpers';
 import styles from './styles.module.scss';
 
 import FileMetadata from '.';
 
 describe(__filename, () => {
   it('renders metadata for a file', () => {
-    const file = testVersionFile;
+    const store = configureStore();
+    const version = fakeVersion;
+    store.dispatch(versionActions.loadVersionInfo({ version }));
+
+    const file = getVersionFile(
+      store.getState().versions,
+      version.id,
+      version.file.selected_file,
+    ) as VersionFile;
 
     const root = shallow(<FileMetadata file={file} />);
 

@@ -11,7 +11,6 @@ import configureStore, {
 import { ExternalLinterResult, ExternalLinterMessage } from './reducers/linter';
 import { ExternalUser } from './reducers/users';
 import {
-  createInternalVersionFile,
   ExternalVersion,
   ExternalVersionAddon,
   ExternalVersionEntry,
@@ -19,7 +18,6 @@ import {
   ExternalVersionsList,
   ExternalVersionsListItem,
   VersionEntryType,
-  VersionFile,
 } from './reducers/versions';
 
 /* eslint-disable @typescript-eslint/camelcase */
@@ -88,15 +86,6 @@ export const fakeVersion: ExternalVersion = Object.freeze({
   validation_url: 'http://example.com/validation/',
   validation_url_json: 'http://example.com/validation/json/',
   version: '1.0',
-});
-
-export const testVersionFile: VersionFile = Object.freeze({
-  ...createInternalVersionFile(fakeVersionFile),
-  filename: fakeVersionEntry.filename,
-  mimeType: fakeVersionEntry.mimetype,
-  sha256: fakeVersionEntry.sha256,
-  type: fakeVersionEntry.mime_category,
-  version: fakeVersion.version,
 });
 
 export const fakeUser: ExternalUser = Object.freeze({
