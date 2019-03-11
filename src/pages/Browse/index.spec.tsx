@@ -76,16 +76,8 @@ describe(__filename, () => {
     _log,
     addonId = '999',
     versionId = '123',
-    store,
+    store = configureStore(),
   }: RenderParams = {}) => {
-    let safeStore = store;
-    if (!safeStore) {
-      safeStore = configureStore();
-      // TODO: Don't execute thunks by default.
-      // See https://github.com/mozilla/addons-code-manager/issues/368
-      spyOn(safeStore, 'dispatch');
-    }
-
     const props = {
       ...createFakeRouteComponentProps({ params: { addonId, versionId } }),
       _fetchLinterMessages,
@@ -96,7 +88,7 @@ describe(__filename, () => {
 
     return shallowUntilTarget(<Browse {...props} />, BrowseBase, {
       shallowOptions: {
-        context: { store: safeStore },
+        context: { store },
       },
     });
   };
@@ -212,7 +204,6 @@ describe(__filename, () => {
 
     const store = configureStore();
     store.dispatch(versionActions.loadVersionInfo({ version }));
-    spyOn(store, 'dispatch');
 
     const root = render({ store, versionId: String(version.id) });
 
@@ -232,7 +223,6 @@ describe(__filename, () => {
         versionId: version.id,
       }),
     );
-    spyOn(store, 'dispatch');
 
     const root = render({ store, versionId: String(version.id) });
 
