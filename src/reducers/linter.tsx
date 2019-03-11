@@ -156,8 +156,8 @@ export const fetchLinterMessages = ({
       if (!response.ok) {
         throw new Error(`Got status ${response.status} for URL ${url}`);
       }
-      const data = await response.json();
-      dispatch(actions.loadLinterResult({ versionId, result: data }));
+      const result = await response.json();
+      dispatch(actions.loadLinterResult({ versionId, result }));
     } catch (error) {
       _log.error(`TODO: handle this error: ${error}`);
       dispatch(actions.abortFetchLinterResult({ versionId }));
