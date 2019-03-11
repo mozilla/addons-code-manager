@@ -112,24 +112,6 @@ export const fakeUser: ExternalUser = Object.freeze({
   username: 'user-1234',
 });
 
-export const fakeExternalLinterResult = Object.freeze({
-  error: null,
-  full_report_url: '/upload/d5d993a5a2fa4b759ae2fa3b2eda2a38',
-  upload: 'd5d993a5a2fa4b759ae2fa3b2eda2a38',
-  url: '/upload/d5d993a5a2fa4b759ae2fa3b2eda2a38/json',
-  validation: {
-    detected_type: 'extension',
-    ending_tier: 5,
-    errors: 0,
-    message_tree: {},
-    messages: [],
-    metadata: {},
-    notices: 2,
-    success: false,
-    warnings: 5,
-  },
-}) as ExternalLinterResult;
-
 export const fakeExternalLinterMessage = Object.freeze({
   column: 2,
   context: ['<code>'],
@@ -145,6 +127,24 @@ export const fakeExternalLinterMessage = Object.freeze({
   type: 'notice',
   uid: '9a07163bb74e476c96a2bd467a2bbe52',
 }) as ExternalLinterMessage;
+
+export const fakeExternalLinterResult = Object.freeze({
+  error: null,
+  full_report_url: '/upload/d5d993a5a2fa4b759ae2fa3b2eda2a38',
+  upload: 'd5d993a5a2fa4b759ae2fa3b2eda2a38',
+  url: '/upload/d5d993a5a2fa4b759ae2fa3b2eda2a38/json',
+  validation: {
+    detected_type: 'extension',
+    ending_tier: 5,
+    errors: 0,
+    message_tree: {},
+    messages: [fakeExternalLinterMessage],
+    metadata: {},
+    notices: 2,
+    success: false,
+    warnings: 5,
+  },
+}) as ExternalLinterResult;
 
 /* eslint-enable @typescript-eslint/camelcase */
 

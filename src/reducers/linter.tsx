@@ -1,6 +1,12 @@
+import log from 'loglevel';
+import { Reducer } from 'redux';
+import { ActionType, createAction, getType } from 'typesafe-actions';
+
+import { ThunkActionCreator } from '../configureStore';
+
 type LinterMessageBase = {
   column: number | null;
-  file: string;
+  file: string | null;
   line: number | null;
   message: string;
   type: 'notice' | 'error' | 'warning';
@@ -54,7 +60,7 @@ export const createInternalMessage = (
   };
 };
 
-type LinterMessageMap = {
+export type LinterMessageMap = {
   // The 'path' key matches the key of ExternalVersionFile['entries']
   [path: string]: {
     global: LinterMessage[];
@@ -62,10 +68,24 @@ type LinterMessageMap = {
   };
 };
 
-export const getMessageMap = (result: ExternalLinterResult) => {
+export const getMessageMap = (
+  result: ExternalLinterResult,
+  { _log = log }: { _log?: typeof log } = {},
+) => {
   const msgMap: LinterMessageMap = {};
 
   result.validation.messages.forEach((message) => {
+    if (!message.file) {
+      // In reality, this will probably never happen but it's
+      // possible since errors like this do exist. Let's log an
+      // error to Sentry to alert us about it.
+      _log.error(
+        `Unexpectedly received a message not mapped to a file: ${
+          message.message
+        }`,
+      );
+      return;
+    }
     if (!msgMap[message.file]) {
       msgMap[message.file] = { global: [], byLine: {} };
     }
@@ -85,3 +105,108 @@ export const getMessageMap = (result: ExternalLinterResult) => {
 
   return msgMap;
 };
+
+export type LinterState = {
+  forVersionId: void | number;
+  isLoading: boolean;
+  messageMap: undefined | LinterMessageMap;
+};
+
+export const initialState: LinterState = {
+  forVersionId: undefined,
+  isLoading: false,
+  messageMap: undefined,
+};
+
+export const actions = {
+  abortFetchLinterResult: createAction(
+    'ABORT_FETCH_LINTER_RESULT',
+    (resolve) => {
+      return (payload: { versionId: number }) => resolve(payload);
+    },
+  ),
+  beginFetchLinterResult: createAction(
+    'BEGIN_FETCH_LINTER_RESULT',
+    (resolve) => {
+      return (payload: { versionId: number }) => resolve(payload);
+    },
+  ),
+  loadLinterResult: createAction('LOAD_LINTER_RESULT', (resolve) => {
+    return (payload: { versionId: number; result: ExternalLinterResult }) =>
+      resolve(payload);
+  }),
+};
+
+export const fetchLinterMessages = ({
+  _log = log,
+  url,
+  versionId,
+}: {
+  _log?: typeof log;
+  url: string;
+  versionId: number;
+}): ThunkActionCreator => {
+  return async (dispatch) => {
+    dispatch(actions.beginFetchLinterResult({ versionId }));
+
+    // This is a special URL and returns a non-standard JSON response.
+    const response = await fetch(url);
+
+    try {
+      if (!response.ok) {
+        throw new Error(`Got status ${response.status} for URL ${url}`);
+      }
+      const result = await response.json();
+      dispatch(actions.loadLinterResult({ versionId, result }));
+    } catch (error) {
+      _log.error(`TODO: handle this error: ${error}`);
+      dispatch(actions.abortFetchLinterResult({ versionId }));
+    }
+  };
+};
+
+export const selectMessageMap = (
+  linterState: LinterState,
+  versionId: number,
+): undefined | LinterMessageMap => {
+  if (linterState.forVersionId !== versionId) {
+    return undefined;
+  }
+  return linterState.messageMap;
+};
+
+const reducer: Reducer<LinterState, ActionType<typeof actions>> = (
+  state = initialState,
+  action,
+): LinterState => {
+  switch (action.type) {
+    case getType(actions.beginFetchLinterResult):
+      return {
+        ...state,
+        forVersionId: action.payload.versionId,
+        messageMap: undefined,
+        isLoading: true,
+      };
+    case getType(actions.abortFetchLinterResult):
+      return {
+        ...state,
+        forVersionId: action.payload.versionId,
+        // TODO: when we have proper error handling, this can
+        // set { messageMap: undefined } so that the component
+        // knows it's OK to try fetching it again.
+        messageMap: {},
+        isLoading: false,
+      };
+    case getType(actions.loadLinterResult):
+      return {
+        ...state,
+        forVersionId: action.payload.versionId,
+        messageMap: getMessageMap(action.payload.result),
+        isLoading: false,
+      };
+    default:
+      return state;
+  }
+};
+
+export default reducer;

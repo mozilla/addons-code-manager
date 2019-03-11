@@ -4,6 +4,11 @@ describe(__filename, () => {
   it('registers all the reducers', () => {
     const store = configureStore();
 
-    expect(Object.keys(store.getState())).toEqual(['api', 'users', 'versions']);
+    expect(Object.keys(store.getState())).toEqual([
+      'api',
+      'linter',
+      'users',
+      'versions',
+    ]);
   });
 });
