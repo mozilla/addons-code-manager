@@ -107,7 +107,7 @@ export const getMessageMap = (
 };
 
 export type LinterState = {
-  forVersionId: undefined | number;
+  forVersionId: void | number;
   isLoading: boolean;
   messageMap: undefined | LinterMessageMap;
 };
