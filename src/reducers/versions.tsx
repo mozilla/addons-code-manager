@@ -102,6 +102,8 @@ type ExternalDiff = {
   lines_added: number;
   lines_deleted: number;
   mode: string;
+  new_ending_new_line: boolean;
+  old_ending_new_line: boolean;
   old_path: string;
   parent: string;
   path: string;
@@ -478,8 +480,8 @@ export const createInternalDiffs = ({
           oldStart: hunk.old_start,
         })),
         type: GIT_STATUS_TO_TYPE[diff.mode] || GIT_STATUS_TO_TYPE.M,
-        newEndingNewLine: false,
-        oldEndingNewLine: false,
+        newEndingNewLine: diff.new_ending_new_line,
+        oldEndingNewLine: diff.old_ending_new_line,
         newMode: diff.mode,
         oldMode: diff.mode,
         newPath: diff.path,

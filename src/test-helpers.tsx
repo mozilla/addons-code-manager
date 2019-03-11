@@ -217,6 +217,8 @@ export const fakeExternalDiff = Object.freeze({
   old_path: 'manifest.json',
   parent: '514a8bd3cfb1ccae67dff61e3ea174bb444dfb00',
   hash: '054771578d3a903264bfd16ba71e5b4808a6764b',
+  old_ending_new_line: true,
+  new_ending_new_line: false,
 });
 
 /* eslint-enable @typescript-eslint/camelcase */

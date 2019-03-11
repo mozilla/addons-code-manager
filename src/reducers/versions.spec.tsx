@@ -681,14 +681,22 @@ describe(__filename, () => {
 
       expect(diffs).toHaveLength(externalDiffs.length);
       diffs.forEach((diff, index) => {
+        const externalDiff = externalDiffs[index];
+
         expect(diff).toHaveProperty('oldRevision', String(baseVersionId));
         expect(diff).toHaveProperty('newRevision', String(headVersionId));
-        expect(diff).toHaveProperty('oldMode', externalDiffs[index].mode);
-        expect(diff).toHaveProperty('newMode', externalDiffs[index].mode);
-        expect(diff).toHaveProperty('oldPath', externalDiffs[index].old_path);
-        expect(diff).toHaveProperty('newPath', externalDiffs[index].path);
-        expect(diff).toHaveProperty('oldEndingNewLine', false);
-        expect(diff).toHaveProperty('newEndingNewLine', false);
+        expect(diff).toHaveProperty('oldMode', externalDiff.mode);
+        expect(diff).toHaveProperty('newMode', externalDiff.mode);
+        expect(diff).toHaveProperty('oldPath', externalDiff.old_path);
+        expect(diff).toHaveProperty('newPath', externalDiff.path);
+        expect(diff).toHaveProperty(
+          'oldEndingNewLine',
+          externalDiff.old_ending_new_line,
+        );
+        expect(diff).toHaveProperty(
+          'newEndingNewLine',
+          externalDiff.new_ending_new_line,
+        );
 
         // These props will be tested later.
         expect(diff).toHaveProperty('type');
