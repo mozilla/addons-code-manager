@@ -127,7 +127,7 @@ describe(__filename, () => {
       let state;
       state = linterReducer(
         state,
-        actions.abortFetchLinterResult({ versionId }),
+        actions.abortFetchLinterResult({ versionId: versionId + 1 }),
       );
       state = linterReducer(
         state,
@@ -146,7 +146,7 @@ describe(__filename, () => {
       );
       state = linterReducer(
         state,
-        actions.beginFetchLinterResult({ versionId }),
+        actions.abortFetchLinterResult({ versionId }),
       );
 
       expect(state).toMatchObject({ forVersionId: versionId });
