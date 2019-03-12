@@ -2,12 +2,15 @@ declare module 'refractor' {
   declare function register(language: object): void;
 
   type RefractorNode = {
-    children: RefractorNode[];
-    tagName: string;
+    children?: RefractorNode[];
+    tagName?: string;
     type: string;
     value: string;
     properties?: {
       className?: string | string[];
+      // A node might have arbitrary properties.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      [key: string]: any;
     };
   };
 

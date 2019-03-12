@@ -2,7 +2,7 @@ import * as React from 'react';
 import { RefractorNode } from 'refractor';
 import makeClassName from 'classnames';
 
-const mapChild = (
+export const mapChild = (
   child: RefractorNode,
   i: number,
   depth: number,
@@ -27,9 +27,9 @@ const mapChild = (
   return child.value;
 };
 
-export const mapWithDepth = (depth: number) => {
+export const mapWithDepth = (depth: number, _mapChild = mapChild) => {
   return (child: RefractorNode, i: number) => {
-    return mapChild(child, i, depth);
+    return _mapChild(child, i, depth);
   };
 };
 
