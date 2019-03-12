@@ -1,10 +1,10 @@
-import { shallow } from 'enzyme';
 import * as React from 'react';
+import { shallow } from 'enzyme';
 
 import configureStore from '../../configureStore';
 import {
   actions as versionActions,
-  getVersionFile as _getVersionFile,
+  getVersionFile,
   VersionFile,
 } from '../../reducers/versions';
 import { fakeVersion } from '../../test-helpers';
@@ -14,20 +14,23 @@ import { formatFilesize } from '../../utils';
 import FileMetadata from '.';
 
 describe(__filename, () => {
-  const getVersionFile = () => {
+  const _getVersionFile = (props = {}) => {
     const store = configureStore();
     const version = fakeVersion;
     store.dispatch(versionActions.loadVersionInfo({ version }));
 
-    return _getVersionFile(
-      store.getState().versions,
-      version.id,
-      version.file.selected_file,
-    ) as VersionFile;
+    return {
+      ...(getVersionFile(
+        store.getState().versions,
+        version.id,
+        version.file.selected_file,
+      ) as VersionFile),
+      ...props,
+    };
   };
 
   it('renders metadata for a file', () => {
-    const file = getVersionFile();
+    const file = _getVersionFile();
     const root = shallow(<FileMetadata file={file} />);
 
     expect(root.find(`.${styles.version}`)).toHaveText(file.version);
@@ -36,9 +39,10 @@ describe(__filename, () => {
   });
 
   it('renders a formatted filesize', () => {
-    const file = { ...getVersionFile(), size: 12345 };
+    const size = 12345;
+    const file = _getVersionFile({ size });
     const root = shallow(<FileMetadata file={file} />);
 
-    expect(root.find(`.${styles.size}`)).toHaveText(formatFilesize(file.size));
+    expect(root.find(`.${styles.size}`)).toHaveText(formatFilesize(size));
   });
 });
