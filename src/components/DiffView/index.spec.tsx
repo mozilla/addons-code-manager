@@ -38,6 +38,14 @@ describe(__filename, () => {
     );
   };
 
+  it('renders with no differences', () => {
+    const root = render({ diffs: [] });
+
+    expect(root.find(Diff)).toHaveLength(0);
+    expect(root.find(`.${styles.header}`)).toHaveLength(1);
+    expect(root.find(`.${styles.noDiffs}`)).toIncludeText('no differences');
+  });
+
   it('defaults the viewType to unified', () => {
     const root = render();
 

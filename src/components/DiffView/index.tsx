@@ -10,9 +10,10 @@ import {
   tokenize,
 } from 'react-diff-view';
 import { withRouter, RouteComponentProps } from 'react-router-dom';
+import makeClassName from 'classnames';
 
 import refractor from '../../refractor';
-import { getLanguageFromMimeType } from '../../utils';
+import { getLanguageFromMimeType, gettext } from '../../utils';
 import styles from './styles.module.scss';
 import 'react-diff-view/style/index.css';
 
@@ -114,6 +115,15 @@ export class DiffViewBase extends React.Component<Props> {
 
     return (
       <div className={styles.DiffView}>
+        {diffs.length === 0 && (
+          <React.Fragment>
+            <div className={styles.header} />
+            <div className={makeClassName(styles.diff, styles.noDiffs)}>
+              {gettext('no differences')}
+            </div>
+          </React.Fragment>
+        )}
+
         {diffs.map((diff) => {
           const { oldRevision, newRevision, hunks, type } = diff;
 
