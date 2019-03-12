@@ -1,3 +1,4 @@
+import filesize from 'filesize';
 import purify from 'dompurify';
 
 export type LocalizedStringMap = {
@@ -43,4 +44,8 @@ export const sanitizeHTML = (
 
 export const nl2br = (text: string | null) => {
   return (text || '').replace(/(\r\n|\r|\n)(?!<\/?(li|ul|ol)>)/g, '<br />');
+};
+
+export const formatFilesize = (size: number): string => {
+  return filesize(size, { standard: 'iec' });
 };
