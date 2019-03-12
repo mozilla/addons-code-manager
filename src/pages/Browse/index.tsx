@@ -7,9 +7,9 @@ import log from 'loglevel';
 import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
 import { ApiState } from '../../reducers/api';
 import {
+  LinterMessageMap,
   fetchLinterMessages,
   selectMessageMap,
-  LinterMessageMap,
 } from '../../reducers/linter';
 import FileTree from '../../components/FileTree';
 import LinterMessage from '../../components/LinterMessage';
@@ -113,11 +113,14 @@ export class BrowseBase extends React.Component<Props> {
       );
     }
 
-    let globalMessages;
+    let messageMap;
     if (linterMessages && version) {
-      globalMessages =
-        linterMessages[version.selectedPath] &&
-        linterMessages[version.selectedPath].global;
+      messageMap = linterMessages[version.selectedPath];
+    }
+
+    let globalMessages;
+    if (messageMap) {
+      globalMessages = messageMap.global;
     }
 
     return (
@@ -131,7 +134,11 @@ export class BrowseBase extends React.Component<Props> {
               return <LinterMessage key={message.uid} message={message} />;
             })}
           {file ? (
-            <CodeView mimeType={file.mimeType} content={file.content} />
+            <CodeView
+              linterMessagesByLine={messageMap && messageMap.byLine}
+              mimeType={file.mimeType}
+              content={file.content}
+            />
           ) : (
             <Loading message={gettext('Loading content...')} />
           )}

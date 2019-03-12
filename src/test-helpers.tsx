@@ -175,6 +175,22 @@ export const fakeVersionsList: ExternalVersionsList = [
   },
 ];
 
+export const createFakeExternalLinterResult = ({
+  messages,
+}: {
+  messages: Partial<ExternalLinterMessage>[];
+}) => {
+  return {
+    ...fakeExternalLinterResult,
+    validation: {
+      ...fakeExternalLinterResult.validation,
+      messages: messages.map((msg) => {
+        return { ...fakeExternalLinterMessage, ...msg };
+      }),
+    },
+  };
+};
+
 export const createFakeLocation = (props = {}): Location<{}> => {
   return {
     hash: '',

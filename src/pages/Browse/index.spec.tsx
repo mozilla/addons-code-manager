@@ -2,11 +2,13 @@ import * as React from 'react';
 import { Store } from 'redux';
 
 import {
+  createFakeExternalLinterResult,
   createFakeHistory,
   createFakeThunk,
   fakeExternalLinterMessage,
   fakeExternalLinterResult,
   fakeVersion,
+  fakeVersionFile,
   fakeVersionEntry,
   shallowUntilTarget,
   spyOn,
@@ -17,6 +19,7 @@ import {
   ExternalLinterResult,
   actions as linterActions,
   createInternalMessage,
+  getMessageMap,
 } from '../../reducers/linter';
 import {
   ExternalVersionWithContent,
@@ -135,10 +138,9 @@ describe(__filename, () => {
     const store = configureStore();
 
     // Prepare a result with all messages for the selected file.
-    const externalResult = result || {
-      ...fakeExternalLinterResult,
-      validation: {
-        ...fakeExternalLinterResult.validation,
+    const externalResult =
+      result ||
+      createFakeExternalLinterResult({
         messages: externalMessages.map((msg) => {
           if (msg.file !== file) {
             throw new Error(
@@ -149,16 +151,23 @@ describe(__filename, () => {
           }
           return msg;
         }),
-      },
-    };
+      });
+
     const version = {
       ...fakeVersion,
-      entries: {
-        [file]: fakeVersionEntry,
+      file: {
+        ...fakeVersionFile,
+        entries: {
+          [file]: {
+            ...fakeVersionEntry,
+            filename: file,
+            path: file,
+          },
+        },
       },
     };
-
     store.dispatch(versionActions.loadVersionInfo({ version }));
+    store.dispatch(versionActions.loadVersionFile({ path: file, version }));
     // Simulate selecting the file to render.
     store.dispatch(
       versionActions.updateSelectedPath({
@@ -173,7 +182,6 @@ describe(__filename, () => {
       }),
     );
 
-    spyOn(store, 'dispatch');
     return render({ versionId: versionId || String(version.id), store });
   };
 
@@ -397,16 +405,12 @@ describe(__filename, () => {
   });
 
   it('ignores global messages for the wrong file', () => {
-    const result = {
-      ...fakeExternalLinterResult,
-      validation: {
-        ...fakeExternalLinterResult.validation,
-        messages: [
-          // Define a message for an unrelated file.
-          globalExternalMessage({ file: 'scripts/background.js' }),
-        ],
-      },
-    };
+    const result = createFakeExternalLinterResult({
+      messages: [
+        // Define a message for an unrelated file.
+        globalExternalMessage({ file: 'scripts/background.js' }),
+      ],
+    });
 
     const root = renderWithMessages({
       // Render this as the selected file.
@@ -416,5 +420,50 @@ describe(__filename, () => {
 
     const message = root.find(LinterMessage);
     expect(message).toHaveLength(0);
+  });
+
+  it('passes LinterMessagesByLine to CodeView', () => {
+    const file = 'lib/react.js';
+    const externalMessage = {
+      ...fakeExternalLinterMessage,
+      file,
+      line: 1,
+    };
+
+    const result = createFakeExternalLinterResult({
+      messages: [externalMessage],
+    });
+
+    const root = renderWithMessages({ file, result });
+
+    const code = root.find(CodeView);
+    expect(code).toHaveLength(1);
+    expect(code).toHaveProp(
+      'linterMessagesByLine',
+      getMessageMap(result)[file].byLine,
+    );
+  });
+
+  it('does not pass LinterMessagesByLine to CodeView if files do not match', () => {
+    const result = createFakeExternalLinterResult({
+      messages: [
+        {
+          ...fakeExternalLinterMessage,
+          // Define a message for an unrelated file.
+          file: 'scripts/background.js',
+          line: 1,
+        },
+      ],
+    });
+
+    const root = renderWithMessages({
+      // Render this as the selected file.
+      file: 'lib/react.js',
+      result,
+    });
+
+    const code = root.find(CodeView);
+    expect(code).toHaveLength(1);
+    expect(code).toHaveProp('linterMessagesByLine', undefined);
   });
 });

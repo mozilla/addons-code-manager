@@ -4,10 +4,16 @@ import { Location } from 'history';
 import { mount } from 'enzyme';
 
 import refractor from '../../refractor';
+import LinterMessage from '../LinterMessage';
+import {
+  LinterMessage as LinterMessageType,
+  getMessageMap,
+} from '../../reducers/linter';
 import { mapWithDepth } from './utils';
 import { getLanguageFromMimeType } from '../../utils';
 import {
   createContextWithFakeRouter,
+  createFakeExternalLinterResult,
   createFakeLocation,
   shallowUntilTarget,
 } from '../../test-helpers';
@@ -23,6 +29,7 @@ describe(__filename, () => {
   const getProps = (otherProps = {}) => {
     return {
       content: 'some content',
+      linterMessagesByLine: undefined,
       mimeType: 'mime/type',
       ...otherProps,
     };
@@ -49,6 +56,45 @@ describe(__filename, () => {
       <CodeView {...getProps(otherProps)} />,
       createContextWithFakeRouter({ location }),
     );
+  };
+
+  const renderWithMessages = ({
+    file,
+    messages,
+    ...props
+  }: {
+    file: string;
+    messages: Partial<LinterMessageType>[];
+    props?: RenderParams;
+  }) => {
+    const map = getMessageMap(
+      createFakeExternalLinterResult({
+        messages: messages.map((msg) => {
+          if (msg.file !== file) {
+            throw new Error(
+              `message uid:${msg.uid} has file "${
+                msg.file
+              }" but needs to have "${file}"`,
+            );
+          }
+          return msg;
+        }),
+      }),
+    );
+
+    const contentLines = [
+      'function getName() {',
+      '  document.querySelector("#name")',
+      '}',
+    ];
+
+    const root = render({
+      linterMessagesByLine: map[file].byLine,
+      content: contentLines.join('\n'),
+      ...props,
+    });
+
+    return { root, map };
   };
 
   it('renders plain text code when mime type is not supported', () => {
@@ -149,6 +195,61 @@ describe(__filename, () => {
 
     expect(_scrollToSelectedLine).toHaveBeenCalledWith(
       root.find(`#L${selectedLine}`).getDOMNode(),
+    );
+  });
+
+  it('renders a LinterMessage on a line', () => {
+    const line = 2;
+    const file = 'scripts/content.js';
+
+    const { map, root } = renderWithMessages({
+      file,
+      messages: [{ file, line }],
+    });
+
+    const message = root.find(`#line-${line}-messages`).find(LinterMessage);
+
+    expect(message).toHaveLength(1);
+    expect(message).toHaveProp('message', map[file].byLine[line][0]);
+  });
+
+  it('renders multiple LinterMessage components on one line', () => {
+    const line = 2;
+    const file = 'scripts/content.js';
+
+    const { map, root } = renderWithMessages({
+      file,
+      messages: [{ file, line, uid: 'first' }, { file, line, uid: 'second' }],
+    });
+
+    const message = root.find(`#line-${line}-messages`).find(LinterMessage);
+
+    expect(message).toHaveLength(2);
+
+    const messagesAtLine = map[file].byLine[line];
+    expect(message.at(0)).toHaveProp('message', messagesAtLine[0]);
+    expect(message.at(1)).toHaveProp('message', messagesAtLine[1]);
+  });
+
+  it('renders LinterMessage components on multiple lines', () => {
+    const file = 'scripts/content.js';
+
+    const { map, root } = renderWithMessages({
+      file,
+      messages: [
+        { file, line: 2, uid: 'first' },
+        { file, line: 3, uid: 'second' },
+      ],
+    });
+
+    expect(root.find('#line-2-messages').find(LinterMessage)).toHaveProp(
+      'message',
+      map[file].byLine[2][0],
+    );
+
+    expect(root.find('#line-3-messages').find(LinterMessage)).toHaveProp(
+      'message',
+      map[file].byLine[3][0],
     );
   });
 
