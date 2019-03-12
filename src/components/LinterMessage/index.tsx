@@ -1,5 +1,5 @@
 import * as React from 'react';
-import unescape from 'lodash.unescape';
+import he from 'he';
 import { Alert } from 'react-bootstrap';
 
 import styles from './styles.module.scss';
@@ -16,11 +16,11 @@ const getAlertVariant = (type: LinterMessage['type']) => {
   }
 };
 
-const unescapeHtmlEntities = (text: string) => {
-  // This unescapes HTML entities (like &lt;) so that React will
-  // escape them again. Without this, React will double escape the
+export const decodeHtmlEntities = (text: string) => {
+  // This decodes HTML entities (like &lt;) so that React will
+  // encode / escape them again. Without this, React will double encode the
   // HTML entities
-  return unescape(text);
+  return he.decode(text);
 };
 
 const renderDescription = (description: LinterMessage['description']) => {
@@ -41,7 +41,7 @@ const renderDescription = (description: LinterMessage['description']) => {
             </Alert.Link>,
           );
         } else {
-          allParts.push(unescapeHtmlEntities(part));
+          allParts.push(decodeHtmlEntities(part));
         }
 
         return allParts;
@@ -60,7 +60,7 @@ const LinterMessageBase = (props: PublicProps) => {
   const { description, message, type } = props.message;
   return (
     <Alert variant={getAlertVariant(type)}>
-      <Alert.Heading>{unescapeHtmlEntities(message)}</Alert.Heading>
+      <Alert.Heading>{decodeHtmlEntities(message)}</Alert.Heading>
       <p className={styles.description}>{renderDescription(description)}</p>
     </Alert>
   );
