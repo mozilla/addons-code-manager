@@ -8,6 +8,9 @@ declare module 'refractor' {
     value: string;
     properties?: {
       className?: string | string[];
+      // A node might have arbitrary properties.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      [key: string]: any;
     };
   };
 

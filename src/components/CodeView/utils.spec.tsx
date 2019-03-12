@@ -136,6 +136,20 @@ describe(__filename, () => {
 
         expect(element).toEqual(value);
       });
+
+      it('passes all child properties to the element', () => {
+        const target = '_blank';
+        const title = 'link title';
+        const child = createChild({
+          tagName: 'a',
+          properties: { target, title },
+        });
+
+        const element = mapChild(child, 0, 0);
+
+        expect(element).toHaveProperty('props.target', target);
+        expect(element).toHaveProperty('props.title', title);
+      });
     });
 
     describe('mapWithDepth', () => {
