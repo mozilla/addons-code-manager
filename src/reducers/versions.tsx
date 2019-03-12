@@ -1,7 +1,7 @@
 import { Reducer } from 'redux';
 import { ActionType, createAction, getType } from 'typesafe-actions';
 import log from 'loglevel';
-import { DiffInfo } from 'react-diff-view';
+import { DiffInfo, DiffInfoType } from 'react-diff-view';
 
 import { ThunkActionCreator } from '../configureStore';
 import { getVersion, getVersionsList, isErrorResponse } from '../api';
@@ -433,7 +433,7 @@ export const fetchVersionsList = ({
   };
 };
 
-type CreateInternalDiffParams = {
+type CreateInternalDiffsParams = {
   version: ExternalVersionWithDiff;
   baseVersionId: number;
   headVersionId: number;
@@ -444,8 +444,8 @@ export const createInternalDiffs = ({
   baseVersionId,
   headVersionId,
   version,
-}: CreateInternalDiffParams) => {
-  const GIT_STATUS_TO_TYPE: { [mode: string]: string } = {
+}: CreateInternalDiffsParams) => {
+  const GIT_STATUS_TO_TYPE: { [status: string]: DiffInfoType } = {
     A: 'add',
     C: 'copy',
     D: 'delete',

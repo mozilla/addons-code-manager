@@ -698,7 +698,7 @@ describe(__filename, () => {
           externalDiff.new_ending_new_line,
         );
 
-        // These props will be tested later.
+        // These props will be tested in a different test case below.
         expect(diff).toHaveProperty('type');
         expect(diff).toHaveProperty('hunks');
       });
@@ -748,7 +748,7 @@ describe(__filename, () => {
         expect(hunk).toHaveProperty('oldStart', externalHunk.old_start);
         expect(hunk).toHaveProperty('newStart', externalHunk.new_start);
 
-        // This prop will be tested later.
+        // This prop will be tested in a different test case below.
         expect(hunk).toHaveProperty('changes');
       });
     });
@@ -782,7 +782,7 @@ describe(__filename, () => {
           externalChange.new_line_number,
         );
 
-        // These props will be tested later.
+        // These props will be tested in a different test case below.
         expect(change).toHaveProperty('lineNumber');
         expect(change).toHaveProperty('isDelete');
         expect(change).toHaveProperty('isInsert');
