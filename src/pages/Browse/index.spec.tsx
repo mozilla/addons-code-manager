@@ -126,12 +126,12 @@ describe(__filename, () => {
 
   const renderWithMessages = ({
     externalMessages = [],
-    file,
+    path,
     result,
     versionId,
   }: {
     externalMessages?: ExternalLinterMessage[];
-    file: string;
+    path: string;
     result?: ExternalLinterResult;
     versionId?: string;
   }) => {
@@ -142,11 +142,11 @@ describe(__filename, () => {
       result ||
       createFakeExternalLinterResult({
         messages: externalMessages.map((msg) => {
-          if (msg.file !== file) {
+          if (msg.file !== path) {
             throw new Error(
               `message uid:${msg.uid} has file "${
                 msg.file
-              }" but needs to have "${file}"`,
+              }" but needs to have "${path}"`,
             );
           }
           return msg;
@@ -157,21 +157,15 @@ describe(__filename, () => {
       ...fakeVersion,
       file: {
         ...fakeVersionFile,
-        entries: {
-          [file]: {
-            ...fakeVersionEntry,
-            filename: file,
-            path: file,
-          },
-        },
+        entries: { [path]: { ...fakeVersionEntry, path } },
       },
     };
     store.dispatch(versionActions.loadVersionInfo({ version }));
-    store.dispatch(versionActions.loadVersionFile({ path: file, version }));
+    store.dispatch(versionActions.loadVersionFile({ path, version }));
     // Simulate selecting the file to render.
     store.dispatch(
       versionActions.updateSelectedPath({
-        selectedPath: file,
+        selectedPath: path,
         versionId: version.id,
       }),
     );
@@ -355,11 +349,11 @@ describe(__filename, () => {
   });
 
   it('renders a global LinterMessage', () => {
-    const file = 'lib/react.js';
-    const externalMessage = globalExternalMessage({ file });
+    const path = 'lib/react.js';
+    const externalMessage = globalExternalMessage({ file: path });
 
     const root = renderWithMessages({
-      file,
+      path,
       externalMessages: [externalMessage],
     });
 
@@ -375,12 +369,12 @@ describe(__filename, () => {
     const firstUid = 'first-uid';
     const secondUid = 'second-uid';
 
-    const file = 'lib/react.js';
+    const path = 'lib/react.js';
     const root = renderWithMessages({
-      file,
+      path,
       externalMessages: [
-        globalExternalMessage({ uid: firstUid, file }),
-        globalExternalMessage({ uid: secondUid, file }),
+        globalExternalMessage({ uid: firstUid, file: path }),
+        globalExternalMessage({ uid: secondUid, file: path }),
       ],
     });
 
@@ -391,11 +385,11 @@ describe(__filename, () => {
   });
 
   it('ignores global messages for the wrong version', () => {
-    const file = 'lib/react.js';
+    const path = 'lib/react.js';
 
     const root = renderWithMessages({
-      file,
-      externalMessages: [globalExternalMessage({ file })],
+      path,
+      externalMessages: [globalExternalMessage({ file: path })],
       // Render an unrelated version.
       versionId: '432132',
     });
@@ -413,8 +407,8 @@ describe(__filename, () => {
     });
 
     const root = renderWithMessages({
-      // Render this as the selected file.
-      file: 'lib/react.js',
+      // Render this as the selected file path.
+      path: 'lib/react.js',
       result,
     });
 
@@ -423,10 +417,10 @@ describe(__filename, () => {
   });
 
   it('passes LinterMessagesByLine to CodeView', () => {
-    const file = 'lib/react.js';
+    const path = 'lib/react.js';
     const externalMessage = {
       ...fakeExternalLinterMessage,
-      file,
+      file: path,
       line: 1,
     };
 
@@ -434,13 +428,13 @@ describe(__filename, () => {
       messages: [externalMessage],
     });
 
-    const root = renderWithMessages({ file, result });
+    const root = renderWithMessages({ path, result });
 
     const code = root.find(CodeView);
     expect(code).toHaveLength(1);
     expect(code).toHaveProp(
       'linterMessagesByLine',
-      getMessageMap(result)[file].byLine,
+      getMessageMap(result)[path].byLine,
     );
   });
 
@@ -457,8 +451,8 @@ describe(__filename, () => {
     });
 
     const root = renderWithMessages({
-      // Render this as the selected file.
-      file: 'lib/react.js',
+      // Render this as the selected file path.
+      path: 'lib/react.js',
       result,
     });
 
