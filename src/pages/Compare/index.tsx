@@ -2,19 +2,24 @@ import * as React from 'react';
 import { Col, Row } from 'react-bootstrap';
 import { RouteComponentProps } from 'react-router-dom';
 import { connect } from 'react-redux';
-import { parseDiff } from 'react-diff-view';
 
 import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
 import FileTree from '../../components/FileTree';
 import DiffView from '../../components/DiffView';
 import Loading from '../../components/Loading';
 import VersionChooser from '../../components/VersionChooser';
-import { Version, fetchVersion, getVersionInfo } from '../../reducers/versions';
+import {
+  CompareInfo,
+  Version,
+  actions,
+  fetchDiff,
+  getVersionInfo,
+} from '../../reducers/versions';
 import { gettext } from '../../utils';
-import diffWithDeletions from '../../components/DiffView/fixtures/diffWithDeletions';
+import styles from './styles.module.scss';
 
 export type PublicProps = {
-  _fetchVersion: typeof fetchVersion;
+  _fetchDiff: typeof fetchDiff;
 };
 
 type PropsFromRouter = {
@@ -26,6 +31,9 @@ type PropsFromRouter = {
 
 type PropsFromState = {
   addonId: number;
+  compareInfo: CompareInfo | null | void;
+  isLoading: boolean;
+  path: string | void;
   version: Version;
 };
 
@@ -36,7 +44,7 @@ type Props = RouteComponentProps<PropsFromRouter> &
 
 export class CompareBase extends React.Component<Props> {
   static defaultProps = {
-    _fetchVersion: fetchVersion,
+    _fetchDiff: fetchDiff,
   };
 
   componentDidMount() {
@@ -62,43 +70,66 @@ export class CompareBase extends React.Component<Props> {
   }
 
   loadData(prevProps?: Props) {
-    const { match } = this.props;
+    const { match, path } = this.props;
     const { addonId, baseVersionId, headVersionId } = match.params;
 
     if (
       !prevProps ||
+      path !== prevProps.path ||
       addonId !== prevProps.match.params.addonId ||
       baseVersionId !== prevProps.match.params.baseVersionId ||
       headVersionId !== prevProps.match.params.headVersionId
     ) {
-      const { dispatch, _fetchVersion } = this.props;
+      const { dispatch, _fetchDiff } = this.props;
 
       dispatch(
-        _fetchVersion({
+        _fetchDiff({
           addonId: parseInt(addonId, 10),
-          versionId: parseInt(baseVersionId, 10),
+          baseVersionId: parseInt(baseVersionId, 10),
+          headVersionId: parseInt(headVersionId, 10),
+          path: path || undefined,
         }),
       );
     }
   }
 
-  onSelectFile = () => {};
+  onSelectFile = (path: string) => {
+    const { dispatch, match } = this.props;
+    const { headVersionId } = match.params;
 
-  render() {
-    const { addonId, version } = this.props;
+    dispatch(
+      actions.updateSelectedPath({
+        selectedPath: path,
+        versionId: parseInt(headVersionId, 10),
+      }),
+    );
+  };
 
-    if (!version) {
+  renderLoadingMessageOrError(message: string) {
+    const { isLoading } = this.props;
+
+    if (!isLoading) {
       return (
-        <Col>
-          <Loading message={gettext('Loading version...')} />
-        </Col>
+        <p className={styles.error}>
+          {gettext('Ooops, an error has occured.')}
+        </p>
       );
     }
+
+    return <Loading message={message} />;
+  }
+
+  render() {
+    const { addonId, compareInfo, version } = this.props;
 
     return (
       <React.Fragment>
         <Col md="3">
-          <FileTree version={version} onSelect={this.onSelectFile} />
+          {version ? (
+            <FileTree version={version} onSelect={this.onSelectFile} />
+          ) : (
+            this.renderLoadingMessageOrError(gettext('Loading file tree...'))
+          )}
         </Col>
         <Col md="9">
           <Row>
@@ -108,10 +139,14 @@ export class CompareBase extends React.Component<Props> {
           </Row>
           <Row>
             <Col>
-              <DiffView
-                diffs={parseDiff(diffWithDeletions)}
-                mimeType="text/javascript"
-              />
+              {compareInfo ? (
+                <DiffView
+                  diffs={compareInfo.diffs}
+                  mimeType={compareInfo.mimeType}
+                />
+              ) : (
+                this.renderLoadingMessageOrError(gettext('Loading diff...'))
+              )}
             </Col>
           </Row>
         </Col>
@@ -126,12 +161,19 @@ const mapStateToProps = (
 ): PropsFromState => {
   const { match } = ownProps;
   const addonId = parseInt(match.params.addonId, 10);
-  const baseVersionId = parseInt(match.params.baseVersionId, 10);
+  const headVersionId = parseInt(match.params.headVersionId, 10);
 
-  const version = getVersionInfo(state.versions, baseVersionId);
+  const { compareInfo } = state.versions;
+  const isLoading = compareInfo === undefined;
+
+  // The Compare API returns the version info of the head/newest version.
+  const version = getVersionInfo(state.versions, headVersionId);
 
   return {
     addonId,
+    compareInfo,
+    isLoading,
+    path: version && version.selectedPath,
     version,
   };
 };
