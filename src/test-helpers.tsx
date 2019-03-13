@@ -11,6 +11,7 @@ import configureStore, {
 import { ExternalLinterResult, ExternalLinterMessage } from './reducers/linter';
 import { ExternalUser } from './reducers/users';
 import {
+  ExternalChange,
   ExternalVersionAddon,
   ExternalVersionEntry,
   ExternalVersionFileWithContent,
@@ -145,6 +146,80 @@ export const fakeExternalLinterResult = Object.freeze({
     warnings: 5,
   },
 }) as ExternalLinterResult;
+
+export const fakeExternalDiff = Object.freeze({
+  path: 'manifest.json',
+  size: 172,
+  lines_added: 2,
+  lines_deleted: 2,
+  is_binary: false,
+  mode: 'M',
+  hunks: [
+    {
+      header: '@@ -1,6 +1,6 @@\n',
+      old_start: 1,
+      new_start: 1,
+      old_lines: 6,
+      new_lines: 6,
+      changes: [
+        {
+          content: '{\r\n',
+          type: 'normal' as ExternalChange['type'],
+          old_line_number: 1,
+          new_line_number: 1,
+        },
+        {
+          content: '    "manifest_version": 2,\r\n',
+          type: 'normal' as ExternalChange['type'],
+          old_line_number: 2,
+          new_line_number: 2,
+        },
+        {
+          content: '    "version": "7",\r\n',
+          type: 'delete' as ExternalChange['type'],
+          old_line_number: 3,
+          new_line_number: -1,
+        },
+        {
+          content: '    "version": "8",\r\n',
+          type: 'insert' as ExternalChange['type'],
+          old_line_number: -1,
+          new_line_number: 3,
+        },
+        {
+          content:
+            '    "name": "Awesome Screenshot - Capture, Annotate & More",\r\n',
+          type: 'normal' as ExternalChange['type'],
+          old_line_number: 4,
+          new_line_number: 4,
+        },
+        {
+          content: '    "description": "this is a new description"\r\n',
+          type: 'delete' as ExternalChange['type'],
+          old_line_number: 5,
+          new_line_number: -1,
+        },
+        {
+          content: '    "description": "this is a new version with files"\r\n',
+          type: 'insert' as ExternalChange['type'],
+          old_line_number: -1,
+          new_line_number: 5,
+        },
+        {
+          content: '}\r\n',
+          type: 'normal' as ExternalChange['type'],
+          old_line_number: 6,
+          new_line_number: 6,
+        },
+      ],
+    },
+  ],
+  old_path: 'manifest.json',
+  parent: '514a8bd3cfb1ccae67dff61e3ea174bb444dfb00',
+  hash: '054771578d3a903264bfd16ba71e5b4808a6764b',
+  old_ending_new_line: true,
+  new_ending_new_line: false,
+});
 
 /* eslint-enable @typescript-eslint/camelcase */
 

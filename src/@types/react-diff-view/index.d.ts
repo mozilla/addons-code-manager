@@ -26,6 +26,8 @@ declare module 'react-diff-view' {
 
   type Hunks = HunkInfo[];
 
+  export type DiffInfoType = 'add' | 'copy' | 'delete' | 'modify' | 'rename';
+
   export type DiffInfo = {
     oldPath: string;
     newPath: string;
@@ -36,7 +38,7 @@ declare module 'react-diff-view' {
     newRevision: string;
     newMode: string;
     oldMode: string;
-    type: string;
+    type: DiffInfoType;
   };
 
   declare function parseDiff(text: string, options?: object): DiffInfo[];

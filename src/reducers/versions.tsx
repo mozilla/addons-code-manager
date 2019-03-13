@@ -1,6 +1,7 @@
 import { Reducer } from 'redux';
 import { ActionType, createAction, getType } from 'typesafe-actions';
 import log from 'loglevel';
+import { DiffInfo, DiffInfoType } from 'react-diff-view';
 
 import { ThunkActionCreator } from '../configureStore';
 import { getVersion, getVersionsList, isErrorResponse } from '../api';
@@ -78,7 +79,7 @@ type PartialExternalVersion = {
   version: string;
 };
 
-type ExternalChange = {
+export type ExternalChange = {
   content: string;
   new_line_number: number;
   old_line_number: number;
@@ -101,6 +102,8 @@ type ExternalDiff = {
   lines_added: number;
   lines_deleted: number;
   mode: string;
+  new_ending_new_line: boolean;
+  old_ending_new_line: boolean;
   old_path: string;
   parent: string;
   path: string;
@@ -428,6 +431,64 @@ export const fetchVersionsList = ({
       dispatch(actions.loadVersionsList({ addonId, versions: response }));
     }
   };
+};
+
+type CreateInternalDiffsParams = {
+  version: ExternalVersionWithDiff;
+  baseVersionId: number;
+  headVersionId: number;
+};
+
+// This function returns an array of objects compatible with `react-diff-view`.
+export const createInternalDiffs = ({
+  baseVersionId,
+  headVersionId,
+  version,
+}: CreateInternalDiffsParams) => {
+  const GIT_STATUS_TO_TYPE: { [status: string]: DiffInfoType } = {
+    A: 'add',
+    C: 'copy',
+    D: 'delete',
+    M: 'modify',
+    R: 'rename',
+  };
+
+  return version.file.diff.map(
+    (diff: ExternalDiff): DiffInfo => {
+      return {
+        newRevision: String(headVersionId),
+        oldRevision: String(baseVersionId),
+        hunks: diff.hunks.map((hunk: ExternalHunk) => ({
+          changes: hunk.changes.map((change: ExternalChange) => ({
+            content: change.content,
+            isDelete: change.type === 'delete',
+            isInsert: change.type === 'insert',
+            isNormal: change.type === 'normal',
+            lineNumber:
+              change.type === 'insert'
+                ? change.new_line_number
+                : change.old_line_number,
+            newLineNumber: change.new_line_number,
+            oldLineNumber: change.old_line_number,
+            type: change.type,
+          })),
+          content: hunk.header,
+          isPlain: false,
+          newLines: hunk.new_lines,
+          newStart: hunk.new_start,
+          oldLines: hunk.old_lines,
+          oldStart: hunk.old_start,
+        })),
+        type: GIT_STATUS_TO_TYPE[diff.mode] || GIT_STATUS_TO_TYPE.M,
+        newEndingNewLine: diff.new_ending_new_line,
+        oldEndingNewLine: diff.old_ending_new_line,
+        newMode: diff.mode,
+        oldMode: diff.mode,
+        newPath: diff.path,
+        oldPath: diff.old_path,
+      };
+    },
+  );
 };
 
 const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
