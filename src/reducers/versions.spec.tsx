@@ -11,6 +11,7 @@ import reducer, {
   createInternalVersionEntry,
   createInternalVersionFile,
   createVersionsMap,
+  fetchDiff,
   fetchVersion,
   fetchVersionFile,
   fetchVersionsList,
@@ -25,6 +26,7 @@ import {
   fakeVersionAddon,
   fakeVersionEntry,
   fakeVersionFile,
+  fakeVersionWithDiff,
   fakeVersionsList,
   fakeVersionsListItem,
   getFakeLogger,
@@ -73,7 +75,7 @@ describe(__filename, () => {
       });
     });
 
-    it('loads version info and the default file', () => {
+    it('loads version info', () => {
       const version = fakeVersion;
       const state = reducer(undefined, actions.loadVersionInfo({ version }));
 
@@ -81,13 +83,6 @@ describe(__filename, () => {
         ...initialState,
         versionInfo: {
           [version.id]: createInternalVersion(version),
-        },
-        versionFiles: {
-          [version.id]: {
-            [version.file.selected_file]: createInternalVersionFile(
-              version.file,
-            ),
-          },
         },
       });
     });
@@ -123,6 +118,103 @@ describe(__filename, () => {
       );
 
       expect(state.byAddonId[addonId]).toEqual(createVersionsMap(versions));
+    });
+
+    it('sets the compare info to `null` on abortFetchDiff()', () => {
+      const versionsState = reducer(undefined, actions.abortFetchDiff());
+
+      expect(versionsState.compareInfo).toEqual(null);
+    });
+
+    it('resets the compare info on beginFetchDiff()', () => {
+      let versionsState = reducer(undefined, actions.abortFetchDiff());
+      versionsState = reducer(versionsState, actions.beginFetchDiff());
+
+      expect(versionsState.compareInfo).toEqual(undefined);
+    });
+
+    it('loads compare info', () => {
+      const addonId = 1;
+      const baseVersionId = 2;
+      const path = 'manifest.json';
+      const mimeType = 'mime/type';
+
+      const version = {
+        ...fakeVersionWithDiff,
+        file: {
+          ...fakeVersionWithDiff.file,
+          entries: {
+            ...fakeVersionWithDiff.file.entries,
+            [path]: {
+              ...fakeVersionWithDiff.file.entries[path],
+              mimetype: mimeType,
+            },
+          },
+          // eslint-disable-next-line @typescript-eslint/camelcase
+          selected_file: path,
+        },
+      };
+      const headVersionId = version.id;
+
+      let versionsState = reducer(
+        undefined,
+        actions.loadVersionInfo({ version }),
+      );
+      versionsState = reducer(
+        versionsState,
+        actions.loadDiff({
+          addonId,
+          baseVersionId,
+          headVersionId,
+          version,
+        }),
+      );
+
+      expect(versionsState.compareInfo).toEqual({
+        diffs: createInternalDiffs({
+          baseVersionId,
+          headVersionId,
+          version,
+        }),
+        mimeType,
+      });
+    });
+
+    it('logs a debug message when entry is missing on loadDiff()', () => {
+      const addonId = 1;
+      const baseVersionId = 2;
+      const path = 'some/other/file.js';
+      const _log = getFakeLogger();
+
+      const version = {
+        ...fakeVersionWithDiff,
+        file: {
+          ...fakeVersionWithDiff.file,
+          // eslint-disable-next-line @typescript-eslint/camelcase
+          selected_file: path,
+        },
+      };
+      const headVersionId = version.id;
+
+      const previousState = reducer(
+        undefined,
+        actions.loadVersionInfo({ version }),
+      );
+      // TS looks confused about the third optional argument.
+      // @ts-ignore
+      const versionsState = reducer(
+        previousState,
+        actions.loadDiff({
+          addonId,
+          baseVersionId,
+          headVersionId,
+          version,
+        }),
+        { _log },
+      );
+
+      expect(_log.debug).toHaveBeenCalled();
+      expect(versionsState).toEqual(previousState);
     });
   });
 
@@ -223,7 +315,8 @@ describe(__filename, () => {
         },
         version: versionString,
       };
-      const state = reducer(undefined, actions.loadVersionInfo({ version }));
+      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+      state = reducer(state, actions.loadVersionFile({ version, path }));
 
       expect(getVersionFile(state, version.id, path)).toEqual({
         ...createInternalVersionFile(version.file),
@@ -256,9 +349,10 @@ describe(__filename, () => {
 
     it('returns undefined if there is no entry for the path', () => {
       const version = fakeVersion;
-      const state = reducer(
-        undefined,
-        actions.loadVersionInfo({ version: fakeVersion }),
+      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+      state = reducer(
+        state,
+        actions.loadVersionFile({ version, path: version.file.selected_file }),
       );
 
       // We have to manually remove the entry to test this. This is because the
@@ -274,9 +368,10 @@ describe(__filename, () => {
       const _log = getFakeLogger();
 
       const version = fakeVersion;
-      const state = reducer(
-        undefined,
-        actions.loadVersionInfo({ version: fakeVersion }),
+      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+      state = reducer(
+        state,
+        actions.loadVersionFile({ version, path: version.file.selected_file }),
       );
 
       // We have to manually remove the entry to test this. This is because the
@@ -351,7 +446,7 @@ describe(__filename, () => {
       });
     });
 
-    it('dispatches loadVersionInfo when API response is successful', async () => {
+    it('dispatches loadVersionInfo() when API response is successful', async () => {
       const version = fakeVersion;
       const _getVersion = jest.fn().mockReturnValue(Promise.resolve(version));
 
@@ -371,6 +466,32 @@ describe(__filename, () => {
 
       expect(dispatch).toHaveBeenCalledWith(
         actions.loadVersionInfo({
+          version,
+        }),
+      );
+    });
+
+    it('dispatches loadVersionFile() when API response is successful', async () => {
+      const version = fakeVersion;
+      const _getVersion = jest.fn().mockReturnValue(Promise.resolve(version));
+
+      const addonId = 123;
+      const versionId = version.id;
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () =>
+          fetchVersion({
+            _getVersion,
+            addonId,
+            versionId,
+          }),
+      });
+
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(
+        actions.loadVersionFile({
+          path: version.file.selected_file,
           version,
         }),
       );
@@ -851,6 +972,117 @@ describe(__filename, () => {
       expect(change).toHaveProperty('isInsert', false);
       expect(change).toHaveProperty('isNormal', true);
       expect(change).toHaveProperty('lineNumber', oldLineNumber);
+    });
+  });
+
+  describe('fetchDiff', () => {
+    const _fetchDiff = ({
+      addonId = 1,
+      baseVersionId = 2,
+      headVersionId = 3,
+      version = fakeVersionWithDiff,
+      _getDiff = jest.fn().mockReturnValue(Promise.resolve(version)),
+      path = undefined as string | undefined,
+    } = {}) => {
+      return thunkTester({
+        createThunk: () =>
+          fetchDiff({
+            _getDiff,
+            addonId,
+            baseVersionId,
+            headVersionId,
+            path,
+          }),
+      });
+    };
+
+    it('dispatches beginFetchDiff()', async () => {
+      const { dispatch, thunk } = _fetchDiff();
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(actions.beginFetchDiff());
+    });
+
+    it('dispatches updateSelectedPath() if a path is supplied', async () => {
+      const headVersionId = 123;
+      const path = 'some/path.js';
+
+      const { dispatch, thunk } = _fetchDiff({ headVersionId, path });
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(
+        actions.updateSelectedPath({
+          selectedPath: path,
+          versionId: headVersionId,
+        }),
+      );
+    });
+
+    it('calls getDiff()', async () => {
+      const version = fakeVersionWithDiff;
+      const _getDiff = jest.fn().mockReturnValue(Promise.resolve(version));
+
+      const addonId = 123;
+      const baseVersionId = version.id - 1;
+      const headVersionId = version.id;
+
+      const { store, thunk } = _fetchDiff({
+        _getDiff,
+        addonId,
+        baseVersionId,
+        headVersionId,
+      });
+      await thunk();
+
+      expect(_getDiff).toHaveBeenCalledWith({
+        addonId,
+        apiState: store.getState().api,
+        baseVersionId,
+        headVersionId,
+      });
+    });
+
+    it('dispatches loadVersionInfo() when API response is successful', async () => {
+      const version = fakeVersionWithDiff;
+
+      const { dispatch, thunk } = _fetchDiff({ version });
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(
+        actions.loadVersionInfo({ version }),
+      );
+    });
+
+    it('dispatches loadDiff() when API response is successful', async () => {
+      const version = { ...fakeVersionWithDiff, id: 3 };
+      const addonId = 1;
+      const baseVersionId = 2;
+      const headVersionId = version.id;
+
+      const { dispatch, thunk } = _fetchDiff({ version });
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(
+        actions.loadDiff({
+          addonId,
+          baseVersionId,
+          headVersionId,
+          version,
+        }),
+      );
+    });
+
+    it('dispatches abortFetchDiff() when API call has failed', async () => {
+      const _getDiff = jest.fn().mockReturnValue(
+        Promise.resolve({
+          error: new Error('Bad Request'),
+        }),
+      );
+
+      const { dispatch, thunk } = _fetchDiff({ _getDiff });
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(actions.abortFetchDiff());
     });
   });
 });
