@@ -119,7 +119,7 @@ export class DiffViewBase extends React.Component<Props> {
           <React.Fragment>
             <div className={styles.header} />
             <div className={makeClassName(styles.diff, styles.noDiffs)}>
-              {gettext('no differences')}
+              {gettext('No differences')}
             </div>
           </React.Fragment>
         )}

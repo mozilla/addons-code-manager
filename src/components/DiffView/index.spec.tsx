@@ -43,7 +43,7 @@ describe(__filename, () => {
 
     expect(root.find(Diff)).toHaveLength(0);
     expect(root.find(`.${styles.header}`)).toHaveLength(1);
-    expect(root.find(`.${styles.noDiffs}`)).toIncludeText('no differences');
+    expect(root.find(`.${styles.noDiffs}`)).toIncludeText('No differences');
   });
 
   it('defaults the viewType to unified', () => {
