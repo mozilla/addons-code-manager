@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Col, Row } from 'react-bootstrap';
 import { RouteComponentProps } from 'react-router-dom';
 import { connect } from 'react-redux';
+import { parseDiff } from 'react-diff-view';
 
 import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
 import FileTree from '../../components/FileTree';
@@ -107,7 +108,10 @@ export class CompareBase extends React.Component<Props> {
           </Row>
           <Row>
             <Col>
-              <DiffView diff={diffWithDeletions} mimeType="text/javascript" />
+              <DiffView
+                diffs={parseDiff(diffWithDeletions)}
+                mimeType="text/javascript"
+              />
             </Col>
           </Row>
         </Col>
