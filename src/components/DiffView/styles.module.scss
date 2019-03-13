@@ -42,6 +42,11 @@
   text-align: center;
 }
 
+.noDiffs {
+  padding: $default-padding;
+  text-align: center;
+}
+
 :global {
   .diff-code,
   .diff-gutter {
