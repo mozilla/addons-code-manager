@@ -2,11 +2,13 @@ import * as React from 'react';
 import { Store } from 'redux';
 
 import {
+  createFakeExternalLinterResult,
   createFakeHistory,
   createFakeThunk,
   fakeExternalLinterMessage,
   fakeExternalLinterResult,
   fakeVersion,
+  fakeVersionFile,
   fakeVersionEntry,
   shallowUntilTarget,
   spyOn,
@@ -17,6 +19,7 @@ import {
   ExternalLinterResult,
   actions as linterActions,
   createInternalMessage,
+  getMessageMap,
 } from '../../reducers/linter';
 import {
   ExternalVersionWithContent,
@@ -123,46 +126,46 @@ describe(__filename, () => {
 
   const renderWithMessages = ({
     externalMessages = [],
-    file,
+    path,
     result,
     versionId,
   }: {
     externalMessages?: ExternalLinterMessage[];
-    file: string;
+    path: string;
     result?: ExternalLinterResult;
     versionId?: string;
   }) => {
     const store = configureStore();
 
     // Prepare a result with all messages for the selected file.
-    const externalResult = result || {
-      ...fakeExternalLinterResult,
-      validation: {
-        ...fakeExternalLinterResult.validation,
+    const externalResult =
+      result ||
+      createFakeExternalLinterResult({
         messages: externalMessages.map((msg) => {
-          if (msg.file !== file) {
+          if (msg.file !== path) {
             throw new Error(
               `message uid:${msg.uid} has file "${
                 msg.file
-              }" but needs to have "${file}"`,
+              }" but needs to have "${path}"`,
             );
           }
           return msg;
         }),
-      },
-    };
+      });
+
     const version = {
       ...fakeVersion,
-      entries: {
-        [file]: fakeVersionEntry,
+      file: {
+        ...fakeVersionFile,
+        entries: { [path]: { ...fakeVersionEntry, path } },
       },
     };
-
     store.dispatch(versionActions.loadVersionInfo({ version }));
+    store.dispatch(versionActions.loadVersionFile({ path, version }));
     // Simulate selecting the file to render.
     store.dispatch(
       versionActions.updateSelectedPath({
-        selectedPath: file,
+        selectedPath: path,
         versionId: version.id,
       }),
     );
@@ -173,7 +176,6 @@ describe(__filename, () => {
       }),
     );
 
-    spyOn(store, 'dispatch');
     return render({ versionId: versionId || String(version.id), store });
   };
 
@@ -347,11 +349,11 @@ describe(__filename, () => {
   });
 
   it('renders a global LinterMessage', () => {
-    const file = 'lib/react.js';
-    const externalMessage = globalExternalMessage({ file });
+    const path = 'lib/react.js';
+    const externalMessage = globalExternalMessage({ file: path });
 
     const root = renderWithMessages({
-      file,
+      path,
       externalMessages: [externalMessage],
     });
 
@@ -367,12 +369,12 @@ describe(__filename, () => {
     const firstUid = 'first-uid';
     const secondUid = 'second-uid';
 
-    const file = 'lib/react.js';
+    const path = 'lib/react.js';
     const root = renderWithMessages({
-      file,
+      path,
       externalMessages: [
-        globalExternalMessage({ uid: firstUid, file }),
-        globalExternalMessage({ uid: secondUid, file }),
+        globalExternalMessage({ uid: firstUid, file: path }),
+        globalExternalMessage({ uid: secondUid, file: path }),
       ],
     });
 
@@ -383,11 +385,11 @@ describe(__filename, () => {
   });
 
   it('ignores global messages for the wrong version', () => {
-    const file = 'lib/react.js';
+    const path = 'lib/react.js';
 
     const root = renderWithMessages({
-      file,
-      externalMessages: [globalExternalMessage({ file })],
+      path,
+      externalMessages: [globalExternalMessage({ file: path })],
       // Render an unrelated version.
       versionId: '432132',
     });
@@ -397,24 +399,65 @@ describe(__filename, () => {
   });
 
   it('ignores global messages for the wrong file', () => {
-    const result = {
-      ...fakeExternalLinterResult,
-      validation: {
-        ...fakeExternalLinterResult.validation,
-        messages: [
-          // Define a message for an unrelated file.
-          globalExternalMessage({ file: 'scripts/background.js' }),
-        ],
-      },
-    };
+    const result = createFakeExternalLinterResult({
+      messages: [
+        // Define a message for an unrelated file.
+        globalExternalMessage({ file: 'scripts/background.js' }),
+      ],
+    });
 
     const root = renderWithMessages({
-      // Render this as the selected file.
-      file: 'lib/react.js',
+      // Render this as the selected file path.
+      path: 'lib/react.js',
       result,
     });
 
     const message = root.find(LinterMessage);
     expect(message).toHaveLength(0);
+  });
+
+  it('passes LinterMessagesByLine to CodeView', () => {
+    const path = 'lib/react.js';
+    const externalMessage = {
+      ...fakeExternalLinterMessage,
+      file: path,
+      line: 1,
+    };
+
+    const result = createFakeExternalLinterResult({
+      messages: [externalMessage],
+    });
+
+    const root = renderWithMessages({ path, result });
+
+    const code = root.find(CodeView);
+    expect(code).toHaveLength(1);
+    expect(code).toHaveProp(
+      'linterMessagesByLine',
+      getMessageMap(result)[path].byLine,
+    );
+  });
+
+  it('does not pass LinterMessagesByLine to CodeView if files do not match', () => {
+    const result = createFakeExternalLinterResult({
+      messages: [
+        {
+          ...fakeExternalLinterMessage,
+          // Define a message for an unrelated file.
+          file: 'scripts/background.js',
+          line: 1,
+        },
+      ],
+    });
+
+    const root = renderWithMessages({
+      // Render this as the selected file path.
+      path: 'lib/react.js',
+      result,
+    });
+
+    const code = root.find(CodeView);
+    expect(code).toHaveLength(1);
+    expect(code).toHaveProp('linterMessagesByLine', undefined);
   });
 });

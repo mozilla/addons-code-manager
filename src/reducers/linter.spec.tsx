@@ -2,6 +2,7 @@
 import log from 'loglevel';
 
 import {
+  createFakeExternalLinterResult,
   fakeExternalLinterResult,
   fakeExternalLinterMessage,
   getFakeLogger,
@@ -22,15 +23,7 @@ describe(__filename, () => {
   const createExternalLinterResult = (
     messages: Partial<ExternalLinterMessage>[] = [fakeExternalLinterMessage],
   ) => {
-    return {
-      ...fakeExternalLinterResult,
-      validation: {
-        ...fakeExternalLinterResult.validation,
-        messages: messages.map((msg) => {
-          return { ...fakeExternalLinterMessage, ...msg };
-        }),
-      },
-    };
+    return createFakeExternalLinterResult({ messages });
   };
 
   const _getMessageMap = (

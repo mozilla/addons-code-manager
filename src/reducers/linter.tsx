@@ -60,11 +60,15 @@ export const createInternalMessage = (
   };
 };
 
+export type LinterMessagesByLine = {
+  [line: number]: LinterMessage[];
+};
+
 export type LinterMessageMap = {
   // The 'path' key matches the key of ExternalVersionFile['entries']
   [path: string]: {
     global: LinterMessage[];
-    byLine: { [line: number]: LinterMessage[] };
+    byLine: LinterMessagesByLine;
   };
 };
 

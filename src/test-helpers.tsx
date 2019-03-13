@@ -25,10 +25,13 @@ import {
 
 export const fakeVersionEntry: ExternalVersionEntry = Object.freeze({
   depth: 0,
+  // This is always the base filename, no subdirectories.
   filename: 'manifest.json',
   mime_category: 'text' as VersionEntryType,
   mimetype: 'application/json',
   modified: '2017-08-15T12:01:13Z',
+  // This is the complete relative path. For example, it might include
+  // subdirectories like scripts/background.js
   path: 'manifest.json',
   sha256: 'some-sha',
   size: 123,
@@ -249,6 +252,22 @@ export const fakeVersionsList: ExternalVersionsList = [
     version: '1.3.0',
   },
 ];
+
+export const createFakeExternalLinterResult = ({
+  messages,
+}: {
+  messages: Partial<ExternalLinterMessage>[];
+}) => {
+  return {
+    ...fakeExternalLinterResult,
+    validation: {
+      ...fakeExternalLinterResult.validation,
+      messages: messages.map((msg) => {
+        return { ...fakeExternalLinterMessage, ...msg };
+      }),
+    },
+  };
+};
 
 export const createFakeLocation = (props = {}): Location<{}> => {
   return {
