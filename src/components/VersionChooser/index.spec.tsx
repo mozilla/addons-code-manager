@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Store } from 'redux';
+import { History } from 'history';
 
 import configureStore from '../../configureStore';
 import VersionSelect from '../VersionSelect';
@@ -9,33 +10,66 @@ import {
   actions as versionActions,
 } from '../../reducers/versions';
 import {
+  createContextWithFakeRouter,
+  createFakeHistory,
   createFakeThunk,
   fakeVersionsList,
   fakeVersionsListItem,
   shallowUntilTarget,
   spyOn,
 } from '../../test-helpers';
+import styles from './styles.module.scss';
 
-import VersionChooser, { VersionChooserBase, PublicProps } from '.';
+import VersionChooser, {
+  DefaultProps,
+  PropsFromRouter,
+  PublicProps,
+  VersionChooserBase,
+} from '.';
 
 describe(__filename, () => {
-  type RenderParams = Partial<PublicProps> & { store?: Store };
+  const lang = 'en-US';
+
+  type RenderParams = Partial<PublicProps> &
+    Partial<PropsFromRouter> &
+    Partial<DefaultProps> & {
+      store?: Store;
+      history?: History;
+    };
 
   const render = ({
     _fetchVersionsList,
-    addonId = 123,
+    addonId = '123',
+    baseVersionId = '1',
+    headVersionId = '2',
+    history = createFakeHistory(),
     store = configureStore(),
   }: RenderParams = {}) => {
-    const props = { addonId, _fetchVersionsList };
+    const contextWithRouter = createContextWithFakeRouter({
+      history,
+      match: {
+        params: {
+          addonId,
+          baseVersionId,
+          headVersionId,
+          lang,
+        },
+      },
+    });
+    const context = {
+      ...contextWithRouter,
+      context: {
+        ...contextWithRouter.context,
+        store,
+      },
+    };
+
+    const props = { addonId: parseInt(addonId, 10), _fetchVersionsList };
 
     return shallowUntilTarget(
       <VersionChooser {...props} />,
       VersionChooserBase,
-      {
-        shallowOptions: {
-          context: { store },
-        },
-      },
+      { shallowOptions: { ...context } },
     );
   };
 
@@ -59,7 +93,7 @@ describe(__filename, () => {
     const store = configureStore();
     _loadVersionsList(store, addonId, fakeVersionsList);
 
-    const root = render({ addonId, store });
+    const root = render({ addonId: String(addonId), store });
 
     expect(root.find(VersionSelect)).toHaveLength(2);
     expect(root.find(VersionSelect).at(0)).toHaveProp(
@@ -93,7 +127,7 @@ describe(__filename, () => {
     const store = configureStore();
     _loadVersionsList(store, addonId, [...listedVersions, ...unlistedVersions]);
 
-    const root = render({ addonId, store });
+    const root = render({ addonId: String(addonId), store });
 
     root.find(VersionSelect).forEach((versionSelect) => {
       expect(versionSelect).toHaveProp('listedVersions', listedVersions);
@@ -108,7 +142,7 @@ describe(__filename, () => {
     const fakeThunk = createFakeThunk();
     const _fetchVersionsList = fakeThunk.createThunk;
 
-    render({ _fetchVersionsList, addonId, store });
+    render({ _fetchVersionsList, addonId: String(addonId), store });
 
     expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
     expect(_fetchVersionsList).toHaveBeenCalledWith({ addonId });
@@ -122,7 +156,11 @@ describe(__filename, () => {
     const dispatch = spyOn(store, 'dispatch');
     const fakeThunk = createFakeThunk();
 
-    render({ _fetchVersionsList: fakeThunk.createThunk, addonId, store });
+    render({
+      _fetchVersionsList: fakeThunk.createThunk,
+      addonId: String(addonId),
+      store,
+    });
 
     expect(dispatch).not.toHaveBeenCalled();
   });
@@ -138,9 +176,97 @@ describe(__filename, () => {
 
     const secondAddonId = addonId + 123;
 
-    render({ _fetchVersionsList, addonId: secondAddonId, store });
+    render({ _fetchVersionsList, addonId: String(secondAddonId), store });
 
     expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
     expect(_fetchVersionsList).toHaveBeenCalledWith({ addonId: secondAddonId });
+  });
+
+  it('pushes a new URL when the old version changes', () => {
+    const addonId = '999';
+    const baseVersionId = '3';
+    const headVersionId = '4';
+
+    const store = configureStore();
+    _loadVersionsList(store, parseInt(addonId, 10), fakeVersionsList);
+
+    const history = createFakeHistory();
+    const selectedVersion = '2';
+
+    const root = render({
+      addonId,
+      baseVersionId,
+      headVersionId,
+      history,
+      store,
+    });
+
+    const onChange = root
+      // Retrieve the `VersionSelect` component with this `className`.
+      .find({ className: styles.baseVersionSelect })
+      .prop('onChange');
+    onChange(selectedVersion);
+
+    expect(history.push).toHaveBeenCalledWith(
+      `/${lang}/compare/${addonId}/versions/${selectedVersion}...${headVersionId}/`,
+    );
+  });
+
+  it('pushes a new URL when the new version changes', () => {
+    const addonId = '999';
+    const baseVersionId = '3';
+    const headVersionId = '4';
+
+    const store = configureStore();
+    _loadVersionsList(store, parseInt(addonId, 10), fakeVersionsList);
+
+    const history = createFakeHistory();
+    const selectedVersion = '5';
+
+    const root = render({
+      addonId,
+      baseVersionId,
+      headVersionId,
+      history,
+      store,
+    });
+
+    const onChange = root
+      .find({ className: styles.headVersionSelect })
+      .prop('onChange');
+    onChange(selectedVersion);
+
+    expect(history.push).toHaveBeenCalledWith(
+      `/${lang}/compare/${addonId}/versions/${baseVersionId}...${selectedVersion}/`,
+    );
+  });
+
+  it('ensures the order of the versions is respected (old < new version)', () => {
+    const addonId = '999';
+    const baseVersionId = '4';
+    const headVersionId = '5';
+
+    const store = configureStore();
+    _loadVersionsList(store, parseInt(addonId, 10), fakeVersionsList);
+
+    const history = createFakeHistory();
+    const selectedVersion = '3'; // The value is lower than `baseVersionId`
+
+    const root = render({
+      addonId,
+      baseVersionId,
+      headVersionId,
+      history,
+      store,
+    });
+
+    const onChange = root
+      .find({ className: styles.headVersionSelect })
+      .prop('onChange');
+    onChange(selectedVersion);
+
+    expect(history.push).toHaveBeenCalledWith(
+      `/${lang}/compare/${addonId}/versions/${selectedVersion}...${baseVersionId}/`,
+    );
   });
 });

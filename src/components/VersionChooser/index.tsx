@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Col, Form, Row } from 'react-bootstrap';
 import { connect } from 'react-redux';
+import { withRouter, RouteComponentProps } from 'react-router-dom';
 
 import Loading from '../Loading';
 import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
@@ -9,32 +10,85 @@ import { VersionsMap, fetchVersionsList } from '../../reducers/versions';
 import { gettext } from '../../utils';
 import styles from './styles.module.scss';
 
-export type PublicProps = {
+export type PublicProps = {};
+
+export type DefaultProps = {
   _fetchVersionsList: typeof fetchVersionsList;
-  addonId: number;
 };
 
 type PropsFromState = {
   versionsMap: VersionsMap;
 };
 
-type Props = PropsFromState & PublicProps & ConnectedReduxProps;
+export type PropsFromRouter = {
+  addonId: string;
+  baseVersionId: string;
+  headVersionId: string;
+  lang: string;
+};
+
+type RouterProps = RouteComponentProps<PropsFromRouter>;
+
+type Props = PublicProps &
+  ConnectedReduxProps &
+  DefaultProps &
+  PropsFromState &
+  RouterProps;
 
 export class VersionChooserBase extends React.Component<Props> {
-  static defaultProps = {
+  static defaultProps: DefaultProps = {
     _fetchVersionsList: fetchVersionsList,
   };
 
   componentDidMount() {
-    const { _fetchVersionsList, addonId, dispatch, versionsMap } = this.props;
+    const { _fetchVersionsList, dispatch, match, versionsMap } = this.props;
+    const { addonId } = match.params;
 
     if (!versionsMap) {
-      dispatch(_fetchVersionsList({ addonId }));
+      dispatch(_fetchVersionsList({ addonId: parseInt(addonId, 10) }));
     }
   }
 
+  onVersionChange = ({
+    baseVersionId,
+    headVersionId,
+  }: {
+    baseVersionId: string;
+    headVersionId: string;
+  }) => {
+    const { history, match } = this.props;
+    const { addonId, lang } = match.params;
+
+    const oldVersionId = parseInt(baseVersionId, 10);
+    const newVersionId = parseInt(headVersionId, 10);
+
+    // We make sure old version is older than the new version when user changes
+    // any of the two versions.
+    if (oldVersionId > newVersionId) {
+      history.push(
+        `/${lang}/compare/${addonId}/versions/${headVersionId}...${baseVersionId}/`,
+      );
+      return;
+    }
+
+    history.push(
+      `/${lang}/compare/${addonId}/versions/${baseVersionId}...${headVersionId}/`,
+    );
+  };
+
+  onNewVersionChange = (versionId: string) => {
+    const { baseVersionId } = this.props.match.params;
+    this.onVersionChange({ baseVersionId, headVersionId: versionId });
+  };
+
+  onOldVersionChange = (versionId: string) => {
+    const { headVersionId } = this.props.match.params;
+    this.onVersionChange({ baseVersionId: versionId, headVersionId });
+  };
+
   render() {
-    const { versionsMap } = this.props;
+    const { match, versionsMap } = this.props;
+    const { baseVersionId, headVersionId } = match.params;
 
     return (
       <div className={styles.VersionChooser}>
@@ -48,15 +102,21 @@ export class VersionChooserBase extends React.Component<Props> {
           {versionsMap ? (
             <Form.Row>
               <VersionSelect
+                className={styles.baseVersionSelect}
                 label={gettext('Choose an old version')}
                 listedVersions={versionsMap.listed}
+                onChange={this.onOldVersionChange}
                 unlistedVersions={versionsMap.unlisted}
+                value={baseVersionId}
               />
 
               <VersionSelect
+                className={styles.headVersionSelect}
                 label={gettext('Choose a new version')}
                 listedVersions={versionsMap.listed}
+                onChange={this.onNewVersionChange}
                 unlistedVersions={versionsMap.unlisted}
+                value={headVersionId}
                 withLeftArrow
               />
             </Form.Row>
@@ -73,13 +133,16 @@ export class VersionChooserBase extends React.Component<Props> {
 
 const mapStateToProps = (
   state: ApplicationState,
-  ownProps: PublicProps,
+  ownProps: PublicProps & RouterProps,
 ): PropsFromState => {
-  const versionsMap = state.versions.byAddonId[ownProps.addonId];
+  const { byAddonId } = state.versions;
+  const { addonId } = ownProps.match.params;
 
   return {
-    versionsMap,
+    versionsMap: byAddonId[parseInt(addonId, 10)],
   };
 };
 
-export default connect(mapStateToProps)(VersionChooserBase);
+export default withRouter<PublicProps & Partial<DefaultProps> & RouterProps>(
+  connect(mapStateToProps)(VersionChooserBase),
+);

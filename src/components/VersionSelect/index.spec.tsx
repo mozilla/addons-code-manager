@@ -6,23 +6,33 @@ import {
   ExternalVersionsList,
   createVersionsMap,
 } from '../../reducers/versions';
-import { fakeVersionsList, fakeVersionsListItem } from '../../test-helpers';
+import {
+  createFakeEvent,
+  fakeVersionsList,
+  fakeVersionsListItem,
+} from '../../test-helpers';
 import styles from './styles.module.scss';
 
-import VersionSelect from '.';
+import VersionSelect, { PublicProps } from '.';
 
 describe(__filename, () => {
   const render = ({
+    className = undefined as PublicProps['className'],
     label = 'select a version',
+    onChange = jest.fn(),
+    value = undefined as PublicProps['value'],
     versions = fakeVersionsList,
     withLeftArrow = false,
   } = {}) => {
     const versionsMap = createVersionsMap(versions);
 
     const allProps = {
+      className,
       label,
       listedVersions: versionsMap.listed,
+      onChange,
       unlistedVersions: versionsMap.unlisted,
+      value,
       withLeftArrow,
     };
 
@@ -84,5 +94,39 @@ describe(__filename, () => {
     expect(root.find('option').at(1)).toIncludeText(
       unlistedVersions[0].version,
     );
+  });
+
+  it('passes the value prop to the Form.Control component', () => {
+    const value = '345';
+
+    const root = render({ value });
+
+    expect(root.find(Form.Control)).toHaveProp('value', value);
+  });
+
+  it('calls the onChange() prop when value changes', () => {
+    const onChange = jest.fn();
+    const newValue = '123';
+
+    const root = render({ onChange });
+
+    root.find(Form.Control).simulate(
+      'change',
+      createFakeEvent({
+        currentTarget: {
+          value: newValue,
+        },
+      }),
+    );
+
+    expect(onChange).toHaveBeenCalledWith(newValue);
+  });
+
+  it('accepts a className', () => {
+    const className = 'some-class';
+
+    const root = render({ className });
+
+    expect(root.find(`.${className}`)).toHaveLength(1);
   });
 });

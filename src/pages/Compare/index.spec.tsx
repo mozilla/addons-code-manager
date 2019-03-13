@@ -114,8 +114,7 @@ describe(__filename, () => {
   };
 
   it('renders loading messages when no diff has been loaded', () => {
-    const addonId = 123;
-    const root = render({ addonId: String(addonId) });
+    const root = render();
 
     expect(root.find(Loading)).toHaveLength(2);
     expect(root.find(Loading).at(0)).toHaveProp(
@@ -125,7 +124,6 @@ describe(__filename, () => {
     expect(root.find(Loading).at(1)).toHaveProp('message', 'Loading diff...');
     // This component is always displayed.
     expect(root.find(VersionChooser)).toHaveLength(1);
-    expect(root.find(VersionChooser)).toHaveProp('addonId', addonId);
   });
 
   it('renders a FileTree component when a diff has been loaded', () => {
