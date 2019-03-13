@@ -118,19 +118,14 @@ export class BrowseBase extends React.Component<Props> {
       messageMap = linterMessages[version.selectedPath];
     }
 
-    let globalMessages;
-    if (messageMap) {
-      globalMessages = messageMap.global;
-    }
-
     return (
       <React.Fragment>
         <Col md="3">
           <FileTree version={version} onSelect={this.onSelectFile} />
         </Col>
         <Col md="9">
-          {globalMessages &&
-            globalMessages.map((message) => {
+          {messageMap &&
+            messageMap.global.map((message) => {
               return <LinterMessage key={message.uid} message={message} />;
             })}
           {file ? (
