@@ -302,17 +302,11 @@ export const createInternalVersion = (
   };
 };
 
-export const getVersionFiles = (
-  versions: VersionsState,
-  versionId: number,
-) => {
+export const getVersionFiles = (versions: VersionsState, versionId: number) => {
   return versions.versionFiles[versionId];
 };
 
-export const getVersionInfo = (
-  versions: VersionsState,
-  versionId: number,
-) => {
+export const getVersionInfo = (versions: VersionsState, versionId: number) => {
   return versions.versionInfo[versionId];
 };
 
