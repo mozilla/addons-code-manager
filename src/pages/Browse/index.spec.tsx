@@ -97,7 +97,7 @@ describe(__filename, () => {
     });
   };
 
-  const _loadVersion = ({
+  const _loadVersionAndFile = ({
     store = configureStore(),
     version = fakeVersion,
   }) => {
@@ -120,7 +120,7 @@ describe(__filename, () => {
     const fakeThunk = createFakeThunk();
     const _fetchLinterMessages = fakeThunk.createThunk;
 
-    _loadVersion({ store, version });
+    _loadVersionAndFile({ store, version });
     const dispatch = spyOn(store, 'dispatch');
 
     const root = render({
@@ -176,7 +176,7 @@ describe(__filename, () => {
       },
     };
 
-    _loadVersion({ store, version });
+    _loadVersionAndFile({ store, version });
 
     // Simulate selecting the file to render.
     store.dispatch(
@@ -208,7 +208,7 @@ describe(__filename, () => {
     const version = fakeVersion;
 
     const store = configureStore();
-    _loadVersion({ store, version });
+    _loadVersionAndFile({ store, version });
 
     const root = render({ store, versionId: String(version.id) });
 
@@ -223,7 +223,7 @@ describe(__filename, () => {
     const version = fakeVersion;
 
     const store = configureStore();
-    _loadVersion({ store, version });
+    _loadVersionAndFile({ store, version });
 
     const root = render({ store, versionId: String(version.id) });
 
@@ -234,7 +234,7 @@ describe(__filename, () => {
     const version = fakeVersion;
 
     const store = configureStore();
-    _loadVersion({ store, version });
+    _loadVersionAndFile({ store, version });
 
     // The user clicks a different file to view.
     store.dispatch(
@@ -337,7 +337,7 @@ describe(__filename, () => {
     const path = 'some-path';
 
     const store = configureStore();
-    _loadVersion({ store, version });
+    _loadVersionAndFile({ store, version });
 
     const dispatch = spyOn(store, 'dispatch');
     const fakeThunk = createFakeThunk();

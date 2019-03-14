@@ -231,10 +231,10 @@ export type VersionsState = {
   byAddonId: {
     [addonId: number]: VersionsMap;
   };
-  // `CompareInfo`: data successfully loaded
-  // `null`: an error has occured
-  // `undefined`: data not fetched yet
-  compareInfo: CompareInfo | null | undefined;
+  compareInfo:
+    | CompareInfo // data successfully loaded
+    | null // an error has occured
+    | undefined; // data not fetched yet
   versionInfo: {
     [versionId: number]: Version;
   };
@@ -540,15 +540,6 @@ export const fetchDiff = ({
     const { api: apiState } = getState();
 
     dispatch(actions.beginFetchDiff());
-
-    if (path) {
-      dispatch(
-        actions.updateSelectedPath({
-          selectedPath: path,
-          versionId: headVersionId,
-        }),
-      );
-    }
 
     const response = await _getDiff({
       addonId,

@@ -1003,21 +1003,6 @@ describe(__filename, () => {
       expect(dispatch).toHaveBeenCalledWith(actions.beginFetchDiff());
     });
 
-    it('dispatches updateSelectedPath() if a path is supplied', async () => {
-      const headVersionId = 123;
-      const path = 'some/path.js';
-
-      const { dispatch, thunk } = _fetchDiff({ headVersionId, path });
-      await thunk();
-
-      expect(dispatch).toHaveBeenCalledWith(
-        actions.updateSelectedPath({
-          selectedPath: path,
-          versionId: headVersionId,
-        }),
-      );
-    });
-
     it('calls getDiff()', async () => {
       const version = fakeVersionWithDiff;
       const _getDiff = jest.fn().mockReturnValue(Promise.resolve(version));
