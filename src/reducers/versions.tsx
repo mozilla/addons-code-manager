@@ -488,7 +488,7 @@ export const createInternalDiffs = ({
         oldRevision: String(baseVersionId),
         hunks: diff.hunks.map((hunk: ExternalHunk) => ({
           changes: hunk.changes.map((change: ExternalChange) => ({
-            content: change.content,
+            content: change.content.replace(/\n$/, ''),
             isDelete: change.type === 'delete',
             isInsert: change.type === 'insert',
             isNormal: change.type === 'normal',
