@@ -488,7 +488,9 @@ export const createInternalDiffs = ({
         oldRevision: String(baseVersionId),
         hunks: diff.hunks.map((hunk: ExternalHunk) => ({
           changes: hunk.changes.map((change: ExternalChange) => ({
-            content: change.content,
+            // TODO: remove the call to `replace()` once the API is fixed.
+            // See: https://github.com/mozilla/addons-server/issues/10932
+            content: change.content.replace(/\n$/, ''),
             isDelete: change.type === 'delete',
             isInsert: change.type === 'insert',
             isNormal: change.type === 'normal',
