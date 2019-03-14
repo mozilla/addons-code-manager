@@ -75,7 +75,7 @@ export class CompareBase extends React.Component<Props> {
 
     if (
       !prevProps ||
-      path !== prevProps.path ||
+      (prevProps.path && path !== prevProps.path) ||
       addonId !== prevProps.match.params.addonId ||
       baseVersionId !== prevProps.match.params.baseVersionId ||
       headVersionId !== prevProps.match.params.headVersionId

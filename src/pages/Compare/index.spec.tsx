@@ -417,4 +417,27 @@ describe(__filename, () => {
       }),
     );
   });
+
+  it('does not dispatch fetchDiff() twice for the default file', () => {
+    const addonId = 123456;
+    const baseVersionId = 1;
+    const headVersionId = baseVersionId + 1;
+    const params = getRouteParams({ addonId, baseVersionId, headVersionId });
+
+    const store = configureStore();
+    const fakeThunk = createFakeThunk();
+    const dispatch = spyOn(store, 'dispatch');
+
+    const root = render({
+      ...params,
+      _fetchDiff: fakeThunk.createThunk,
+      store,
+    });
+    // Once the default file is loaded (without `path` defined), there is an
+    // update with `path` being set to the default file.
+    root.setProps({ path: fakeVersionWithDiff.file.selected_file });
+
+    expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(dispatch).toHaveBeenCalledTimes(1);
+  });
 });
