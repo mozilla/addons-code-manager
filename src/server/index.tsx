@@ -3,6 +3,7 @@ import http from 'http';
 import path from 'path';
 
 import express from 'express';
+import helmet from 'helmet';
 import proxy from 'http-proxy-middleware';
 import cookiesMiddleware, {
   RequestWithCookies,
@@ -48,8 +49,72 @@ export const createServer = ({
   rootPath,
   _injectAuthenticationToken = injectAuthenticationToken,
 }: CreateServerParams) => {
+  // This CSP is a tight default. This CSP should be on all requests
+  // that aren't serving a document. This CSP should be set with statics.
+  const baseCSP = {
+    defaultSrc: ["'none'"],
+    baseUri: ["'none'"],
+    formAction: ["'none'"],
+    objectSrc: ["'none'"],
+    reportUri: '/__cspreport__',
+  };
+
+  // This config sets the non-static CSP for deployed instances.
+  // TODO: A separate CDN should be configured for statics. When that happens
+  // the 'self' should be removed and replaced with the CDN host + path for statics.
+  const prodCSP = {
+    defaultSrc: ["'none'"],
+    childSrc: ["'none'"],
+    connectSrc: [
+      // Relax the connect-src if using the proxy otherwise
+      // Use the env var or 'none' if the API host isn't set.
+      env.REACT_APP_USE_INSECURE_PROXY === 'true'
+        ? "'self'"
+        : env.REACT_APP_API_HOST || "'none'",
+    ],
+    baseUri: ["'self'"],
+    fontSrc: ["'none'"],
+    formAction: ["'none'"],
+    frameAncestors: ["'none'"],
+    frameSrc: ["'none'"],
+    imgSrc: ["'self'"],
+    manifestSrc: ["'none'"],
+    mediaSrc: ["'none'"],
+    objectSrc: ["'none'"],
+    scriptSrc: ["'self'"],
+    styleSrc: ["'self'"],
+    workerSrc: ["'none'"],
+    reportUri: '/__cspreport__',
+  };
+
+  // This CSP is the one above with overrides for local development.
+  const localCSP = {
+    ...prodCSP,
+    styleSrc: ["'self'", "'unsafe-inline'"],
+    connectSrc: ["'self'"],
+  };
+
   // Create an express server.
   const app = express();
+
+  // Setup the default CSP that will be used if not overridden elsewhere.
+  app.use(
+    helmet.contentSecurityPolicy({
+      directives: baseCSP,
+    }),
+  );
+
+  // Set other security headers.
+  app.use(helmet.frameguard({ action: 'deny' }));
+  app.use(
+    helmet.hsts({
+      includeSubDomains: false,
+      maxAge: 31536000, // 1 year in seconds
+    }),
+  );
+  app.use(helmet.noSniff());
+  app.use(helmet.referrerPolicy({ policy: 'no-referrer' }));
+  app.use(helmet.xssFilter());
 
   // Express configuration.
   app.set('port', env.PORT || 3000);
@@ -88,6 +153,9 @@ export const createServer = ({
     );
   }
 
+  // Return 200 for csp reports - this will need to be overridden when deployed.
+  app.post('/__cspreport__', (req, res) => res.status(200).end('ok'));
+
   if (env.NODE_ENV === 'production') {
     // In production mode, we use a simple node server that serves all the
     // static files, including the `index.html` file in which we inject the
@@ -100,6 +168,13 @@ export const createServer = ({
 
     // Serve all the static files but `index.html`.
     app.use(express.static(path.join(rootPath, 'build'), { index: false }));
+
+    // This configures the main CSP for deployed instances.
+    app.use(
+      helmet.contentSecurityPolicy({
+        directives: prodCSP,
+      }),
+    );
 
     // This handles all the incoming requests.
     app.get('/*', (req: express.Request, res: express.Response) => {
@@ -121,6 +196,13 @@ export const createServer = ({
 
     // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
     const modifyResponse = require('http-proxy-response-rewrite');
+
+    // This sets the development CSP that works with webpack.
+    app.use(
+      helmet.contentSecurityPolicy({
+        directives: localCSP,
+      }),
+    );
 
     app.use(
       proxy('/', {

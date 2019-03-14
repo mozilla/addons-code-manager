@@ -2,6 +2,7 @@
 import http from 'http';
 import path from 'path';
 
+import cspParser from 'content-security-policy-parser';
 import express from 'express';
 import request, { SuperTest, Test } from 'supertest';
 import { RequestWithCookies } from 'universal-cookie-express';
@@ -86,6 +87,79 @@ describe(__filename, () => {
         const response = await server.get('/foo-bar');
 
         expect(response.text).toContain('It Works.');
+      });
+
+      it('sets production CSP and security headers', async () => {
+        const server = request(
+          createServer({
+            env: {
+              ...prodEnv,
+              REACT_APP_API_HOST: 'https://code-manager.addons.cdn.mozilla.net',
+            } as ServerEnvVars,
+            rootPath,
+          }),
+        );
+
+        const response = await server.get('/');
+
+        expect(response.status).toEqual(200);
+        expect(response.header).toHaveProperty('content-security-policy');
+
+        const policy = cspParser(response.header['content-security-policy']);
+        expect(policy['default-src']).toEqual(["'none'"]);
+        expect(policy['connect-src']).toEqual([
+          'https://code-manager.addons.cdn.mozilla.net',
+        ]);
+        expect(policy['base-uri']).toEqual(["'self'"]);
+        expect(policy['form-action']).toEqual(["'none'"]);
+        expect(policy['frame-ancestors']).toEqual(["'none'"]);
+        expect(policy['frame-src']).toEqual(["'none'"]);
+        expect(policy['font-src']).toEqual(["'none'"]);
+        expect(policy['img-src']).toEqual(["'self'"]);
+        expect(policy['manifest-src']).toEqual(["'none'"]);
+        expect(policy['media-src']).toEqual(["'none'"]);
+        expect(policy['object-src']).toEqual(["'none'"]);
+        expect(policy['script-src']).toEqual(["'self'"]);
+        expect(policy['style-src']).toEqual(["'self'"]);
+        expect(policy['worker-src']).toEqual(["'none'"]);
+        expect(policy['report-uri']).toEqual(['/__cspreport__']);
+
+        expect(response.header['referrer-policy']).toEqual('no-referrer');
+        expect(response.header['strict-transport-security']).toEqual(
+          'max-age=31536000',
+        );
+        expect(response.header['x-content-type-options']).toEqual('nosniff');
+        expect(response.header['x-frame-options']).toEqual('DENY');
+        expect(response.header['x-xss-protection']).toEqual('1; mode=block');
+
+        const staticResponse = await server.get('/favicon.ico');
+
+        expect(staticResponse.status).toEqual(200);
+        expect(staticResponse.header).toHaveProperty('content-security-policy');
+        const staticPolicy = cspParser(
+          staticResponse.header['content-security-policy'],
+        );
+        // Static directives.
+        expect(staticPolicy['default-src']).toEqual(["'none'"]);
+        expect(staticPolicy['base-uri']).toEqual(["'none'"]);
+        expect(staticPolicy['form-action']).toEqual(["'none'"]);
+        expect(staticPolicy['object-src']).toEqual(["'none'"]);
+        expect(staticPolicy['report-uri']).toEqual(['/__cspreport__']);
+
+        // Everything else, that shouldn't be set for statics.
+        expect(staticPolicy['frame-ancestors']).toEqual(undefined);
+        expect(staticPolicy['frame-src']).toEqual(undefined);
+        expect(staticPolicy['font-src']).toEqual(undefined);
+        expect(staticPolicy['img-src']).toEqual(undefined);
+        expect(staticPolicy['manifest-src']).toEqual(undefined);
+        expect(staticPolicy['media-src']).toEqual(undefined);
+        expect(staticPolicy['script-src']).toEqual(undefined);
+        expect(staticPolicy['style-src']).toEqual(undefined);
+        expect(staticPolicy['worker-src']).toEqual(undefined);
+
+        // Check we have a default no-op CSP report endpoint.
+        const cspReportResponse = await server.post('/__cspreport__');
+        expect(cspReportResponse.status).toEqual(200);
       });
 
       it('calls injectAuthenticationToken() and returns its output', async () => {
@@ -192,6 +266,15 @@ describe(__filename, () => {
 
           expect(response.text).toEqual(apiResponseBody);
         });
+
+        it('relaxes connect-src for insecure proxying', async () => {
+          const response = await server.get('/');
+          expect(response.status).toEqual(200);
+          expect(response.header).toHaveProperty('content-security-policy');
+
+          const policy = cspParser(response.header['content-security-policy']);
+          expect(policy['connect-src']).toEqual(["'self'"]);
+        });
       });
     });
 
@@ -295,6 +378,25 @@ describe(__filename, () => {
 
         expect(_injectAuthenticationToken).not.toHaveBeenCalled();
         expect(response.text).toContain(JSON.stringify(content));
+      });
+
+      it('relaxes style-src for local dev', async () => {
+        const content = '<h1>It works!</h1>';
+        fakeCreateReactAppServerApp.get('/*', (req, res) => res.send(content));
+
+        const server = request(
+          createServer({
+            env: devEnv as ServerEnvVars,
+            rootPath,
+          }),
+        );
+
+        const response = await server.get('/');
+        expect(response.status).toEqual(200);
+        expect(response.header).toHaveProperty('content-security-policy');
+
+        const policy = cspParser(response.header['content-security-policy']);
+        expect(policy['style-src']).toEqual(["'self'", "'unsafe-inline'"]);
       });
     });
   });
