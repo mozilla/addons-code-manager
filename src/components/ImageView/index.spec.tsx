@@ -1,14 +1,14 @@
 import * as React from 'react';
 import { shallow } from 'enzyme';
 
-import { getFakeLogger } from '../../test-helpers';
+import { createFakeLogger } from '../../test-helpers';
 
 import ImageView from '.';
 
 describe(__filename, () => {
   const render = ({
     _btoa = btoa,
-    _log = getFakeLogger(),
+    _log = createFakeLogger(),
     content = 'some image content',
     mimeType = 'mime/type',
   } = {}) => {
@@ -48,7 +48,7 @@ describe(__filename, () => {
     const _btoa = jest.fn().mockImplementation(() => {
       throw new Error();
     });
-    const _log = getFakeLogger();
+    const _log = createFakeLogger();
 
     render({ _btoa, _log });
 

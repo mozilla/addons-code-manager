@@ -9,7 +9,7 @@ import reducer, {
   requestLogOut,
   selectCurrentUser,
 } from './users';
-import { getFakeLogger, fakeUser, thunkTester } from '../test-helpers';
+import { createFakeLogger, fakeUser, thunkTester } from '../test-helpers';
 
 describe(__filename, () => {
   describe('reducer', () => {
@@ -188,7 +188,7 @@ describe(__filename, () => {
     });
 
     it('logs an error when API response is not successful', async () => {
-      const _log = getFakeLogger();
+      const _log = createFakeLogger();
 
       const _getCurrentUser = jest.fn().mockReturnValue(
         Promise.resolve({

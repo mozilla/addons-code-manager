@@ -29,7 +29,7 @@ import {
   fakeVersionWithDiff,
   fakeVersionsList,
   fakeVersionsListItem,
-  getFakeLogger,
+  createFakeLogger,
   thunkTester,
 } from '../test-helpers';
 
@@ -184,7 +184,7 @@ describe(__filename, () => {
       const addonId = 1;
       const baseVersionId = 2;
       const path = 'some/other/file.js';
-      const _log = getFakeLogger();
+      const _log = createFakeLogger();
 
       const version = {
         ...fakeVersionWithDiff,
@@ -365,7 +365,7 @@ describe(__filename, () => {
     });
 
     it('logs a debug message if there is no entry for the path', async () => {
-      const _log = getFakeLogger();
+      const _log = createFakeLogger();
 
       const version = fakeVersion;
       let state = reducer(undefined, actions.loadVersionInfo({ version }));
@@ -498,7 +498,7 @@ describe(__filename, () => {
     });
 
     it('logs an error when API response is not successful', async () => {
-      const _log = getFakeLogger();
+      const _log = createFakeLogger();
 
       const _getVersion = jest.fn().mockReturnValue(
         Promise.resolve({
@@ -528,7 +528,7 @@ describe(__filename, () => {
 
   describe('fetchVersionFile', () => {
     const _fetchVersionFile = ({
-      _log = getFakeLogger(),
+      _log = createFakeLogger(),
       addonId = 123,
       path = 'some/path.js',
       version = fakeVersion,
@@ -603,7 +603,7 @@ describe(__filename, () => {
     });
 
     it('logs an error when API response is not successful', async () => {
-      const _log = getFakeLogger();
+      const _log = createFakeLogger();
 
       const _getVersion = jest.fn().mockReturnValue(
         Promise.resolve({
@@ -629,7 +629,7 @@ describe(__filename, () => {
       _getVersionsList = jest
         .fn()
         .mockReturnValue(Promise.resolve(fakeVersionsList)),
-      _log = getFakeLogger(),
+      _log = createFakeLogger(),
       addonId = 123,
     } = {}) => {
       return thunkTester({
@@ -681,7 +681,7 @@ describe(__filename, () => {
     });
 
     it('logs an error when API response is not successful', async () => {
-      const _log = getFakeLogger();
+      const _log = createFakeLogger();
       const _getVersionsList = jest.fn().mockReturnValue(
         Promise.resolve({
           error: new Error('Bad Request'),

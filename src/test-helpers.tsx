@@ -460,7 +460,7 @@ export const thunkTester = ({
   };
 };
 
-export const getFakeLogger = () => {
+export const createFakeLogger = () => {
   return {
     ...log,
     debug: jest.fn(),
