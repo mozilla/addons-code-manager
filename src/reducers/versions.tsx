@@ -7,8 +7,6 @@ import { ThunkActionCreator } from '../configureStore';
 import { getDiff, getVersion, getVersionsList, isErrorResponse } from '../api';
 import { LocalizedStringMap } from '../utils';
 
-type VersionId = number;
-
 type VersionCompatibility = {
   [appName: string]: {
     min: string;
@@ -68,7 +66,7 @@ type PartialExternalVersion = {
   compatibility: VersionCompatibility;
   edit_url: string;
   has_been_validated: boolean;
-  id: VersionId;
+  id: number;
   is_strict_compatibility_enabled: boolean;
   license: VersionLicense;
   release_notes: LocalizedStringMap | null;
@@ -167,7 +165,7 @@ type VersionAddon = {
 export type Version = {
   addon: VersionAddon;
   entries: VersionEntry[];
-  id: VersionId;
+  id: number;
   reviewed: string;
   selectedPath: string;
   validationURL: string;
@@ -176,7 +174,7 @@ export type Version = {
 
 type VersionsListItem = {
   channel: 'unlisted' | 'listed';
-  id: VersionId;
+  id: number;
   version: string;
 };
 
@@ -207,7 +205,7 @@ export const actions = {
     }) => resolve(payload);
   }),
   updateSelectedPath: createAction('UPDATE_SELECTED_PATH', (resolve) => {
-    return (payload: { selectedPath: string; versionId: VersionId }) =>
+    return (payload: { selectedPath: string; versionId: number }) =>
       resolve(payload);
   }),
   loadVersionsList: createAction('LOAD_VERSIONS_LIST', (resolve) => {
@@ -306,21 +304,21 @@ export const createInternalVersion = (
 
 export const getVersionFiles = (
   versions: VersionsState,
-  versionId: VersionId,
+  versionId: number,
 ) => {
   return versions.versionFiles[versionId];
 };
 
 export const getVersionInfo = (
   versions: VersionsState,
-  versionId: VersionId,
+  versionId: number,
 ) => {
   return versions.versionInfo[versionId];
 };
 
 export const getVersionFile = (
   versions: VersionsState,
-  versionId: VersionId,
+  versionId: number,
   path: string,
   { _log = log } = {},
 ): VersionFile | void => {
