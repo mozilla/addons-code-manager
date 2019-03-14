@@ -892,7 +892,10 @@ describe(__filename, () => {
       firstHunk.changes.forEach((change, index) => {
         const externalChange = firstExternalHunk.changes[index];
 
-        expect(change).toHaveProperty('content', externalChange.content);
+        expect(change).toHaveProperty(
+          'content',
+          externalChange.content.replace(/\n$/, ''),
+        );
         expect(change).toHaveProperty('type', externalChange.type);
         expect(change).toHaveProperty(
           'oldLineNumber',
