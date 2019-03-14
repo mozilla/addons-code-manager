@@ -5,7 +5,7 @@ import {
   createFakeExternalLinterResult,
   fakeExternalLinterResult,
   fakeExternalLinterMessage,
-  getFakeLogger,
+  createFakeLogger,
   thunkTester,
 } from '../test-helpers';
 import linterReducer, {
@@ -317,7 +317,7 @@ describe(__filename, () => {
     });
 
     it('logs an error about messages not mapped to any file', () => {
-      const fakeLog = getFakeLogger();
+      const fakeLog = createFakeLogger();
 
       const message = 'manifest.json not found';
       const description = ['No manifest.json file was found'];
@@ -460,7 +460,7 @@ describe(__filename, () => {
     it('handles a bad response status', async () => {
       fetchMock.mockResponse('', { status: 400 });
       const versionId = 124;
-      const fakeLog = getFakeLogger();
+      const fakeLog = createFakeLogger();
 
       const { dispatch, thunk } = _fetchLinterMessages({
         _log: fakeLog,
@@ -479,7 +479,7 @@ describe(__filename, () => {
     it('handles an invalid JSON response', async () => {
       fetchMock.mockResponse('_this is not ^& valid JSON');
       const versionId = 124;
-      const fakeLog = getFakeLogger();
+      const fakeLog = createFakeLogger();
 
       const { dispatch, thunk } = _fetchLinterMessages({
         _log: fakeLog,
