@@ -97,6 +97,19 @@ describe(__filename, () => {
     });
   };
 
+  const _loadVersionAndFile = ({
+    store = configureStore(),
+    version = fakeVersion,
+  }) => {
+    store.dispatch(versionActions.loadVersionInfo({ version }));
+    store.dispatch(
+      versionActions.loadVersionFile({
+        path: version.file.selected_file,
+        version,
+      }),
+    );
+  };
+
   const renderAndUpdateWithVersion = ({
     store = configureStore(),
     version,
@@ -107,7 +120,7 @@ describe(__filename, () => {
     const fakeThunk = createFakeThunk();
     const _fetchLinterMessages = fakeThunk.createThunk;
 
-    store.dispatch(versionActions.loadVersionInfo({ version }));
+    _loadVersionAndFile({ store, version });
     const dispatch = spyOn(store, 'dispatch');
 
     const root = render({
@@ -158,10 +171,13 @@ describe(__filename, () => {
       file: {
         ...fakeVersionFile,
         entries: { [path]: { ...fakeVersionEntry, path } },
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        selected_file: path,
       },
     };
-    store.dispatch(versionActions.loadVersionInfo({ version }));
-    store.dispatch(versionActions.loadVersionFile({ path, version }));
+
+    _loadVersionAndFile({ store, version });
+
     // Simulate selecting the file to render.
     store.dispatch(
       versionActions.updateSelectedPath({
@@ -192,7 +208,7 @@ describe(__filename, () => {
     const version = fakeVersion;
 
     const store = configureStore();
-    store.dispatch(versionActions.loadVersionInfo({ version }));
+    _loadVersionAndFile({ store, version });
 
     const root = render({ store, versionId: String(version.id) });
 
@@ -207,7 +223,7 @@ describe(__filename, () => {
     const version = fakeVersion;
 
     const store = configureStore();
-    store.dispatch(versionActions.loadVersionInfo({ version }));
+    _loadVersionAndFile({ store, version });
 
     const root = render({ store, versionId: String(version.id) });
 
@@ -218,7 +234,7 @@ describe(__filename, () => {
     const version = fakeVersion;
 
     const store = configureStore();
-    store.dispatch(versionActions.loadVersionInfo({ version }));
+    _loadVersionAndFile({ store, version });
 
     // The user clicks a different file to view.
     store.dispatch(
@@ -321,7 +337,7 @@ describe(__filename, () => {
     const path = 'some-path';
 
     const store = configureStore();
-    store.dispatch(versionActions.loadVersionInfo({ version }));
+    _loadVersionAndFile({ store, version });
 
     const dispatch = spyOn(store, 'dispatch');
     const fakeThunk = createFakeThunk();

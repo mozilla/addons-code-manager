@@ -14,6 +14,12 @@ storiesOf('FileMetadata', module).add('default', () => {
   const version = fakeVersion;
   const store = configureStore();
   store.dispatch(versionActions.loadVersionInfo({ version }));
+  store.dispatch(
+    versionActions.loadVersionFile({
+      path: version.file.selected_file,
+      version,
+    }),
+  );
 
   const versionFile = getVersionFile(
     store.getState().versions,

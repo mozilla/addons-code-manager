@@ -16,6 +16,7 @@ import {
   ExternalVersionEntry,
   ExternalVersionFileWithContent,
   ExternalVersionWithContent,
+  ExternalVersionWithDiff,
   ExternalVersionsList,
   ExternalVersionsListItem,
   VersionEntryType,
@@ -225,6 +226,14 @@ export const fakeExternalDiff = Object.freeze({
 });
 
 /* eslint-enable @typescript-eslint/camelcase */
+
+export const fakeVersionWithDiff: ExternalVersionWithDiff = {
+  ...fakeVersion,
+  file: {
+    ...fakeVersion.file,
+    diff: [fakeExternalDiff],
+  },
+};
 
 export const fakeVersionsListItem: ExternalVersionsListItem = {
   id: 1541798,

@@ -18,6 +18,12 @@ describe(__filename, () => {
     const store = configureStore();
     const version = fakeVersion;
     store.dispatch(versionActions.loadVersionInfo({ version }));
+    store.dispatch(
+      versionActions.loadVersionFile({
+        path: version.file.selected_file,
+        version,
+      }),
+    );
 
     return {
       ...(getVersionFile(
