@@ -31,7 +31,7 @@ type PropsFromRouter = {
 
 type PropsFromState = {
   addonId: number;
-  compareInfo: CompareInfo | null | void;
+  compareInfo: CompareInfo | null | undefined;
   isLoading: boolean;
   path: string | void;
   version: Version;
@@ -127,7 +127,11 @@ export class CompareBase extends React.Component<Props> {
       <React.Fragment>
         <Col md="3">
           {version ? (
-            <FileTree version={version} onSelect={this.onSelectFile} />
+            <FileTree
+              linterMessages={undefined}
+              onSelect={this.onSelectFile}
+              version={version}
+            />
           ) : (
             this.renderLoadingMessageOrError(gettext('Loading file tree...'))
           )}

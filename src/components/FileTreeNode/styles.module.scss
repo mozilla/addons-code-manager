@@ -2,9 +2,32 @@
 
 .node {
   cursor: pointer;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: space-between;
   padding: 0.5rem 1.25rem;
+}
+
+.nodeName {
+  word-break: break-all;
 }
 
 .selected {
   background-color: $light-gray;
+}
+
+.hasLinterMessages {
+  font-weight: 500;
+
+  &.hasLinterErrors {
+    color: $red;
+  }
+
+  &.hasLinterWarnings {
+    color: $orange;
+  }
+}
+
+.nodeIcons {
 }

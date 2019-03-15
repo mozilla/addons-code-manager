@@ -64,5 +64,9 @@ const onSelectFile = (path: string) => {
 };
 
 storiesOf('FileTree', module).add('default', () => (
-  <FileTree version={version} onSelect={onSelectFile} />
+  <FileTree
+    linterMessages={undefined}
+    onSelect={onSelectFile}
+    version={version}
+  />
 ));
