@@ -373,6 +373,8 @@ describe(__filename, () => {
       _fetchDiff,
       ...getRouteParams({
         addonId: addonId + 10,
+        baseVersionId,
+        headVersionId,
       }),
       store,
     });
@@ -416,6 +418,40 @@ describe(__filename, () => {
         versionId: headVersionId,
       }),
     );
+  });
+
+  it('does not dispatch fetchDiff() when path remains the same', () => {
+    const addonId = 123456;
+    const baseVersionId = 1;
+    const path = 'manifest.json';
+    const version = {
+      ...fakeVersionWithDiff,
+      file: {
+        ...fakeVersionWithDiff.file,
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        selected_file: path,
+      },
+    };
+    const headVersionId = version.id;
+
+    const store = configureStore();
+    _loadDiff({ addonId, baseVersionId, headVersionId, store, version });
+
+    const fakeThunk = createFakeThunk();
+    const dispatch = spyOn(store, 'dispatch');
+    const params = getRouteParams({ addonId, baseVersionId, headVersionId });
+
+    // The version is already loaded, hence `path` is defined already.
+    const root = render({
+      ...params,
+      _fetchDiff: fakeThunk.createThunk,
+      store,
+    });
+    // We set `path` to the same value again.
+    root.setProps({ path });
+
+    expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(dispatch).toHaveBeenCalledTimes(1);
   });
 
   it('does not dispatch fetchDiff() twice for the default file', () => {
