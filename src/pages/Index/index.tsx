@@ -14,7 +14,7 @@ export class IndexBase extends React.Component<PublicProps> {
             browsing this add-on version
           </Link>{' '}
           or{' '}
-          <Link to="/en-US/compare/502955/versions/1541798...1541798/">
+          <Link to="/en-US/compare/502955/versions/1541794...1541798/">
             look at this compare view.
           </Link>
         </p>
