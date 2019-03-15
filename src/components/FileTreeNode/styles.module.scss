@@ -1,4 +1,10 @@
+@import '../../scss/variables';
+
 .node {
   cursor: pointer;
   padding: 0.5rem 1.25rem;
+}
+
+.selected {
+  background-color: $light-gray;
 }

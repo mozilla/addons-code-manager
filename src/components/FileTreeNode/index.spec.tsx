@@ -2,45 +2,53 @@ import * as React from 'react';
 import { shallow } from 'enzyme';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
+import { createInternalVersion } from '../../reducers/versions';
+import { fakeVersion } from '../../test-helpers';
 import styles from './styles.module.scss';
 
-import FileTreeNode from '.';
+import FileTreeNode, { PublicProps } from '.';
+
+const fakeGetToggleProps = () => ({
+  onClick: jest.fn(),
+  onKeyDown: jest.fn(),
+  role: 'button',
+  tabIndex: 0,
+});
+
+export const getTreefoldRenderProps = ({
+  getToggleProps = fakeGetToggleProps,
+  hasChildNodes = false,
+  id = 'root',
+  isExpanded = false,
+  isFolder = true,
+  name = 'root',
+  renderChildNodes = jest.fn(),
+  onSelect = jest.fn(),
+} = {}) => {
+  return {
+    node: {
+      id,
+      name,
+    },
+    getToggleProps,
+    hasChildNodes,
+    isExpanded,
+    isFolder,
+    level: 0,
+    renderChildNodes,
+    onSelect,
+  };
+};
 
 describe(__filename, () => {
-  const fakeGetToggleProps = () => ({
-    onClick: jest.fn(),
-    onKeyDown: jest.fn(),
-    role: 'button',
-    tabIndex: 0,
-  });
+  type RenderParams = Partial<PublicProps>;
 
-  const getTreefoldRenderProps = ({
-    getToggleProps = fakeGetToggleProps,
-    hasChildNodes = false,
-    id = 'root',
-    isExpanded = false,
-    isFolder = true,
-    name = 'root',
-    renderChildNodes = jest.fn(),
-    onSelect = jest.fn(),
-  } = {}) => {
-    return {
-      node: {
-        id,
-        name,
-      },
-      getToggleProps,
-      hasChildNodes,
-      isExpanded,
-      isFolder,
-      level: 0,
-      renderChildNodes,
-      onSelect,
-    };
-  };
-
-  const render = (props = {}) => {
+  const render = ({
+    version = createInternalVersion(fakeVersion),
+    ...props
+  }: RenderParams = {}) => {
     const allProps = {
+      version,
       ...getTreefoldRenderProps(),
       ...props,
     };
@@ -177,5 +185,35 @@ describe(__filename, () => {
     render(renderProps);
 
     expect(renderChildNodes).toHaveBeenCalled();
+  });
+
+  it('marks a file node as selected', () => {
+    const version = createInternalVersion(fakeVersion);
+
+    const renderProps = getTreefoldRenderProps({
+      id: version.selectedPath,
+    });
+
+    const root = render({
+      ...renderProps,
+      version,
+    });
+
+    expect(root.find(`.${styles.selected}`)).toHaveLength(1);
+  });
+
+  it('does not mark a file node as selected when it is not selected', () => {
+    const version = createInternalVersion(fakeVersion);
+
+    const renderProps = getTreefoldRenderProps({
+      id: `src/${version.selectedPath}`,
+    });
+
+    const root = render({
+      ...renderProps,
+      version,
+    });
+
+    expect(root.find(`.${styles.selected}`)).toHaveLength(0);
   });
 });

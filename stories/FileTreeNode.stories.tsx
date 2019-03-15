@@ -2,6 +2,8 @@ import React from 'react';
 import { storiesOf } from '@storybook/react';
 
 import FileTreeNode from '../src/components/FileTreeNode';
+import { createInternalVersion } from '../src/reducers/versions';
+import { fakeVersion } from '../src/test-helpers';
 
 const getProps = ({
   hasChildNodes = false,
@@ -9,7 +11,9 @@ const getProps = ({
   isFolder = false,
   level = 0,
   nodeName = 'node name',
+  nodeId = 'node-id',
   renderChildNodes = () => ({}),
+  version = createInternalVersion(fakeVersion),
 } = {}) => {
   return {
     getToggleProps: () => ({
@@ -23,12 +27,17 @@ const getProps = ({
     isFolder,
     level,
     node: {
-      id: 'node-id',
+      id: nodeId,
       name: nodeName,
     },
     renderChildNodes,
     onSelect: () => {},
+    version,
   };
+};
+
+const render = (props = {}) => {
+  return <FileTreeNode {...getProps(props)} />;
 };
 
 storiesOf('FileTreeNode', module).addWithChapters('all variants', {
@@ -37,34 +46,29 @@ storiesOf('FileTreeNode', module).addWithChapters('all variants', {
       sections: [
         {
           title: 'file node',
-          sectionFn: () => (
-            <FileTreeNode {...getProps({ nodeName: 'manifest.json' })} />
-          ),
+          sectionFn: () => render({ nodeName: 'manifest.json' }),
         },
         {
           title: 'directory node',
-          sectionFn: () => (
-            <FileTreeNode
-              {...getProps({ isFolder: true, nodeName: 'background-scripts' })}
-            />
-          ),
+          sectionFn: () =>
+            render({ isFolder: true, nodeName: 'background-scripts' }),
         },
         {
           title: 'directory, expanded, without children',
-          sectionFn: () => (
-            <FileTreeNode
-              {...getProps({
-                isFolder: true,
-                isExpanded: true,
-                nodeName: 'background-scripts',
-              })}
-            />
-          ),
+          sectionFn: () =>
+            render({
+              isFolder: true,
+              isExpanded: true,
+              nodeName: 'background-scripts',
+            }),
         },
         {
           title: 'directory, expanded, with a child',
           sectionFn: () => {
-            const props = getProps({
+            const version = createInternalVersion(fakeVersion);
+
+            return render({
+              version,
               hasChildNodes: true,
               isExpanded: true,
               isFolder: true,
@@ -72,13 +76,20 @@ storiesOf('FileTreeNode', module).addWithChapters('all variants', {
               renderChildNodes: () => {
                 return (
                   <FileTreeNode
+                    version={version}
                     {...getProps({ level: 1, nodeName: 'background.js' })}
                   />
                 );
               },
             });
+          },
+        },
+        {
+          title: 'selected node',
+          sectionFn: () => {
+            const version = createInternalVersion(fakeVersion);
 
-            return <FileTreeNode {...props} />;
+            return render({ version, nodeId: version.selectedPath });
           },
         },
       ],
