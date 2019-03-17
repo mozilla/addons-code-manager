@@ -8,7 +8,7 @@ version: 2.0
 jobs:
   release-tag: # build for the master branch and tags
     machine: true
-    working_directory: ~/addons-frontend-code
+    working_directory: ~/addons-code-manager
     steps:
       - checkout
       - run:
@@ -19,7 +19,7 @@ jobs:
         # day to keep the cache size down.
       - run:
           name: Build the container ( Next 3 steps )
-          command: IMG="image-$(date +%j).gz"; if [[ -e ~/addons-frontend-code/docker/$IMG ]]; then echo "Loading $IMG"; pigz -d -c ~/addons-frontend-code/docker/$IMG | docker load; fi
+          command: IMG="image-$(date +%j).gz"; if [[ -e ~/addons-code-manager/docker/$IMG ]]; then echo "Loading $IMG"; pigz -d -c ~/addons-code-manager/docker/$IMG | docker load; fi
       - run: >
           printf '{"commit":"%s","version":"%s","source":"https://github.com/%s/%s","build":"%s"}\n'
           "$CIRCLE_SHA1"
@@ -28,7 +28,7 @@ jobs:
           "$CIRCLE_PROJECT_REPONAME"
           "$CIRCLE_BUILD_URL"
           > version.json
-      - run: docker build --pull -t addons-frontend-code .
+      - run: docker build --pull -t addons-code-manager .
       - run: docker images
       - run:
           name: Write the sha256 sum to an artifact for verification
@@ -37,20 +37,20 @@ jobs:
       - run:
           name: Save new image
           command: |
-            IMG="image-$(date +%j).gz"; docker save addons-frontend-code | pigz --fast -c > ~/addons-frontend-code/docker/$IMG; ls -l ~/addons-frontend-code/docker
-            ls -l ~/addons-frontend-code/docker
+            IMG="image-$(date +%j).gz"; docker save addons-code-manager | pigz --fast -c > ~/addons-code-manager/docker/$IMG; ls -l ~/addons-code-manager/docker
+            ls -l ~/addons-code-manager/docker
       - run:
           name: Push to repo
           command: |
             [ ! -z $DOCKERHUB_REPO ]
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             echo $DOCKERHUB_REPO:$CIRCLE_TAG
-            docker tag addons-frontend-code $DOCKERHUB_REPO:$CIRCLE_TAG
+            docker tag addons-code-manager $DOCKERHUB_REPO:$CIRCLE_TAG
             docker images
             docker push $DOCKERHUB_REPO:$CIRCLE_TAG
   release-master: # build for the master branch and tags
     machine: true
-    working_directory: ~/addons-frontend-code
+    working_directory: ~/addons-code-manager
     steps:
       - checkout
       - run:
@@ -61,7 +61,7 @@ jobs:
         # day to keep the cache size down.
       - run:
           name: Build the container ( Next 2 steps )
-          command: IMG="image-$(date +%j).gz"; if [[ -e ~/addons-frontend-code/docker/$IMG ]]; then echo "Loading $IMG"; pigz -d -c ~/addons-frontend-code/docker/$IMG | docker load; fi
+          command: IMG="image-$(date +%j).gz"; if [[ -e ~/addons-code-manager/docker/$IMG ]]; then echo "Loading $IMG"; pigz -d -c ~/addons-code-manager/docker/$IMG | docker load; fi
       - run: >
           printf '{"commit":"%s","version":"%s","source":"https://github.com/%s/%s","build":"%s"}\n'
           "$CIRCLE_SHA1"
@@ -70,7 +70,7 @@ jobs:
           "$CIRCLE_PROJECT_REPONAME"
           "$CIRCLE_BUILD_URL"
           > version.json
-      - run: docker build --pull -t addons-frontend-code .
+      - run: docker build --pull -t addons-code-manager .
       - run: docker images
       - run:
           name: Write the sha256 sum to an artifact for verification
@@ -79,14 +79,14 @@ jobs:
       - run:
           name: Save new image
           command: |
-            IMG="image-$(date +%j).gz"; docker save addons-frontend-code | pigz --fast -c > ~/addons-frontend-code/docker/$IMG; ls -l ~/addons-frontend-code/docker
-            ls -l ~/addons-frontend-code/docker
+            IMG="image-$(date +%j).gz"; docker save addons-code-manager | pigz --fast -c > ~/addons-code-manager/docker/$IMG; ls -l ~/addons-code-manager/docker
+            ls -l ~/addons-code-manager/docker
       - run:
           name: Push to repo
           command: |
             [ ! -z $DOCKERHUB_REPO ]
             docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker tag addons-frontend-code $DOCKERHUB_REPO:latest
+            docker tag addons-code-manager $DOCKERHUB_REPO:latest
             docker push $DOCKERHUB_REPO:latest
 workflows:
   version: 2
