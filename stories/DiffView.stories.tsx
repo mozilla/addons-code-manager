@@ -18,8 +18,7 @@ import {
 } from '../src/test-helpers';
 import { renderWithStoreAndRouter } from './utils';
 
-// eslint-disable-next-line no-var
-var uid = 0;
+let uid = 0;
 
 const newUID = () => {
   // This helps make message keys for the storybook React page.
