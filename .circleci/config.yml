@@ -37,7 +37,8 @@ jobs:
       - run:
           name: Save new image
           command: |
-            IMG="image-$(date +%j).gz"; docker save addons-code-manager | pigz --fast -c > ~/addons-code-manager/docker/$IMG; ls -l ~/addons-code-manager/docker
+            mkdir -p ~/addons-code-manager/docker
+            IMG="image-$(date +%j).gz"; docker save addons-code-manager | pigz --fast -c > ~/addons-code-manager/docker/$IMG
             ls -l ~/addons-code-manager/docker
       - run:
           name: Push to repo
@@ -79,7 +80,8 @@ jobs:
       - run:
           name: Save new image
           command: |
-            IMG="image-$(date +%j).gz"; docker save addons-code-manager | pigz --fast -c > ~/addons-code-manager/docker/$IMG; ls -l ~/addons-code-manager/docker
+            mkdir -p ~/addons-code-manager/docker
+            IMG="image-$(date +%j).gz"; docker save addons-code-manager | pigz --fast -c > ~/addons-code-manager/docker/$IMG
             ls -l ~/addons-code-manager/docker
       - run:
           name: Push to repo
