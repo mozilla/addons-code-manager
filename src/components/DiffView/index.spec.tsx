@@ -277,7 +277,7 @@ describe(__filename, () => {
     // Simulate an update.
     root.setProps({});
 
-    expect(_loadData).toHaveBeenCalled();
+    expect(_loadData).toHaveBeenCalledWith();
   });
 
   it('dispatches fetchLinterMessages when linterMessages is undefined', () => {
