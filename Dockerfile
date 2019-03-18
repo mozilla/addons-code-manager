@@ -37,4 +37,7 @@ COPY --from=build /app/tsconfig.json ./
 # Docker take precedence over this file.
 COPY --from=build /app/.env ./
 
+# Add `version.json` file
+COPY --from=build /app/version.json ./
+
 CMD yarn serve
