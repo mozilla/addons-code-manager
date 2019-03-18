@@ -98,7 +98,7 @@ export class DiffViewBase extends React.Component<Props> {
       linterMessagesAreLoading,
     } = this.props;
 
-    if (version && linterMessages === undefined && !linterMessagesAreLoading) {
+    if (linterMessages === undefined && !linterMessagesAreLoading) {
       dispatch(
         _fetchLinterMessages({
           versionId: version.id,
