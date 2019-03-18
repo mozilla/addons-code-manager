@@ -87,13 +87,6 @@ export const createServer = ({
     reportUri: '/__cspreport__',
   };
 
-  // This CSP is the one above with overrides for local development.
-  const localCSP = {
-    ...prodCSP,
-    styleSrc: ["'self'", "'unsafe-inline'"],
-    connectSrc: ["'self'"],
-  };
-
   // Create an express server.
   const app = express();
 
@@ -200,7 +193,11 @@ export const createServer = ({
     // This sets the development CSP that works with webpack.
     app.use(
       helmet.contentSecurityPolicy({
-        directives: localCSP,
+        directives: {
+          ...prodCSP,
+          styleSrc: ["'self'", "'unsafe-inline'"],
+          connectSrc: ["'self'"],
+        },
       }),
     );
 
