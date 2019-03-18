@@ -220,7 +220,7 @@ export class DiffViewBase extends React.Component<Props> {
 
 const mapStateToProps = (
   state: ApplicationState,
-  ownProps: Props,
+  ownProps: PublicProps,
 ): PropsFromState => {
   const { version } = ownProps;
 
