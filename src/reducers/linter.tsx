@@ -64,12 +64,14 @@ export type LinterMessagesByLine = {
   [line: number]: LinterMessage[];
 };
 
+export type LinterMessagesByPath = {
+  global: LinterMessage[];
+  byLine: LinterMessagesByLine;
+};
+
 export type LinterMessageMap = {
   // The 'path' key matches the key of ExternalVersionFile['entries']
-  [path: string]: {
-    global: LinterMessage[];
-    byLine: LinterMessagesByLine;
-  };
+  [path: string]: LinterMessagesByPath;
 };
 
 export const getMessageMap = (

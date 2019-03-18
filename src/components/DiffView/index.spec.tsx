@@ -1,41 +1,109 @@
+/* eslint-disable @typescript-eslint/camelcase */
 import React from 'react';
 import { Diff, parseDiff, getChangeKey } from 'react-diff-view';
+import { Store } from 'redux';
 import { shallow } from 'enzyme';
 import { Location } from 'history';
 
 import basicDiff from './fixtures/basicDiff';
 import multipleDiff from './fixtures/multipleDiff';
 import diffWithDeletions from './fixtures/diffWithDeletions';
+import LinterMessage from '../LinterMessage';
+import configureStore from '../../configureStore';
 import { getLanguageFromMimeType } from '../../utils';
 import {
+  ExternalLinterMessage,
+  actions as linterActions,
+} from '../../reducers/linter';
+import { Version, createInternalVersion } from '../../reducers/versions';
+import {
   createContextWithFakeRouter,
+  createFakeExternalLinterResult,
   createFakeLocation,
+  createFakeThunk,
+  fakeVersion,
+  fakeVersionEntry,
+  fakeVersionFile,
   shallowUntilTarget,
+  spyOn,
 } from '../../test-helpers';
 import styles from './styles.module.scss';
 
 import DiffView, { DiffViewBase, DefaultProps, PublicProps } from '.';
 
 describe(__filename, () => {
-  type RenderParams = { location?: Location } & Partial<
+  type RenderParams = { store?: Store; location?: Location } & Partial<
     PublicProps & DefaultProps
   >;
 
   const render = ({
     location = createFakeLocation(),
+    store = configureStore(),
     ...props
   }: RenderParams = {}) => {
+    const contextWithRouter = createContextWithFakeRouter({ location });
+
     return shallowUntilTarget(
       <DiffView
         diffs={parseDiff(basicDiff)}
         mimeType="text/plain"
+        version={createInternalVersion(fakeVersion)}
         {...props}
       />,
       DiffViewBase,
       {
-        shallowOptions: createContextWithFakeRouter({ location }),
+        shallowOptions: {
+          ...contextWithRouter,
+          context: {
+            ...contextWithRouter.context,
+            store,
+          },
+        },
       },
     );
+  };
+
+  type RenderWithVersionParams = {
+    store?: Store;
+    version: Version;
+  };
+
+  const renderWithVersion = ({
+    store = configureStore(),
+    version,
+  }: RenderWithVersionParams) => {
+    const dispatch = spyOn(store, 'dispatch');
+
+    const fakeThunk = createFakeThunk();
+    const _fetchLinterMessages = fakeThunk.createThunk;
+
+    const root = render({ _fetchLinterMessages, store, version });
+
+    return { _fetchLinterMessages, dispatch, root, fakeThunk };
+  };
+
+  const setUpLinterMessagesForPath = ({
+    messages,
+    path = 'lib/react.js',
+  }: {
+    messages: Partial<ExternalLinterMessage>[];
+    path?: string;
+  }) => {
+    const version = createInternalVersion({
+      ...fakeVersion,
+      file: {
+        ...fakeVersionFile,
+        entries: { [path]: { ...fakeVersionEntry, path } },
+        selected_file: path,
+      },
+    });
+    const linterResult = createFakeExternalLinterResult({
+      messages: messages.map((msg) => {
+        return { ...msg, file: path };
+      }),
+    });
+
+    return { linterResult, version };
   };
 
   it('renders with no differences', () => {
@@ -190,5 +258,148 @@ describe(__filename, () => {
     render({ _document, location });
 
     expect(element.scrollIntoView).toHaveBeenCalled();
+  });
+
+  it('calls loadData on construction', () => {
+    const _loadData = jest.fn();
+
+    render({ _loadData });
+
+    expect(_loadData).toHaveBeenCalled();
+  });
+
+  it('calls loadData on update', () => {
+    const _loadData = jest.fn();
+
+    const root = render({ _loadData });
+
+    _loadData.mockClear();
+    // Simulate an update.
+    root.setProps({});
+
+    expect(_loadData).toHaveBeenCalled();
+  });
+
+  it('dispatches fetchLinterMessages when linterMessages is undefined', () => {
+    const url = '/path/to/validation.json';
+    const version = createInternalVersion({
+      ...fakeVersion,
+      id: fakeVersion.id + 1,
+      validation_url_json: url,
+    });
+
+    const { _fetchLinterMessages, dispatch, fakeThunk } = renderWithVersion({
+      version,
+    });
+
+    expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(_fetchLinterMessages).toHaveBeenCalledWith({
+      versionId: version.id,
+      url,
+    });
+  });
+
+  it('does not dispatch fetchLinterMessages while loading', () => {
+    const store = configureStore();
+    const version = createInternalVersion({ ...fakeVersion });
+    store.dispatch(
+      linterActions.beginFetchLinterResult({ versionId: version.id }),
+    );
+
+    const { dispatch } = renderWithVersion({ store, version });
+
+    expect(dispatch).not.toHaveBeenCalled();
+  });
+
+  it('does not dispatch fetchLinterMessages after they have loaded', () => {
+    const store = configureStore();
+    const { linterResult, version } = setUpLinterMessagesForPath({
+      messages: [{ uid: 'some-message-uid' }],
+    });
+
+    store.dispatch(
+      linterActions.loadLinterResult({
+        versionId: version.id,
+        result: linterResult,
+      }),
+    );
+
+    const { dispatch } = renderWithVersion({ store, version });
+
+    expect(dispatch).not.toHaveBeenCalled();
+  });
+
+  it('does not dispatch fetchLinterMessages if they have loaded but for another path', () => {
+    const store = configureStore();
+
+    const manifestPath = 'manifest.json';
+    const libPath = 'lib/react.js';
+
+    // Create a version where the manifestPath is selected.
+    const version = createInternalVersion({
+      ...fakeVersion,
+      file: {
+        ...fakeVersionFile,
+        entries: {
+          [manifestPath]: { ...fakeVersionEntry, path: manifestPath },
+          [libPath]: { ...fakeVersionEntry, path: libPath },
+        },
+        selected_file: manifestPath,
+      },
+    });
+
+    // Create linter messages for libPath, which is not selected.
+    const linterResult = createFakeExternalLinterResult({
+      messages: [{ uid: 'some-message-uid', file: libPath }],
+    });
+
+    store.dispatch(
+      linterActions.loadLinterResult({
+        versionId: version.id,
+        result: linterResult,
+      }),
+    );
+
+    const { dispatch } = renderWithVersion({ store, version });
+
+    expect(dispatch).not.toHaveBeenCalled();
+  });
+
+  it('renders global messages', () => {
+    const store = configureStore();
+
+    const globalMessageUid1 = 'first';
+    const globalMessageUid2 = 'second';
+
+    const { linterResult, version } = setUpLinterMessagesForPath({
+      messages: [
+        { line: null, uid: globalMessageUid1 },
+        { line: null, uid: globalMessageUid2 },
+      ],
+    });
+
+    store.dispatch(
+      linterActions.loadLinterResult({
+        versionId: version.id,
+        result: linterResult,
+      }),
+    );
+
+    const { root } = renderWithVersion({ store, version });
+
+    const messages = root.find(LinterMessage);
+    expect(messages).toHaveLength(2);
+    expect(messages.at(0)).toHaveProp(
+      'message',
+      expect.objectContaining({
+        uid: globalMessageUid1,
+      }),
+    );
+    expect(messages.at(1)).toHaveProp(
+      'message',
+      expect.objectContaining({
+        uid: globalMessageUid2,
+      }),
+    );
   });
 });

@@ -193,8 +193,9 @@ describe(__filename, () => {
       headVersionId: String(version.id),
     });
 
-    expect(root.find(DiffView)).toHaveLength(1);
-    expect(root.find(DiffView)).toHaveProp(
+    const diffView = root.find(DiffView);
+    expect(diffView).toHaveLength(1);
+    expect(diffView).toHaveProp(
       'diffs',
       createInternalDiffs({
         baseVersionId,
@@ -202,7 +203,8 @@ describe(__filename, () => {
         version,
       }),
     );
-    expect(root.find(DiffView)).toHaveProp('mimeType', mimeType);
+    expect(diffView).toHaveProp('mimeType', mimeType);
+    expect(diffView).toHaveProp('version', createInternalVersion(version));
   });
 
   it('renders an error when fetching a diff has failed', () => {
