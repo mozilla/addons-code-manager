@@ -90,12 +90,14 @@ describe(__filename, () => {
       });
 
       it('sets production CSP and security headers', async () => {
+        const fakeEnv = {
+          ...prodEnv,
+          REACT_APP_API_HOST: 'https://code-manager.addons.cdn.mozilla.net',
+        };
+
         const server = request(
           createServer({
-            env: {
-              ...prodEnv,
-              REACT_APP_API_HOST: 'https://code-manager.addons.cdn.mozilla.net',
-            } as ServerEnvVars,
+            env: fakeEnv as ServerEnvVars,
             rootPath,
           }),
         );
@@ -107,9 +109,7 @@ describe(__filename, () => {
 
         const policy = cspParser(response.header['content-security-policy']);
         expect(policy['default-src']).toEqual(["'none'"]);
-        expect(policy['connect-src']).toEqual([
-          'https://code-manager.addons.cdn.mozilla.net',
-        ]);
+        expect(policy['connect-src']).toEqual([fakeEnv.REACT_APP_API_HOST]);
         expect(policy['base-uri']).toEqual(["'self'"]);
         expect(policy['form-action']).toEqual(["'none'"]);
         expect(policy['frame-ancestors']).toEqual(["'none'"]);
