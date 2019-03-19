@@ -5,9 +5,6 @@ import { fas } from '@fortawesome/free-solid-svg-icons';
 import { far } from '@fortawesome/free-regular-svg-icons';
 import '@fortawesome/fontawesome-svg-core/styles.css';
 
-// Turn off inline CSS injection for CSP.
-config.autoAddCss = false;
-
 export type ClientEnvVars = {
   NODE_ENV: string;
   REACT_APP_SENTRY_DSN: string;
@@ -40,6 +37,10 @@ const configureApplication = ({
       })
       .install();
   }
+
+  // Turn off inline CSS injection for CSP. Must be before all other
+  // fontawesome API calls.
+  config.autoAddCss = false;
 
   // Import all the FontAwesome icons.
   library.add(fas, far);
