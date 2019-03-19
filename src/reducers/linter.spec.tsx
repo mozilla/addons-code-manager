@@ -367,6 +367,7 @@ describe(__filename, () => {
     });
 
     it('maps a subset of external fields', () => {
+      const id = ['SOME_CODE'];
       const column = 2;
       const description = ['To prevent vulnerabilities...'];
       const file = 'chrome/content/youtune.js';
@@ -378,6 +379,7 @@ describe(__filename, () => {
       expect(
         createInternalMessage({
           ...fakeExternalLinterMessage,
+          id,
           column,
           description,
           file,
@@ -387,6 +389,7 @@ describe(__filename, () => {
           uid,
         }),
       ).toEqual({
+        code: id,
         column,
         description,
         file,
