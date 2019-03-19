@@ -463,18 +463,18 @@ describe(__filename, () => {
 
     const { hunks } = diffs[0];
 
-    const firstRoot = renderWidget(hunks, widgets, externalMessages[0].line);
-    expect(firstRoot.find(LinterMessage)).toHaveLength(1);
-    expect(firstRoot.find(LinterMessage)).toHaveProp(
+    const firstWidget = renderWidget(hunks, widgets, externalMessages[0].line);
+    expect(firstWidget.find(LinterMessage)).toHaveLength(1);
+    expect(firstWidget.find(LinterMessage)).toHaveProp(
       'message',
       expect.objectContaining({
         uid: externalMessages[0].uid,
       }),
     );
 
-    const secondRoot = renderWidget(hunks, widgets, externalMessages[1].line);
-    expect(secondRoot.find(LinterMessage)).toHaveLength(1);
-    expect(secondRoot.find(LinterMessage)).toHaveProp(
+    const secondWidget = renderWidget(hunks, widgets, externalMessages[1].line);
+    expect(secondWidget.find(LinterMessage)).toHaveLength(1);
+    expect(secondWidget.find(LinterMessage)).toHaveProp(
       'message',
       expect.objectContaining({
         uid: externalMessages[1].uid,
