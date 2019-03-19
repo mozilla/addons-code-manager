@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Store } from 'redux';
+import { History } from 'history';
 
 import configureStore from '../../configureStore';
 import VersionSelect from '../VersionSelect';
@@ -9,33 +10,65 @@ import {
   actions as versionActions,
 } from '../../reducers/versions';
 import {
+  createContextWithFakeRouter,
+  createFakeHistory,
   createFakeThunk,
   fakeVersionsList,
   fakeVersionsListItem,
   shallowUntilTarget,
   spyOn,
 } from '../../test-helpers';
+import styles from './styles.module.scss';
 
-import VersionChooser, { VersionChooserBase, PublicProps } from '.';
+import VersionChooser, {
+  DefaultProps,
+  PropsFromRouter,
+  PublicProps,
+  VersionChooserBase,
+} from '.';
 
 describe(__filename, () => {
-  type RenderParams = Partial<PublicProps> & { store?: Store };
+  const lang = 'en-US';
+
+  type RenderParams = Partial<PublicProps> &
+    Partial<PropsFromRouter> &
+    Partial<DefaultProps> & {
+      store?: Store;
+      history?: History;
+    };
 
   const render = ({
     _fetchVersionsList,
     addonId = 123,
+    baseVersionId = '1',
+    headVersionId = '2',
+    history = createFakeHistory(),
     store = configureStore(),
   }: RenderParams = {}) => {
+    const contextWithRouter = createContextWithFakeRouter({
+      history,
+      match: {
+        params: {
+          baseVersionId,
+          headVersionId,
+          lang,
+        },
+      },
+    });
+    const shallowOptions = {
+      ...contextWithRouter,
+      context: {
+        ...contextWithRouter.context,
+        store,
+      },
+    };
+
     const props = { addonId, _fetchVersionsList };
 
     return shallowUntilTarget(
       <VersionChooser {...props} />,
       VersionChooserBase,
-      {
-        shallowOptions: {
-          context: { store },
-        },
-      },
+      { shallowOptions },
     );
   };
 
@@ -122,7 +155,11 @@ describe(__filename, () => {
     const dispatch = spyOn(store, 'dispatch');
     const fakeThunk = createFakeThunk();
 
-    render({ _fetchVersionsList: fakeThunk.createThunk, addonId, store });
+    render({
+      _fetchVersionsList: fakeThunk.createThunk,
+      addonId,
+      store,
+    });
 
     expect(dispatch).not.toHaveBeenCalled();
   });
@@ -142,5 +179,64 @@ describe(__filename, () => {
 
     expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
     expect(_fetchVersionsList).toHaveBeenCalledWith({ addonId: secondAddonId });
+  });
+
+  it('pushes a new URL when the old version changes', () => {
+    const addonId = 999;
+    const baseVersionId = '3';
+    const headVersionId = '4';
+
+    const store = configureStore();
+    _loadVersionsList(store, addonId, fakeVersionsList);
+
+    const history = createFakeHistory();
+    const selectedVersion = '2';
+
+    const root = render({
+      addonId,
+      baseVersionId,
+      headVersionId,
+      history,
+      store,
+    });
+
+    const onChange = root
+      // Retrieve the `VersionSelect` component with this `className`.
+      .find({ className: styles.baseVersionSelect })
+      .prop('onChange');
+    onChange(selectedVersion);
+
+    expect(history.push).toHaveBeenCalledWith(
+      `/${lang}/compare/${addonId}/versions/${selectedVersion}...${headVersionId}/`,
+    );
+  });
+
+  it('pushes a new URL when the new version changes', () => {
+    const addonId = 999;
+    const baseVersionId = '3';
+    const headVersionId = '4';
+
+    const store = configureStore();
+    _loadVersionsList(store, addonId, fakeVersionsList);
+
+    const history = createFakeHistory();
+    const selectedVersion = '5';
+
+    const root = render({
+      addonId,
+      baseVersionId,
+      headVersionId,
+      history,
+      store,
+    });
+
+    const onChange = root
+      .find({ className: styles.headVersionSelect })
+      .prop('onChange');
+    onChange(selectedVersion);
+
+    expect(history.push).toHaveBeenCalledWith(
+      `/${lang}/compare/${addonId}/versions/${baseVersionId}...${selectedVersion}/`,
+    );
   });
 });

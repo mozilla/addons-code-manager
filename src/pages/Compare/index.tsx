@@ -54,7 +54,8 @@ export class CompareBase extends React.Component<Props> {
     const oldVersionId = parseInt(baseVersionId, 10);
     const newVersionId = parseInt(headVersionId, 10);
 
-    // We ensure the new version ID is newer than the old version ID.
+    // We ensure the new version ID is newer than the old version ID when
+    // loading the page.
     if (oldVersionId > newVersionId) {
       history.push(
         `/${lang}/compare/${addonId}/versions/${headVersionId}...${baseVersionId}/`,

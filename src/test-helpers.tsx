@@ -278,7 +278,7 @@ export const createFakeExternalLinterResult = ({
   };
 };
 
-export const createFakeLocation = (props = {}): Location<{}> => {
+export const createFakeLocation = (props = {}): Location => {
   return {
     hash: '',
     key: 'some-key',
@@ -474,4 +474,13 @@ export const spyOn = <T extends {}>(
   method: jest.FunctionPropertyNames<T>,
 ) => {
   return jest.spyOn(object, method).mockImplementation(jest.fn());
+};
+
+export const createFakeEvent = (extraProps = {}) => {
+  return {
+    currentTarget: jest.fn(),
+    preventDefault: jest.fn(),
+    stopPropagation: jest.fn(),
+    ...extraProps,
+  };
 };
