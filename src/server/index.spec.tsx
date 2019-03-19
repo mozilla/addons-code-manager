@@ -162,6 +162,20 @@ describe(__filename, () => {
         expect(cspReportResponse.status).toEqual(200);
       });
 
+      it('tightens connnect-src if API host is unset', async () => {
+        const server = request(
+          createServer({
+            env: prodEnv as ServerEnvVars,
+            rootPath,
+          }),
+        );
+
+        const response = await server.get('/');
+        expect(response.status).toEqual(200);
+        const policy = cspParser(response.header['content-security-policy']);
+        expect(policy['connect-src']).toEqual(["'none'"]);
+      });
+
       it('calls injectAuthenticationToken() and returns its output', async () => {
         const expectedHTML = 'content with auth token';
 
