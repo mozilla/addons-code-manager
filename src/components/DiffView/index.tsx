@@ -125,12 +125,12 @@ export class DiffViewBase extends React.Component<Props> {
       const changeKey = getChangeKey(change);
       const line = change.lineNumber;
 
-      let widget = null;
       let messages;
       if (line && linterMessages) {
         messages = linterMessages.byLine[line];
       }
 
+      let widget = null;
       if (messages && messages.length) {
         widget = (
           <div className={styles.inlineLinterMessages}>
