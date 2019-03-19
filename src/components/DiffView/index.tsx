@@ -1,11 +1,13 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import {
+  ChangeInfo,
   Decoration,
   Diff,
   DiffInfo,
   DiffProps,
   Hunk,
+  Hunks,
   HunkInfo,
   getChangeKey,
   tokenize,
@@ -25,6 +27,13 @@ import { Version } from '../../reducers/versions';
 import { getLanguageFromMimeType, gettext } from '../../utils';
 import styles from './styles.module.scss';
 import 'react-diff-view/style/index.css';
+
+export const getAllHunkChanges = (hunks: Hunks): ChangeInfo[] => {
+  return hunks.reduce(
+    (result: ChangeInfo[], { changes }) => [...result, ...changes],
+    [],
+  );
+};
 
 type LoadData = () => void;
 
@@ -107,6 +116,33 @@ export class DiffViewBase extends React.Component<Props> {
         }),
       );
     }
+  };
+
+  getWidgets = (hunks: Hunks) => {
+    const { linterMessages } = this.props;
+
+    return getAllHunkChanges(hunks).reduce((widgets, change) => {
+      const changeKey = getChangeKey(change);
+      const line = change.lineNumber;
+
+      let widget = null;
+      let messages;
+      if (line && linterMessages) {
+        messages = linterMessages.byLine[line];
+      }
+
+      if (messages && messages.length) {
+        widget = (
+          <div className={styles.inlineLinterMessages}>
+            {messages.map((msg) => {
+              return <LinterMessage key={msg.uid} message={msg} />;
+            })}
+          </div>
+        );
+      }
+
+      return { ...widgets, [changeKey]: widget };
+    }, {});
   };
 
   renderHeader({ hunks }: DiffInfo) {
@@ -208,6 +244,7 @@ export class DiffViewBase extends React.Component<Props> {
                 gutterType="anchor"
                 generateAnchorID={getChangeKey}
                 selectedChanges={selectedChanges}
+                widgets={this.getWidgets(hunks)}
               >
                 {this.renderHunks}
               </Diff>
