@@ -121,7 +121,7 @@ export class CompareBase extends React.Component<Props> {
   }
 
   render() {
-    const { compareInfo, version } = this.props;
+    const { addonId, compareInfo, version } = this.props;
 
     return (
       <React.Fragment>
@@ -135,7 +135,7 @@ export class CompareBase extends React.Component<Props> {
         <Col md="9">
           <Row>
             <Col>
-              <VersionChooser />
+              <VersionChooser addonId={addonId} />
             </Col>
           </Row>
           <Row>

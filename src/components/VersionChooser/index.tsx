@@ -10,7 +10,9 @@ import { VersionsMap, fetchVersionsList } from '../../reducers/versions';
 import { gettext } from '../../utils';
 import styles from './styles.module.scss';
 
-export type PublicProps = {};
+export type PublicProps = {
+  addonId: number;
+};
 
 export type DefaultProps = {
   _fetchVersionsList: typeof fetchVersionsList;
@@ -21,7 +23,6 @@ type PropsFromState = {
 };
 
 export type PropsFromRouter = {
-  addonId: string;
   baseVersionId: string;
   headVersionId: string;
   lang: string;
@@ -41,11 +42,15 @@ export class VersionChooserBase extends React.Component<Props> {
   };
 
   componentDidMount() {
-    const { _fetchVersionsList, dispatch, match, versionsMap } = this.props;
-    const { addonId } = match.params;
+    const {
+      _fetchVersionsList,
+      addonId,
+      dispatch,
+      versionsMap,
+    } = this.props;
 
     if (!versionsMap) {
-      dispatch(_fetchVersionsList({ addonId: parseInt(addonId, 10) }));
+      dispatch(_fetchVersionsList({ addonId }));
     }
   }
 
@@ -56,20 +61,8 @@ export class VersionChooserBase extends React.Component<Props> {
     baseVersionId: string;
     headVersionId: string;
   }) => {
-    const { history, match } = this.props;
-    const { addonId, lang } = match.params;
-
-    const oldVersionId = parseInt(baseVersionId, 10);
-    const newVersionId = parseInt(headVersionId, 10);
-
-    // We make sure old version is older than the new version when user changes
-    // any of the two versions.
-    if (oldVersionId > newVersionId) {
-      history.push(
-        `/${lang}/compare/${addonId}/versions/${headVersionId}...${baseVersionId}/`,
-      );
-      return;
-    }
+    const { addonId, history, match } = this.props;
+    const { lang } = match.params;
 
     history.push(
       `/${lang}/compare/${addonId}/versions/${baseVersionId}...${headVersionId}/`,
@@ -133,13 +126,13 @@ export class VersionChooserBase extends React.Component<Props> {
 
 const mapStateToProps = (
   state: ApplicationState,
-  ownProps: PublicProps & RouterProps,
+  ownProps: PublicProps,
 ): PropsFromState => {
   const { byAddonId } = state.versions;
-  const { addonId } = ownProps.match.params;
+  const { addonId } = ownProps;
 
   return {
-    versionsMap: byAddonId[parseInt(addonId, 10)],
+    versionsMap: byAddonId[addonId],
   };
 };
 

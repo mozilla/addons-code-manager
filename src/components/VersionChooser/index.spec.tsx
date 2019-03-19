@@ -39,7 +39,7 @@ describe(__filename, () => {
 
   const render = ({
     _fetchVersionsList,
-    addonId = '123',
+    addonId = 123,
     baseVersionId = '1',
     headVersionId = '2',
     history = createFakeHistory(),
@@ -49,14 +49,13 @@ describe(__filename, () => {
       history,
       match: {
         params: {
-          addonId,
           baseVersionId,
           headVersionId,
           lang,
         },
       },
     });
-    const context = {
+    const shallowOptions = {
       ...contextWithRouter,
       context: {
         ...contextWithRouter.context,
@@ -64,12 +63,12 @@ describe(__filename, () => {
       },
     };
 
-    const props = { addonId: parseInt(addonId, 10), _fetchVersionsList };
+    const props = { addonId, _fetchVersionsList };
 
     return shallowUntilTarget(
       <VersionChooser {...props} />,
       VersionChooserBase,
-      { shallowOptions: { ...context } },
+      { shallowOptions },
     );
   };
 
@@ -93,7 +92,7 @@ describe(__filename, () => {
     const store = configureStore();
     _loadVersionsList(store, addonId, fakeVersionsList);
 
-    const root = render({ addonId: String(addonId), store });
+    const root = render({ addonId, store });
 
     expect(root.find(VersionSelect)).toHaveLength(2);
     expect(root.find(VersionSelect).at(0)).toHaveProp(
@@ -127,7 +126,7 @@ describe(__filename, () => {
     const store = configureStore();
     _loadVersionsList(store, addonId, [...listedVersions, ...unlistedVersions]);
 
-    const root = render({ addonId: String(addonId), store });
+    const root = render({ addonId, store });
 
     root.find(VersionSelect).forEach((versionSelect) => {
       expect(versionSelect).toHaveProp('listedVersions', listedVersions);
@@ -142,7 +141,7 @@ describe(__filename, () => {
     const fakeThunk = createFakeThunk();
     const _fetchVersionsList = fakeThunk.createThunk;
 
-    render({ _fetchVersionsList, addonId: String(addonId), store });
+    render({ _fetchVersionsList, addonId, store });
 
     expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
     expect(_fetchVersionsList).toHaveBeenCalledWith({ addonId });
@@ -158,7 +157,7 @@ describe(__filename, () => {
 
     render({
       _fetchVersionsList: fakeThunk.createThunk,
-      addonId: String(addonId),
+      addonId,
       store,
     });
 
@@ -176,19 +175,19 @@ describe(__filename, () => {
 
     const secondAddonId = addonId + 123;
 
-    render({ _fetchVersionsList, addonId: String(secondAddonId), store });
+    render({ _fetchVersionsList, addonId: secondAddonId, store });
 
     expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
     expect(_fetchVersionsList).toHaveBeenCalledWith({ addonId: secondAddonId });
   });
 
   it('pushes a new URL when the old version changes', () => {
-    const addonId = '999';
+    const addonId = 999;
     const baseVersionId = '3';
     const headVersionId = '4';
 
     const store = configureStore();
-    _loadVersionsList(store, parseInt(addonId, 10), fakeVersionsList);
+    _loadVersionsList(store, addonId, fakeVersionsList);
 
     const history = createFakeHistory();
     const selectedVersion = '2';
@@ -213,12 +212,12 @@ describe(__filename, () => {
   });
 
   it('pushes a new URL when the new version changes', () => {
-    const addonId = '999';
+    const addonId = 999;
     const baseVersionId = '3';
     const headVersionId = '4';
 
     const store = configureStore();
-    _loadVersionsList(store, parseInt(addonId, 10), fakeVersionsList);
+    _loadVersionsList(store, addonId, fakeVersionsList);
 
     const history = createFakeHistory();
     const selectedVersion = '5';
@@ -238,35 +237,6 @@ describe(__filename, () => {
 
     expect(history.push).toHaveBeenCalledWith(
       `/${lang}/compare/${addonId}/versions/${baseVersionId}...${selectedVersion}/`,
-    );
-  });
-
-  it('ensures the order of the versions is respected (old < new version)', () => {
-    const addonId = '999';
-    const baseVersionId = '4';
-    const headVersionId = '5';
-
-    const store = configureStore();
-    _loadVersionsList(store, parseInt(addonId, 10), fakeVersionsList);
-
-    const history = createFakeHistory();
-    const selectedVersion = '3'; // The value is lower than `baseVersionId`
-
-    const root = render({
-      addonId,
-      baseVersionId,
-      headVersionId,
-      history,
-      store,
-    });
-
-    const onChange = root
-      .find({ className: styles.headVersionSelect })
-      .prop('onChange');
-    onChange(selectedVersion);
-
-    expect(history.push).toHaveBeenCalledWith(
-      `/${lang}/compare/${addonId}/versions/${selectedVersion}...${baseVersionId}/`,
     );
   });
 });
