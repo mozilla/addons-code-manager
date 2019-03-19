@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import { connect } from 'react-redux';
-import { Col } from 'react-bootstrap';
+import { Col, Row } from 'react-bootstrap';
 import log from 'loglevel';
 
 import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
@@ -24,6 +24,8 @@ import {
 import { gettext } from '../../utils';
 import Loading from '../../components/Loading';
 import CodeView from '../../components/CodeView';
+import FileMetadata from '../../components/FileMetadata';
+import styles from './styles.module.scss';
 
 export type PublicProps = {
   _fetchLinterMessages: typeof fetchLinterMessages;
@@ -121,7 +123,18 @@ export class BrowseBase extends React.Component<Props> {
     return (
       <React.Fragment>
         <Col md="3">
-          <FileTree version={version} onSelect={this.onSelectFile} />
+          <Row>
+            <Col>
+              <FileTree version={version} onSelect={this.onSelectFile} />
+            </Col>
+          </Row>
+          {file && (
+            <Row>
+              <Col className={styles.metadata}>
+                <FileMetadata file={file} />
+              </Col>
+            </Row>
+          )}
         </Col>
         <Col md="9">
           {messageMap &&

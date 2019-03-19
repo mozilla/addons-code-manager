@@ -25,11 +25,13 @@ import {
   ExternalVersionWithContent,
   actions as versionActions,
   createInternalVersion,
+  getVersionFile,
 } from '../../reducers/versions';
 import FileTree from '../../components/FileTree';
 import LinterMessage from '../../components/LinterMessage';
 import Loading from '../../components/Loading';
 import CodeView from '../../components/CodeView';
+import FileMetadata from '../../components/FileMetadata';
 
 import Browse, { BrowseBase, PublicProps } from '.';
 
@@ -216,6 +218,25 @@ describe(__filename, () => {
     expect(root.find(FileTree)).toHaveProp(
       'version',
       createInternalVersion(version),
+    );
+  });
+
+  it('renders a FileMetadata component when a version file has loaded', () => {
+    const version = fakeVersion;
+
+    const store = configureStore();
+    _loadVersionAndFile({ store, version });
+
+    const root = render({ store, versionId: String(version.id) });
+
+    expect(root.find(FileMetadata)).toHaveLength(1);
+    expect(root.find(FileMetadata)).toHaveProp(
+      'file',
+      getVersionFile(
+        store.getState().versions,
+        version.id,
+        version.file.selected_file,
+      ),
     );
   });
 
