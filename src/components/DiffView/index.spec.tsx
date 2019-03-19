@@ -93,7 +93,7 @@ describe(__filename, () => {
     return { _fetchLinterMessages, dispatch, root, fakeThunk };
   };
 
-  const dispatchLinterMessages = ({
+  const _loadLinterResult = ({
     messages,
     path = 'lib/react.js',
     store,
@@ -365,7 +365,7 @@ describe(__filename, () => {
 
   it('does not dispatch fetchLinterMessages after they have loaded', () => {
     const store = configureStore();
-    const { version } = dispatchLinterMessages({
+    const { version } = _loadLinterResult({
       store,
       messages: [{ uid: 'some-message-uid' }],
     });
@@ -417,7 +417,7 @@ describe(__filename, () => {
     const globalMessageUid1 = 'first';
     const globalMessageUid2 = 'second';
 
-    const { version } = dispatchLinterMessages({
+    const { version } = _loadLinterResult({
       store,
       messages: [
         { line: null, uid: globalMessageUid1 },
@@ -453,7 +453,7 @@ describe(__filename, () => {
       { line: 23, uid: 'second' },
     ];
 
-    const { version } = dispatchLinterMessages({
+    const { version } = _loadLinterResult({
       store,
       messages: externalMessages,
     });
@@ -490,7 +490,7 @@ describe(__filename, () => {
       { line: 2, uid: 'second' },
     ];
 
-    const { version } = dispatchLinterMessages({
+    const { version } = _loadLinterResult({
       store,
       messages: externalMessages,
     });
@@ -511,7 +511,7 @@ describe(__filename, () => {
     const line = 9;
     const externalMessages = [{ line, uid: 'first' }, { line, uid: 'second' }];
 
-    const { version } = dispatchLinterMessages({
+    const { version } = _loadLinterResult({
       store,
       messages: externalMessages,
     });
