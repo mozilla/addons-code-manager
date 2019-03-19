@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { connect } from 'react-redux';
 import {
   Decoration,
   Diff,
@@ -12,35 +13,67 @@ import {
 import { withRouter, RouteComponentProps } from 'react-router-dom';
 import makeClassName from 'classnames';
 
+import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
+import LinterMessage from '../LinterMessage';
 import refractor from '../../refractor';
+import {
+  LinterMessagesByPath,
+  fetchLinterMessages,
+  selectMessageMap,
+} from '../../reducers/linter';
+import { Version } from '../../reducers/versions';
 import { getLanguageFromMimeType, gettext } from '../../utils';
 import styles from './styles.module.scss';
 import 'react-diff-view/style/index.css';
 
+type LoadData = () => void;
+
 export type PublicProps = {
+  _loadData?: LoadData;
   diffs: DiffInfo[];
   mimeType: string;
+  version: Version;
 };
 
 export type DefaultProps = {
   _document: typeof document;
+  _fetchLinterMessages: typeof fetchLinterMessages;
   _tokenize: typeof tokenize;
   viewType: DiffProps['viewType'];
 };
 
+type PropsFromState = {
+  linterMessages: LinterMessagesByPath | null | void;
+  linterMessagesAreLoading: boolean;
+};
+
 export type RouterProps = RouteComponentProps<{}>;
 
-type Props = PublicProps & DefaultProps & RouterProps;
+export type Props = PublicProps &
+  DefaultProps &
+  PropsFromState &
+  RouterProps &
+  ConnectedReduxProps;
 
 export class DiffViewBase extends React.Component<Props> {
+  loadData: LoadData;
+
   static defaultProps: DefaultProps = {
     _document: document,
+    _fetchLinterMessages: fetchLinterMessages,
     _tokenize: tokenize,
     viewType: 'unified',
   };
 
+  constructor(props: Props) {
+    super(props);
+    // Allow dependency injection to test all the ways loadData() gets executed.
+    this.loadData = props._loadData || this._loadData;
+  }
+
   componentDidMount() {
     const { _document, location } = this.props;
+    this.loadData();
 
     if (!location.hash.length) {
       return;
@@ -52,6 +85,29 @@ export class DiffViewBase extends React.Component<Props> {
       element.scrollIntoView();
     }
   }
+
+  componentDidUpdate() {
+    this.loadData();
+  }
+
+  _loadData = () => {
+    const {
+      _fetchLinterMessages,
+      dispatch,
+      version,
+      linterMessages,
+      linterMessagesAreLoading,
+    } = this.props;
+
+    if (linterMessages === undefined && !linterMessagesAreLoading) {
+      dispatch(
+        _fetchLinterMessages({
+          versionId: version.id,
+          url: version.validationURL,
+        }),
+      );
+    }
+  };
 
   renderHeader({ hunks }: DiffInfo) {
     const { additions, deletions } = hunks.reduce(
@@ -101,7 +157,14 @@ export class DiffViewBase extends React.Component<Props> {
   };
 
   render() {
-    const { _tokenize, diffs, mimeType, viewType, location } = this.props;
+    const {
+      _tokenize,
+      diffs,
+      linterMessages,
+      mimeType,
+      viewType,
+      location,
+    } = this.props;
 
     const options = {
       highlight: true,
@@ -123,6 +186,11 @@ export class DiffViewBase extends React.Component<Props> {
             </div>
           </React.Fragment>
         )}
+
+        {linterMessages &&
+          linterMessages.global.map((message) => {
+            return <LinterMessage key={message.uid} message={message} />;
+          })}
 
         {diffs.map((diff) => {
           const { oldRevision, newRevision, hunks, type } = diff;
@@ -151,6 +219,27 @@ export class DiffViewBase extends React.Component<Props> {
   }
 }
 
-export default withRouter(DiffViewBase) as React.ComponentType<
-  PublicProps & Partial<DefaultProps>
->;
+const mapStateToProps = (
+  state: ApplicationState,
+  ownProps: PublicProps,
+): PropsFromState => {
+  const { version } = ownProps;
+
+  let linterMessages;
+  const map = selectMessageMap(state.linter, version.id);
+  if (map) {
+    linterMessages = map[version.selectedPath]
+      ? map[version.selectedPath]
+      : // No messages exist for this path.
+        null;
+  }
+
+  return {
+    linterMessages,
+    linterMessagesAreLoading: state.linter.isLoading,
+  };
+};
+
+export default withRouter<PublicProps & Partial<DefaultProps> & RouterProps>(
+  connect(mapStateToProps)(DiffViewBase),
+) as React.ComponentType<PublicProps & Partial<DefaultProps>>;

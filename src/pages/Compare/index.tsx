@@ -144,6 +144,7 @@ export class CompareBase extends React.Component<Props> {
                 <DiffView
                   diffs={compareInfo.diffs}
                   mimeType={compareInfo.mimeType}
+                  version={version}
                 />
               ) : (
                 this.renderLoadingMessageOrError(gettext('Loading diff...'))
