@@ -42,12 +42,7 @@ export class VersionChooserBase extends React.Component<Props> {
   };
 
   componentDidMount() {
-    const {
-      _fetchVersionsList,
-      addonId,
-      dispatch,
-      versionsMap,
-    } = this.props;
+    const { _fetchVersionsList, addonId, dispatch, versionsMap } = this.props;
 
     if (!versionsMap) {
       dispatch(_fetchVersionsList({ addonId }));
