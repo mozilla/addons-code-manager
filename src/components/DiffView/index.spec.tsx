@@ -482,7 +482,7 @@ describe(__filename, () => {
     );
   });
 
-  it('only renders messages per line', () => {
+  it('renders just the right amount of widgets', () => {
     const store = configureStore();
 
     const externalMessages = [
@@ -500,8 +500,10 @@ describe(__filename, () => {
       store,
       version,
     });
-    // Make sure we have truthy React nodes for exactly the same
-    // number of messages.
+
+    // As a sanity check on how the widgets are mapped,
+    // make sure we have truthy React nodes for exactly the same
+    // number of lines containing messages.
     expect(getWidgetNodes(widgets).length).toEqual(externalMessages.length);
   });
 
