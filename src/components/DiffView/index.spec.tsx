@@ -1,6 +1,12 @@
 /* eslint-disable @typescript-eslint/camelcase */
 import React from 'react';
-import { Diff, parseDiff, getChangeKey } from 'react-diff-view';
+import {
+  Diff,
+  Hunks,
+  WidgetMap,
+  parseDiff,
+  getChangeKey,
+} from 'react-diff-view';
 import { Store } from 'redux';
 import { shallow } from 'enzyme';
 import { Location } from 'history';
@@ -29,7 +35,12 @@ import {
 } from '../../test-helpers';
 import styles from './styles.module.scss';
 
-import DiffView, { DiffViewBase, DefaultProps, PublicProps } from '.';
+import DiffView, {
+  DiffViewBase,
+  DefaultProps,
+  PublicProps,
+  getAllHunkChanges,
+} from '.';
 
 describe(__filename, () => {
   type RenderParams = { store?: Store; location?: Location } & Partial<
@@ -82,12 +93,14 @@ describe(__filename, () => {
     return { _fetchLinterMessages, dispatch, root, fakeThunk };
   };
 
-  const setUpLinterMessagesForPath = ({
+  const _loadLinterResult = ({
     messages,
     path = 'lib/react.js',
+    store,
   }: {
     messages: Partial<ExternalLinterMessage>[];
     path?: string;
+    store: Store;
   }) => {
     const version = createInternalVersion({
       ...fakeVersion,
@@ -97,13 +110,52 @@ describe(__filename, () => {
         selected_file: path,
       },
     });
+
     const linterResult = createFakeExternalLinterResult({
       messages: messages.map((msg) => {
         return { ...msg, file: path };
       }),
     });
 
+    store.dispatch(
+      linterActions.loadLinterResult({
+        versionId: version.id,
+        result: linterResult,
+      }),
+    );
+
     return { linterResult, version };
+  };
+
+  const renderAndGetWidgets = (params: RenderParams): WidgetMap => {
+    const root = render(params);
+
+    const diffView = root.find(Diff);
+    expect(diffView).toHaveProp('widgets');
+
+    const widgets = diffView.prop('widgets');
+    if (!widgets) {
+      throw new Error('The widgets prop was falsy');
+    }
+
+    return widgets;
+  };
+
+  const renderWidget = (hunks: Hunks, widgets: WidgetMap, line: number) => {
+    const result = getAllHunkChanges(hunks).filter(
+      (change) => change.lineNumber === line,
+    );
+    if (result.length !== 1) {
+      throw new Error(`Could not find a change at line ${line}`);
+    }
+
+    const key = getChangeKey(result[0]);
+    return shallow(<div>{widgets[key]}</div>);
+  };
+
+  const getWidgetNodes = (widgets: WidgetMap) => {
+    // Return a list of truthy React nodes in arbitrary order.
+    return Object.values(widgets).filter(Boolean);
   };
 
   it('renders with no differences', () => {
@@ -313,16 +365,10 @@ describe(__filename, () => {
 
   it('does not dispatch fetchLinterMessages after they have loaded', () => {
     const store = configureStore();
-    const { linterResult, version } = setUpLinterMessagesForPath({
+    const { version } = _loadLinterResult({
+      store,
       messages: [{ uid: 'some-message-uid' }],
     });
-
-    store.dispatch(
-      linterActions.loadLinterResult({
-        versionId: version.id,
-        result: linterResult,
-      }),
-    );
 
     const { dispatch } = renderWithVersion({ store, version });
 
@@ -371,21 +417,15 @@ describe(__filename, () => {
     const globalMessageUid1 = 'first';
     const globalMessageUid2 = 'second';
 
-    const { linterResult, version } = setUpLinterMessagesForPath({
+    const { version } = _loadLinterResult({
+      store,
       messages: [
         { line: null, uid: globalMessageUid1 },
         { line: null, uid: globalMessageUid2 },
       ],
     });
 
-    store.dispatch(
-      linterActions.loadLinterResult({
-        versionId: version.id,
-        result: linterResult,
-      }),
-    );
-
-    const { root } = renderWithVersion({ store, version });
+    const root = render({ store, version });
 
     const messages = root.find(LinterMessage);
     expect(messages).toHaveLength(2);
@@ -401,5 +441,131 @@ describe(__filename, () => {
         uid: globalMessageUid2,
       }),
     );
+  });
+
+  it('renders multiple inline messages', () => {
+    const store = configureStore();
+
+    const externalMessages = [
+      // Add a message to line 9 in the first hunk.
+      { line: 9, uid: 'first' },
+      // Add a message to line 23 in the second hunk.
+      { line: 23, uid: 'second' },
+    ];
+
+    const { version } = _loadLinterResult({
+      store,
+      messages: externalMessages,
+    });
+
+    const diffs = parseDiff(diffWithDeletions);
+    const widgets = renderAndGetWidgets({ diffs, store, version });
+
+    const { hunks } = diffs[0];
+
+    const firstWidget = renderWidget(hunks, widgets, externalMessages[0].line);
+    expect(firstWidget.find(LinterMessage)).toHaveLength(1);
+    expect(firstWidget.find(LinterMessage)).toHaveProp(
+      'message',
+      expect.objectContaining({
+        uid: externalMessages[0].uid,
+      }),
+    );
+
+    const secondWidget = renderWidget(hunks, widgets, externalMessages[1].line);
+    expect(secondWidget.find(LinterMessage)).toHaveLength(1);
+    expect(secondWidget.find(LinterMessage)).toHaveProp(
+      'message',
+      expect.objectContaining({
+        uid: externalMessages[1].uid,
+      }),
+    );
+  });
+
+  it('renders just the right amount of widgets', () => {
+    const store = configureStore();
+
+    const externalMessages = [
+      { line: 1, uid: 'first' },
+      { line: 2, uid: 'second' },
+    ];
+
+    const { version } = _loadLinterResult({
+      store,
+      messages: externalMessages,
+    });
+
+    const widgets = renderAndGetWidgets({
+      diffs: parseDiff(diffWithDeletions),
+      store,
+      version,
+    });
+
+    // As a sanity check on how the widgets are mapped,
+    // make sure we have truthy React nodes for exactly the same
+    // number of lines containing messages.
+    expect(getWidgetNodes(widgets).length).toEqual(externalMessages.length);
+  });
+
+  it('renders multiple inline messages on the same line', () => {
+    const store = configureStore();
+
+    const line = 9;
+    const externalMessages = [{ line, uid: 'first' }, { line, uid: 'second' }];
+
+    const { version } = _loadLinterResult({
+      store,
+      messages: externalMessages,
+    });
+
+    const diffs = parseDiff(diffWithDeletions);
+    const widgets = renderAndGetWidgets({ diffs, store, version });
+
+    const { hunks } = diffs[0];
+
+    const root = renderWidget(hunks, widgets, line);
+    const messages = root.find(LinterMessage);
+
+    expect(messages).toHaveLength(2);
+    expect(messages.at(0)).toHaveProp(
+      'message',
+      expect.objectContaining({
+        uid: externalMessages[0].uid,
+      }),
+    );
+    expect(messages.at(1)).toHaveProp(
+      'message',
+      expect.objectContaining({
+        uid: externalMessages[1].uid,
+      }),
+    );
+  });
+
+  it('does not render widgets without linter messages', () => {
+    const widgets = renderAndGetWidgets({
+      diffs: parseDiff(diffWithDeletions),
+      version: createInternalVersion(fakeVersion),
+    });
+    expect(getWidgetNodes(widgets).length).toEqual(0);
+  });
+
+  describe('getAllHunkChanges', () => {
+    it('returns a flattened list of all changes', () => {
+      const diffs = parseDiff(diffWithDeletions);
+      const changes = getAllHunkChanges(diffs[0].hunks);
+
+      // Check a line from the first hunk:
+      expect(changes.filter((c) => c.lineNumber === 2)[0].content).toEqual(
+        "import { Diff, DiffProps, parseDiff } from 'react-diff-view';",
+      );
+      // Check a line from the second hunk:
+      expect(changes.filter((c) => c.lineNumber === 24)[0].content).toEqual(
+        '    console.log({ hunk });',
+      );
+      // Check a line from the third hunk:
+      expect(changes.filter((c) => c.lineNumber === 50)[0].content).toEqual(
+        '          </Diff>',
+      );
+    });
   });
 });

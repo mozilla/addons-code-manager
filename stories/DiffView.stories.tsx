@@ -138,6 +138,68 @@ storiesOf('DiffView', module)
               ]);
             },
           },
+          {
+            title: 'one message on one line',
+            sectionFn: () => {
+              return renderWithMessages([
+                {
+                  line: 39,
+                  message: 'expect().toHaveProp() detected',
+                  description: [
+                    'Calls to expect().toHaveProp() might lead to your add-on getting approved.',
+                  ],
+                  type: 'warning',
+                },
+              ]);
+            },
+          },
+          {
+            title: 'multiple messages on one line',
+            sectionFn: () => {
+              return renderWithMessages([
+                {
+                  line: 39,
+                  message: 'expect().toHaveProp() detected',
+                  description: [
+                    'Calls to expect().toHaveProp() might lead to your add-on getting approved.',
+                  ],
+                  type: 'warning',
+                },
+                {
+                  line: 39,
+                  message: 'Unsafe call to expect()',
+                  description: [
+                    'Calling expect() like this is unsafe but not really.',
+                  ],
+                  type: 'error',
+                },
+              ]);
+            },
+          },
+          {
+            title: 'multiple messages on multiple lines',
+            sectionFn: () => {
+              return renderWithMessages(
+                [
+                  {
+                    line: 9,
+                    message: 'Third party library detected',
+                    description: ['This add-on may require additional review.'],
+                    type: 'warning',
+                  },
+                  {
+                    line: 24,
+                    message: 'Unsafe call to console.log()',
+                    description: [
+                      'Calling console.log() like this is unsafe but not really.',
+                    ],
+                    type: 'error',
+                  },
+                ],
+                { diffs: parseDiff(diffWithDeletions) },
+              );
+            },
+          },
         ],
       },
     ],

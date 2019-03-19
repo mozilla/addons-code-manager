@@ -45,6 +45,8 @@ declare module 'react-diff-view' {
 
   type ViewType = 'split' | 'unified';
 
+  export type WidgetMap = { [changeKey: string]: ReactNode };
+
   type DiffProps = {
     children: (hunks: HunkInfo[]) => ReactNode;
     className?: string;
@@ -55,6 +57,7 @@ declare module 'react-diff-view' {
     gutterType?: 'default' | 'anchor' | 'none';
     generateAnchorID?: (change: ChangeInfo) => string;
     selectedChanges?: string[];
+    widgets?: WidgetMap;
   };
 
   // eslint-disable-next-line no-undef
