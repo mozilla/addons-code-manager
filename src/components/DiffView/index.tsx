@@ -67,6 +67,7 @@ export class DiffViewBase extends React.Component<Props> {
 
   constructor(props: Props) {
     super(props);
+    // Allow dependency injection to test all the ways loadData() gets executed.
     this.loadData = props._loadData || this._loadData;
   }
 
