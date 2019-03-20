@@ -11,10 +11,15 @@ const version = createInternalVersion({
   file: {
     ...fakeVersion.file,
     entries: {
-      'manifest.json': { ...fakeVersionEntry, filename: 'manifest.json' },
+      'manifest.json': {
+        ...fakeVersionEntry,
+        filename: 'manifest.json',
+        path: 'manifest.json',
+      },
       'background-scripts': {
         ...fakeVersionEntry,
         filename: 'background-scripts',
+        path: 'background-scripts',
         mime_category: 'directory',
       },
       'background-scripts/index.js': {
@@ -46,6 +51,7 @@ const version = createInternalVersion({
       'styles.css': {
         ...fakeVersionEntry,
         filename: 'styles.css',
+        path: 'styles.css',
       },
     },
   },

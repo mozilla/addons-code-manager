@@ -1,7 +1,7 @@
 /* eslint @typescript-eslint/camelcase: 0 */
 import * as React from 'react';
 import { shallow } from 'enzyme';
-import Treefold, { TreefoldRenderProps } from 'react-treefold';
+import Treefold from 'react-treefold';
 import { ListGroup } from 'react-bootstrap';
 
 import configureStore from '../../configureStore';
@@ -13,8 +13,10 @@ import {
 } from '../../reducers/versions';
 import { fakeVersion, fakeVersionEntry } from '../../test-helpers';
 import { getLocalizedString } from '../../utils';
+import { getTreefoldRenderProps } from '../FileTreeNode/index.spec';
+import FileTreeNode from '../FileTreeNode';
 
-import FileTree, { buildFileTree, TreeNode, DirectoryNode } from '.';
+import FileTree, { buildFileTree, DirectoryNode } from '.';
 
 describe(__filename, () => {
   describe('buildFileTree', () => {
@@ -382,12 +384,28 @@ describe(__filename, () => {
       const root = render({ version, onSelect });
 
       const node = (root.instance() as FileTree).renderNode(
-        // It does not really matter which props are given here.
-        // eslint-disable-next-line @typescript-eslint/no-object-literal-type-assertion
-        {} as TreefoldRenderProps<TreeNode>,
+        getTreefoldRenderProps(),
       );
 
-      expect(node.props.onSelect).toEqual(onSelect);
+      expect(shallow(<div>{node}</div>).find(FileTreeNode)).toHaveProp(
+        'onSelect',
+        onSelect,
+      );
+    });
+
+    it('passes the version prop to FileTreeNode', () => {
+      const version = getVersion({ ...fakeVersion, id: 777 });
+
+      const root = render({ version });
+
+      const node = (root.instance() as FileTree).renderNode(
+        getTreefoldRenderProps(),
+      );
+
+      expect(shallow(<div>{node}</div>).find(FileTreeNode)).toHaveProp(
+        'version',
+        version,
+      );
     });
   });
 });

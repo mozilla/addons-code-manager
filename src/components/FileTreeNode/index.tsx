@@ -6,28 +6,32 @@ import makeClassName from 'classnames';
 
 import { gettext } from '../../utils';
 import { TreeNode } from '../FileTree';
+import { Version } from '../../reducers/versions';
 import styles from './styles.module.scss';
 
 export type PublicProps = TreefoldRenderProps<TreeNode> & {
   onSelect: (id: string) => void;
+  version: Version;
 };
 
 class FileTreeNodeBase<TreeNodeType> extends React.Component<PublicProps> {
   render() {
     const {
-      node,
-      level,
-      isFolder,
-      isExpanded,
       getToggleProps,
       hasChildNodes,
-      renderChildNodes,
+      isExpanded,
+      isFolder,
+      level,
+      node,
       onSelect,
+      renderChildNodes,
+      version,
     } = this.props;
 
     let listGroupItemProps = {
       className: makeClassName(styles.node, {
         [styles.directoryNode]: isFolder,
+        [styles.selected]: version.selectedPath === node.id,
       }),
       onClick: () => onSelect(node.id),
     };
