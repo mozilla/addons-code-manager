@@ -42,6 +42,9 @@ describe(__filename, () => {
     expect(root.find(`.${styles.version}`)).toHaveText(file.version);
     expect(root.find(`.${styles.sha256}`)).toHaveText(file.sha256);
     expect(root.find(`.${styles.mimeType}`)).toHaveText(file.mimeType);
+    expect(root.find(`.${styles.downloadURL}`).html()).toContain(
+      `<a href="${file.downloadURL}">${file.filename}</a>`,
+    );
   });
 
   it('renders a formatted filesize', () => {

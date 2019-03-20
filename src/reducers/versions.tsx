@@ -37,6 +37,7 @@ export type ExternalVersionEntry = {
 
 type PartialExternalVersionFile = {
   created: string;
+  download_url: string | null;
   entries: {
     [nodeName: string]: ExternalVersionEntry;
   };
@@ -129,6 +130,7 @@ export type ExternalVersionWithDiff = PartialExternalVersion & {
 type InternalVersionFile = {
   content: string;
   created: string;
+  downloadURL: string | null;
   id: number;
   size: number;
 };
@@ -136,6 +138,7 @@ type InternalVersionFile = {
 export type VersionFile = {
   content: string;
   created: string;
+  downloadURL: string | null;
   filename: string;
   id: number;
   mimeType: string;
@@ -256,6 +259,7 @@ export const createInternalVersionFile = (
   return {
     content: file.content,
     created: file.created,
+    downloadURL: file.download_url,
     id: file.id,
     size: file.size,
   };
