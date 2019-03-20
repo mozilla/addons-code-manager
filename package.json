@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@fortawesome/fontawesome-svg-core": "1.2.15",
-    "@fortawesome/free-regular-svg-icons": "5.7.2",
-    "@fortawesome/free-solid-svg-icons": "5.7.2",
+    "@fortawesome/fontawesome-svg-core": "1.2.16",
+    "@fortawesome/free-regular-svg-icons": "5.8.0",
+    "@fortawesome/free-solid-svg-icons": "5.8.0",
     "@fortawesome/react-fontawesome": "0.1.4",
     "@types/classnames": "2.2.7",
     "@types/dompurify": "0.0.32",
