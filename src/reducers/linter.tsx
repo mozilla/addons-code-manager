@@ -14,6 +14,8 @@ type LinterMessageBase = {
 };
 
 export type LinterMessage = LinterMessageBase & {
+  // See: https://github.com/mozilla/addons-linter/blob/dfbc613cbbae4e7e3cf6dc1bdbea120a5de105af/docs/rules.md
+  code: string[];
   description: string[];
 };
 
@@ -48,6 +50,7 @@ export const createInternalMessage = (
   message: ExternalLinterMessage,
 ): LinterMessage => {
   return {
+    code: message.id,
     column: message.column,
     description: Array.isArray(message.description)
       ? message.description
