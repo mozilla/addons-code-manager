@@ -206,7 +206,7 @@ describe(__filename, () => {
     const version = createInternalVersion(fakeVersion);
 
     const renderProps = getTreefoldRenderProps({
-      id: `src/${version.selectedPath}`,
+      id: 'not-the-selected-path',
     });
 
     const root = render({
