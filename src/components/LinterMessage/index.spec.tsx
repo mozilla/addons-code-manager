@@ -77,10 +77,10 @@ describe(__filename, () => {
   });
 
   it('renders a link for URLs', () => {
-    const url = 'https://bit.ly/1TRIyZY';
+    const url = 'https://mzl.la/25zqk4O';
     const description = [
       `Your add-on uses a JavaScript library we
-      consider unsafe. Read more: ${url}`,
+      consider unsafe. Read more: <a href="${url}">${url}</a>`,
     ];
     const root = renderMessage({ description });
 
@@ -88,8 +88,9 @@ describe(__filename, () => {
     expect(link).toHaveText(url);
     expect(link).toHaveProp('href', url);
 
-    expect(root.find(`.${styles.description}`)).toIncludeText(
-      'Your add-on uses a JavaScript library',
+    expect(root.find(`.${styles.description}`)).toHaveText(
+      `Your add-on uses a JavaScript library we
+      consider unsafe. Read more: ${url}`,
     );
   });
 
@@ -99,7 +100,9 @@ describe(__filename, () => {
       'https://bit.ly/second-link',
       'https://bit.ly/third-link',
     ];
-    const root = renderMessage({ description: [urls.join(' ')] });
+    const root = renderMessage({
+      description: [urls.map((u) => `<a href="${u}">${u}</a>`).join(' ')],
+    });
 
     const link = root.find(Alert.Link);
     expect(link).toHaveLength(urls.length);

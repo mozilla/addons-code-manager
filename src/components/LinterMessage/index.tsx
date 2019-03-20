@@ -24,6 +24,7 @@ export const decodeHtmlEntities = (text: string) => {
 };
 
 const renderDescription = (description: LinterMessage['description']) => {
+  const linkPattern = /<a href="([^"]+)">[^<]+<\/a>/g;
   const urlPattern = /^https?:\/\//;
 
   return description.reduce((allLines: React.ReactNode[], line, lineIndex) => {
@@ -32,20 +33,24 @@ const renderDescription = (description: LinterMessage['description']) => {
     }
 
     allLines.push(
-      // Intercept and replace URLs with JSX links.
-      line.split(/(\s+)/).reduce((allParts: React.ReactNode[], part) => {
-        if (urlPattern.test(part)) {
-          allParts.push(
-            <Alert.Link key={`link:${part}`} href={part}>
-              {part}
-            </Alert.Link>,
-          );
-        } else {
-          allParts.push(decodeHtmlEntities(part));
-        }
+      line
+        // Replace anchor tags with just their URLs.
+        .replace(linkPattern, '$1')
+        // Intercept and replace URLs with JSX links.
+        .split(/(\s+)/)
+        .reduce((allParts: React.ReactNode[], part) => {
+          if (urlPattern.test(part)) {
+            allParts.push(
+              <Alert.Link key={`link:${part}`} href={part}>
+                {part}
+              </Alert.Link>,
+            );
+          } else {
+            allParts.push(decodeHtmlEntities(part));
+          }
 
-        return allParts;
-      }, []),
+          return allParts;
+        }, []),
     );
 
     return allLines;
