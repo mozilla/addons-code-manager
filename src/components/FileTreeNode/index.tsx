@@ -134,23 +134,17 @@ class FileTreeNodeBase<TreeNodeType> extends React.Component<PublicProps> {
       <React.Fragment>
         <ListGroup.Item {...listGroupItemProps}>
           <span
-            className={styles.nodeName}
-            style={{ paddingLeft: `${level * 20}px` }}
+            className={styles.nodeItem}
+            style={{ paddingLeft: `${level * 12}px` }}
           >
             {isFolder ? (
-              <React.Fragment>
-                <FontAwesomeIcon icon={isExpanded ? 'folder-open' : 'folder'} />
-                &nbsp;{node.name}
-              </React.Fragment>
+              <FontAwesomeIcon icon={isExpanded ? 'folder-open' : 'folder'} />
             ) : (
-              <React.Fragment>
-                <FontAwesomeIcon icon="file" />
-                &nbsp;{node.name}
-              </React.Fragment>
+              <FontAwesomeIcon icon="file" />
             )}
+            <span className={styles.nodeName}>{node.name}</span>
+            {nodeIcons}
           </span>
-
-          {nodeIcons}
         </ListGroup.Item>
 
         {isExpanded &&

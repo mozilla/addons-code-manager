@@ -9,8 +9,29 @@
   padding: 0.5rem 1.25rem;
 }
 
+.nodeItem {
+  align-items: flex-start;
+  display: flex;
+  line-height: 1;
+  width: 100%;
+}
+
+.nodeName,
+.nodeIcons {
+  margin-left: 0.5rem;
+  width: 100%;
+}
+
 .nodeName {
-  word-break: break-all;
+  overflow: hidden;
+  padding-bottom: 0.2rem;
+  text-overflow: ellipsis;
+  white-space: wrap;
+}
+
+.nodeIcons {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .selected {
@@ -27,7 +48,4 @@
   &.hasLinterWarnings {
     color: $orange;
   }
-}
-
-.nodeIcons {
 }

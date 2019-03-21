@@ -284,13 +284,14 @@ describe(__filename, () => {
     (type, className, icon) => {
       const message = {
         ...fakeExternalLinterMessage,
-        file: 'manifest.json',
+        file: 'src',
         type: type as ExternalLinterMessage['type'],
       };
 
       const root = renderWithLinterMessage({
         message,
         treefoldRenderProps: {
+          id: message.file,
           isFolder: true,
         },
       });

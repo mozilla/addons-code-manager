@@ -31,7 +31,7 @@ type PropsFromRouter = {
 
 type PropsFromState = {
   addonId: number;
-  compareInfo: CompareInfo | null | undefined;
+  compareInfo: CompareInfo | null | void;
   isLoading: boolean;
   path: string | void;
   version: Version;
