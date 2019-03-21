@@ -77,10 +77,10 @@ describe(__filename, () => {
   });
 
   it('renders a link for URLs', () => {
-    const url = 'https://bit.ly/1TRIyZY';
+    const url = 'https://mzl.la/25zqk4O';
     const description = [
       `Your add-on uses a JavaScript library we
-      consider unsafe. Read more: ${url}`,
+      consider unsafe. Read more: <a href="${url}">${url}</a>`,
     ];
     const root = renderMessage({ description });
 
@@ -88,8 +88,9 @@ describe(__filename, () => {
     expect(link).toHaveText(url);
     expect(link).toHaveProp('href', url);
 
-    expect(root.find(`.${styles.description}`)).toIncludeText(
-      'Your add-on uses a JavaScript library',
+    expect(root.find(`.${styles.description}`)).toHaveText(
+      `Your add-on uses a JavaScript library we
+      consider unsafe. Read more: ${url}`,
     );
   });
 
@@ -99,7 +100,9 @@ describe(__filename, () => {
       'https://bit.ly/second-link',
       'https://bit.ly/third-link',
     ];
-    const root = renderMessage({ description: [urls.join(' ')] });
+    const root = renderMessage({
+      description: [urls.map((u) => `<a href="${u}">${u}</a>`).join(' ')],
+    });
 
     const link = root.find(Alert.Link);
     expect(link).toHaveLength(urls.length);
@@ -124,28 +127,6 @@ describe(__filename, () => {
 
     expect(root.find(`.${styles.description}`).html()).toContain(
       description[0],
-    );
-  });
-
-  it('escapes HTML in messages', () => {
-    // This is not a realistic input value. In real life, the HTML
-    // would be escaped.
-    const message = 'The value of <em:id> is invalid';
-    const root = renderMessage({ message });
-
-    expect(root.find(Alert.Heading).html()).toContain('&lt;em:id&gt;');
-  });
-
-  it('escapes HTML in descriptions', () => {
-    // This is not a realistic input value. In real life, the HTML
-    // would be escaped.
-    const description = [
-      'The values supplied for <em:id> in the install.rdf file...',
-    ];
-    const root = renderMessage({ description });
-
-    expect(root.find(`.${styles.description}`).html()).toContain(
-      '&lt;em:id&gt;',
     );
   });
 

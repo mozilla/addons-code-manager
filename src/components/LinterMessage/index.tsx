@@ -1,4 +1,5 @@
 import * as React from 'react';
+import purify from 'dompurify';
 import he from 'he';
 import { Alert } from 'react-bootstrap';
 
@@ -32,20 +33,24 @@ const renderDescription = (description: LinterMessage['description']) => {
     }
 
     allLines.push(
-      // Intercept and replace URLs with JSX links.
-      line.split(/(\s+)/).reduce((allParts: React.ReactNode[], part) => {
-        if (urlPattern.test(part)) {
-          allParts.push(
-            <Alert.Link key={`link:${part}`} href={part}>
-              {part}
-            </Alert.Link>,
-          );
-        } else {
-          allParts.push(decodeHtmlEntities(part));
-        }
+      // Replace anchor tags with just their text, which are the URLs.
+      purify
+        .sanitize(line, { ALLOWED_TAGS: [] })
+        // Intercept and replace URLs with JSX links.
+        .split(/(\s+)/)
+        .reduce((allParts: React.ReactNode[], part) => {
+          if (urlPattern.test(part)) {
+            allParts.push(
+              <Alert.Link key={`link:${part}`} href={part}>
+                {part}
+              </Alert.Link>,
+            );
+          } else {
+            allParts.push(decodeHtmlEntities(part));
+          }
 
-        return allParts;
-      }, []),
+          return allParts;
+        }, []),
     );
 
     return allLines;

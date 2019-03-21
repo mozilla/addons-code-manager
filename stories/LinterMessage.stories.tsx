@@ -85,7 +85,8 @@ storiesOf('LinterMessage', module).addWithChapters('all variants', {
                 message: 'Banned 3rd-party JS library',
                 description: [
                   `Your add-on uses a JavaScript library we
-                consider unsafe. Read more: https://bit.ly/1TRIyZY`,
+                  consider unsafe. Read more:
+                  <a href="https://bit.ly/1TRIyZY">https://bit.ly/1TRIyZY</a>`,
                 ],
               })}
             />
