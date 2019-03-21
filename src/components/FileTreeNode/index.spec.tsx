@@ -3,10 +3,15 @@ import { shallow } from 'enzyme';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { createInternalVersion } from '../../reducers/versions';
-import { fakeVersion } from '../../test-helpers';
+import { ExternalLinterMessage, getMessageMap } from '../../reducers/linter';
+import {
+  createFakeExternalLinterResult,
+  fakeExternalLinterMessage,
+  fakeVersion,
+} from '../../test-helpers';
 import styles from './styles.module.scss';
 
-import FileTreeNode, { PublicProps } from '.';
+import FileTreeNode, { PublicProps, findMostSevereTypeForPath } from '.';
 
 const fakeGetToggleProps = () => ({
   onClick: jest.fn(),
@@ -45,15 +50,40 @@ describe(__filename, () => {
 
   const render = ({
     version = createInternalVersion(fakeVersion),
+    linterMessages,
     ...props
   }: RenderParams = {}) => {
     const allProps = {
       version,
+      linterMessages,
       ...getTreefoldRenderProps(),
       ...props,
     };
 
     return shallow(<FileTreeNode {...allProps} />);
+  };
+
+  const _getMessageMap = (
+    messages: Partial<ExternalLinterMessage>[] = [fakeExternalLinterMessage],
+  ) => {
+    return getMessageMap(createFakeExternalLinterResult({ messages }));
+  };
+
+  const renderWithLinterMessage = ({
+    version = createInternalVersion(fakeVersion),
+    message = fakeExternalLinterMessage,
+    treefoldRenderProps = {},
+  }) => {
+    const renderProps = getTreefoldRenderProps({
+      id: version.selectedPath,
+      ...treefoldRenderProps,
+    });
+
+    return render({
+      ...renderProps,
+      linterMessages: _getMessageMap([message]),
+      version,
+    });
   };
 
   it('renders a simple directory node', () => {
@@ -215,5 +245,202 @@ describe(__filename, () => {
     });
 
     expect(root.find(`.${styles.selected}`)).toHaveLength(0);
+  });
+
+  it.each([
+    ['error', `.${styles.hasLinterErrors}`, 'times-circle'],
+    ['notice', `.${styles.hasLinterMessages}`, 'info-circle'],
+    ['warning', `.${styles.hasLinterWarnings}`, 'exclamation-triangle'],
+  ])('renders a file node that has linter %ss', (type, className, icon) => {
+    const message = {
+      ...fakeExternalLinterMessage,
+      file: 'manifest.json',
+      type: type as ExternalLinterMessage['type'],
+    };
+
+    const root = renderWithLinterMessage({
+      message,
+      treefoldRenderProps: {
+        isFolder: false,
+      },
+    });
+
+    expect(root.find(className)).toHaveLength(1);
+
+    const nodeIcons = root.find(`.${styles.nodeIcons}`);
+    expect(nodeIcons).toHaveLength(1);
+    expect(nodeIcons.find(FontAwesomeIcon)).toHaveProp('icon', icon);
+    expect(nodeIcons.find(FontAwesomeIcon).prop('title')).toMatch(
+      new RegExp(`file contains linter ${type}s`),
+    );
+  });
+
+  it.each([
+    ['error', `.${styles.hasLinterErrors}`, 'times-circle'],
+    ['notice', `.${styles.hasLinterMessages}`, 'info-circle'],
+    ['warning', `.${styles.hasLinterWarnings}`, 'exclamation-triangle'],
+  ])(
+    'renders a directory node that has linter %ss',
+    (type, className, icon) => {
+      const message = {
+        ...fakeExternalLinterMessage,
+        file: 'src',
+        type: type as ExternalLinterMessage['type'],
+      };
+
+      const root = renderWithLinterMessage({
+        message,
+        treefoldRenderProps: {
+          id: message.file,
+          isFolder: true,
+        },
+      });
+
+      expect(root.find(className)).toHaveLength(1);
+
+      const nodeIcons = root.find(`.${styles.nodeIcons}`);
+      expect(nodeIcons).toHaveLength(1);
+      expect(nodeIcons.find(FontAwesomeIcon)).toHaveProp('icon', icon);
+      expect(nodeIcons.find(FontAwesomeIcon).prop('title')).toMatch(
+        new RegExp(`contains files with linter ${type}s`),
+      );
+    },
+  );
+
+  it('ignores linter messages unrelated to the current node', () => {
+    const message = {
+      ...fakeExternalLinterMessage,
+      file: 'manifest.json',
+    };
+
+    const root = renderWithLinterMessage({
+      message,
+      treefoldRenderProps: {
+        id: 'some/other/file.js',
+      },
+    });
+
+    expect(root.find(`.${styles.hasLinterMessages}`)).toHaveLength(0);
+  });
+
+  it('indicates when a directory node contains a file that has linter messages', () => {
+    const message = {
+      ...fakeExternalLinterMessage,
+      file: 'src/manifest.json',
+    };
+
+    const root = renderWithLinterMessage({
+      message,
+      treefoldRenderProps: {
+        id: 'src/',
+        isFolder: true,
+      },
+    });
+
+    expect(root.find(`.${styles.hasLinterMessages}`)).toHaveLength(1);
+  });
+
+  describe('findMostSevereTypeForPath', () => {
+    it('returns null when the map is empty', () => {
+      const path = 'file.js';
+      const map = _getMessageMap([]);
+
+      const type = findMostSevereTypeForPath(map, path);
+
+      expect(type).toEqual(null);
+    });
+
+    it('returns the type of the message when there is only one message and a path', () => {
+      const path = 'file.js';
+      const message = { ...fakeExternalLinterMessage, file: path };
+      const map = _getMessageMap([message]);
+
+      const type = findMostSevereTypeForPath(map, path);
+
+      expect(type).toEqual(message.type);
+    });
+
+    it('returns null when the path is not found', () => {
+      const path = 'file.js';
+      const message = { ...fakeExternalLinterMessage, file: path };
+      const map = _getMessageMap([message]);
+
+      const type = findMostSevereTypeForPath(map, 'other-path');
+
+      expect(type).toEqual(null);
+    });
+
+    it('returns the most severe type given a directory path', () => {
+      const path = 'src';
+      const message = { ...fakeExternalLinterMessage, file: `${path}/file.js` };
+      const map = _getMessageMap([message]);
+
+      const type = findMostSevereTypeForPath(map, path);
+
+      expect(type).toEqual(message.type);
+    });
+
+    it('returns the most severe type given a map of messages and a directory path', () => {
+      const path = 'src';
+      const messages = [
+        {
+          ...fakeExternalLinterMessage,
+          file: `${path}/file-1.js`,
+          type: 'warning',
+        },
+        {
+          ...fakeExternalLinterMessage,
+          file: `${path}/file-2.js`,
+          type: 'error',
+        },
+      ] as ExternalLinterMessage[];
+      const map = _getMessageMap(messages);
+
+      const type = findMostSevereTypeForPath(map, path);
+
+      expect(type).toEqual(messages[1].type);
+    });
+
+    it('returns the most severe type given a map of messages for the same exact path', () => {
+      const path = 'src/file-1.js';
+      const messages = [
+        {
+          ...fakeExternalLinterMessage,
+          file: path,
+          type: 'warning',
+        },
+        {
+          ...fakeExternalLinterMessage,
+          file: path,
+          type: 'error',
+        },
+      ] as ExternalLinterMessage[];
+      const map = _getMessageMap(messages);
+
+      const type = findMostSevereTypeForPath(map, path);
+
+      expect(type).toEqual(messages[1].type);
+    });
+
+    it('returns the most severe type given a map of messages and a fully qualified file path', () => {
+      const path = 'src/file-1.js';
+      const messages = [
+        {
+          ...fakeExternalLinterMessage,
+          file: path,
+          type: 'warning',
+        },
+        {
+          ...fakeExternalLinterMessage,
+          file: `src/file-2.js`,
+          type: 'error',
+        },
+      ] as ExternalLinterMessage[];
+      const map = _getMessageMap(messages);
+
+      const type = findMostSevereTypeForPath(map, path);
+
+      expect(type).toEqual(messages[0].type);
+    });
   });
 });

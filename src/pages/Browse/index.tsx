@@ -42,7 +42,7 @@ type PropsFromRouter = {
 type PropsFromState = {
   apiState: ApiState;
   file: VersionFile | null | void;
-  linterMessages: LinterMessageMap | null | void;
+  linterMessages: LinterMessageMap | void;
   linterMessagesAreLoading: boolean;
   version: Version;
 };
@@ -125,7 +125,11 @@ export class BrowseBase extends React.Component<Props> {
         <Col md="3">
           <Row>
             <Col>
-              <FileTree version={version} onSelect={this.onSelectFile} />
+              <FileTree
+                linterMessages={linterMessages}
+                onSelect={this.onSelectFile}
+                version={version}
+              />
             </Col>
           </Row>
           {file && (

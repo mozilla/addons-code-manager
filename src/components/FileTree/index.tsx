@@ -6,6 +6,7 @@ import FileTreeNode, {
   PublicProps as FileTreeNodeProps,
 } from '../FileTreeNode';
 import { Version } from '../../reducers/versions';
+import { LinterMessageMap } from '../../reducers/linter';
 import { getLocalizedString } from '../../utils';
 
 type FileNode = {
@@ -129,15 +130,25 @@ export const buildFileTree = (
 };
 
 type PublicProps = {
+  linterMessages: LinterMessageMap | void;
   onSelect: FileTreeNodeProps['onSelect'];
   version: Version;
 };
 
-export class FileTreeBase extends React.Component<PublicProps> {
-  renderNode = (props: TreefoldRenderProps<TreeNode>) => {
-    const { onSelect, version } = this.props;
+type Props = PublicProps;
 
-    return <FileTreeNode {...props} onSelect={onSelect} version={version} />;
+export class FileTreeBase extends React.Component<Props> {
+  renderNode = (props: TreefoldRenderProps<TreeNode>) => {
+    const { linterMessages, onSelect, version } = this.props;
+
+    return (
+      <FileTreeNode
+        {...props}
+        linterMessages={linterMessages}
+        onSelect={onSelect}
+        version={version}
+      />
+    );
   };
 
   render() {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { storiesOf } from '@storybook/react';
 
-import FileTreeNode from '../src/components/FileTreeNode';
+import FileTreeNode, { PublicProps } from '../src/components/FileTreeNode';
 import { createInternalVersion } from '../src/reducers/versions';
 import { fakeVersion } from '../src/test-helpers';
 
@@ -13,6 +13,7 @@ const getProps = ({
   nodeName = 'node name',
   nodeId = 'node-id',
   renderChildNodes = () => ({}),
+  linterMessages = undefined as PublicProps['linterMessages'],
   version = createInternalVersion(fakeVersion),
 } = {}) => {
   return {
@@ -31,6 +32,7 @@ const getProps = ({
       name: nodeName,
     },
     renderChildNodes,
+    linterMessages,
     onSelect: () => {},
     version,
   };

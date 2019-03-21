@@ -2,9 +2,50 @@
 
 .node {
   cursor: pointer;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: space-between;
   padding: 0.5rem 1.25rem;
+}
+
+.nodeItem {
+  align-items: flex-start;
+  display: flex;
+  line-height: 1;
+  width: 100%;
+}
+
+.nodeName,
+.nodeIcons {
+  margin-left: 0.5rem;
+  width: 100%;
+}
+
+.nodeName {
+  overflow: hidden;
+  padding-bottom: 0.2rem;
+  text-overflow: ellipsis;
+  white-space: wrap;
+}
+
+.nodeIcons {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .selected {
   background-color: $light-gray;
+}
+
+.hasLinterMessages {
+  font-weight: 500;
+
+  &.hasLinterErrors {
+    color: $red;
+  }
+
+  &.hasLinterWarnings {
+    color: $orange;
+  }
 }
