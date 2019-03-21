@@ -21,17 +21,16 @@ import {
   ExternalLinterMessage,
   actions as linterActions,
 } from '../../reducers/linter';
-import { Version, createInternalVersion } from '../../reducers/versions';
+import { createInternalVersion } from '../../reducers/versions';
 import {
   createContextWithFakeRouter,
   createFakeExternalLinterResult,
   createFakeLocation,
-  createFakeThunk,
   fakeVersion,
   fakeVersionEntry,
   fakeVersionFile,
   shallowUntilTarget,
-  spyOn,
+  simulateLinterProvider,
 } from '../../test-helpers';
 import styles from './styles.module.scss';
 
@@ -50,15 +49,16 @@ describe(__filename, () => {
   const render = ({
     location = createFakeLocation(),
     store = configureStore(),
+    version = createInternalVersion(fakeVersion),
     ...props
   }: RenderParams = {}) => {
     const contextWithRouter = createContextWithFakeRouter({ location });
 
-    return shallowUntilTarget(
+    const rootWithProvider = shallowUntilTarget(
       <DiffView
         diffs={parseDiff(basicDiff)}
         mimeType="text/plain"
-        version={createInternalVersion(fakeVersion)}
+        version={version}
         {...props}
       />,
       DiffViewBase,
@@ -72,25 +72,8 @@ describe(__filename, () => {
         },
       },
     );
-  };
 
-  type RenderWithVersionParams = {
-    store?: Store;
-    version: Version;
-  };
-
-  const renderWithVersion = ({
-    store = configureStore(),
-    version,
-  }: RenderWithVersionParams) => {
-    const dispatch = spyOn(store, 'dispatch');
-
-    const fakeThunk = createFakeThunk();
-    const _fetchLinterMessages = fakeThunk.createThunk;
-
-    const root = render({ _fetchLinterMessages, store, version });
-
-    return { _fetchLinterMessages, dispatch, root, fakeThunk };
+    return simulateLinterProvider(rootWithProvider, { store, version });
   };
 
   const _loadLinterResult = ({
@@ -127,7 +110,7 @@ describe(__filename, () => {
     return { linterResult, version };
   };
 
-  const renderAndGetWidgets = (params: RenderParams): WidgetMap => {
+  const renderAndGetWidgets = (params: RenderParams = {}): WidgetMap => {
     const root = render(params);
 
     const diffView = root.find(Diff);
@@ -310,105 +293,6 @@ describe(__filename, () => {
     render({ _document, location });
 
     expect(element.scrollIntoView).toHaveBeenCalled();
-  });
-
-  it('calls loadData on construction', () => {
-    const _loadData = jest.fn();
-
-    render({ _loadData });
-
-    expect(_loadData).toHaveBeenCalled();
-  });
-
-  it('calls loadData on update', () => {
-    const _loadData = jest.fn();
-
-    const root = render({ _loadData });
-
-    _loadData.mockClear();
-    // Simulate an update.
-    root.setProps({});
-
-    expect(_loadData).toHaveBeenCalledWith();
-  });
-
-  it('dispatches fetchLinterMessages when linterMessages is undefined', () => {
-    const url = '/path/to/validation.json';
-    const version = createInternalVersion({
-      ...fakeVersion,
-      id: fakeVersion.id + 1,
-      validation_url_json: url,
-    });
-
-    const { _fetchLinterMessages, dispatch, fakeThunk } = renderWithVersion({
-      version,
-    });
-
-    expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
-    expect(_fetchLinterMessages).toHaveBeenCalledWith({
-      versionId: version.id,
-      url,
-    });
-  });
-
-  it('does not dispatch fetchLinterMessages while loading', () => {
-    const store = configureStore();
-    const version = createInternalVersion({ ...fakeVersion });
-    store.dispatch(
-      linterActions.beginFetchLinterResult({ versionId: version.id }),
-    );
-
-    const { dispatch } = renderWithVersion({ store, version });
-
-    expect(dispatch).not.toHaveBeenCalled();
-  });
-
-  it('does not dispatch fetchLinterMessages after they have loaded', () => {
-    const store = configureStore();
-    const { version } = _loadLinterResult({
-      store,
-      messages: [{ uid: 'some-message-uid' }],
-    });
-
-    const { dispatch } = renderWithVersion({ store, version });
-
-    expect(dispatch).not.toHaveBeenCalled();
-  });
-
-  it('does not dispatch fetchLinterMessages if they have loaded but for another path', () => {
-    const store = configureStore();
-
-    const manifestPath = 'manifest.json';
-    const libPath = 'lib/react.js';
-
-    // Create a version where the manifestPath is selected.
-    const version = createInternalVersion({
-      ...fakeVersion,
-      file: {
-        ...fakeVersionFile,
-        entries: {
-          [manifestPath]: { ...fakeVersionEntry, path: manifestPath },
-          [libPath]: { ...fakeVersionEntry, path: libPath },
-        },
-        selected_file: manifestPath,
-      },
-    });
-
-    // Create linter messages for libPath, which is not selected.
-    const linterResult = createFakeExternalLinterResult({
-      messages: [{ uid: 'some-message-uid', file: libPath }],
-    });
-
-    store.dispatch(
-      linterActions.loadLinterResult({
-        versionId: version.id,
-        result: linterResult,
-      }),
-    );
-
-    const { dispatch } = renderWithVersion({ store, version });
-
-    expect(dispatch).not.toHaveBeenCalled();
   });
 
   it('renders global messages', () => {

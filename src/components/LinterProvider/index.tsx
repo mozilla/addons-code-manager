@@ -5,6 +5,7 @@ import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
 import {
   LinterMessageMap,
   LinterMessagesByPath,
+  LinterState,
   fetchLinterMessages,
   selectMessageMap,
 } from '../../reducers/linter';
@@ -88,14 +89,12 @@ export class LinterProviderBase extends React.Component<Props> {
   }
 }
 
-const mapStateToProps = (
-  state: ApplicationState,
-  ownProps: PublicProps,
-): PropsFromState => {
-  const { version } = ownProps;
-
+export const createLinterMessageInfo = (
+  linterState: LinterState,
+  version: Version,
+): LinterMessageInfo => {
   let selectedMessageMap;
-  const map = selectMessageMap(state.linter, version.id);
+  const map = selectMessageMap(linterState, version.id);
   if (map) {
     selectedMessageMap = map[version.selectedPath]
       ? map[version.selectedPath]
@@ -105,9 +104,16 @@ const mapStateToProps = (
 
   return {
     messageMap: map,
-    messagesAreLoading: state.linter.isLoading,
+    messagesAreLoading: linterState.isLoading,
     selectedMessageMap,
   };
+};
+
+const mapStateToProps = (
+  state: ApplicationState,
+  ownProps: PublicProps,
+): PropsFromState => {
+  return createLinterMessageInfo(state.linter, ownProps.version);
 };
 
 export default connect(mapStateToProps)(LinterProviderBase);

@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import { History, Location } from 'history';
-import { shallow } from 'enzyme';
+import { ShallowWrapper, shallow } from 'enzyme';
 import { Store } from 'redux';
 import log from 'loglevel';
 
@@ -11,6 +11,7 @@ import configureStore, {
 import { ExternalLinterResult, ExternalLinterMessage } from './reducers/linter';
 import { ExternalUser } from './reducers/users';
 import {
+  createInternalVersion,
   ExternalChange,
   ExternalVersionAddon,
   ExternalVersionEntry,
@@ -19,8 +20,13 @@ import {
   ExternalVersionWithDiff,
   ExternalVersionsList,
   ExternalVersionsListItem,
+  Version,
   VersionEntryType,
 } from './reducers/versions';
+import LinterProvider, {
+  Props as LinterProviderProps,
+  createLinterMessageInfo,
+} from './components/LinterProvider';
 
 /* eslint-disable @typescript-eslint/camelcase */
 
@@ -483,4 +489,30 @@ export const createFakeEvent = (extraProps = {}) => {
     stopPropagation: jest.fn(),
     ...extraProps,
   };
+};
+
+/*
+ * Given a component that uses <LinterProvider>, simulate the content
+ * returned by <LinterProvider>
+ */
+export const simulateLinterProvider = (
+  root: ShallowWrapper,
+  {
+    store = configureStore(),
+    version = createInternalVersion(fakeVersion),
+  }: {
+    store?: Store;
+    version?: Version;
+  } = {},
+) => {
+  const provider: ShallowWrapper<LinterProviderProps> = root.find(
+    LinterProvider,
+  );
+  expect(provider).toHaveLength(1);
+
+  const renderWithLinter = provider.renderProp('children');
+  // Simulate how LinterProvider will render its children prop.
+  return renderWithLinter(
+    createLinterMessageInfo(store.getState().linter, version),
+  );
 };

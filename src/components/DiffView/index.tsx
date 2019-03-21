@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { connect } from 'react-redux';
 import {
   ChangeInfo,
   Decoration,
@@ -15,14 +14,9 @@ import {
 import { withRouter, RouteComponentProps } from 'react-router-dom';
 import makeClassName from 'classnames';
 
-import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
+import LinterProvider, { LinterMessageInfo } from '../LinterProvider';
 import LinterMessage from '../LinterMessage';
 import refractor from '../../refractor';
-import {
-  LinterMessagesByPath,
-  fetchLinterMessages,
-  selectMessageMap,
-} from '../../reducers/linter';
 import { Version } from '../../reducers/versions';
 import { getLanguageFromMimeType, gettext } from '../../utils';
 import styles from './styles.module.scss';
@@ -35,10 +29,7 @@ export const getAllHunkChanges = (hunks: Hunks): ChangeInfo[] => {
   );
 };
 
-type LoadData = () => void;
-
 export type PublicProps = {
-  _loadData?: LoadData;
   diffs: DiffInfo[];
   mimeType: string;
   version: Version;
@@ -46,43 +37,23 @@ export type PublicProps = {
 
 export type DefaultProps = {
   _document: typeof document;
-  _fetchLinterMessages: typeof fetchLinterMessages;
   _tokenize: typeof tokenize;
   viewType: DiffProps['viewType'];
 };
 
-type PropsFromState = {
-  linterMessages: LinterMessagesByPath | null | void;
-  linterMessagesAreLoading: boolean;
-};
-
 export type RouterProps = RouteComponentProps<{}>;
 
-export type Props = PublicProps &
-  DefaultProps &
-  PropsFromState &
-  RouterProps &
-  ConnectedReduxProps;
+export type Props = PublicProps & DefaultProps & RouterProps;
 
 export class DiffViewBase extends React.Component<Props> {
-  loadData: LoadData;
-
   static defaultProps: DefaultProps = {
     _document: document,
-    _fetchLinterMessages: fetchLinterMessages,
     _tokenize: tokenize,
     viewType: 'unified',
   };
 
-  constructor(props: Props) {
-    super(props);
-    // Allow dependency injection to test all the ways loadData() gets executed.
-    this.loadData = props._loadData || this._loadData;
-  }
-
   componentDidMount() {
     const { _document, location } = this.props;
-    this.loadData();
 
     if (!location.hash.length) {
       return;
@@ -95,39 +66,17 @@ export class DiffViewBase extends React.Component<Props> {
     }
   }
 
-  componentDidUpdate() {
-    this.loadData();
-  }
-
-  _loadData = () => {
-    const {
-      _fetchLinterMessages,
-      dispatch,
-      version,
-      linterMessages,
-      linterMessagesAreLoading,
-    } = this.props;
-
-    if (linterMessages === undefined && !linterMessagesAreLoading) {
-      dispatch(
-        _fetchLinterMessages({
-          versionId: version.id,
-          url: version.validationURL,
-        }),
-      );
-    }
-  };
-
-  getWidgets = (hunks: Hunks) => {
-    const { linterMessages } = this.props;
-
+  getWidgets = (
+    hunks: Hunks,
+    selectedMessageMap: LinterMessageInfo['selectedMessageMap'],
+  ) => {
     return getAllHunkChanges(hunks).reduce((widgets, change) => {
       const changeKey = getChangeKey(change);
       const line = change.lineNumber;
 
       let messages;
-      if (line && linterMessages) {
-        messages = linterMessages.byLine[line];
+      if (line && selectedMessageMap) {
+        messages = selectedMessageMap.byLine[line];
       }
 
       let widget = null;
@@ -192,15 +141,8 @@ export class DiffViewBase extends React.Component<Props> {
     return hunks.map(this.renderHunk);
   };
 
-  render() {
-    const {
-      _tokenize,
-      diffs,
-      linterMessages,
-      mimeType,
-      viewType,
-      location,
-    } = this.props;
+  renderWithMessages = ({ selectedMessageMap }: LinterMessageInfo) => {
+    const { _tokenize, diffs, mimeType, viewType, location } = this.props;
 
     const options = {
       highlight: true,
@@ -223,8 +165,8 @@ export class DiffViewBase extends React.Component<Props> {
           </React.Fragment>
         )}
 
-        {linterMessages &&
-          linterMessages.global.map((message) => {
+        {selectedMessageMap &&
+          selectedMessageMap.global.map((message) => {
             return <LinterMessage key={message.uid} message={message} />;
           })}
 
@@ -244,7 +186,7 @@ export class DiffViewBase extends React.Component<Props> {
                 gutterType="anchor"
                 generateAnchorID={getChangeKey}
                 selectedChanges={selectedChanges}
-                widgets={this.getWidgets(hunks)}
+                widgets={this.getWidgets(hunks, selectedMessageMap)}
               >
                 {this.renderHunks}
               </Diff>
@@ -253,30 +195,19 @@ export class DiffViewBase extends React.Component<Props> {
         })}
       </div>
     );
+  };
+
+  render() {
+    const { version } = this.props;
+
+    return (
+      <LinterProvider version={version}>
+        {this.renderWithMessages}
+      </LinterProvider>
+    );
   }
 }
 
-const mapStateToProps = (
-  state: ApplicationState,
-  ownProps: PublicProps,
-): PropsFromState => {
-  const { version } = ownProps;
-
-  let linterMessages;
-  const map = selectMessageMap(state.linter, version.id);
-  if (map) {
-    linterMessages = map[version.selectedPath]
-      ? map[version.selectedPath]
-      : // No messages exist for this path.
-        null;
-  }
-
-  return {
-    linterMessages,
-    linterMessagesAreLoading: state.linter.isLoading,
-  };
-};
-
-export default withRouter<PublicProps & Partial<DefaultProps> & RouterProps>(
-  connect(mapStateToProps)(DiffViewBase),
-) as React.ComponentType<PublicProps & Partial<DefaultProps>>;
+export default withRouter(DiffViewBase) as React.ComponentType<
+  PublicProps & Partial<DefaultProps>
+>;
