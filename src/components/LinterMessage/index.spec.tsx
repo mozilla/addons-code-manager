@@ -130,28 +130,6 @@ describe(__filename, () => {
     );
   });
 
-  it('escapes HTML in messages', () => {
-    // This is not a realistic input value. In real life, the HTML
-    // would be escaped.
-    const message = 'The value of <em:id> is invalid';
-    const root = renderMessage({ message });
-
-    expect(root.find(Alert.Heading).html()).toContain('&lt;em:id&gt;');
-  });
-
-  it('escapes HTML in descriptions', () => {
-    // This is not a realistic input value. In real life, the HTML
-    // would be escaped.
-    const description = [
-      'The values supplied for <em:id> in the install.rdf file...',
-    ];
-    const root = renderMessage({ description });
-
-    expect(root.find(`.${styles.description}`).html()).toContain(
-      '&lt;em:id&gt;',
-    );
-  });
-
   describe('decodeHtmlEntities', () => {
     it('handles decimal HTML entities', () => {
       // &#34; is the decimal encoding of a quotation mark.

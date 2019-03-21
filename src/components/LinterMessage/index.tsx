@@ -1,4 +1,5 @@
 import * as React from 'react';
+import purify from 'dompurify';
 import he from 'he';
 import { Alert } from 'react-bootstrap';
 
@@ -24,7 +25,6 @@ export const decodeHtmlEntities = (text: string) => {
 };
 
 const renderDescription = (description: LinterMessage['description']) => {
-  const linkPattern = /<a href="([^"]+)">[^<]+<\/a>/g;
   const urlPattern = /^https?:\/\//;
 
   return description.reduce((allLines: React.ReactNode[], line, lineIndex) => {
@@ -33,9 +33,9 @@ const renderDescription = (description: LinterMessage['description']) => {
     }
 
     allLines.push(
-      line
-        // Replace anchor tags with just their URLs.
-        .replace(linkPattern, '$1')
+      // Replace anchor tags with just their text, which are the URLs.
+      purify
+        .sanitize(line, { ALLOWED_TAGS: [] })
         // Intercept and replace URLs with JSX links.
         .split(/(\s+)/)
         .reduce((allParts: React.ReactNode[], part) => {
