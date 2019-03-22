@@ -190,11 +190,12 @@ export const createServer = ({
     // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
     const modifyResponse = require('http-proxy-response-rewrite');
 
-    // This sets the development CSP that works with webpack.
+    // This sets the development CSP that works with webpack and devtools.
     app.use(
       helmet.contentSecurityPolicy({
         directives: {
           ...prodCSP,
+          scriptSrc: ["'self'", "'unsafe-inline'"],
           styleSrc: ["'self'", "'unsafe-inline'"],
           connectSrc: ["'self'"],
         },
