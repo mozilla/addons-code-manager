@@ -14,7 +14,7 @@ import {
 import { withRouter, RouteComponentProps } from 'react-router-dom';
 import makeClassName from 'classnames';
 
-import LinterProvider, { LinterMessageInfo } from '../LinterProvider';
+import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import LinterMessage from '../LinterMessage';
 import refractor from '../../refractor';
 import { Version } from '../../reducers/versions';
@@ -68,7 +68,7 @@ export class DiffViewBase extends React.Component<Props> {
 
   getWidgets = (
     hunks: Hunks,
-    selectedMessageMap: LinterMessageInfo['selectedMessageMap'],
+    selectedMessageMap: LinterProviderInfo['selectedMessageMap'],
   ) => {
     return getAllHunkChanges(hunks).reduce((widgets, change) => {
       const changeKey = getChangeKey(change);
@@ -141,7 +141,7 @@ export class DiffViewBase extends React.Component<Props> {
     return hunks.map(this.renderHunk);
   };
 
-  renderWithMessages = ({ selectedMessageMap }: LinterMessageInfo) => {
+  renderWithMessages = ({ selectedMessageMap }: LinterProviderInfo) => {
     const { _tokenize, diffs, mimeType, viewType, location } = this.props;
 
     const options = {

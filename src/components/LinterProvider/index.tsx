@@ -5,13 +5,12 @@ import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
 import {
   LinterMessageMap,
   LinterMessagesByPath,
-  LinterState,
   fetchLinterMessages,
   selectMessageMap,
 } from '../../reducers/linter';
 import { Version } from '../../reducers/versions';
 
-export type LinterMessageInfo = {
+export type LinterProviderInfo = {
   messageMap: LinterMessageMap | void;
   messagesAreLoading: boolean;
   selectedMessageMap: LinterMessagesByPath | null | void;
@@ -19,7 +18,7 @@ export type LinterMessageInfo = {
 
 type LoadData = () => void;
 
-export type RenderWithMessages = (info: LinterMessageInfo) => React.ReactNode;
+export type RenderWithMessages = (info: LinterProviderInfo) => React.ReactNode;
 
 export type PublicProps = {
   _loadData?: LoadData;
@@ -31,7 +30,7 @@ export type DefaultProps = {
   _fetchLinterMessages: typeof fetchLinterMessages;
 };
 
-type PropsFromState = LinterMessageInfo;
+type PropsFromState = LinterProviderInfo;
 
 export type Props = PublicProps &
   DefaultProps &
@@ -89,12 +88,14 @@ export class LinterProviderBase extends React.Component<Props> {
   }
 }
 
-export const createLinterMessageInfo = (
-  linterState: LinterState,
-  version: Version,
-): LinterMessageInfo => {
+const mapStateToProps = (
+  state: ApplicationState,
+  ownProps: PublicProps,
+): PropsFromState => {
+  const { version } = ownProps;
+
   let selectedMessageMap;
-  const map = selectMessageMap(linterState, version.id);
+  const map = selectMessageMap(state.linter, version.id);
   if (map) {
     selectedMessageMap = map[version.selectedPath]
       ? map[version.selectedPath]
@@ -104,16 +105,9 @@ export const createLinterMessageInfo = (
 
   return {
     messageMap: map,
-    messagesAreLoading: linterState.isLoading,
+    messagesAreLoading: state.linter.isLoading,
     selectedMessageMap,
   };
-};
-
-const mapStateToProps = (
-  state: ApplicationState,
-  ownProps: PublicProps,
-): PropsFromState => {
-  return createLinterMessageInfo(state.linter, ownProps.version);
 };
 
 export default connect(mapStateToProps)(LinterProviderBase);

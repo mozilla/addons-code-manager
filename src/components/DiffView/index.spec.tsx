@@ -7,28 +7,21 @@ import {
   parseDiff,
   getChangeKey,
 } from 'react-diff-view';
-import { Store } from 'redux';
-import { shallow } from 'enzyme';
+import { ShallowWrapper, shallow } from 'enzyme';
 import { Location } from 'history';
 
 import basicDiff from './fixtures/basicDiff';
 import multipleDiff from './fixtures/multipleDiff';
 import diffWithDeletions from './fixtures/diffWithDeletions';
 import LinterMessage from '../LinterMessage';
-import configureStore from '../../configureStore';
+import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import { getLanguageFromMimeType } from '../../utils';
-import {
-  ExternalLinterMessage,
-  actions as linterActions,
-} from '../../reducers/linter';
 import { createInternalVersion } from '../../reducers/versions';
 import {
   createContextWithFakeRouter,
-  createFakeExternalLinterResult,
+  createFakeLinterMessagesByPath,
   createFakeLocation,
   fakeVersion,
-  fakeVersionEntry,
-  fakeVersionFile,
   shallowUntilTarget,
   simulateLinterProvider,
 } from '../../test-helpers';
@@ -42,76 +35,50 @@ import DiffView, {
 } from '.';
 
 describe(__filename, () => {
-  type RenderParams = { store?: Store; location?: Location } & Partial<
+  type RenderParams = { location?: Location } & Partial<
     PublicProps & DefaultProps
   >;
 
   const render = ({
     location = createFakeLocation(),
-    store = configureStore(),
-    version = createInternalVersion(fakeVersion),
     ...props
   }: RenderParams = {}) => {
-    const contextWithRouter = createContextWithFakeRouter({ location });
+    const shallowOptions = createContextWithFakeRouter({ location });
 
-    const rootWithProvider = shallowUntilTarget(
+    return shallowUntilTarget(
       <DiffView
         diffs={parseDiff(basicDiff)}
         mimeType="text/plain"
-        version={version}
+        version={createInternalVersion(fakeVersion)}
         {...props}
       />,
       DiffViewBase,
-      {
-        shallowOptions: {
-          ...contextWithRouter,
-          context: {
-            ...contextWithRouter.context,
-            store,
-          },
-        },
-      },
+      { shallowOptions },
     );
-
-    return simulateLinterProvider(rootWithProvider, { store, version });
   };
 
-  const _loadLinterResult = ({
-    messages,
-    path = 'lib/react.js',
-    store,
-  }: {
-    messages: Partial<ExternalLinterMessage>[];
-    path?: string;
-    store: Store;
-  }) => {
-    const version = createInternalVersion({
-      ...fakeVersion,
-      file: {
-        ...fakeVersionFile,
-        entries: { [path]: { ...fakeVersionEntry, path } },
-        selected_file: path,
-      },
+  type RenderWithLinterProviderParams = Partial<LinterProviderInfo> &
+    RenderParams;
+
+  const renderWithLinterProvider = ({
+    messageMap = undefined,
+    messagesAreLoading = false,
+    selectedMessageMap = undefined,
+    ...renderParams
+  }: RenderWithLinterProviderParams = {}): ShallowWrapper => {
+    const root = render(renderParams);
+
+    return simulateLinterProvider(root, {
+      messageMap,
+      messagesAreLoading,
+      selectedMessageMap,
     });
-
-    const linterResult = createFakeExternalLinterResult({
-      messages: messages.map((msg) => {
-        return { ...msg, file: path };
-      }),
-    });
-
-    store.dispatch(
-      linterActions.loadLinterResult({
-        versionId: version.id,
-        result: linterResult,
-      }),
-    );
-
-    return { linterResult, version };
   };
 
-  const renderAndGetWidgets = (params: RenderParams = {}): WidgetMap => {
-    const root = render(params);
+  const renderAndGetWidgets = (
+    params: RenderWithLinterProviderParams = {},
+  ): WidgetMap => {
+    const root = renderWithLinterProvider(params);
 
     const diffView = root.find(Diff);
     expect(diffView).toHaveProp('widgets');
@@ -142,7 +109,7 @@ describe(__filename, () => {
   };
 
   it('renders with no differences', () => {
-    const root = render({ diffs: [] });
+    const root = renderWithLinterProvider({ diffs: [] });
 
     expect(root.find(Diff)).toHaveLength(0);
     expect(root.find(`.${styles.header}`)).toHaveLength(1);
@@ -150,21 +117,21 @@ describe(__filename, () => {
   });
 
   it('defaults the viewType to unified', () => {
-    const root = render();
+    const root = renderWithLinterProvider();
 
     expect(root.find(Diff)).toHaveProp('viewType', 'unified');
   });
 
   it('renders with a specified viewType', () => {
     const viewType = 'split';
-    const root = render({ viewType });
+    const root = renderWithLinterProvider({ viewType });
 
     expect(root.find(Diff)).toHaveProp('viewType', viewType);
   });
 
   it('passes parsed diff information to DiffView', () => {
     const diffs = parseDiff(basicDiff);
-    const root = render({ diffs });
+    const root = renderWithLinterProvider({ diffs });
 
     expect(diffs).toHaveLength(1);
     expect(root.find(Diff)).toHaveProp('diffType', diffs[0].type);
@@ -173,7 +140,7 @@ describe(__filename, () => {
 
   it('creates multiple Diff instances when there are multiple files in the diff', () => {
     const diffs = parseDiff(multipleDiff);
-    const root = render({ diffs });
+    const root = renderWithLinterProvider({ diffs });
 
     expect(root.find(Diff)).toHaveLength(diffs.length);
     diffs.forEach((diff, index) => {
@@ -183,7 +150,7 @@ describe(__filename, () => {
   });
 
   it('renders a header with diff stats', () => {
-    const root = render();
+    const root = renderWithLinterProvider();
 
     expect(root.find(`.${styles.header}`)).toHaveLength(1);
     expect(root.find(`.${styles.stats}`)).toHaveLength(1);
@@ -191,7 +158,9 @@ describe(__filename, () => {
   });
 
   it('renders a header with diff stats for multiple hunks', () => {
-    const root = render({ diffs: parseDiff(diffWithDeletions) });
+    const root = renderWithLinterProvider({
+      diffs: parseDiff(diffWithDeletions),
+    });
 
     expect(root.find(`.${styles.header}`)).toHaveLength(1);
     expect(root.find(`.${styles.stats}`)).toHaveLength(1);
@@ -200,7 +169,7 @@ describe(__filename, () => {
 
   it('renders hunks with separators', () => {
     const diffs = parseDiff(diffWithDeletions);
-    const root = render({ diffs });
+    const root = renderWithLinterProvider({ diffs });
 
     // Simulate the interface of <Diff />
     const children = root.find(Diff).prop('children');
@@ -218,7 +187,7 @@ describe(__filename, () => {
     const mimeType = 'application/javascript';
     const _tokenize = jest.fn();
 
-    render({ _tokenize, diffs, mimeType });
+    renderWithLinterProvider({ _tokenize, diffs, mimeType });
 
     diffs.forEach((diff) => {
       expect(_tokenize).toHaveBeenCalledWith(diff.hunks, {
@@ -231,7 +200,7 @@ describe(__filename, () => {
   });
 
   it('configures anchors/links on each line number', () => {
-    const root = render();
+    const root = renderWithLinterProvider();
 
     expect(root.find(Diff)).toHaveProp('gutterType', 'anchor');
     // More info about the `getChangeKey()` function here: https://github.com/otakustay/react-diff-view/tree/6aa5399c52392e19f7f8fbe4af17b374b4339862#key-of-change
@@ -243,7 +212,7 @@ describe(__filename, () => {
     const selectedChange = 'I1';
     const location = createFakeLocation({ hash: `#${selectedChange}` });
 
-    const root = render({ location });
+    const root = renderWithLinterProvider({ location });
 
     expect(root.find(Diff)).toHaveProp('selectedChanges', [selectedChange]);
   });
@@ -251,7 +220,7 @@ describe(__filename, () => {
   it('passes an empty list of selected changes when location hash is empty', () => {
     const location = createFakeLocation({ hash: '' });
 
-    const root = render({ location });
+    const root = renderWithLinterProvider({ location });
 
     expect(root.find(Diff)).toHaveProp('selectedChanges', []);
   });
@@ -263,7 +232,7 @@ describe(__filename, () => {
     };
     const location = createFakeLocation({ hash: '#some-hash' });
 
-    render({ _document, location });
+    renderWithLinterProvider({ _document, location });
 
     expect(_document.querySelector).toHaveBeenCalledWith(location.hash);
   });
@@ -275,7 +244,7 @@ describe(__filename, () => {
     };
     const location = createFakeLocation({ hash: '' });
 
-    render({ _document, location });
+    renderWithLinterProvider({ _document, location });
 
     expect(_document.querySelector).not.toHaveBeenCalled();
   });
@@ -290,26 +259,33 @@ describe(__filename, () => {
     };
     const location = createFakeLocation({ hash: '#I1' });
 
-    render({ _document, location });
+    renderWithLinterProvider({ _document, location });
 
     expect(element.scrollIntoView).toHaveBeenCalled();
   });
 
-  it('renders global messages', () => {
-    const store = configureStore();
+  it('configures LinterProvider', () => {
+    const version = createInternalVersion({
+      ...fakeVersion,
+      id: fakeVersion.id + 1,
+    });
+    const root = render({ version });
 
+    expect(root.find(LinterProvider)).toHaveProp('version', version);
+  });
+
+  it('renders global messages', () => {
     const globalMessageUid1 = 'first';
     const globalMessageUid2 = 'second';
 
-    const { version } = _loadLinterResult({
-      store,
-      messages: [
-        { line: null, uid: globalMessageUid1 },
-        { line: null, uid: globalMessageUid2 },
-      ],
+    const root = renderWithLinterProvider({
+      selectedMessageMap: createFakeLinterMessagesByPath({
+        messages: [
+          { line: null, uid: globalMessageUid1 },
+          { line: null, uid: globalMessageUid2 },
+        ],
+      }),
     });
-
-    const root = render({ store, version });
 
     const messages = root.find(LinterMessage);
     expect(messages).toHaveLength(2);
@@ -328,8 +304,6 @@ describe(__filename, () => {
   });
 
   it('renders multiple inline messages', () => {
-    const store = configureStore();
-
     const externalMessages = [
       // Add a message to line 9 in the first hunk.
       { line: 9, uid: 'first' },
@@ -337,13 +311,13 @@ describe(__filename, () => {
       { line: 23, uid: 'second' },
     ];
 
-    const { version } = _loadLinterResult({
-      store,
-      messages: externalMessages,
-    });
-
     const diffs = parseDiff(diffWithDeletions);
-    const widgets = renderAndGetWidgets({ diffs, store, version });
+    const widgets = renderAndGetWidgets({
+      diffs,
+      selectedMessageMap: createFakeLinterMessagesByPath({
+        messages: externalMessages,
+      }),
+    });
 
     const { hunks } = diffs[0];
 
@@ -367,22 +341,16 @@ describe(__filename, () => {
   });
 
   it('renders just the right amount of widgets', () => {
-    const store = configureStore();
-
     const externalMessages = [
       { line: 1, uid: 'first' },
       { line: 2, uid: 'second' },
     ];
 
-    const { version } = _loadLinterResult({
-      store,
-      messages: externalMessages,
-    });
-
     const widgets = renderAndGetWidgets({
       diffs: parseDiff(diffWithDeletions),
-      store,
-      version,
+      selectedMessageMap: createFakeLinterMessagesByPath({
+        messages: externalMessages,
+      }),
     });
 
     // As a sanity check on how the widgets are mapped,
@@ -392,18 +360,16 @@ describe(__filename, () => {
   });
 
   it('renders multiple inline messages on the same line', () => {
-    const store = configureStore();
-
     const line = 9;
     const externalMessages = [{ line, uid: 'first' }, { line, uid: 'second' }];
 
-    const { version } = _loadLinterResult({
-      store,
-      messages: externalMessages,
-    });
-
     const diffs = parseDiff(diffWithDeletions);
-    const widgets = renderAndGetWidgets({ diffs, store, version });
+    const widgets = renderAndGetWidgets({
+      diffs,
+      selectedMessageMap: createFakeLinterMessagesByPath({
+        messages: externalMessages,
+      }),
+    });
 
     const { hunks } = diffs[0];
 
@@ -428,7 +394,7 @@ describe(__filename, () => {
   it('does not render widgets without linter messages', () => {
     const widgets = renderAndGetWidgets({
       diffs: parseDiff(diffWithDeletions),
-      version: createInternalVersion(fakeVersion),
+      selectedMessageMap: null,
     });
     expect(getWidgetNodes(widgets).length).toEqual(0);
   });

@@ -8,10 +8,14 @@ import configureStore, {
   ApplicationState,
   ThunkActionCreator,
 } from './configureStore';
-import { ExternalLinterResult, ExternalLinterMessage } from './reducers/linter';
+import {
+  ExternalLinterResult,
+  ExternalLinterMessage,
+  LinterMessagesByPath,
+  getMessageMap,
+} from './reducers/linter';
 import { ExternalUser } from './reducers/users';
 import {
-  createInternalVersion,
   ExternalChange,
   ExternalVersionAddon,
   ExternalVersionEntry,
@@ -20,12 +24,11 @@ import {
   ExternalVersionWithDiff,
   ExternalVersionsList,
   ExternalVersionsListItem,
-  Version,
   VersionEntryType,
 } from './reducers/versions';
 import LinterProvider, {
+  LinterProviderInfo,
   Props as LinterProviderProps,
-  createLinterMessageInfo,
 } from './components/LinterProvider';
 
 /* eslint-disable @typescript-eslint/camelcase */
@@ -272,7 +275,7 @@ export const createFakeExternalLinterResult = ({
   messages,
 }: {
   messages: Partial<ExternalLinterMessage>[];
-}) => {
+}): ExternalLinterResult => {
   return {
     ...fakeExternalLinterResult,
     validation: {
@@ -282,6 +285,28 @@ export const createFakeExternalLinterResult = ({
       }),
     },
   };
+};
+
+export const createFakeLinterMessagesByPath = ({
+  messages,
+  path = 'scripts/background.js',
+}: {
+  messages: Partial<ExternalLinterMessage>[];
+  path?: string;
+}): LinterMessagesByPath => {
+  const map = getMessageMap(
+    createFakeExternalLinterResult({
+      messages: messages.map((msg) => {
+        return { ...msg, file: path };
+      }),
+    }),
+  );
+
+  if (!map[path]) {
+    /* istanbul ignore next */
+    throw new Error(`Somehow no messages were mapped to path "${path}"`);
+  }
+  return map[path];
 };
 
 export const createFakeLocation = (props = {}): Location => {
@@ -497,13 +522,12 @@ export const createFakeEvent = (extraProps = {}) => {
  */
 export const simulateLinterProvider = (
   root: ShallowWrapper,
+  /* istanbul ignore next */
   {
-    store = configureStore(),
-    version = createInternalVersion(fakeVersion),
-  }: {
-    store?: Store;
-    version?: Version;
-  } = {},
+    messageMap = undefined,
+    messagesAreLoading = false,
+    selectedMessageMap = undefined,
+  }: Partial<LinterProviderInfo> = {},
 ) => {
   const provider: ShallowWrapper<LinterProviderProps> = root.find(
     LinterProvider,
@@ -512,7 +536,9 @@ export const simulateLinterProvider = (
 
   const renderWithLinter = provider.renderProp('children');
   // Simulate how LinterProvider will render its children prop.
-  return renderWithLinter(
-    createLinterMessageInfo(store.getState().linter, version),
-  );
+  return renderWithLinter({
+    messageMap,
+    messagesAreLoading,
+    selectedMessageMap,
+  });
 };
