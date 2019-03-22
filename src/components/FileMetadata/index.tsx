@@ -24,6 +24,14 @@ const FileMetadataBase = ({ file }: PublicProps) => {
         </dd>
         <dt>{gettext('MIME type')}</dt>
         <dd className={styles.mimeType}>{file.mimeType}</dd>
+        {file.downloadURL && (
+          <React.Fragment>
+            <dt>{gettext('Download link')}</dt>
+            <dd className={styles.downloadURL}>
+              <a href={file.downloadURL}>{file.filename}</a>
+            </dd>
+          </React.Fragment>
+        )}
       </dl>
     </div>
   );

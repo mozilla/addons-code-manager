@@ -41,7 +41,11 @@ describe(__filename, () => {
 
     expect(root.find(`.${styles.version}`)).toHaveText(file.version);
     expect(root.find(`.${styles.sha256}`)).toHaveText(file.sha256);
-    expect(root.find(`.${styles.mimeType}`)).toHaveText(file.mimeType);
+
+    const downloadLink = root.find(`.${styles.downloadURL}`).find('a');
+    expect(downloadLink).toHaveLength(1);
+    expect(downloadLink).toHaveText(file.filename);
+    expect(downloadLink).toHaveProp('href', file.downloadURL);
   });
 
   it('renders a formatted filesize', () => {

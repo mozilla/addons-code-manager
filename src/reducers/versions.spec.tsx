@@ -292,6 +292,7 @@ describe(__filename, () => {
   describe('getVersionFile', () => {
     /* eslint-disable @typescript-eslint/camelcase */
     it('returns a version file', () => {
+      const downloadURL = 'http://example.org/download/file';
       const mimeType = 'mime/type';
       const path = 'test.js';
       const sha256 = 'some-sha';
@@ -301,6 +302,7 @@ describe(__filename, () => {
         ...fakeVersion,
         file: {
           ...fakeVersionFile,
+          download_url: downloadURL,
           entries: {
             [path]: {
               ...fakeVersionEntry,
@@ -320,6 +322,7 @@ describe(__filename, () => {
 
       expect(getVersionFile(state, version.id, path)).toEqual({
         ...createInternalVersionFile(version.file),
+        downloadURL,
         filename: path,
         mimeType,
         sha256,

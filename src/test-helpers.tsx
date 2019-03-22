@@ -41,6 +41,7 @@ export const fakeVersionEntry: ExternalVersionEntry = Object.freeze({
 export const fakeVersionFile: ExternalVersionFileWithContent = Object.freeze({
   content: 'some file content',
   created: '2017-08-15T12:01:13Z',
+  download_url: 'https://example.org/download/manifest.json',
   entries: {
     'manifest.json': fakeVersionEntry,
   },
