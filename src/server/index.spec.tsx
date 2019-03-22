@@ -394,6 +394,25 @@ describe(__filename, () => {
         expect(response.text).toContain(JSON.stringify(content));
       });
 
+      it('relaxes script-src for local dev', async () => {
+        const content = '<h1>It works!</h1>';
+        fakeCreateReactAppServerApp.get('/*', (req, res) => res.send(content));
+
+        const server = request(
+          createServer({
+            env: devEnv as ServerEnvVars,
+            rootPath,
+          }),
+        );
+
+        const response = await server.get('/');
+        expect(response.status).toEqual(200);
+        expect(response.header).toHaveProperty('content-security-policy');
+
+        const policy = cspParser(response.header['content-security-policy']);
+        expect(policy['script-src']).toEqual(["'self'", "'unsafe-inline'"]);
+      });
+
       it('relaxes style-src for local dev', async () => {
         const content = '<h1>It works!</h1>';
         fakeCreateReactAppServerApp.get('/*', (req, res) => res.send(content));
