@@ -1,5 +1,6 @@
 import { getType } from 'typesafe-actions';
 
+import { actions as errorsActions } from './errors';
 import reducer, {
   ExternalVersionWithDiff,
   ExternalVersionsList,
@@ -500,14 +501,9 @@ describe(__filename, () => {
       );
     });
 
-    it('logs an error when API response is not successful', async () => {
-      const _log = createFakeLogger();
-
-      const _getVersion = jest.fn().mockReturnValue(
-        Promise.resolve({
-          error: new Error('Bad Request'),
-        }),
-      );
+    it('dispatches showError when API response is not successful', async () => {
+      const error = new Error('Bad Request');
+      const _getVersion = jest.fn().mockReturnValue(Promise.resolve({ error }));
 
       const addonId = 123;
       const versionId = 456;
@@ -516,7 +512,6 @@ describe(__filename, () => {
         createThunk: () =>
           fetchVersion({
             _getVersion,
-            _log,
             addonId,
             versionId,
           }),
@@ -524,8 +519,7 @@ describe(__filename, () => {
 
       await thunk();
 
-      expect(_log.error).toHaveBeenCalled();
-      expect(dispatch).not.toHaveBeenCalled();
+      expect(dispatch).toHaveBeenCalledWith(errorsActions.showError({ error }));
     });
   });
 

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { Container, Row } from 'react-bootstrap';
+import { Alert, Container, Col, Row } from 'react-bootstrap';
 import {
   Route,
   RouteComponentProps,
@@ -14,6 +14,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
 import styles from './styles.module.scss';
 import { ApiState, actions as apiActions } from '../../reducers/api';
+import {
+  ApplicationError,
+  actions as errorsActions,
+} from '../../reducers/errors';
 import {
   User,
   currentUserIsLoading,
@@ -38,6 +42,7 @@ export type DefaultProps = {
 
 type PropsFromState = {
   apiState: ApiState;
+  errors: ApplicationError[];
   loading: boolean;
   user: User | null;
 };
@@ -122,6 +127,38 @@ export class AppBase extends React.Component<Props> {
     });
   }
 
+  dismissError = (errorId: number) => {
+    const { dispatch } = this.props;
+
+    dispatch(errorsActions.dismissError({ id: errorId }));
+  };
+
+  renderErrors() {
+    const { errors } = this.props;
+
+    if (errors.length === 0) {
+      return null;
+    }
+
+    return this.renderRow(
+      <Col>
+        {errors.map((error) => (
+          <Alert
+            dismissible
+            key={error.id}
+            onClose={() => this.dismissError(error.id)}
+            variant="danger"
+          >
+            {error.message}
+          </Alert>
+        ))}
+      </Col>,
+      {
+        className: styles.errors,
+      },
+    );
+  }
+
   render() {
     const { loading } = this.props;
 
@@ -129,6 +166,7 @@ export class AppBase extends React.Component<Props> {
       <React.Fragment>
         {!loading && <Navbar />}
         <Container className={styles.container} fluid>
+          {this.renderErrors()}
           {this.renderContent()}
         </Container>
       </React.Fragment>
@@ -139,6 +177,7 @@ export class AppBase extends React.Component<Props> {
 const mapStateToProps = (state: ApplicationState): PropsFromState => {
   return {
     apiState: state.api,
+    errors: state.errors.errors,
     loading: currentUserIsLoading(state.users),
     user: selectCurrentUser(state.users),
   };

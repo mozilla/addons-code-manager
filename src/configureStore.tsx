@@ -16,12 +16,14 @@ import thunk, {
 } from 'redux-thunk';
 
 import api, { ApiState } from './reducers/api';
+import errors, { ErrorsState } from './reducers/errors';
 import linter, { LinterState } from './reducers/linter';
 import users, { UsersState } from './reducers/users';
 import versions, { VersionsState } from './reducers/versions';
 
 export type ApplicationState = {
   api: ApiState;
+  errors: ErrorsState;
   linter: LinterState;
   users: UsersState;
   versions: VersionsState;
@@ -45,7 +47,13 @@ export type ConnectedReduxProps<A extends Action = AnyAction> = {
 };
 
 const createRootReducer = () => {
-  return combineReducers<ApplicationState>({ api, linter, users, versions });
+  return combineReducers<ApplicationState>({
+    api,
+    errors,
+    linter,
+    users,
+    versions,
+  });
 };
 
 const configureStore = (

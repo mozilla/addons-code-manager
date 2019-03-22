@@ -6,6 +6,7 @@ describe(__filename, () => {
 
     expect(Object.keys(store.getState())).toEqual([
       'api',
+      'errors',
       'linter',
       'users',
       'versions',
