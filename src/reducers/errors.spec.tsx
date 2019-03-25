@@ -46,6 +46,29 @@ describe(__filename, () => {
       expect(state.errors.length).toEqual(0);
     });
 
+    it('does not remove other errors when one is dismissed', () => {
+      let state = reducer(
+        undefined,
+        actions.showError({ error: new Error('Bad Request') }),
+      );
+
+      const error2 = new Error('Bad Request, again');
+      state = reducer(state, actions.showError({ error: error2 }));
+
+      expect(state.errors.length).toEqual(2);
+
+      const { errors } = state;
+      const firstError = errors[0];
+
+      state = reducer(state, actions.dismissError({ id: firstError.id }));
+      expect(state.errors).toEqual([
+        {
+          id: expect.any(Number),
+          message: error2.message,
+        },
+      ]);
+    });
+
     it('does not update the next error ID when dismissing an error', () => {
       const prevState = reducer(
         undefined,
