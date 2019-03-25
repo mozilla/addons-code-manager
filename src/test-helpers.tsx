@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import { History, Location } from 'history';
-import { shallow } from 'enzyme';
+import { ShallowWrapper, shallow } from 'enzyme';
 import { Store } from 'redux';
 import log from 'loglevel';
 
@@ -8,7 +8,12 @@ import configureStore, {
   ApplicationState,
   ThunkActionCreator,
 } from './configureStore';
-import { ExternalLinterResult, ExternalLinterMessage } from './reducers/linter';
+import {
+  ExternalLinterResult,
+  ExternalLinterMessage,
+  LinterMessagesByPath,
+  getMessageMap,
+} from './reducers/linter';
 import { ExternalUser } from './reducers/users';
 import {
   ExternalChange,
@@ -21,6 +26,10 @@ import {
   ExternalVersionsListItem,
   VersionEntryType,
 } from './reducers/versions';
+import LinterProvider, {
+  LinterProviderInfo,
+  Props as LinterProviderProps,
+} from './components/LinterProvider';
 
 /* eslint-disable @typescript-eslint/camelcase */
 
@@ -267,7 +276,7 @@ export const createFakeExternalLinterResult = ({
   messages,
 }: {
   messages: Partial<ExternalLinterMessage>[];
-}) => {
+}): ExternalLinterResult => {
   return {
     ...fakeExternalLinterResult,
     validation: {
@@ -277,6 +286,28 @@ export const createFakeExternalLinterResult = ({
       }),
     },
   };
+};
+
+export const createFakeLinterMessagesByPath = ({
+  messages,
+  path = 'scripts/background.js',
+}: {
+  messages: Partial<ExternalLinterMessage>[];
+  path?: string;
+}): LinterMessagesByPath => {
+  const map = getMessageMap(
+    createFakeExternalLinterResult({
+      messages: messages.map((msg) => {
+        return { ...msg, file: path };
+      }),
+    }),
+  );
+
+  if (!map[path]) {
+    /* istanbul ignore next */
+    throw new Error(`Somehow no messages were mapped to path "${path}"`);
+  }
+  return map[path];
 };
 
 export const createFakeLocation = (props = {}): Location => {
@@ -484,4 +515,31 @@ export const createFakeEvent = (extraProps = {}) => {
     stopPropagation: jest.fn(),
     ...extraProps,
   };
+};
+
+/*
+ * Given a component that uses <LinterProvider>, simulate the content
+ * returned by <LinterProvider>
+ */
+export const simulateLinterProvider = (
+  root: ShallowWrapper,
+  /* istanbul ignore next */
+  {
+    messageMap = undefined,
+    messagesAreLoading = false,
+    selectedMessageMap = undefined,
+  }: Partial<LinterProviderInfo> = {},
+) => {
+  const provider: ShallowWrapper<LinterProviderProps> = root.find(
+    LinterProvider,
+  );
+  expect(provider).toHaveLength(1);
+
+  const renderWithLinter = provider.renderProp('children');
+  // Simulate how LinterProvider will render its children prop.
+  return renderWithLinter({
+    messageMap,
+    messagesAreLoading,
+    selectedMessageMap,
+  });
 };

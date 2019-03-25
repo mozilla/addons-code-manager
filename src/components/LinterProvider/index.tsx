@@ -10,7 +10,7 @@ import {
 } from '../../reducers/linter';
 import { Version } from '../../reducers/versions';
 
-export type LinterMessageInfo = {
+export type LinterProviderInfo = {
   messageMap: LinterMessageMap | void;
   messagesAreLoading: boolean;
   selectedMessageMap: LinterMessagesByPath | null | void;
@@ -18,7 +18,7 @@ export type LinterMessageInfo = {
 
 type LoadData = () => void;
 
-export type RenderWithMessages = (info: LinterMessageInfo) => React.ReactNode;
+export type RenderWithMessages = (info: LinterProviderInfo) => React.ReactNode;
 
 export type PublicProps = {
   _loadData?: LoadData;
@@ -30,7 +30,7 @@ export type DefaultProps = {
   _fetchLinterMessages: typeof fetchLinterMessages;
 };
 
-type PropsFromState = LinterMessageInfo;
+type PropsFromState = LinterProviderInfo;
 
 export type Props = PublicProps &
   DefaultProps &
