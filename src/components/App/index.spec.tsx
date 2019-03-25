@@ -173,8 +173,8 @@ describe(__filename, () => {
     const error1 = new Error('error 1');
     const error2 = new Error('error 2');
     const store = configureStore();
-    store.dispatch(errorsActions.showError({ error: error1 }));
-    store.dispatch(errorsActions.showError({ error: error2 }));
+    store.dispatch(errorsActions.addError({ error: error1 }));
+    store.dispatch(errorsActions.addError({ error: error2 }));
 
     const root = render({ store });
 
@@ -184,10 +184,10 @@ describe(__filename, () => {
     expect(root.find(Alert).at(1)).toIncludeText(error2.message);
   });
 
-  it('dispatches dismissError() when dismissing an error', () => {
+  it('dispatches removeError() when dismissing an error', () => {
     const error = new Error('version not found');
     const store = configureStore();
-    store.dispatch(errorsActions.showError({ error }));
+    store.dispatch(errorsActions.addError({ error }));
     const dispatch = spyOn(store, 'dispatch');
 
     const root = render({ store });
@@ -199,7 +199,7 @@ describe(__filename, () => {
     const { errors } = store.getState().errors;
     const lastError = errors[errors.length - 1];
     expect(dispatch).toHaveBeenCalledWith(
-      errorsActions.dismissError({
+      errorsActions.removeError({
         id: lastError.id,
       }),
     );

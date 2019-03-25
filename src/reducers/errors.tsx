@@ -18,10 +18,10 @@ export const initialState: ErrorsState = {
 };
 
 export const actions = {
-  showError: createAction('SHOW_ERROR', (resolve) => {
+  addError: createAction('ADD_ERROR', (resolve) => {
     return (payload: { error: Error }) => resolve(payload);
   }),
-  dismissError: createAction('DISMISS_ERROR', (resolve) => {
+  removeError: createAction('REMOVE_ERROR', (resolve) => {
     return (payload: { id: number }) => resolve(payload);
   }),
 };
@@ -31,7 +31,7 @@ const reducer: Reducer<ErrorsState, ActionType<typeof actions>> = (
   action,
 ): ErrorsState => {
   switch (action.type) {
-    case getType(actions.showError):
+    case getType(actions.addError):
       return {
         ...state,
         errors: state.errors.concat({
@@ -40,7 +40,7 @@ const reducer: Reducer<ErrorsState, ActionType<typeof actions>> = (
         }),
         nextErrorId: state.nextErrorId + 1,
       };
-    case getType(actions.dismissError):
+    case getType(actions.removeError):
       return {
         ...state,
         errors: state.errors.filter(({ id }) => id !== action.payload.id),

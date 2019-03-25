@@ -501,7 +501,7 @@ describe(__filename, () => {
       );
     });
 
-    it('dispatches showError when API response is not successful', async () => {
+    it('dispatches addError when API response is not successful', async () => {
       const error = new Error('Bad Request');
       const _getVersion = jest.fn().mockReturnValue(Promise.resolve({ error }));
 
@@ -519,7 +519,7 @@ describe(__filename, () => {
 
       await thunk();
 
-      expect(dispatch).toHaveBeenCalledWith(errorsActions.showError({ error }));
+      expect(dispatch).toHaveBeenCalledWith(errorsActions.addError({ error }));
     });
   });
 

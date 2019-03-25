@@ -373,7 +373,7 @@ export const fetchVersion = ({
     });
 
     if (isErrorResponse(response)) {
-      dispatch(errorsActions.showError({ error: response.error }));
+      dispatch(errorsActions.addError({ error: response.error }));
     } else {
       dispatch(actions.loadVersionInfo({ version: response }));
       dispatch(
