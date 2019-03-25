@@ -612,6 +612,22 @@ describe(__filename, () => {
       expect(isKnownLibrary(map, path)).toEqual(false);
     });
 
+    it('returns false when another path is a known library', () => {
+      const path = 'jquery.js';
+      const messages = [
+        {
+          ...fakeExternalLinterMessage,
+          file: path,
+          id: [LINTER_KNOWN_LIBRARY_CODE],
+          line: null,
+          type: 'notice',
+        },
+      ] as ExternalLinterMessage[];
+      const map = _getMessageMap(messages);
+
+      expect(isKnownLibrary(map, 'not-the-same-path')).toEqual(false);
+    });
+
     it('returns true when a path is a known library', () => {
       const path = 'jquery.js';
       const messages = [
@@ -626,6 +642,29 @@ describe(__filename, () => {
       const map = _getMessageMap(messages);
 
       expect(isKnownLibrary(map, path)).toEqual(true);
+    });
+
+    it('throws an error if an extra key is found in the linter message map', () => {
+      const path = 'jquery.js';
+      const messages = [
+        {
+          ...fakeExternalLinterMessage,
+          file: path,
+          id: [LINTER_KNOWN_LIBRARY_CODE],
+          line: null,
+          type: 'notice',
+        },
+      ] as ExternalLinterMessage[];
+      const map = _getMessageMap(messages);
+
+      const unexpectedKey = 'future';
+      // Artifically inject a new key in the message map.
+      // @ts-ignore
+      map[path][unexpectedKey] = {};
+
+      expect(() => {
+        isKnownLibrary(map, path);
+      }).toThrow(new RegExp(`Unexpected key "${unexpectedKey}" found`));
     });
   });
 });

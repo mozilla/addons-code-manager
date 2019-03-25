@@ -60,7 +60,17 @@ export const isKnownLibrary = (
   }
 
   const m = linterMessageMap[path];
-  if (Object.keys(m.global).length > 1 || Object.keys(m.byLine).length > 0) {
+
+  // This is useful to make sure we do not miss linter messages if
+  // `LinterMessageMap` is updated with new maps of messages.
+  const allowedKeys = ['global', 'byLine'];
+  Object.keys(m).forEach((key) => {
+    if (!allowedKeys.includes(key)) {
+      throw new Error(`Unexpected key "${key}" found.`);
+    }
+  });
+
+  if (m.global.length > 1 || Object.keys(m.byLine).length > 0) {
     return false;
   }
 
