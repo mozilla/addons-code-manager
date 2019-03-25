@@ -895,10 +895,7 @@ describe(__filename, () => {
       firstHunk.changes.forEach((change, index) => {
         const externalChange = firstExternalHunk.changes[index];
 
-        expect(change).toHaveProperty(
-          'content',
-          externalChange.content.replace(/\n$/, ''),
-        );
+        expect(change).toHaveProperty('content', externalChange.content);
         expect(change).toHaveProperty('type', externalChange.type);
         expect(change).toHaveProperty(
           'oldLineNumber',
@@ -978,17 +975,6 @@ describe(__filename, () => {
       expect(change).toHaveProperty('isInsert', false);
       expect(change).toHaveProperty('isNormal', true);
       expect(change).toHaveProperty('lineNumber', oldLineNumber);
-    });
-
-    it('only removes the trailing newline', () => {
-      const version = createVersionWithChange({
-        content: 'This\nis a line with two newlines\n',
-      });
-
-      const diff = _createInternalDiffs({ version })[0];
-      const change = diff.hunks[0].changes[0];
-
-      expect(change.content).toEqual('This\nis a line with two newlines');
     });
   });
 
