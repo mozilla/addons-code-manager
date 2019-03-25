@@ -170,57 +170,57 @@ export const fakeExternalDiff = Object.freeze({
   mode: 'M',
   hunks: [
     {
-      header: '@@ -1,6 +1,6 @@\n',
+      header: '@@ -1,6 +1,6 @@',
       old_start: 1,
       new_start: 1,
       old_lines: 6,
       new_lines: 6,
       changes: [
         {
-          content: '{\r\n',
+          content: '{',
           type: 'normal' as ExternalChange['type'],
           old_line_number: 1,
           new_line_number: 1,
         },
         {
-          content: '    "manifest_version": 2,\r\n',
+          content: '    "manifest_version": 2,',
           type: 'normal' as ExternalChange['type'],
           old_line_number: 2,
           new_line_number: 2,
         },
         {
-          content: '    "version": "7",\r\n',
+          content: '    "version": "7",',
           type: 'delete' as ExternalChange['type'],
           old_line_number: 3,
           new_line_number: -1,
         },
         {
-          content: '    "version": "8",\r\n',
+          content: '    "version": "8",',
           type: 'insert' as ExternalChange['type'],
           old_line_number: -1,
           new_line_number: 3,
         },
         {
           content:
-            '    "name": "Awesome Screenshot - Capture, Annotate & More",\r\n',
+            '    "name": "Awesome Screenshot - Capture, Annotate & More",',
           type: 'normal' as ExternalChange['type'],
           old_line_number: 4,
           new_line_number: 4,
         },
         {
-          content: '    "description": "this is a new description"\r\n',
+          content: '    "description": "this is a new description"',
           type: 'delete' as ExternalChange['type'],
           old_line_number: 5,
           new_line_number: -1,
         },
         {
-          content: '    "description": "this is a new version with files"\r\n',
+          content: '    "description": "this is a new version with files"',
           type: 'insert' as ExternalChange['type'],
           old_line_number: -1,
           new_line_number: 5,
         },
         {
-          content: '}\r\n',
+          content: '}',
           type: 'normal' as ExternalChange['type'],
           old_line_number: 6,
           new_line_number: 6,
