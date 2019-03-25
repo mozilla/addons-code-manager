@@ -1,9 +1,17 @@
 import React from 'react';
+import { Store } from 'redux';
 import { storiesOf } from '@storybook/react';
 
+import configureStore from '../src/configureStore';
 import FileTreeNode, { PublicProps } from '../src/components/FileTreeNode';
 import { createInternalVersion } from '../src/reducers/versions';
 import { fakeVersion } from '../src/test-helpers';
+import { renderWithStoreAndRouter } from './utils';
+
+type GetPropsParams = {
+  nodeId?: PublicProps['node']['id'];
+  nodeName?: PublicProps['node']['name'];
+} & Partial<PublicProps>;
 
 const getProps = ({
   hasChildNodes = false,
@@ -13,9 +21,8 @@ const getProps = ({
   nodeName = 'node name',
   nodeId = 'node-id',
   renderChildNodes = () => ({}),
-  linterMessages = undefined as PublicProps['linterMessages'],
   version = createInternalVersion(fakeVersion),
-} = {}) => {
+}: GetPropsParams = {}) => {
   return {
     getToggleProps: () => ({
       onClick: () => {},
@@ -32,14 +39,16 @@ const getProps = ({
       name: nodeName,
     },
     renderChildNodes,
-    linterMessages,
     onSelect: () => {},
     version,
   };
 };
 
-const render = (props = {}) => {
-  return <FileTreeNode {...getProps(props)} />;
+const render = ({
+  store = configureStore(),
+  ...props
+}: { store?: Store } & GetPropsParams = {}) => {
+  return renderWithStoreAndRouter(<FileTreeNode {...getProps(props)} />, store);
 };
 
 storiesOf('FileTreeNode', module).addWithChapters('all variants', {

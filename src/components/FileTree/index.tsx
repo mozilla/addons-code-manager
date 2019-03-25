@@ -6,7 +6,6 @@ import FileTreeNode, {
   PublicProps as FileTreeNodeProps,
 } from '../FileTreeNode';
 import { Version } from '../../reducers/versions';
-import { LinterMessageMap } from '../../reducers/linter';
 import { getLocalizedString } from '../../utils';
 
 type FileNode = {
@@ -21,6 +20,8 @@ export type DirectoryNode = {
 };
 
 export type TreeNode = FileNode | DirectoryNode;
+
+export type TreefoldRenderPropsForFileTree = TreefoldRenderProps<TreeNode>;
 
 const recursiveSortInPlace = (node: DirectoryNode): void => {
   node.children.sort((a, b) => {
@@ -129,8 +130,7 @@ export const buildFileTree = (
   return root;
 };
 
-type PublicProps = {
-  linterMessages: LinterMessageMap | void;
+export type PublicProps = {
   onSelect: FileTreeNodeProps['onSelect'];
   version: Version;
 };
@@ -138,17 +138,10 @@ type PublicProps = {
 type Props = PublicProps;
 
 export class FileTreeBase extends React.Component<Props> {
-  renderNode = (props: TreefoldRenderProps<TreeNode>) => {
-    const { linterMessages, onSelect, version } = this.props;
+  renderNode = (props: TreefoldRenderPropsForFileTree) => {
+    const { onSelect, version } = this.props;
 
-    return (
-      <FileTreeNode
-        {...props}
-        linterMessages={linterMessages}
-        onSelect={onSelect}
-        version={version}
-      />
-    );
+    return <FileTreeNode {...props} onSelect={onSelect} version={version} />;
   };
 
   render() {
