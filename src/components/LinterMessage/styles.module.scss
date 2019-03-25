@@ -1,3 +1,43 @@
+$top-arrow-width: 10px;
+$top-arrow-height: 20px;
+
+.inline:first-child {
+  &:after,
+  &:before {
+    border-color: transparent;
+    border-style: solid;
+    content: '';
+    display: block;
+    height: 0;
+    left: 10px;
+    position: absolute;
+    width: 0;
+  }
+
+  &:after {
+    border-width: $top-arrow-width;
+    top: -$top-arrow-height + 2;
+  }
+
+  &:before {
+    border-bottom-color: inherit;
+    border-width: $top-arrow-width;
+    top: -$top-arrow-height;
+  }
+}
+
+.danger.inline:after {
+  border-bottom-color: #f8d7da;
+}
+
+.secondary.inline:after {
+  border-bottom-color: #e2e3e5;
+}
+
+.warning.inline:after {
+  border-bottom-color: #fff3cd;
+}
+
 .description {
   margin-bottom: 0;
 }

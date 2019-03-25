@@ -2,6 +2,7 @@ import * as React from 'react';
 import purify from 'dompurify';
 import he from 'he';
 import { Alert } from 'react-bootstrap';
+import makeClassName from 'classnames';
 
 import styles from './styles.module.scss';
 import { LinterMessage } from '../../reducers/linter';
@@ -58,14 +59,20 @@ const renderDescription = (description: LinterMessage['description']) => {
 };
 
 type PublicProps = {
+  inline?: boolean;
   message: LinterMessage;
 };
 
-const LinterMessageBase = (props: PublicProps) => {
-  const { description, message, type } = props.message;
+const LinterMessageBase = ({ message, inline = false }: PublicProps) => {
+  const { description, message: linterMessage, type } = message;
+  const variant = getAlertVariant(type);
+
   return (
-    <Alert variant={getAlertVariant(type)}>
-      <Alert.Heading>{decodeHtmlEntities(message)}</Alert.Heading>
+    <Alert
+      className={makeClassName(styles[variant], { [styles.inline]: inline })}
+      variant={variant}
+    >
+      <Alert.Heading>{decodeHtmlEntities(linterMessage)}</Alert.Heading>
       <p className={styles.description}>{renderDescription(description)}</p>
     </Alert>
   );
