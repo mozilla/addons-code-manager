@@ -8,6 +8,23 @@ import {
   ExternalVersionsList,
 } from '../reducers/versions';
 
+type GetApiHostParams = {
+  apiHost?: string | null;
+  useInsecureProxy?: boolean;
+};
+
+export const getApiHost = ({
+  apiHost = process.env.REACT_APP_API_HOST,
+  useInsecureProxy = process.env.REACT_APP_USE_INSECURE_PROXY === 'true',
+}: GetApiHostParams = {}) => {
+  // When using the insecure proxy, there is no need for an API host.
+  if (useInsecureProxy) {
+    return '';
+  }
+
+  return apiHost || '';
+};
+
 export enum HttpMethod {
   DELETE = 'DELETE',
   GET = 'GET',
@@ -17,12 +34,14 @@ export enum HttpMethod {
 }
 
 type CallApiParams = {
-  endpoint: string;
-  method?: HttpMethod;
-  version?: string;
+  _getApiHost?: typeof getApiHost;
+  apiHost?: string;
   apiState: ApiState;
-  query?: { [key: string]: string };
+  endpoint: string;
   lang?: string;
+  method?: HttpMethod;
+  query?: { [key: string]: string };
+  version?: string;
 };
 
 type ErrorResponseType = { error: Error };
@@ -49,12 +68,13 @@ type Headers = {
 // For the `extends {}` part, please see:
 // https://github.com/Microsoft/TypeScript/issues/4922
 export const callApi = async <SuccessResponseType extends {}>({
+  _getApiHost = getApiHost,
   apiState,
   endpoint,
-  method = HttpMethod.GET,
-  version = process.env.REACT_APP_DEFAULT_API_VERSION,
-  query = {},
   lang = process.env.REACT_APP_DEFAULT_API_LANG,
+  method = HttpMethod.GET,
+  query = {},
+  version = process.env.REACT_APP_DEFAULT_API_VERSION,
 }: CallApiParams): Promise<CallApiResponse<SuccessResponseType>> => {
   let adjustedEndpoint = endpoint;
   if (!adjustedEndpoint.startsWith('/')) {
@@ -83,10 +103,13 @@ export const callApi = async <SuccessResponseType extends {}>({
   adjustedEndpoint = `${adjustedEndpoint}?${queryString}`;
 
   try {
-    const response = await fetch(`/api/${version}${adjustedEndpoint}`, {
-      method,
-      headers,
-    });
+    const response = await fetch(
+      `${_getApiHost()}/api/${version}${adjustedEndpoint}`,
+      {
+        method,
+        headers,
+      },
+    );
 
     if (!response.ok) {
       throw new Error(
