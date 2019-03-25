@@ -127,7 +127,7 @@ export class AppBase extends React.Component<Props> {
     });
   }
 
-  removeError = (errorId: number) => {
+  dismissError = (errorId: number) => {
     const { dispatch } = this.props;
 
     dispatch(errorsActions.removeError({ id: errorId }));
@@ -146,7 +146,7 @@ export class AppBase extends React.Component<Props> {
           <Alert
             dismissible
             key={error.id}
-            onClose={() => this.removeError(error.id)}
+            onClose={() => this.dismissError(error.id)}
             variant="danger"
           >
             {error.message}

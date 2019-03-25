@@ -185,22 +185,27 @@ describe(__filename, () => {
   });
 
   it('dispatches removeError() when dismissing an error', () => {
-    const error = new Error('version not found');
+    const error1 = new Error('first error');
+    const error2 = new Error('second error');
     const store = configureStore();
-    store.dispatch(errorsActions.addError({ error }));
+    store.dispatch(errorsActions.addError({ error: error1 }));
+    store.dispatch(errorsActions.addError({ error: error2 }));
     const dispatch = spyOn(store, 'dispatch');
 
     const root = render({ store });
 
-    const onClose = root.find(Alert).prop('onClose') as Function;
-    // User clicks the "close" button (it is a cross).
+    // User clicks the "close" button of the first error shown.
+    const onClose = root
+      .find(Alert)
+      .at(0)
+      .prop('onClose') as Function;
     onClose();
 
     const { errors } = store.getState().errors;
-    const lastError = errors[errors.length - 1];
+    const firstError = errors[0];
     expect(dispatch).toHaveBeenCalledWith(
       errorsActions.removeError({
-        id: lastError.id,
+        id: firstError.id,
       }),
     );
   });
