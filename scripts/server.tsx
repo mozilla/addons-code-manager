@@ -1,4 +1,5 @@
 import path from 'path';
+
 import chalk from 'chalk';
 
 import { ServerEnvVars, createServer } from '../src/server';
@@ -15,13 +16,14 @@ const app = createServer({
 });
 
 const printDivider = () => {
-  console.log('\n' + '#'.repeat(60) + '\n');
+  console.log(`\n${'#'.repeat(60)}\n`);
 };
 
-app.listen(app.get('port'), () => {
+app.listen(app.get('port'), app.get('host'), () => {
   if (process.env.NODE_ENV === 'production') {
     console.log(
-      'The node server is listening on port %d in %s mode',
+      'The node server is listening on http://%s:%d in %s mode',
+      app.get('host'),
       app.get('port'),
       app.get('env'),
     );
@@ -29,7 +31,8 @@ app.listen(app.get('port'), () => {
     printDivider();
     console.log(chalk.green('  MOZILLA/ADDONS-CODE-MANAGER\n'));
     console.log(
-      `  This project is running at ${chalk.yellow('http://localhost:%d/')}`,
+      `  This project is running at ${chalk.yellow('http://%s:%d/')}`,
+      app.get('host'),
       app.get('port'),
     );
     console.log(

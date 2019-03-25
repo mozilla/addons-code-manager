@@ -8,7 +8,13 @@ import request, { SuperTest, Test } from 'supertest';
 import { RequestWithCookies } from 'universal-cookie-express';
 import Cookies from 'universal-cookie';
 
-import { ServerEnvVars, createServer, injectAuthenticationToken } from '.';
+import {
+  DEFAULT_HOST,
+  DEFAULT_PORT,
+  ServerEnvVars,
+  createServer,
+  injectAuthenticationToken,
+} from '.';
 
 describe(__filename, () => {
   describe('injectAuthenticationToken', () => {
@@ -64,6 +70,27 @@ describe(__filename, () => {
       const prodEnv = {
         NODE_ENV: 'production',
       };
+
+      it('configures the host and port with default values', () => {
+        const app = createServer({ env: prodEnv as ServerEnvVars, rootPath });
+
+        expect(app.get('host')).toEqual(DEFAULT_HOST);
+        expect(app.get('port')).toEqual(DEFAULT_PORT);
+      });
+
+      it('configures the host and port with environment variables', () => {
+        const host = '0.0.0.0';
+        const port = 4000;
+        const env = {
+          ...prodEnv,
+          PORT: port,
+          SERVER_HOST: host,
+        } as ServerEnvVars;
+        const app = createServer({ env, rootPath });
+
+        expect(app.get('host')).toEqual(host);
+        expect(app.get('port')).toEqual(port);
+      });
 
       it('creates an Express server', async () => {
         const server = request(

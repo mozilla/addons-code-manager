@@ -9,6 +9,9 @@ import cookiesMiddleware, {
   RequestWithCookies,
 } from 'universal-cookie-express';
 
+export const DEFAULT_HOST = 'localhost';
+export const DEFAULT_PORT = 3000;
+
 export type ServerEnvVars = {
   NODE_ENV: string;
   PORT: number;
@@ -17,6 +20,7 @@ export type ServerEnvVars = {
   REACT_APP_AUTH_TOKEN_PLACEHOLDER: string;
   REACT_APP_CRA_PORT: number;
   REACT_APP_USE_INSECURE_PROXY: string;
+  SERVER_HOST: string;
 };
 
 // This function injects the authentication token into the HTML sent to the
@@ -110,7 +114,8 @@ export const createServer = ({
   app.use(helmet.xssFilter());
 
   // Express configuration.
-  app.set('port', env.PORT || 3000);
+  app.set('host', env.SERVER_HOST || DEFAULT_HOST);
+  app.set('port', env.PORT || DEFAULT_PORT);
   app.disable('x-powered-by');
   app.use(cookiesMiddleware());
 
