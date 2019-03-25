@@ -23,6 +23,7 @@ import Loading from '../../components/Loading';
 import CodeView from '../../components/CodeView';
 import FileMetadata from '../../components/FileMetadata';
 import styles from './styles.module.scss';
+import KeyboardShortcuts from '../../components/KeyboardShortcuts';
 
 export type PublicProps = {};
 
@@ -130,6 +131,11 @@ export class BrowseBase extends React.Component<Props> {
               </Col>
             </Row>
           )}
+          <Row>
+            <Col>
+              <KeyboardShortcuts />
+            </Col>
+          </Row>
         </Col>
         <Col md="9">
           {file ? (
