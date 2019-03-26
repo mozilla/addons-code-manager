@@ -30,7 +30,7 @@ describe(__filename, () => {
     location?: Location<{}>;
   };
 
-  const globalExternalMessage = (props = {}) => {
+  const createGlobalExternalMessage = (props = {}) => {
     return {
       ...fakeExternalLinterMessage,
       ...props,
@@ -291,7 +291,7 @@ describe(__filename, () => {
 
   it('renders a global LinterMessage', () => {
     const uid = 'some-global-message-id';
-    const externalMessage = globalExternalMessage({ uid });
+    const externalMessage = createGlobalExternalMessage({ uid });
 
     const { root } = renderWithMessages({
       messages: [externalMessage],
@@ -308,8 +308,8 @@ describe(__filename, () => {
 
     const { root } = renderWithMessages({
       messages: [
-        globalExternalMessage({ uid: firstUid }),
-        globalExternalMessage({ uid: secondUid }),
+        createGlobalExternalMessage({ uid: firstUid }),
+        createGlobalExternalMessage({ uid: secondUid }),
       ],
     });
 
