@@ -9,7 +9,13 @@ type Props = {};
 
 export class KeyboardShortcutsBase extends React.Component<Props> {
   keydownListener = (event: KeyboardEvent) => {
-    if (keys.includes(event.key)) {
+    if (
+      !event.altKey &&
+      !event.ctrlKey &&
+      !event.metaKey &&
+      !event.shiftKey &&
+      keys.includes(event.key)
+    ) {
       console.log(event);
     }
   };
@@ -33,7 +39,7 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
           <dt>j</dt>
           <dd>{gettext('Down file')}</dd>
           <dt>e</dt>
-          <dd>{gettext('Expand all')}</dd>
+          <dd>{gettext('Expand or collapse all')}</dd>
           <dt>h</dt>
           <dd>{gettext('Hide or unhide tree')}</dd>
         </dl>
