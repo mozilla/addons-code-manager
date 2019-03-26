@@ -14,3 +14,16 @@ export const renderWithStoreAndRouter = (
     </Provider>
   );
 };
+
+let _uid = 0;
+
+/*
+ * Returns a unique UID for a linter message.
+ *
+ * This is only needed in story book where linter messages do not already
+ * have unique UIDs.
+ */
+export const newLinterMessageUID = () => {
+  _uid++;
+  return `msg-${_uid}`;
+};

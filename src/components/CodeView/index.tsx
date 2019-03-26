@@ -7,7 +7,8 @@ import LinterMessage from '../LinterMessage';
 import { getLines, mapWithDepth } from './utils';
 import refractor from '../../refractor';
 import { getLanguageFromMimeType } from '../../utils';
-import { LinterMessagesByLine } from '../../reducers/linter';
+import { Version } from '../../reducers/versions';
+import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 
 // This function mimics what https://github.com/rexxars/react-refractor does,
 // but we need a different layout to inline comments so we cannot use this
@@ -38,9 +39,9 @@ export const scrollToSelectedLine = (element: HTMLTableRowElement | null) => {
 
 export type PublicProps = {
   _scrollToSelectedLine?: typeof scrollToSelectedLine;
-  linterMessagesByLine: LinterMessagesByLine | void;
   mimeType: string;
   content: string;
+  version: Version;
 };
 
 type Props = PublicProps & RouteComponentProps;
@@ -55,64 +56,78 @@ export const CodeViewBase = ({
   _scrollToSelectedLine = scrollToSelectedLine,
   content,
   location,
-  linterMessagesByLine,
   mimeType,
+  version,
 }: Props) => {
   const language = getLanguageFromMimeType(mimeType);
 
-  return (
-    <div className={styles.CodeView}>
-      <table className={styles.table}>
-        <tbody className={styles.tableBody}>
-          {getLines(content).map((code, i) => {
-            const line = i + 1;
-
-            let rowProps: RowProps = {
-              id: `L${line}`,
-              className: styles.line,
-            };
-
-            if (isLineSelected(rowProps.id, location)) {
-              rowProps = {
-                ...rowProps,
-                className: makeClassName(
-                  rowProps.className,
-                  styles.selectedLine,
-                ),
-                ref: _scrollToSelectedLine,
-              };
-            }
-
-            return (
-              <React.Fragment key={`fragment-${line}`}>
-                <tr {...rowProps}>
-                  <td className={styles.lineNumber}>
-                    <Link to={`#L${line}`}>{`${line}`}</Link>
-                  </td>
-
-                  <td className={styles.code}>
-                    {renderHighlightedCode(code, language)}
-                  </td>
-                </tr>
-                {linterMessagesByLine && linterMessagesByLine[line] && (
-                  <tr>
-                    <td
-                      id={`line-${line}-messages`}
-                      className={styles.linterMessages}
-                      colSpan={2}
-                    >
-                      {linterMessagesByLine[line].map((msg) => {
-                        return <LinterMessage key={msg.uid} message={msg} />;
-                      })}
-                    </td>
-                  </tr>
-                )}
-              </React.Fragment>
-            );
+  const renderWithLinterInfo = ({ selectedMessageMap }: LinterProviderInfo) => {
+    return (
+      <React.Fragment>
+        {selectedMessageMap &&
+          selectedMessageMap.global.map((message) => {
+            return <LinterMessage key={message.uid} message={message} />;
           })}
-        </tbody>
-      </table>
-    </div>
+        <div className={styles.CodeView}>
+          <table className={styles.table}>
+            <tbody className={styles.tableBody}>
+              {getLines(content).map((code, i) => {
+                const line = i + 1;
+
+                let rowProps: RowProps = {
+                  id: `L${line}`,
+                  className: styles.line,
+                };
+
+                if (isLineSelected(rowProps.id, location)) {
+                  rowProps = {
+                    ...rowProps,
+                    className: makeClassName(
+                      rowProps.className,
+                      styles.selectedLine,
+                    ),
+                    ref: _scrollToSelectedLine,
+                  };
+                }
+
+                return (
+                  <React.Fragment key={`fragment-${line}`}>
+                    <tr {...rowProps}>
+                      <td className={styles.lineNumber}>
+                        <Link to={`#L${line}`}>{`${line}`}</Link>
+                      </td>
+
+                      <td className={styles.code}>
+                        {renderHighlightedCode(code, language)}
+                      </td>
+                    </tr>
+                    {selectedMessageMap && selectedMessageMap.byLine[line] && (
+                      <tr>
+                        <td
+                          id={`line-${line}-messages`}
+                          className={styles.linterMessages}
+                          colSpan={2}
+                        >
+                          {selectedMessageMap.byLine[line].map((msg) => {
+                            return (
+                              <LinterMessage key={msg.uid} message={msg} />
+                            );
+                          })}
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </React.Fragment>
+    );
+  };
+
+  return (
+    <LinterProvider version={version}>{renderWithLinterInfo}</LinterProvider>
   );
 };
 

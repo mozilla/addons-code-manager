@@ -16,15 +16,7 @@ import {
   fakeVersionEntry,
   fakeVersionFile,
 } from '../src/test-helpers';
-import { renderWithStoreAndRouter } from './utils';
-
-let uid = 0;
-
-const newUID = () => {
-  // This helps make message keys for the storybook React page.
-  uid++;
-  return `msg-${uid}`;
-};
+import { newLinterMessageUID, renderWithStoreAndRouter } from './utils';
 
 const render = (
   moreProps: Partial<DiffViewProps> = {},
@@ -47,7 +39,7 @@ const renderWithMessages = (
   const path = 'lib/some-file.js';
   const result = createFakeExternalLinterResult({
     messages: messages.map((msg) => {
-      return { uid: newUID(), ...msg, file: path };
+      return { uid: newLinterMessageUID(), ...msg, file: path };
     }),
   });
 

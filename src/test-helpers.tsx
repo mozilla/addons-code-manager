@@ -356,6 +356,9 @@ export const createContextWithFakeRouter = ({
         },
       },
     },
+    // Enzyme's mount() seems to validate the prop-types by throwing
+    // invariant errors.
+    // See https://github.com/mozilla/addons-code-manager/issues/404
     childContextTypes: {
       router: PropTypes.object.isRequired,
     },
