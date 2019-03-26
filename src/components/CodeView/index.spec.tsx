@@ -1,8 +1,8 @@
 import * as React from 'react';
+import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import { Location } from 'history';
 import { mount } from 'enzyme';
-import { Provider } from 'react-redux';
 
 import configureStore from '../../configureStore';
 import refractor from '../../refractor';
@@ -85,12 +85,18 @@ describe(__filename, () => {
     location = createFakeLocation(),
     ...otherProps
   }: RenderParams = {}) => {
-    return mount(
-      <Provider store={configureStore()}>
-        <CodeView {...getProps(otherProps)} />
-      </Provider>,
-      createContextWithFakeRouter({ location }),
-    );
+    const options = createContextWithFakeRouter({ location });
+    return mount(<CodeView {...getProps(otherProps)} />, {
+      ...options,
+      childContextTypes: {
+        ...options.childContextTypes,
+        store: PropTypes.object.isRequired,
+      },
+      context: {
+        ...options.context,
+        store: configureStore(),
+      },
+    });
   };
 
   const renderWithMessages = ({
