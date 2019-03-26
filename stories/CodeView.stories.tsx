@@ -1,12 +1,20 @@
 import * as React from 'react';
+import { Store } from 'redux';
 import { storiesOf } from '@storybook/react';
 
+import configureStore from '../src/configureStore';
 import CodeView, {
   PublicProps as CodeViewProps,
 } from '../src/components/CodeView';
-import { LinterMessage, getMessageMap } from '../src/reducers/linter';
-import { renderWithStoreAndRouter } from './utils';
-import { createFakeExternalLinterResult } from '../src/test-helpers';
+import { LinterMessage, actions } from '../src/reducers/linter';
+import { createInternalVersion } from '../src/reducers/versions';
+import { newLinterMessageUID, renderWithStoreAndRouter } from './utils';
+import {
+  createFakeExternalLinterResult,
+  fakeVersion,
+  fakeVersionEntry,
+  fakeVersionFile,
+} from '../src/test-helpers';
 
 const JS = `/**
  * There was an error executing the script.
@@ -38,36 +46,49 @@ const CSS = `html, body {
   display: none;
 }`;
 
-const render = (moreProps = {}) => {
-  const props = {
+const render = ({
+  store = configureStore(),
+  ...moreProps
+}: { store?: Store } & Partial<CodeViewProps> = {}) => {
+  const props: CodeViewProps = {
     content: JS,
-    linterMessagesByLine: undefined,
     mimeType: 'application/javascript',
+    version: createInternalVersion(fakeVersion),
     ...moreProps,
   };
-  return renderWithStoreAndRouter(<CodeView {...props} />);
+  return renderWithStoreAndRouter(<CodeView {...props} />, store);
 };
 
 const renderJSWithMessages = (
   messages: Partial<LinterMessage>[],
   moreProps: Partial<CodeViewProps> = {},
 ) => {
-  const stubFile = 'lib/some-file.js';
-  const map = getMessageMap(
-    createFakeExternalLinterResult({
-      messages: messages.map((msg) => {
-        return {
-          ...msg,
-          file: stubFile,
-        };
-      }),
+  const store = configureStore();
+
+  const path = 'lib/some-file.js';
+  const version = createInternalVersion({
+    ...fakeVersion,
+    file: {
+      ...fakeVersionFile,
+      entries: { [path]: { ...fakeVersionEntry, path } },
+      // eslint-disable-next-line @typescript-eslint/camelcase
+      selected_file: path,
+    },
+  });
+
+  const result = createFakeExternalLinterResult({
+    messages: messages.map((msg) => {
+      return { uid: newLinterMessageUID(), ...msg, file: path };
     }),
-  );
+  });
+
+  store.dispatch(actions.loadLinterResult({ versionId: version.id, result }));
 
   return render({
+    store,
     content: JS,
     mimeType: 'application/javascript',
-    linterMessagesByLine: map[stubFile].byLine,
+    version,
     ...moreProps,
   });
 };
@@ -98,6 +119,45 @@ storiesOf('CodeView', module)
     chapters: [
       {
         sections: [
+          {
+            title: 'one global message',
+            sectionFn: () => {
+              return renderJSWithMessages([
+                {
+                  line: null,
+                  message:
+                    'The &#34;update_url&#34; property is not used by Firefox.',
+                  description: [
+                    'The &#34;update_url&#34; is not used by Firefox in the root of a manifest; your add-on will be updated via the Add-ons site and not your &#34;update_url&#34;.',
+                  ],
+                  type: 'warning',
+                },
+              ]);
+            },
+          },
+          {
+            title: 'multiple global messages',
+            sectionFn: () => {
+              return renderJSWithMessages([
+                {
+                  line: null,
+                  message:
+                    'The &#34;update_url&#34; property is not used by Firefox.',
+                  description: [
+                    'The &#34;update_url&#34; is not used by Firefox in the root of a manifest; your add-on will be updated via the Add-ons site and not your &#34;update_url&#34;.',
+                  ],
+                  type: 'warning',
+                },
+                {
+                  line: null,
+                  message:
+                    '/permissions: Unknown permissions &#34;unlimitedStorage&#34; at 8.',
+                  description: ['See ... for more information.'],
+                  type: 'notice',
+                },
+              ]);
+            },
+          },
           {
             title: 'one message on one line',
             sectionFn: () => {

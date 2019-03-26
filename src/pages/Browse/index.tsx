@@ -6,13 +6,7 @@ import log from 'loglevel';
 
 import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
 import { ApiState } from '../../reducers/api';
-import {
-  LinterMessageMap,
-  fetchLinterMessages,
-  selectMessageMap,
-} from '../../reducers/linter';
 import FileTree from '../../components/FileTree';
-import LinterMessage from '../../components/LinterMessage';
 import {
   Version,
   VersionFile,
@@ -28,7 +22,6 @@ import FileMetadata from '../../components/FileMetadata';
 import styles from './styles.module.scss';
 
 export type PublicProps = {
-  _fetchLinterMessages: typeof fetchLinterMessages;
   _fetchVersion: typeof fetchVersion;
   _fetchVersionFile: typeof fetchVersionFile;
   _log: typeof log;
@@ -42,8 +35,6 @@ type PropsFromRouter = {
 type PropsFromState = {
   apiState: ApiState;
   file: VersionFile | null | void;
-  linterMessages: LinterMessageMap | void;
-  linterMessagesAreLoading: boolean;
   version: Version;
 };
 
@@ -54,7 +45,6 @@ export type Props = RouteComponentProps<PropsFromRouter> &
 
 export class BrowseBase extends React.Component<Props> {
   static defaultProps = {
-    _fetchLinterMessages: fetchLinterMessages,
     _fetchVersion: fetchVersion,
     _fetchVersionFile: fetchVersionFile,
     _log: log,
@@ -72,25 +62,6 @@ export class BrowseBase extends React.Component<Props> {
     );
   }
 
-  componentDidUpdate() {
-    const {
-      _fetchLinterMessages,
-      dispatch,
-      version,
-      linterMessages,
-      linterMessagesAreLoading,
-    } = this.props;
-
-    if (version && linterMessages === undefined && !linterMessagesAreLoading) {
-      dispatch(
-        _fetchLinterMessages({
-          versionId: version.id,
-          url: version.validationURL,
-        }),
-      );
-    }
-  }
-
   onSelectFile = (path: string) => {
     const { _fetchVersionFile, dispatch, match } = this.props;
     const { addonId, versionId } = match.params;
@@ -105,7 +76,7 @@ export class BrowseBase extends React.Component<Props> {
   };
 
   render() {
-    const { file, linterMessages, version } = this.props;
+    const { file, version } = this.props;
 
     if (!version) {
       return (
@@ -113,11 +84,6 @@ export class BrowseBase extends React.Component<Props> {
           <Loading message={gettext('Loading version...')} />
         </Col>
       );
-    }
-
-    let messageMap;
-    if (linterMessages && version) {
-      messageMap = linterMessages[version.selectedPath];
     }
 
     return (
@@ -137,15 +103,11 @@ export class BrowseBase extends React.Component<Props> {
           )}
         </Col>
         <Col md="9">
-          {messageMap &&
-            messageMap.global.map((message) => {
-              return <LinterMessage key={message.uid} message={message} />;
-            })}
           {file ? (
             <CodeView
-              linterMessagesByLine={messageMap && messageMap.byLine}
               mimeType={file.mimeType}
               content={file.content}
+              version={version}
             />
           ) : (
             <Loading message={gettext('Loading content...')} />
@@ -168,15 +130,9 @@ const mapStateToProps = (
     ? getVersionFile(state.versions, versionId, version.selectedPath)
     : null;
 
-  const linterMessages = version
-    ? selectMessageMap(state.linter, version.id)
-    : undefined;
-
   return {
     apiState: state.api,
     file,
-    linterMessages,
-    linterMessagesAreLoading: state.linter.isLoading,
     version,
   };
 };
