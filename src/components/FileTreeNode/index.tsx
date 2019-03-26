@@ -49,6 +49,34 @@ export const findMostSevereTypeForPath = (
   return null;
 };
 
+export const LINTER_KNOWN_LIBRARY_CODE = 'KNOWN_LIBRARY';
+
+export const isKnownLibrary = (
+  linterMessageMap: LinterMessageMap,
+  path: string,
+): boolean => {
+  if (!linterMessageMap[path]) {
+    return false;
+  }
+
+  const m = linterMessageMap[path];
+
+  // This is useful to make sure we do not miss linter messages if
+  // `LinterMessageMap` is updated with new maps of messages.
+  const allowedKeys = ['global', 'byLine'];
+  Object.keys(m).forEach((key) => {
+    if (!allowedKeys.includes(key)) {
+      throw new Error(`Unexpected key "${key}" found.`);
+    }
+  });
+
+  if (m.global.length > 1 || Object.keys(m.byLine).length > 0) {
+    return false;
+  }
+
+  return m.global[0].code.includes(LINTER_KNOWN_LIBRARY_CODE);
+};
+
 const getTitleForType = (type: string | null, isFolder: boolean) => {
   switch (type) {
     case 'error':
@@ -72,6 +100,8 @@ const getIconForType = (type: string | null) => {
       return 'times-circle';
     case 'warning':
       return 'exclamation-triangle';
+    case 'known-library':
+      return 'check-circle';
     default:
       return 'info-circle';
   }
@@ -98,14 +128,18 @@ class FileTreeNodeBase<TreeNodeType> extends React.Component<PublicProps> {
     let nodeIcons = null;
     let linterType = null;
     if (messageMap && hasLinterMessages) {
-      linterType = findMostSevereTypeForPath(messageMap, node.id);
+      let title;
+      if (isKnownLibrary(messageMap, node.id)) {
+        linterType = 'known-library';
+        title = gettext('This is a known library');
+      } else {
+        linterType = findMostSevereTypeForPath(messageMap, node.id);
+        title = getTitleForType(linterType, isFolder);
+      }
 
       nodeIcons = (
         <span className={styles.nodeIcons}>
-          <FontAwesomeIcon
-            icon={getIconForType(linterType)}
-            title={getTitleForType(linterType, isFolder)}
-          />
+          <FontAwesomeIcon icon={getIconForType(linterType)} title={title} />
         </span>
       );
     }
@@ -117,6 +151,7 @@ class FileTreeNodeBase<TreeNodeType> extends React.Component<PublicProps> {
         [styles.hasLinterMessages]: hasLinterMessages,
         [styles.hasLinterErrors]: linterType === 'error',
         [styles.hasLinterWarnings]: linterType === 'warning',
+        [styles.isKnownLibrary]: linterType === 'known-library',
       }),
       onClick: () => onSelect(node.id),
     };

@@ -14,7 +14,12 @@ import {
 } from '../../test-helpers';
 import styles from './styles.module.scss';
 
-import FileTreeNode, { PublicProps, findMostSevereTypeForPath } from '.';
+import FileTreeNode, {
+  LINTER_KNOWN_LIBRARY_CODE,
+  PublicProps,
+  findMostSevereTypeForPath,
+  isKnownLibrary,
+} from '.';
 
 const fakeGetToggleProps = () => ({
   onClick: jest.fn(),
@@ -97,9 +102,9 @@ describe(__filename, () => {
     });
   };
 
-  const renderWithLinterMessage = ({
+  const renderWithLinterMessages = ({
     version = createInternalVersion(fakeVersion),
-    message = fakeExternalLinterMessage,
+    messages = [fakeExternalLinterMessage],
     treefoldRenderProps = {},
   }) => {
     const renderProps = getTreefoldRenderProps({
@@ -108,7 +113,7 @@ describe(__filename, () => {
     });
 
     return renderWithLinterProvider({
-      messageMap: _getMessageMap([message]),
+      messageMap: _getMessageMap(messages),
       version,
       ...renderProps,
     });
@@ -274,9 +279,11 @@ describe(__filename, () => {
       type: type as ExternalLinterMessage['type'],
     };
 
-    const root = renderWithLinterMessage({
-      message,
-      treefoldRenderProps: { isFolder: false },
+    const root = renderWithLinterMessages({
+      messages: [message],
+      treefoldRenderProps: {
+        isFolder: false,
+      },
     });
 
     expect(root.find(className)).toHaveLength(1);
@@ -302,8 +309,8 @@ describe(__filename, () => {
         type: type as ExternalLinterMessage['type'],
       };
 
-      const root = renderWithLinterMessage({
-        message,
+      const root = renderWithLinterMessages({
+        messages: [message],
         treefoldRenderProps: {
           id: message.file,
           isFolder: true,
@@ -327,8 +334,8 @@ describe(__filename, () => {
       file: 'manifest.json',
     };
 
-    const root = renderWithLinterMessage({
-      message,
+    const root = renderWithLinterMessages({
+      messages: [message],
       treefoldRenderProps: {
         id: 'some/other/file.js',
       },
@@ -343,8 +350,8 @@ describe(__filename, () => {
       file: 'src/manifest.json',
     };
 
-    const root = renderWithLinterMessage({
-      message,
+    const root = renderWithLinterMessages({
+      messages: [message],
       treefoldRenderProps: {
         id: 'src/',
         isFolder: true,
@@ -352,6 +359,62 @@ describe(__filename, () => {
     });
 
     expect(root.find(`.${styles.hasLinterMessages}`)).toHaveLength(1);
+  });
+
+  it('renders a file node that is a known library', () => {
+    const message: ExternalLinterMessage = {
+      ...fakeExternalLinterMessage,
+      file: 'jquery.js',
+      id: [LINTER_KNOWN_LIBRARY_CODE],
+      line: null,
+      type: 'notice',
+    };
+
+    const root = renderWithLinterMessages({
+      messages: [message],
+      treefoldRenderProps: {
+        id: message.file,
+        isFolder: false,
+      },
+    });
+
+    expect(root.find(`.${styles.isKnownLibrary}`)).toHaveLength(1);
+
+    const nodeIcons = root.find(`.${styles.nodeIcons}`);
+    expect(nodeIcons).toHaveLength(1);
+    expect(nodeIcons.find(FontAwesomeIcon)).toHaveProp('icon', 'check-circle');
+    expect(nodeIcons.find(FontAwesomeIcon).prop('title')).toMatch(
+      /known library/,
+    );
+  });
+
+  it('does not override a more severe type when a file node is a known library with several linter messages', () => {
+    const file = 'jquery.js';
+    const messages: ExternalLinterMessage[] = [
+      {
+        ...fakeExternalLinterMessage,
+        file,
+        id: [LINTER_KNOWN_LIBRARY_CODE],
+        line: null,
+        type: 'notice',
+      },
+      {
+        ...fakeExternalLinterMessage,
+        file,
+        type: 'error',
+      },
+    ];
+
+    const root = renderWithLinterMessages({
+      messages,
+      treefoldRenderProps: {
+        id: file,
+        isFolder: false,
+      },
+    });
+
+    expect(root.find(`.${styles.isKnownLibrary}`)).toHaveLength(0);
+    expect(root.find(`.${styles.hasLinterErrors}`)).toHaveLength(1);
   });
 
   describe('findMostSevereTypeForPath', () => {
@@ -463,5 +526,145 @@ describe(__filename, () => {
     const root = render({ version });
 
     expect(root.find(LinterProvider)).toHaveProp('version', version);
+  });
+
+  describe('isKnownLibrary', () => {
+    it('returns false when there is no linter message', () => {
+      const path = 'jquery.js';
+      const messages = [] as ExternalLinterMessage[];
+      const map = _getMessageMap(messages);
+
+      expect(isKnownLibrary(map, path)).toEqual(false);
+    });
+
+    it('returns false when there is more than one global message', () => {
+      const path = 'jquery.js';
+      const messages = [
+        {
+          ...fakeExternalLinterMessage,
+          file: path,
+          id: [LINTER_KNOWN_LIBRARY_CODE],
+          line: null,
+          type: 'notice',
+        },
+        {
+          ...fakeExternalLinterMessage,
+          file: path,
+          line: null,
+          type: 'notice',
+        },
+      ] as ExternalLinterMessage[];
+      const map = _getMessageMap(messages);
+
+      expect(isKnownLibrary(map, path)).toEqual(false);
+    });
+
+    it('returns false when there are inlined linter messages', () => {
+      const path = 'jquery.js';
+      const messages = [
+        {
+          ...fakeExternalLinterMessage,
+          file: path,
+          id: [LINTER_KNOWN_LIBRARY_CODE],
+          line: null,
+          type: 'notice',
+        },
+        {
+          ...fakeExternalLinterMessage,
+          file: path,
+          line: 123,
+          type: 'notice',
+        },
+      ] as ExternalLinterMessage[];
+      const map = _getMessageMap(messages);
+
+      expect(isKnownLibrary(map, path)).toEqual(false);
+    });
+
+    it('returns false when there are only inlined linter messages', () => {
+      const path = 'jquery.js';
+      const messages = [
+        {
+          ...fakeExternalLinterMessage,
+          file: path,
+          line: 123,
+          type: 'notice',
+        },
+      ] as ExternalLinterMessage[];
+      const map = _getMessageMap(messages);
+
+      expect(isKnownLibrary(map, path)).toEqual(false);
+    });
+
+    it('returns false when a path is not a known library', () => {
+      const path = 'jquery.js';
+      const messages = [
+        {
+          ...fakeExternalLinterMessage,
+          file: path,
+          id: ['another_code'],
+          line: null,
+          type: 'notice',
+        },
+      ] as ExternalLinterMessage[];
+      const map = _getMessageMap(messages);
+
+      expect(isKnownLibrary(map, path)).toEqual(false);
+    });
+
+    it('returns false when another path is a known library', () => {
+      const path = 'jquery.js';
+      const messages = [
+        {
+          ...fakeExternalLinterMessage,
+          file: path,
+          id: [LINTER_KNOWN_LIBRARY_CODE],
+          line: null,
+          type: 'notice',
+        },
+      ] as ExternalLinterMessage[];
+      const map = _getMessageMap(messages);
+
+      expect(isKnownLibrary(map, 'not-the-same-path')).toEqual(false);
+    });
+
+    it('returns true when a path is a known library', () => {
+      const path = 'jquery.js';
+      const messages = [
+        {
+          ...fakeExternalLinterMessage,
+          file: path,
+          id: [LINTER_KNOWN_LIBRARY_CODE],
+          line: null,
+          type: 'notice',
+        },
+      ] as ExternalLinterMessage[];
+      const map = _getMessageMap(messages);
+
+      expect(isKnownLibrary(map, path)).toEqual(true);
+    });
+
+    it('throws an error if an extra key is found in the linter message map', () => {
+      const path = 'jquery.js';
+      const messages = [
+        {
+          ...fakeExternalLinterMessage,
+          file: path,
+          id: [LINTER_KNOWN_LIBRARY_CODE],
+          line: null,
+          type: 'notice',
+        },
+      ] as ExternalLinterMessage[];
+      const map = _getMessageMap(messages);
+
+      const unexpectedKey = 'future';
+      // Artifically inject a new key in the message map.
+      // @ts-ignore
+      map[path][unexpectedKey] = {};
+
+      expect(() => {
+        isKnownLibrary(map, path);
+      }).toThrow(new RegExp(`Unexpected key "${unexpectedKey}" found`));
+    });
   });
 });

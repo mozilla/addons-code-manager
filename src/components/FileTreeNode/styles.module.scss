@@ -49,3 +49,7 @@
     color: $orange;
   }
 }
+
+.isKnownLibrary {
+  color: lighten($black, 50);
+}

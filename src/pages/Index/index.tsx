@@ -10,7 +10,7 @@ export class IndexBase extends React.Component<PublicProps> {
       <Col>
         <p>
           There is nothing you can do here, but try{' '}
-          <Link to="/en-US/browse/502955/versions/1541798/">
+          <Link to="/en-US/browse/494431/versions/1532144/">
             browsing this add-on version
           </Link>{' '}
           or{' '}

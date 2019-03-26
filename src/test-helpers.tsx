@@ -135,7 +135,7 @@ export const fakeExternalLinterMessage = Object.freeze({
   for_appversions: {
     '{ec8030f7-c20a-464f-9b0e-13a3a9e97384}': ['4.0b1'],
   },
-  id: [],
+  id: ['UNSAFE_VAR_ASSIGNMENT'],
   line: 226,
   message: 'on* attribute being set using setAttribute',
   tier: 3,
