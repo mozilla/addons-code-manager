@@ -9,6 +9,13 @@ import styles from './styles.module.scss';
 import LinterMessage, { decodeHtmlEntities } from '.';
 
 describe(__filename, () => {
+  const render = ({
+    message = createInternalMessage(fakeExternalLinterMessage),
+    inline = false,
+  } = {}) => {
+    return shallow(<LinterMessage message={message} inline={inline} />);
+  };
+
   const renderMessage = (attributes = {}) => {
     const message = createInternalMessage({
       ...fakeExternalLinterMessage,
@@ -19,7 +26,8 @@ describe(__filename, () => {
       type: 'error',
       ...attributes,
     });
-    return shallow(<LinterMessage message={message} />);
+
+    return render({ message });
   };
 
   it.each([
@@ -27,10 +35,10 @@ describe(__filename, () => {
     ['warning', 'warning'],
     ['secondary', 'notice'],
   ])('renders the Alert variant "%s" for "%s"', (alertVariant, messageType) => {
-    expect(renderMessage({ type: messageType }).find(Alert)).toHaveProp(
-      'variant',
-      alertVariant,
-    );
+    const root = renderMessage({ type: messageType });
+
+    expect(root.find(Alert)).toHaveProp('variant', alertVariant);
+    expect(root).toHaveClassName(`.${styles[alertVariant]}`);
   });
 
   it('renders a message and description', () => {
@@ -128,6 +136,12 @@ describe(__filename, () => {
     expect(root.find(`.${styles.description}`).html()).toContain(
       description[0],
     );
+  });
+
+  it('can be marked as an inline message', () => {
+    const root = render({ inline: true });
+
+    expect(root).toHaveClassName(`.${styles.inline}`);
   });
 
   describe('decodeHtmlEntities', () => {

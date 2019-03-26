@@ -1,3 +1,48 @@
+@import '~bootstrap/scss/_functions.scss';
+@import '~bootstrap/scss/_variables.scss';
+
+$top-arrow-width: 10px;
+$top-arrow-height: 20px;
+
+.inline:first-child {
+  position: relative;
+
+  &:after,
+  &:before {
+    border-color: transparent;
+    border-style: solid;
+    content: '';
+    display: block;
+    height: 0;
+    left: $top-arrow-height;
+    position: absolute;
+    width: 0;
+  }
+
+  &:after {
+    border-width: $top-arrow-width;
+    top: -$top-arrow-height + 2;
+  }
+
+  &:before {
+    border-bottom-color: inherit;
+    border-width: $top-arrow-width;
+    top: -$top-arrow-height;
+  }
+}
+
+.danger.inline:after {
+  border-bottom-color: theme-color-level('danger', $alert-bg-level);
+}
+
+.secondary.inline:after {
+  border-bottom-color: theme-color-level('secondary', $alert-bg-level);
+}
+
+.warning.inline:after {
+  border-bottom-color: theme-color-level('warning', $alert-bg-level);
+}
+
 .description {
   margin-bottom: 0;
 }

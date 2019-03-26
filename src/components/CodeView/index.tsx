@@ -110,7 +110,11 @@ export const CodeViewBase = ({
                         >
                           {selectedMessageMap.byLine[line].map((msg) => {
                             return (
-                              <LinterMessage key={msg.uid} message={msg} />
+                              <LinterMessage
+                                inline
+                                key={msg.uid}
+                                message={msg}
+                              />
                             );
                           })}
                         </td>
