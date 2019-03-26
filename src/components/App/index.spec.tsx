@@ -178,7 +178,6 @@ describe(__filename, () => {
 
     const root = render({ store });
 
-    expect(root.find(`.${styles.errors}`)).toHaveLength(1);
     expect(root.find(Alert)).toHaveLength(2);
     expect(root.find(Alert).at(0)).toIncludeText(error1.message);
     expect(root.find(Alert).at(1)).toIncludeText(error2.message);

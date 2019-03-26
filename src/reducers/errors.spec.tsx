@@ -68,19 +68,5 @@ describe(__filename, () => {
         },
       ]);
     });
-
-    it('does not update the next error ID when removing an error', () => {
-      const prevState = reducer(
-        undefined,
-        actions.addError({ error: new Error('Bad Request') }),
-      );
-
-      const newState = reducer(
-        prevState,
-        actions.removeError({ id: prevState.errors[0].id }),
-      );
-
-      expect(newState).toMatchObject({ nextErrorId: prevState.nextErrorId });
-    });
   });
 });
