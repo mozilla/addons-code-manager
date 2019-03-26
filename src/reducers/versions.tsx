@@ -352,7 +352,6 @@ export const getVersionFile = (
 };
 
 type FetchVersionParams = {
-  _log?: typeof log;
   _getVersion?: typeof getVersion;
   addonId: number;
   versionId: number;
@@ -388,7 +387,6 @@ export const fetchVersion = ({
 
 type FetchVersionFileParams = {
   _getVersion?: typeof getVersion;
-  _log?: typeof log;
   addonId: number;
   path: string;
   versionId: number;
@@ -396,7 +394,6 @@ type FetchVersionFileParams = {
 
 export const fetchVersionFile = ({
   _getVersion = getVersion,
-  _log = log,
   addonId,
   path,
   versionId,
@@ -414,7 +411,7 @@ export const fetchVersionFile = ({
     });
 
     if (isErrorResponse(response)) {
-      _log.error(`TODO: handle this error response: ${response.error}`);
+      dispatch(errorsActions.addError({ error: response.error }));
     } else {
       dispatch(actions.loadVersionFile({ path, version: response }));
     }
@@ -435,13 +432,11 @@ export const createVersionsMap = (
 
 type FetchVersionsListParams = {
   _getVersionsList?: typeof getVersionsList;
-  _log?: typeof log;
   addonId: number;
 };
 
 export const fetchVersionsList = ({
   _getVersionsList = getVersionsList,
-  _log = log,
   addonId,
 }: FetchVersionsListParams): ThunkActionCreator => {
   return async (dispatch, getState) => {
@@ -450,7 +445,7 @@ export const fetchVersionsList = ({
     const response = await _getVersionsList({ addonId, apiState });
 
     if (isErrorResponse(response)) {
-      _log.error(`TODO: handle this error response: ${response.error}`);
+      dispatch(errorsActions.addError({ error: response.error }));
     } else {
       dispatch(actions.loadVersionsList({ addonId, versions: response }));
     }
@@ -517,7 +512,6 @@ export const createInternalDiffs = ({
 
 type FetchDiffParams = {
   _getDiff?: typeof getDiff;
-  _log?: typeof log;
   addonId: number;
   baseVersionId: number;
   headVersionId: number;
@@ -526,7 +520,6 @@ type FetchDiffParams = {
 
 export const fetchDiff = ({
   _getDiff = getDiff,
-  _log = log,
   addonId,
   baseVersionId,
   headVersionId,
@@ -546,7 +539,7 @@ export const fetchDiff = ({
     });
 
     if (isErrorResponse(response)) {
-      _log.error(`TODO: handle this error response: ${response.error}`);
+      dispatch(errorsActions.addError({ error: response.error }));
       dispatch(actions.abortFetchDiff());
     } else {
       dispatch(actions.loadVersionInfo({ version: response }));

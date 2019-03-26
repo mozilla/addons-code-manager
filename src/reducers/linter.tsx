@@ -3,6 +3,7 @@ import { Reducer } from 'redux';
 import { ActionType, createAction, getType } from 'typesafe-actions';
 
 import { ThunkActionCreator } from '../configureStore';
+import { actions as errorsActions } from './errors';
 
 type LinterMessageBase = {
   column: number | null;
@@ -147,11 +148,9 @@ export const actions = {
 };
 
 export const fetchLinterMessages = ({
-  _log = log,
   url,
   versionId,
 }: {
-  _log?: typeof log;
   url: string;
   versionId: number;
 }): ThunkActionCreator => {
@@ -168,7 +167,7 @@ export const fetchLinterMessages = ({
       const result = await response.json();
       dispatch(actions.loadLinterResult({ versionId, result }));
     } catch (error) {
-      _log.error(`TODO: handle this error: ${error}`);
+      dispatch(errorsActions.addError({ error }));
       dispatch(actions.abortFetchLinterResult({ versionId }));
     }
   };

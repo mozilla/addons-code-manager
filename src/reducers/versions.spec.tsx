@@ -525,7 +525,6 @@ describe(__filename, () => {
 
   describe('fetchVersionFile', () => {
     const _fetchVersionFile = ({
-      _log = createFakeLogger(),
       addonId = 123,
       path = 'some/path.js',
       version = fakeVersion,
@@ -535,7 +534,6 @@ describe(__filename, () => {
         createThunk: () =>
           fetchVersionFile({
             _getVersion,
-            _log,
             addonId,
             path,
             versionId: version.id,
@@ -599,20 +597,15 @@ describe(__filename, () => {
       );
     });
 
-    it('logs an error when API response is not successful', async () => {
-      const _log = createFakeLogger();
+    it('dispatches addError() when API response is not successful', async () => {
+      const error = new Error('Bad Request');
+      const _getVersion = jest.fn().mockReturnValue(Promise.resolve({ error }));
 
-      const _getVersion = jest.fn().mockReturnValue(
-        Promise.resolve({
-          error: new Error('Bad Request'),
-        }),
-      );
-
-      const { dispatch, thunk } = _fetchVersionFile({ _log, _getVersion });
+      const { dispatch, thunk } = _fetchVersionFile({ _getVersion });
 
       await thunk();
 
-      expect(_log.error).toHaveBeenCalled();
+      expect(dispatch).toHaveBeenCalledWith(errorsActions.addError({ error }));
       expect(dispatch).not.toHaveBeenCalledWith(
         expect.objectContaining({
           type: getType(actions.loadVersionFile),
@@ -626,14 +619,12 @@ describe(__filename, () => {
       _getVersionsList = jest
         .fn()
         .mockReturnValue(Promise.resolve(fakeVersionsList)),
-      _log = createFakeLogger(),
       addonId = 123,
     } = {}) => {
       return thunkTester({
         createThunk: () =>
           fetchVersionsList({
             _getVersionsList,
-            _log,
             addonId,
           }),
       });
@@ -678,21 +669,16 @@ describe(__filename, () => {
     });
 
     it('logs an error when API response is not successful', async () => {
-      const _log = createFakeLogger();
-      const _getVersionsList = jest.fn().mockReturnValue(
-        Promise.resolve({
-          error: new Error('Bad Request'),
-        }),
-      );
+      const error = new Error('Bad Request');
+      const _getVersionsList = jest
+        .fn()
+        .mockReturnValue(Promise.resolve({ error }));
 
-      const { dispatch, thunk } = _fetchVersionsList({
-        _getVersionsList,
-        _log,
-      });
+      const { dispatch, thunk } = _fetchVersionsList({ _getVersionsList });
 
       await thunk();
 
-      expect(_log.error).toHaveBeenCalled();
+      expect(dispatch).toHaveBeenCalledWith(errorsActions.addError({ error }));
       expect(dispatch).not.toHaveBeenCalledWith(
         expect.objectContaining({
           type: getType(actions.loadVersionsList),
