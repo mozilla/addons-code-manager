@@ -1,11 +1,12 @@
 import React from 'react';
-import { Container } from 'react-bootstrap';
+import { Alert, Container } from 'react-bootstrap';
 import { Store } from 'redux';
 import { Route } from 'react-router-dom';
 
 import styles from './styles.module.scss';
 import configureStore from '../../configureStore';
 import { actions as apiActions } from '../../reducers/api';
+import { actions as errorsActions } from '../../reducers/errors';
 import { actions as userActions } from '../../reducers/users';
 import {
   createContextWithFakeRouter,
@@ -160,5 +161,51 @@ describe(__filename, () => {
     root.setProps({ apiState, dispatch });
 
     expect(dispatch).not.toHaveBeenCalled();
+  });
+
+  it('does not render application errors when there is no error', () => {
+    const root = render();
+
+    expect(root.find(`.${styles.errors}`)).toHaveLength(0);
+  });
+
+  it('renders application errors', () => {
+    const error1 = new Error('error 1');
+    const error2 = new Error('error 2');
+    const store = configureStore();
+    store.dispatch(errorsActions.addError({ error: error1 }));
+    store.dispatch(errorsActions.addError({ error: error2 }));
+
+    const root = render({ store });
+
+    expect(root.find(Alert)).toHaveLength(2);
+    expect(root.find(Alert).at(0)).toIncludeText(error1.message);
+    expect(root.find(Alert).at(1)).toIncludeText(error2.message);
+  });
+
+  it('dispatches removeError() when dismissing an error', () => {
+    const error1 = new Error('first error');
+    const error2 = new Error('second error');
+    const store = configureStore();
+    store.dispatch(errorsActions.addError({ error: error1 }));
+    store.dispatch(errorsActions.addError({ error: error2 }));
+    const dispatch = spyOn(store, 'dispatch');
+
+    const root = render({ store });
+
+    // User clicks the "close" button of the first error shown.
+    const onClose = root
+      .find(Alert)
+      .at(0)
+      .prop('onClose') as Function;
+    onClose();
+
+    const { errors } = store.getState().errors;
+    const firstError = errors[0];
+    expect(dispatch).toHaveBeenCalledWith(
+      errorsActions.removeError({
+        id: firstError.id,
+      }),
+    );
   });
 });

@@ -6,6 +6,7 @@ import { DiffInfo, DiffInfoType } from 'react-diff-view';
 import { ThunkActionCreator } from '../configureStore';
 import { getDiff, getVersion, getVersionsList, isErrorResponse } from '../api';
 import { LocalizedStringMap } from '../utils';
+import { actions as errorsActions } from './errors';
 
 type VersionCompatibility = {
   [appName: string]: {
@@ -359,7 +360,6 @@ type FetchVersionParams = {
 
 export const fetchVersion = ({
   _getVersion = getVersion,
-  _log = log,
   addonId,
   versionId,
 }: FetchVersionParams): ThunkActionCreator => {
@@ -373,7 +373,7 @@ export const fetchVersion = ({
     });
 
     if (isErrorResponse(response)) {
-      _log.error(`TODO: handle this error response: ${response.error}`);
+      dispatch(errorsActions.addError({ error: response.error }));
     } else {
       dispatch(actions.loadVersionInfo({ version: response }));
       dispatch(
