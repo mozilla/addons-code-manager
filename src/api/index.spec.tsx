@@ -8,6 +8,7 @@ import {
 import {
   HttpMethod,
   callApi,
+  getApiHost,
   getCurrentUser,
   getDiff,
   getVersion,
@@ -38,7 +39,7 @@ describe(__filename, () => {
       await callApiWithDefaultApiState();
 
       expect(fetch).toHaveBeenCalledWith(
-        `/api/${defaultVersion}/?lang=${defaultLang}`,
+        `${getApiHost()}/api/${defaultVersion}/?lang=${defaultLang}`,
         {
           headers: {},
           method: 'GET',
@@ -186,6 +187,18 @@ describe(__filename, () => {
         expect.any(Object),
       );
     });
+
+    it('calls _getApiHost() to retrieve the API host', async () => {
+      const apiHost = 'http://example.org';
+      const _getApiHost = jest.fn().mockReturnValue(apiHost);
+
+      await callApiWithDefaultApiState({ _getApiHost });
+
+      expect(fetch).toHaveBeenCalledWith(
+        `${apiHost}/api/${defaultVersion}/?lang=${defaultLang}`,
+        expect.any(Object),
+      );
+    });
   });
 
   describe('isErrorResponse', () => {
@@ -324,6 +337,26 @@ describe(__filename, () => {
         expect.urlWithTheseParams({ file: path }),
         expect.any(Object),
       );
+    });
+  });
+
+  describe('getApiHost', () => {
+    it('returns the API host configured with REACT_APP_API_HOST', () => {
+      expect(getApiHost()).toEqual(process.env.REACT_APP_API_HOST);
+    });
+
+    it('returns an empty host when using an insecure proxy', () => {
+      expect(getApiHost({ useInsecureProxy: true })).toEqual('');
+    });
+
+    it('returns an empty host when apiHost is null', () => {
+      expect(getApiHost({ apiHost: null })).toEqual('');
+    });
+
+    it('returns the given apiHost when not using an insecure proxy', () => {
+      const apiHost = 'http://example.org';
+
+      expect(getApiHost({ apiHost, useInsecureProxy: false })).toEqual(apiHost);
     });
   });
 });
