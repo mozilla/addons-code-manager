@@ -15,7 +15,7 @@ import {
   createInternalDiffs,
   createInternalVersion,
 } from '../../reducers/versions';
-import FileTree from '../../components/FileTree';
+import FileTree, { FileTreeBase } from '../../components/FileTree';
 import DiffView from '../../components/DiffView';
 import Loading from '../../components/Loading';
 import VersionChooser from '../../components/VersionChooser';
@@ -411,7 +411,7 @@ describe(__filename, () => {
 
     dispatch.mockClear();
 
-    const onSelectFile = root.find(FileTree).prop('onSelect');
+    const onSelectFile = root.find(FileTree as FileTreeBase).prop('onSelect');
     onSelectFile(path);
 
     expect(dispatch).toHaveBeenCalledWith(

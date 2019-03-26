@@ -14,7 +14,7 @@ import {
   createInternalVersion,
   getVersionFile,
 } from '../../reducers/versions';
-import FileTree from '../../components/FileTree';
+import FileTree, { FileTreeBase } from '../../components/FileTree';
 import Loading from '../../components/Loading';
 import CodeView from '../../components/CodeView';
 import FileMetadata from '../../components/FileMetadata';
@@ -179,7 +179,7 @@ describe(__filename, () => {
       versionId: String(version.id),
     });
 
-    const fileTree = root.find(FileTree);
+    const fileTree = root.find(FileTree as FileTreeBase);
     expect(fileTree).toHaveProp('onSelect');
 
     const onSelectFile = fileTree.prop('onSelect');

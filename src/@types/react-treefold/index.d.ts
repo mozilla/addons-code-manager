@@ -20,6 +20,8 @@ declare module 'react-treefold' {
   type TreefoldProps<NodeType> = {
     nodes: NodeType[];
     render: (props: TreefoldRenderProps<NodeType>) => React.Node;
+    isNodeExpanded?: (node: NodeType) => boolean;
+    onToggleExpand?: (node: NodeType) => void;
   };
 
   // eslint-disable-next-line no-undef
