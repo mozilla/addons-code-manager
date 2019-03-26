@@ -361,15 +361,8 @@ describe(__filename, () => {
     const render = ({
       onSelect = jest.fn(),
       version = getVersion(fakeVersion),
-      linterMessages = {},
     } = {}) => {
-      return shallow(
-        <FileTree
-          version={version}
-          linterMessages={linterMessages}
-          onSelect={onSelect}
-        />,
-      );
+      return shallow(<FileTree version={version} onSelect={onSelect} />);
     };
 
     it('renders a ListGroup component with a Treefold', () => {
@@ -412,21 +405,6 @@ describe(__filename, () => {
       expect(shallow(<div>{node}</div>).find(FileTreeNode)).toHaveProp(
         'version',
         version,
-      );
-    });
-
-    it('passes the linterMessages prop to FileTreeNode', () => {
-      const linterMessages = {};
-
-      const root = render({ linterMessages });
-
-      const node = (root.instance() as FileTree).renderNode(
-        getTreefoldRenderProps(),
-      );
-
-      expect(shallow(<div>{node}</div>).find(FileTreeNode)).toHaveProp(
-        'linterMessages',
-        linterMessages,
       );
     });
   });

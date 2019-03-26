@@ -125,11 +125,7 @@ export class BrowseBase extends React.Component<Props> {
         <Col md="3">
           <Row>
             <Col>
-              <FileTree
-                linterMessages={linterMessages}
-                onSelect={this.onSelectFile}
-                version={version}
-              />
+              <FileTree onSelect={this.onSelectFile} version={version} />
             </Col>
           </Row>
           {file && (

@@ -1,10 +1,15 @@
 /* eslint @typescript-eslint/camelcase: 0 */
 import React from 'react';
+import { Store } from 'redux';
 import { storiesOf } from '@storybook/react';
 
-import FileTree from '../src/components/FileTree';
+import configureStore from '../src/configureStore';
+import FileTree, {
+  PublicProps as FileTreeProps,
+} from '../src/components/FileTree';
 import { createInternalVersion } from '../src/reducers/versions';
 import { fakeVersion, fakeVersionEntry } from '../src/test-helpers';
+import { renderWithStoreAndRouter } from './utils';
 
 const version = createInternalVersion({
   ...fakeVersion,
@@ -63,10 +68,16 @@ const onSelectFile = (path: string) => {
   alert(`Selected file: ${path}`);
 };
 
-storiesOf('FileTree', module).add('default', () => (
-  <FileTree
-    linterMessages={undefined}
-    onSelect={onSelectFile}
-    version={version}
-  />
-));
+const render = ({
+  store = configureStore(),
+  ...moreProps
+}: { store?: Store } & Partial<FileTreeProps> = {}) => {
+  const props: FileTreeProps = {
+    onSelect: onSelectFile,
+    version,
+    ...moreProps,
+  };
+  return renderWithStoreAndRouter(<FileTree {...props} />, store);
+};
+
+storiesOf('FileTree', module).add('default', () => render());

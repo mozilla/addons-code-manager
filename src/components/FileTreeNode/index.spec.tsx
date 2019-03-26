@@ -2,12 +2,15 @@ import * as React from 'react';
 import { shallow } from 'enzyme';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
+import { TreefoldRenderPropsForFileTree } from '../FileTree';
 import { createInternalVersion } from '../../reducers/versions';
 import { ExternalLinterMessage, getMessageMap } from '../../reducers/linter';
+import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import {
   createFakeExternalLinterResult,
   fakeExternalLinterMessage,
   fakeVersion,
+  simulateLinterProvider,
 } from '../../test-helpers';
 import styles from './styles.module.scss';
 
@@ -20,6 +23,12 @@ const fakeGetToggleProps = () => ({
   tabIndex: 0,
 });
 
+type GetTreefoldRenderPropsParams = {
+  id?: string;
+  name?: string;
+  onSelect?: PublicProps['onSelect'];
+} & Partial<TreefoldRenderPropsForFileTree>;
+
 export const getTreefoldRenderProps = ({
   getToggleProps = fakeGetToggleProps,
   hasChildNodes = false,
@@ -29,7 +38,9 @@ export const getTreefoldRenderProps = ({
   name = 'root',
   renderChildNodes = jest.fn(),
   onSelect = jest.fn(),
-} = {}) => {
+}: GetTreefoldRenderPropsParams = {}): TreefoldRenderPropsForFileTree & {
+  onSelect: PublicProps['onSelect'];
+} => {
   return {
     node: {
       id,
@@ -50,12 +61,11 @@ describe(__filename, () => {
 
   const render = ({
     version = createInternalVersion(fakeVersion),
-    linterMessages,
     ...props
   }: RenderParams = {}) => {
-    const allProps = {
+    const allProps: PublicProps = {
+      onSelect: () => undefined,
       version,
-      linterMessages,
       ...getTreefoldRenderProps(),
       ...props,
     };
@@ -69,6 +79,24 @@ describe(__filename, () => {
     return getMessageMap(createFakeExternalLinterResult({ messages }));
   };
 
+  type RenderWithLinterProviderParams = Partial<LinterProviderInfo> &
+    RenderParams;
+
+  const renderWithLinterProvider = ({
+    messageMap = undefined,
+    messagesAreLoading = false,
+    selectedMessageMap = undefined,
+    ...renderParams
+  }: RenderWithLinterProviderParams = {}) => {
+    const root = render(renderParams);
+
+    return simulateLinterProvider(root, {
+      messageMap,
+      messagesAreLoading,
+      selectedMessageMap,
+    });
+  };
+
   const renderWithLinterMessage = ({
     version = createInternalVersion(fakeVersion),
     message = fakeExternalLinterMessage,
@@ -79,10 +107,10 @@ describe(__filename, () => {
       ...treefoldRenderProps,
     });
 
-    return render({
-      ...renderProps,
-      linterMessages: _getMessageMap([message]),
+    return renderWithLinterProvider({
+      messageMap: _getMessageMap([message]),
       version,
+      ...renderProps,
     });
   };
 
@@ -95,7 +123,7 @@ describe(__filename, () => {
       getToggleProps,
     });
 
-    const root = render(renderProps);
+    const root = renderWithLinterProvider(renderProps);
 
     expect(root.find(`.${styles.node}`)).toHaveLength(1);
     expect(root.find(`.${styles.node}`)).toIncludeText(name);
@@ -112,7 +140,7 @@ describe(__filename, () => {
     const name = 'simple node';
     const renderProps = getTreefoldRenderProps({ name, isFolder: false });
 
-    const root = render(renderProps);
+    const root = renderWithLinterProvider(renderProps);
 
     expect(root.find(`.${styles.node}`)).toHaveLength(1);
     expect(root.find(`.${styles.node}`)).toIncludeText(name);
@@ -125,14 +153,14 @@ describe(__filename, () => {
 
   it('sets an onClick handler to a simple node', () => {
     const onSelect = jest.fn();
-    const id = 'some-node-id';
+    const id = 'path/to/some/file.js';
     const renderProps = getTreefoldRenderProps({
       id,
       onSelect,
       isFolder: false,
     });
 
-    const root = render(renderProps);
+    const root = renderWithLinterProvider(renderProps);
 
     expect(root.find(`.${styles.node}`)).toHaveProp('onClick');
 
@@ -150,7 +178,7 @@ describe(__filename, () => {
       isFolder: true,
     });
 
-    const root = render(renderProps);
+    const root = renderWithLinterProvider(renderProps);
 
     expect(root.find(`.${styles.node}`)).toHaveProp('onClick');
 
@@ -165,8 +193,7 @@ describe(__filename, () => {
       isFolder: true,
       isExpanded: true,
     });
-
-    const root = render(renderProps);
+    const root = renderWithLinterProvider(renderProps);
 
     expect(root.find(`.${styles.directoryNode}`)).toHaveLength(1);
 
@@ -180,8 +207,7 @@ describe(__filename, () => {
       isExpanded: true,
       hasChildNodes: false,
     });
-
-    const root = render(renderProps);
+    const root = renderWithLinterProvider(renderProps);
 
     expect(root.find(`.${styles.emptyNodeDirectory}`)).toHaveLength(1);
     expect(root.find(`.${styles.emptyNodeDirectory}`)).toIncludeText(
@@ -198,7 +224,7 @@ describe(__filename, () => {
       renderChildNodes,
     });
 
-    render(renderProps);
+    renderWithLinterProvider(renderProps);
 
     expect(renderChildNodes).not.toHaveBeenCalled();
   });
@@ -212,7 +238,7 @@ describe(__filename, () => {
       renderChildNodes,
     });
 
-    render(renderProps);
+    renderWithLinterProvider(renderProps);
 
     expect(renderChildNodes).toHaveBeenCalled();
   });
@@ -220,12 +246,8 @@ describe(__filename, () => {
   it('marks a file node as selected', () => {
     const version = createInternalVersion(fakeVersion);
 
-    const renderProps = getTreefoldRenderProps({
-      id: version.selectedPath,
-    });
-
-    const root = render({
-      ...renderProps,
+    const root = renderWithLinterProvider({
+      ...getTreefoldRenderProps({ id: version.selectedPath }),
       version,
     });
 
@@ -233,15 +255,9 @@ describe(__filename, () => {
   });
 
   it('does not mark a file node as selected when it is not selected', () => {
-    const version = createInternalVersion(fakeVersion);
-
-    const renderProps = getTreefoldRenderProps({
-      id: 'not-the-selected-path',
-    });
-
-    const root = render({
-      ...renderProps,
-      version,
+    const root = renderWithLinterProvider({
+      ...getTreefoldRenderProps({ id: 'not-the-selected-path' }),
+      version: createInternalVersion(fakeVersion),
     });
 
     expect(root.find(`.${styles.selected}`)).toHaveLength(0);
@@ -260,9 +276,7 @@ describe(__filename, () => {
 
     const root = renderWithLinterMessage({
       message,
-      treefoldRenderProps: {
-        isFolder: false,
-      },
+      treefoldRenderProps: { isFolder: false },
     });
 
     expect(root.find(className)).toHaveLength(1);
@@ -442,5 +456,12 @@ describe(__filename, () => {
 
       expect(type).toEqual(messages[0].type);
     });
+  });
+
+  it('configures LinterProvider', () => {
+    const version = createInternalVersion(fakeVersion);
+    const root = render({ version });
+
+    expect(root.find(LinterProvider)).toHaveProp('version', version);
   });
 });

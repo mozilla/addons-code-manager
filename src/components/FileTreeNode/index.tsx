@@ -1,17 +1,16 @@
 import * as React from 'react';
-import { TreefoldRenderProps } from 'react-treefold';
 import { ListGroup } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import makeClassName from 'classnames';
 
 import { gettext } from '../../utils';
-import { TreeNode } from '../FileTree';
+import { TreefoldRenderPropsForFileTree } from '../FileTree';
+import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import { Version } from '../../reducers/versions';
 import { LinterMessage, LinterMessageMap } from '../../reducers/linter';
 import styles from './styles.module.scss';
 
-export type PublicProps = TreefoldRenderProps<TreeNode> & {
-  linterMessages: LinterMessageMap | void;
+export type PublicProps = TreefoldRenderPropsForFileTree & {
   onSelect: (id: string) => void;
   version: Version;
 };
@@ -79,14 +78,13 @@ const getIconForType = (type: string | null) => {
 };
 
 class FileTreeNodeBase<TreeNodeType> extends React.Component<PublicProps> {
-  render() {
+  renderWithLinterInfo = ({ messageMap }: LinterProviderInfo) => {
     const {
       getToggleProps,
       hasChildNodes,
       isExpanded,
       isFolder,
       level,
-      linterMessages,
       node,
       onSelect,
       renderChildNodes,
@@ -94,13 +92,13 @@ class FileTreeNodeBase<TreeNodeType> extends React.Component<PublicProps> {
     } = this.props;
 
     const hasLinterMessages =
-      linterMessages &&
-      Object.keys(linterMessages).some((path) => path.startsWith(node.id));
+      messageMap &&
+      Object.keys(messageMap).some((path) => path.startsWith(node.id));
 
     let nodeIcons = null;
     let linterType = null;
-    if (linterMessages && hasLinterMessages) {
-      linterType = findMostSevereTypeForPath(linterMessages, node.id);
+    if (messageMap && hasLinterMessages) {
+      linterType = findMostSevereTypeForPath(messageMap, node.id);
 
       nodeIcons = (
         <span className={styles.nodeIcons}>
@@ -159,6 +157,26 @@ class FileTreeNodeBase<TreeNodeType> extends React.Component<PublicProps> {
             </ListGroup.Item>
           ))}
       </React.Fragment>
+    );
+  };
+
+  render() {
+    const { version } = this.props;
+
+    return (
+      <LinterProvider version={version}>
+        {/*
+          props.children needs be an anonymous function so that the
+          shallow prop check in connect(LinterProvider) will always think
+          there is a new value for props.children.
+
+          Without a new value, LinterProvider will not re-render its
+          children often enough. For example, the uncontrolled ListGroup
+          components (which could be nested recursively) need to
+          re-render when their internal state changes.
+        */}
+        {(info: LinterProviderInfo) => this.renderWithLinterInfo(info)}
+      </LinterProvider>
     );
   }
 }
