@@ -15,6 +15,7 @@ import {
   getVersionsList,
   isErrorResponse,
   logOutFromServer,
+  makeApiURL,
 } from '.';
 
 describe(__filename, () => {
@@ -39,7 +40,7 @@ describe(__filename, () => {
       await callApiWithDefaultApiState();
 
       expect(fetch).toHaveBeenCalledWith(
-        `${getApiHost()}/api/${defaultVersion}/?lang=${defaultLang}`,
+        makeApiURL({ path: `/?lang=${defaultLang}` }),
         {
           headers: {},
           method: 'GET',
@@ -91,11 +92,12 @@ describe(__filename, () => {
 
     it('accepts an API version', async () => {
       const version = 'v123';
+      const endpoint = '/';
 
-      await callApiWithDefaultApiState({ endpoint: '/', version });
+      await callApiWithDefaultApiState({ endpoint, version });
 
       expect(fetch).toHaveBeenCalledWith(
-        expect.stringMatching(`/api/${version}/`),
+        expect.stringMatching(makeApiURL({ path: endpoint, version })),
         expect.any(Object),
       );
     });
@@ -184,18 +186,6 @@ describe(__filename, () => {
 
       expect(fetch).toHaveBeenCalledWith(
         expect.urlWithTheseParams(query),
-        expect.any(Object),
-      );
-    });
-
-    it('calls _getApiHost() to retrieve the API host', async () => {
-      const apiHost = 'http://example.org';
-      const _getApiHost = jest.fn().mockReturnValue(apiHost);
-
-      await callApiWithDefaultApiState({ _getApiHost });
-
-      expect(fetch).toHaveBeenCalledWith(
-        `${apiHost}/api/${defaultVersion}/?lang=${defaultLang}`,
         expect.any(Object),
       );
     });
@@ -357,6 +347,82 @@ describe(__filename, () => {
       const apiHost = 'http://example.org';
 
       expect(getApiHost({ apiHost, useInsecureProxy: false })).toEqual(apiHost);
+    });
+  });
+
+  describe('makeApiURL', () => {
+    it('constructs an API URL for a given path', () => {
+      const apiHost = 'https://example.org';
+      const path = '/foo/';
+      const _getApiHost = jest.fn().mockReturnValue(apiHost);
+
+      expect(makeApiURL({ _getApiHost, path })).toEqual(
+        `${apiHost}/api/${defaultVersion}${path}`,
+      );
+    });
+
+    it('can omit the version', () => {
+      const path = '/foo/';
+
+      expect(makeApiURL({ path, version: null })).toEqual(
+        expect.stringMatching(`/api${path}`),
+      );
+    });
+
+    it('can omit the prefix', () => {
+      const path = '/foo/';
+      // This is needed because `stringMatching` won't throw if `prefix` is there.
+      const apiHost = 'https://example.org';
+      const _getApiHost = jest.fn().mockReturnValue(apiHost);
+
+      expect(makeApiURL({ _getApiHost, path, prefix: null })).toEqual(
+        `${apiHost}/${defaultVersion}${path}`,
+      );
+    });
+
+    it('can omit both the prefix and version', () => {
+      const path = '/foo/';
+      // This is needed because `stringMatching` won't throw if `prefix` is there.
+      const apiHost = 'https://example.org';
+      const _getApiHost = jest.fn().mockReturnValue(apiHost);
+
+      expect(
+        makeApiURL({ _getApiHost, path, prefix: null, version: null }),
+      ).toEqual(`${apiHost}${path}`);
+    });
+
+    it('can override the default API version', () => {
+      const path = '/foo/';
+      const version = '123';
+
+      expect(makeApiURL({ path, version })).toEqual(
+        expect.stringMatching(`/api/${version}${path}`),
+      );
+    });
+
+    it('can override the default prefix', () => {
+      const path = '/foo/';
+      const prefix = 'another-prefix';
+
+      expect(makeApiURL({ path, prefix })).toEqual(
+        expect.stringMatching(`/${prefix}/${defaultVersion}${path}`),
+      );
+    });
+
+    it('makes sure the path starts with a slash', () => {
+      const path = 'foo';
+
+      expect(makeApiURL({ path })).toEqual(
+        expect.stringMatching(`/api/${defaultVersion}/${path}`),
+      );
+    });
+
+    it('calls _getApiHost', () => {
+      const _getApiHost = jest.fn();
+
+      makeApiURL({ _getApiHost, path: '/' });
+
+      expect(_getApiHost).toHaveBeenCalled();
     });
   });
 });
