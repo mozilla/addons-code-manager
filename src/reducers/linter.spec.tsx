@@ -18,6 +18,7 @@ import linterReducer, {
   initialState,
   selectMessageMap,
 } from './linter';
+import { actions as errorsActions } from './errors';
 
 describe(__filename, () => {
   const createExternalLinterResult = (
@@ -403,13 +404,11 @@ describe(__filename, () => {
 
   describe('fetchLinterMessages', () => {
     const _fetchLinterMessages = ({
-      _log,
       versionId = 123,
       url = '/validation/1234/validation.json',
       result = createExternalLinterResult(),
       respondWithResult = true,
     }: {
-      _log?: typeof log;
       versionId?: number;
       url?: string;
       result?: ExternalLinterResult;
@@ -420,7 +419,7 @@ describe(__filename, () => {
       }
 
       return thunkTester({
-        createThunk: () => fetchLinterMessages({ _log, url, versionId }),
+        createThunk: () => fetchLinterMessages({ url, versionId }),
       });
     };
 
@@ -463,10 +462,8 @@ describe(__filename, () => {
     it('handles a bad response status', async () => {
       fetchMock.mockResponse('', { status: 400 });
       const versionId = 124;
-      const fakeLog = createFakeLogger();
 
       const { dispatch, thunk } = _fetchLinterMessages({
-        _log: fakeLog,
         versionId,
         respondWithResult: false,
       });
@@ -474,18 +471,18 @@ describe(__filename, () => {
       await thunk();
 
       expect(dispatch).toHaveBeenCalledWith(
+        errorsActions.addError({ error: expect.any(Error) }),
+      );
+      expect(dispatch).toHaveBeenCalledWith(
         actions.abortFetchLinterResult({ versionId }),
       );
-      expect(fakeLog.error).toHaveBeenCalled();
     });
 
     it('handles an invalid JSON response', async () => {
       fetchMock.mockResponse('_this is not ^& valid JSON');
       const versionId = 124;
-      const fakeLog = createFakeLogger();
 
       const { dispatch, thunk } = _fetchLinterMessages({
-        _log: fakeLog,
         versionId,
         respondWithResult: false,
       });
@@ -493,10 +490,10 @@ describe(__filename, () => {
       await thunk();
 
       expect(dispatch).toHaveBeenCalledWith(
-        actions.abortFetchLinterResult({ versionId }),
+        errorsActions.addError({ error: expect.any(Error) }),
       );
-      expect(fakeLog.error).toHaveBeenCalledWith(
-        expect.stringMatching(/FetchError/),
+      expect(dispatch).toHaveBeenCalledWith(
+        actions.abortFetchLinterResult({ versionId }),
       );
     });
   });

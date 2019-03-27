@@ -1,9 +1,9 @@
 import { Reducer } from 'redux';
 import { ActionType, createAction, getType } from 'typesafe-actions';
-import log from 'loglevel';
 
 import { ThunkActionCreator } from '../configureStore';
 import { getCurrentUser, isErrorResponse, logOutFromServer } from '../api';
+import { actions as errorsActions } from './errors';
 
 type UserId = number;
 
@@ -89,7 +89,6 @@ export const currentUserIsLoading = (users: UsersState) => {
 
 export const fetchCurrentUser = ({
   _getCurrentUser = getCurrentUser,
-  _log = log,
 } = {}): ThunkActionCreator => {
   return async (dispatch, getState) => {
     const { api: apiState } = getState();
@@ -98,7 +97,7 @@ export const fetchCurrentUser = ({
     const response = await _getCurrentUser(apiState);
 
     if (isErrorResponse(response)) {
-      _log.error(`TODO: handle this error response: ${response.error}`);
+      dispatch(errorsActions.addError({ error: response.error }));
       dispatch(actions.abortFetchCurrentUser());
     } else {
       dispatch(actions.loadCurrentUser({ user: response }));

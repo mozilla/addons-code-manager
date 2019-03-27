@@ -9,7 +9,8 @@ import reducer, {
   requestLogOut,
   selectCurrentUser,
 } from './users';
-import { createFakeLogger, fakeUser, thunkTester } from '../test-helpers';
+import { fakeUser, thunkTester } from '../test-helpers';
+import { actions as errorsActions } from './errors';
 
 describe(__filename, () => {
   describe('reducer', () => {
@@ -187,23 +188,17 @@ describe(__filename, () => {
       expect(dispatch).toHaveBeenCalledWith(actions.loadCurrentUser({ user }));
     });
 
-    it('logs an error when API response is not successful', async () => {
-      const _log = createFakeLogger();
+    it('dispatches addError() when API response is not successful', async () => {
+      const error = new Error('Bad Request');
+      const _getCurrentUser = jest
+        .fn()
+        .mockReturnValue(Promise.resolve({ error }));
 
-      const _getCurrentUser = jest.fn().mockReturnValue(
-        Promise.resolve({
-          error: new Error('Bad Request'),
-        }),
-      );
-
-      const { dispatch, thunk } = _fetchCurrentUser({
-        _log,
-        _getCurrentUser,
-      });
+      const { dispatch, thunk } = _fetchCurrentUser({ _getCurrentUser });
 
       await thunk();
 
-      expect(_log.error).toHaveBeenCalled();
+      expect(dispatch).toHaveBeenCalledWith(errorsActions.addError({ error }));
       expect(dispatch).not.toHaveBeenCalledWith(
         expect.objectContaining({
           type: getType(actions.loadCurrentUser),
