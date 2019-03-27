@@ -214,8 +214,7 @@ export const actions = {
       resolve(payload);
   }),
   toggleExpandedPath: createAction('TOGGLE_EXPANDED_PATH', (resolve) => {
-    return (payload: { selectedPath: string; versionId: number }) =>
-      resolve(payload);
+    return (payload: { path: string; versionId: number }) => resolve(payload);
   }),
   loadVersionsList: createAction('LOAD_VERSIONS_LIST', (resolve) => {
     return (payload: { addonId: number; versions: ExternalVersionsList }) =>
@@ -615,7 +614,7 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
       };
     }
     case getType(actions.toggleExpandedPath): {
-      const { selectedPath, versionId } = action.payload;
+      const { path, versionId } = action.payload;
 
       const { expandedPaths } = state.versionInfo[versionId];
 
@@ -625,9 +624,9 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
           ...state.versionInfo,
           [versionId]: {
             ...state.versionInfo[versionId],
-            expandedPaths: expandedPaths.includes(selectedPath)
-              ? expandedPaths.filter((path) => path !== selectedPath)
-              : [...expandedPaths, selectedPath],
+            expandedPaths: expandedPaths.includes(path)
+              ? expandedPaths.filter((storedPath) => path !== storedPath)
+              : [...expandedPaths, path],
           },
         },
       };
