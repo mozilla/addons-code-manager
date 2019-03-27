@@ -119,7 +119,8 @@ describe(__filename, () => {
       it('sets production CSP and security headers', async () => {
         const fakeEnv = {
           ...prodEnv,
-          REACT_APP_API_HOST: 'https://code-manager.addons.cdn.mozilla.net',
+          PUBLIC_URL: 'https://code-manager.addons.cdn.mozilla.net',
+          REACT_APP_API_HOST: 'https://addons-dev.allizom.org',
         };
 
         const server = request(
@@ -142,12 +143,12 @@ describe(__filename, () => {
         expect(policy['frame-ancestors']).toEqual(["'none'"]);
         expect(policy['frame-src']).toEqual(["'none'"]);
         expect(policy['font-src']).toEqual(["'none'"]);
-        expect(policy['img-src']).toEqual(["'self'"]);
+        expect(policy['img-src']).toEqual([fakeEnv.PUBLIC_URL]);
         expect(policy['manifest-src']).toEqual(["'none'"]);
         expect(policy['media-src']).toEqual(["'none'"]);
         expect(policy['object-src']).toEqual(["'none'"]);
-        expect(policy['script-src']).toEqual(["'self'"]);
-        expect(policy['style-src']).toEqual(["'self'"]);
+        expect(policy['script-src']).toEqual([fakeEnv.PUBLIC_URL]);
+        expect(policy['style-src']).toEqual([fakeEnv.PUBLIC_URL]);
         expect(policy['worker-src']).toEqual(["'none'"]);
         expect(policy['report-uri']).toEqual(['/__cspreport__']);
 
@@ -201,6 +202,22 @@ describe(__filename, () => {
         expect(response.status).toEqual(200);
         const policy = cspParser(response.header['content-security-policy']);
         expect(policy['connect-src']).toEqual(["'none'"]);
+      });
+
+      it('tightens style-src, script-src and img-src if CDN URL is unset', async () => {
+        const server = request(
+          createServer({
+            env: prodEnv as ServerEnvVars,
+            rootPath,
+          }),
+        );
+
+        const response = await server.get('/');
+        expect(response.status).toEqual(200);
+        const policy = cspParser(response.header['content-security-policy']);
+        expect(policy['img-src']).toEqual(["'none'"]);
+        expect(policy['script-src']).toEqual(["'none'"]);
+        expect(policy['style-src']).toEqual(["'none'"]);
       });
 
       it('calls injectAuthenticationToken() and returns its output', async () => {
