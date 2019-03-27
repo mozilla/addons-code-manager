@@ -108,7 +108,7 @@
     "serve": "NODE_ENV=production ts-node -O '{\"module\": \"commonjs\", \"typeRoots\": [\"./src/@types\"]}' scripts/server.tsx",
     "serve-dev": "NODE_ENV=development ts-node-dev -O '{\"module\": \"commonjs\", \"typeRoots\": [\"./src/@types\"]}' -- scripts/server.tsx",
     "stage": "yarn build-local-stage-config && yarn stmux-dev",
-    "start": "yarn build && NODE_ENV=production yarn serve",
+    "start": "rm -f .env.local && yarn build && yarn serve",
     "start-local-dev": "yarn build-local-dev-config && yarn start",
     "start-local-prod": "cat .env.common-local > .env.local && yarn start",
     "start-local-stage": "yarn build-local-stage-config && yarn start",
