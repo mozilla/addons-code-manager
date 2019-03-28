@@ -432,6 +432,7 @@ describe(__filename, () => {
 
       expect(fetchMock).toHaveBeenCalledWith(
         makeApiURL({ path: url, version: null, prefix: null }),
+        { credentials: 'include' },
       );
     });
 
