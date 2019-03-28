@@ -15,6 +15,7 @@ export const DEFAULT_PORT = 3000;
 export type ServerEnvVars = {
   NODE_ENV: string;
   PORT: number;
+  PUBLIC_URL: string;
   REACT_APP_API_HOST: string;
   REACT_APP_AUTHENTICATION_COOKIE: string;
   REACT_APP_AUTH_TOKEN_PLACEHOLDER: string;
@@ -63,9 +64,9 @@ export const createServer = ({
     reportUri: '/__cspreport__',
   };
 
+  const cdnURL = env.PUBLIC_URL || "'none'";
+
   // This config sets the non-static CSP for deployed instances.
-  // TODO: A separate CDN should be configured for statics. When that happens
-  // the 'self' should be removed and replaced with the CDN host + path for statics.
   const prodCSP = {
     defaultSrc: ["'none'"],
     childSrc: ["'none'"],
@@ -81,12 +82,12 @@ export const createServer = ({
     formAction: ["'none'"],
     frameAncestors: ["'none'"],
     frameSrc: ["'none'"],
-    imgSrc: ["'self'"],
+    imgSrc: [cdnURL],
     manifestSrc: ["'none'"],
     mediaSrc: ["'none'"],
     objectSrc: ["'none'"],
-    scriptSrc: ["'self'"],
-    styleSrc: ["'self'"],
+    scriptSrc: [cdnURL],
+    styleSrc: [cdnURL],
     workerSrc: ["'none'"],
     reportUri: '/__cspreport__',
   };
