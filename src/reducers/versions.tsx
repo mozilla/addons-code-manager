@@ -169,6 +169,7 @@ type VersionAddon = {
 export type Version = {
   addon: VersionAddon;
   entries: VersionEntry[];
+  expandedPaths: string[];
   id: number;
   reviewed: string;
   selectedPath: string;
@@ -211,6 +212,9 @@ export const actions = {
   updateSelectedPath: createAction('UPDATE_SELECTED_PATH', (resolve) => {
     return (payload: { selectedPath: string; versionId: number }) =>
       resolve(payload);
+  }),
+  toggleExpandedPath: createAction('TOGGLE_EXPANDED_PATH', (resolve) => {
+    return (payload: { path: string; versionId: number }) => resolve(payload);
   }),
   loadVersionsList: createAction('LOAD_VERSIONS_LIST', (resolve) => {
     return (payload: { addonId: number; versions: ExternalVersionsList }) =>
@@ -299,6 +303,7 @@ export const createInternalVersion = (
     entries: Object.keys(version.file.entries).map((nodeName) => {
       return createInternalVersionEntry(version.file.entries[nodeName]);
     }),
+    expandedPaths: [],
     id: version.id,
     reviewed: version.reviewed,
     selectedPath: version.file.selected_file,
@@ -597,6 +602,24 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
           [versionId]: {
             ...state.versionInfo[versionId],
             selectedPath,
+          },
+        },
+      };
+    }
+    case getType(actions.toggleExpandedPath): {
+      const { path, versionId } = action.payload;
+
+      const { expandedPaths } = state.versionInfo[versionId];
+
+      return {
+        ...state,
+        versionInfo: {
+          ...state.versionInfo,
+          [versionId]: {
+            ...state.versionInfo[versionId],
+            expandedPaths: expandedPaths.includes(path)
+              ? expandedPaths.filter((storedPath) => path !== storedPath)
+              : [...expandedPaths, path],
           },
         },
       };

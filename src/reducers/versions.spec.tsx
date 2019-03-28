@@ -109,6 +109,75 @@ describe(__filename, () => {
       );
     });
 
+    it('adds a path to expandedPaths', () => {
+      const version = fakeVersion;
+      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+
+      const path = 'new/selected/path';
+      state = reducer(
+        state,
+        actions.toggleExpandedPath({ path, versionId: version.id }),
+      );
+
+      expect(state).toHaveProperty(`versionInfo.${version.id}.expandedPaths`, [
+        path,
+      ]);
+    });
+
+    it('removes a path from expandedPaths', () => {
+      const version = fakeVersion;
+      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+
+      const path = 'new/selected/path';
+      state = reducer(
+        state,
+        actions.toggleExpandedPath({ path, versionId: version.id }),
+      );
+
+      state = reducer(
+        state,
+        actions.toggleExpandedPath({ path, versionId: version.id }),
+      );
+
+      expect(state).toHaveProperty(
+        `versionInfo.${version.id}.expandedPaths`,
+        [],
+      );
+    });
+
+    it('maintains other paths when removing a path from expandedPaths', () => {
+      const version = fakeVersion;
+      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+
+      const path1 = 'new/selected/path1';
+      const path2 = 'new/selected/path2';
+
+      // Add both paths.
+      state = reducer(
+        state,
+        actions.toggleExpandedPath({ path: path1, versionId: version.id }),
+      );
+      state = reducer(
+        state,
+        actions.toggleExpandedPath({ path: path2, versionId: version.id }),
+      );
+
+      expect(state).toHaveProperty(`versionInfo.${version.id}.expandedPaths`, [
+        path1,
+        path2,
+      ]);
+
+      // Remove the first path.
+      state = reducer(
+        state,
+        actions.toggleExpandedPath({ path: path1, versionId: version.id }),
+      );
+
+      expect(state).toHaveProperty(`versionInfo.${version.id}.expandedPaths`, [
+        path2,
+      ]);
+    });
+
     it('stores lists of versions by add-on ID', () => {
       const addonId = 1245;
       const versions = fakeVersionsList;
@@ -256,6 +325,7 @@ describe(__filename, () => {
       expect(createInternalVersion(version)).toEqual({
         addon: createInternalVersionAddon(version.addon),
         entries: [createInternalVersionEntry(entry)],
+        expandedPaths: [],
         id: version.id,
         reviewed: version.reviewed,
         version: version.version,
