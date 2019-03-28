@@ -4,6 +4,7 @@ import { ActionType, createAction, getType } from 'typesafe-actions';
 
 import { ThunkActionCreator } from '../configureStore';
 import { actions as errorsActions } from './errors';
+import { makeApiURL } from '../api';
 
 type LinterMessageBase = {
   column: number | null;
@@ -158,7 +159,9 @@ export const fetchLinterMessages = ({
     dispatch(actions.beginFetchLinterResult({ versionId }));
 
     // This is a special URL and returns a non-standard JSON response.
-    const response = await fetch(url);
+    const response = await fetch(
+      makeApiURL({ path: url, version: null, prefix: null }),
+    );
 
     try {
       if (!response.ok) {

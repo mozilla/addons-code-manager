@@ -25,6 +25,38 @@ export const getApiHost = ({
   return apiHost || '';
 };
 
+type MakApiUrlParams = {
+  _getApiHost?: typeof getApiHost;
+  version?: string | null;
+  path: string;
+  prefix?: string | null;
+};
+
+export const makeApiURL = ({
+  _getApiHost = getApiHost,
+  path,
+  prefix = 'api',
+  version = process.env.REACT_APP_DEFAULT_API_VERSION,
+}: MakApiUrlParams) => {
+  const parts = [_getApiHost()];
+
+  if (prefix) {
+    parts.push(`/${prefix}`);
+  }
+
+  if (version) {
+    parts.push(`/${version}`);
+  }
+
+  let adjustedPath = path;
+  if (!path.startsWith('/')) {
+    adjustedPath = `/${adjustedPath}`;
+  }
+  parts.push(adjustedPath);
+
+  return parts.join('');
+};
+
 export enum HttpMethod {
   DELETE = 'DELETE',
   GET = 'GET',
@@ -34,8 +66,6 @@ export enum HttpMethod {
 }
 
 type CallApiParams = {
-  _getApiHost?: typeof getApiHost;
-  apiHost?: string;
   apiState: ApiState;
   endpoint: string;
   lang?: string;
@@ -68,7 +98,6 @@ type Headers = {
 // For the `extends {}` part, please see:
 // https://github.com/Microsoft/TypeScript/issues/4922
 export const callApi = async <SuccessResponseType extends {}>({
-  _getApiHost = getApiHost,
   apiState,
   endpoint,
   lang = process.env.REACT_APP_DEFAULT_API_LANG,
@@ -76,12 +105,12 @@ export const callApi = async <SuccessResponseType extends {}>({
   query = {},
   version = process.env.REACT_APP_DEFAULT_API_VERSION,
 }: CallApiParams): Promise<CallApiResponse<SuccessResponseType>> => {
-  let adjustedEndpoint = endpoint;
-  if (!adjustedEndpoint.startsWith('/')) {
-    adjustedEndpoint = `/${adjustedEndpoint}`;
+  let path = endpoint;
+  if (!path.startsWith('/')) {
+    path = `/${path}`;
   }
-  if (!adjustedEndpoint.endsWith('/')) {
-    adjustedEndpoint = `${adjustedEndpoint}/`;
+  if (!path.endsWith('/')) {
+    path = `${path}/`;
   }
 
   const headers: Headers = {};
@@ -100,22 +129,17 @@ export const callApi = async <SuccessResponseType extends {}>({
     .map((k) => `${k}=${queryWithLang[k]}`)
     .join('&');
 
-  adjustedEndpoint = `${adjustedEndpoint}?${queryString}`;
+  path = `${path}?${queryString}`;
 
   try {
-    const response = await fetch(
-      `${_getApiHost()}/api/${version}${adjustedEndpoint}`,
-      {
-        method,
-        headers,
-      },
-    );
+    const response = await fetch(makeApiURL({ path, version }), {
+      method,
+      headers,
+    });
 
     if (!response.ok) {
       throw new Error(
-        `Unexpected status for ${method} ${adjustedEndpoint}: ${
-          response.status
-        }`,
+        `Unexpected status for ${method} ${path}: ${response.status}`,
       );
     }
 

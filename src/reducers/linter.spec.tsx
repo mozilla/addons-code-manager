@@ -19,6 +19,7 @@ import linterReducer, {
   selectMessageMap,
 } from './linter';
 import { actions as errorsActions } from './errors';
+import { makeApiURL } from '../api';
 
 describe(__filename, () => {
   const createExternalLinterResult = (
@@ -429,7 +430,9 @@ describe(__filename, () => {
       const { thunk } = _fetchLinterMessages({ url });
       await thunk();
 
-      expect(fetchMock).toHaveBeenCalledWith(url);
+      expect(fetchMock).toHaveBeenCalledWith(
+        makeApiURL({ path: url, version: null, prefix: null }),
+      );
     });
 
     it('dispatches beginFetchLinterResult', async () => {
