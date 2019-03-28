@@ -359,6 +359,7 @@ describe(__filename, () => {
       expect(makeApiURL({ _getApiHost, path })).toEqual(
         `${apiHost}/api/${defaultVersion}${path}`,
       );
+      expect(_getApiHost).toHaveBeenCalled();
     });
 
     it('can omit the version', () => {
@@ -371,7 +372,6 @@ describe(__filename, () => {
 
     it('can omit the prefix', () => {
       const path = '/foo/';
-      // This is needed because `stringMatching` won't throw if `prefix` is there.
       const apiHost = 'https://example.org';
       const _getApiHost = jest.fn().mockReturnValue(apiHost);
 
@@ -382,7 +382,6 @@ describe(__filename, () => {
 
     it('can omit both the prefix and version', () => {
       const path = '/foo/';
-      // This is needed because `stringMatching` won't throw if `prefix` is there.
       const apiHost = 'https://example.org';
       const _getApiHost = jest.fn().mockReturnValue(apiHost);
 
@@ -415,14 +414,6 @@ describe(__filename, () => {
       expect(makeApiURL({ path })).toEqual(
         expect.stringMatching(`/api/${defaultVersion}/${path}`),
       );
-    });
-
-    it('calls _getApiHost', () => {
-      const _getApiHost = jest.fn();
-
-      makeApiURL({ _getApiHost, path: '/' });
-
-      expect(_getApiHost).toHaveBeenCalled();
     });
   });
 });
