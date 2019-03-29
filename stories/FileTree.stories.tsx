@@ -7,11 +7,16 @@ import configureStore from '../src/configureStore';
 import FileTree, {
   PublicProps as FileTreeProps,
 } from '../src/components/FileTree';
-import { createInternalVersion } from '../src/reducers/versions';
+import {
+  Version,
+  VersionEntryType,
+  getVersionInfo,
+  actions as versionActions,
+} from '../src/reducers/versions';
 import { fakeVersion, fakeVersionEntry } from '../src/test-helpers';
 import { renderWithStoreAndRouter } from './utils';
 
-const version = createInternalVersion({
+const version = {
   ...fakeVersion,
   file: {
     ...fakeVersion.file,
@@ -25,7 +30,7 @@ const version = createInternalVersion({
         ...fakeVersionEntry,
         filename: 'background-scripts',
         path: 'background-scripts',
-        mime_category: 'directory',
+        mime_category: 'directory' as VersionEntryType,
       },
       'background-scripts/index.js': {
         ...fakeVersionEntry,
@@ -37,7 +42,7 @@ const version = createInternalVersion({
         ...fakeVersionEntry,
         depth: 1,
         filename: 'libs',
-        mime_category: 'directory',
+        mime_category: 'directory' as VersionEntryType,
         path: 'background-scripts/libs',
       },
       'background-scripts/libs/jquery.min.js': {
@@ -50,7 +55,7 @@ const version = createInternalVersion({
         ...fakeVersionEntry,
         depth: 1,
         filename: 'extra',
-        mime_category: 'directory',
+        mime_category: 'directory' as VersionEntryType,
         path: 'background-scripts/extra',
       },
       'styles.css': {
@@ -60,7 +65,7 @@ const version = createInternalVersion({
       },
     },
   },
-});
+};
 
 // We display an alert when a file has been selected.
 const onSelectFile = (path: string) => {
@@ -68,13 +73,18 @@ const onSelectFile = (path: string) => {
   alert(`Selected file: ${path}`);
 };
 
-const render = ({
-  store = configureStore(),
-  ...moreProps
-}: { store?: Store } & Partial<FileTreeProps> = {}) => {
+const render = ({ ...moreProps }: Partial<FileTreeProps> = {}) => {
+  const store = configureStore();
+  store.dispatch(versionActions.loadVersionInfo({ version }));
+
+  const internalVersion = getVersionInfo(
+    store.getState().versions,
+    version.id,
+  ) as Version;
+
   const props: FileTreeProps = {
     onSelect: onSelectFile,
-    version,
+    version: internalVersion,
     ...moreProps,
   };
   return renderWithStoreAndRouter(<FileTree {...props} />, store);
