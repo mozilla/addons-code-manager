@@ -55,13 +55,19 @@ const recursiveSortInPlace = (node: DirectoryNode): void => {
   });
 };
 
-export const buildFileTree = (
-  versionId: string,
-  entries: Version['entries'],
-): DirectoryNode => {
+const getVersionName = (version: Version) => {
+  return getLocalizedString(version.addon.name);
+};
+
+export const getRootPath = (version: Version) => {
+  return `root-${getVersionName(version)}`;
+};
+
+export const buildFileTree = (version: Version): DirectoryNode => {
+  const { entries } = version;
   const root: DirectoryNode = {
-    id: `root-${versionId}`,
-    name: versionId,
+    id: getRootPath(version),
+    name: getVersionName(version),
     children: [],
   };
 
@@ -182,6 +188,26 @@ export class FileTreeBase extends React.Component<Props> {
     );
   };
 
+  onExpandTree = () => {
+    const { dispatch, version } = this.props;
+
+    dispatch(
+      versionsActions.expandTree({
+        versionId: version.id,
+      }),
+    );
+  };
+
+  onCollapseTree = () => {
+    const { dispatch, version } = this.props;
+
+    dispatch(
+      versionsActions.collapseTree({
+        versionId: version.id,
+      }),
+    );
+  };
+
   isNodeExpanded = (node: TreeNode) => {
     const { version } = this.props;
 
@@ -199,10 +225,7 @@ export class FileTreeBase extends React.Component<Props> {
       return <Loading message={gettext('Loading version...')} />;
     }
 
-    const tree = buildFileTree(
-      getLocalizedString(version.addon.name),
-      version.entries,
-    );
+    const tree = buildFileTree(version);
 
     return (
       <ListGroup>
@@ -212,6 +235,12 @@ export class FileTreeBase extends React.Component<Props> {
           isNodeExpanded={this.isNodeExpanded}
           onToggleExpand={this.onToggleExpand}
         />
+        <button onClick={this.onExpandTree} type="button">
+          {gettext('Expand the tree')}
+        </button>
+        <button onClick={this.onCollapseTree} type="button">
+          {gettext('Collapse the tree')}
+        </button>
       </ListGroup>
     );
   }
