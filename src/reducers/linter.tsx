@@ -161,6 +161,7 @@ export const fetchLinterMessages = ({
     // This is a special URL and returns a non-standard JSON response.
     const response = await fetch(
       makeApiURL({ path: url, version: null, prefix: null }),
+      { credentials: 'include' },
     );
 
     try {
