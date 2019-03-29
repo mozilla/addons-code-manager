@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { Button } from 'react-bootstrap';
-import { withRouter, RouteComponentProps } from 'react-router-dom';
 
 import { makeApiURL } from '../../api';
 import { gettext } from '../../utils';
@@ -9,22 +8,24 @@ import styles from './styles.module.scss';
 type PublicProps = {};
 
 type DefaultProps = {
+  _window: typeof window;
   fxaConfig: string;
 };
 
-type Props = PublicProps & DefaultProps & RouteComponentProps;
+type Props = PublicProps & DefaultProps;
 
 export class LoginButtonBase extends React.Component<Props> {
   static defaultProps: DefaultProps = {
+    _window: window,
     fxaConfig: process.env.REACT_APP_FXA_CONFIG as string,
   };
 
   getFxaURL() {
-    const { fxaConfig, location } = this.props;
+    const { _window, fxaConfig } = this.props;
 
     return makeApiURL({
       path: `/accounts/login/start/?config=${fxaConfig}&to=${
-        location.pathname
+        _window.location.href
       }`,
     });
   }
@@ -38,6 +39,6 @@ export class LoginButtonBase extends React.Component<Props> {
   }
 }
 
-export default withRouter(LoginButtonBase) as React.ComponentType<
+export default LoginButtonBase as React.ComponentType<
   PublicProps & Partial<DefaultProps>
 >;
