@@ -1,11 +1,13 @@
 import * as React from 'react';
-import Treefold, { TreefoldRenderProps } from 'react-treefold';
 import { ListGroup } from 'react-bootstrap';
+import { connect } from 'react-redux';
+import Treefold, { TreefoldRenderProps } from 'react-treefold';
 
 import FileTreeNode, {
   PublicProps as FileTreeNodeProps,
 } from '../FileTreeNode';
-import { Version } from '../../reducers/versions';
+import { ConnectedReduxProps } from '../../configureStore';
+import { Version, actions as versionsActions } from '../../reducers/versions';
 import { getLocalizedString } from '../../utils';
 
 type FileNode = {
@@ -135,13 +137,30 @@ export type PublicProps = {
   version: Version;
 };
 
-type Props = PublicProps;
+type Props = PublicProps & ConnectedReduxProps;
 
 export class FileTreeBase extends React.Component<Props> {
   renderNode = (props: TreefoldRenderPropsForFileTree) => {
     const { onSelect, version } = this.props;
 
     return <FileTreeNode {...props} onSelect={onSelect} version={version} />;
+  };
+
+  onToggleExpand = (node: TreeNode) => {
+    const { dispatch, version } = this.props;
+
+    dispatch(
+      versionsActions.toggleExpandedPath({
+        path: node.id,
+        versionId: version.id,
+      }),
+    );
+  };
+
+  isNodeExpanded = (node: TreeNode) => {
+    const { version } = this.props;
+
+    return version.expandedPaths.includes(node.id);
   };
 
   render() {
@@ -154,10 +173,15 @@ export class FileTreeBase extends React.Component<Props> {
 
     return (
       <ListGroup>
-        <Treefold nodes={[tree]} render={this.renderNode} />
+        <Treefold
+          nodes={[tree]}
+          render={this.renderNode}
+          isNodeExpanded={this.isNodeExpanded}
+          onToggleExpand={this.onToggleExpand}
+        />
       </ListGroup>
     );
   }
 }
 
-export default FileTreeBase;
+export default connect()(FileTreeBase) as React.ComponentType<PublicProps>;

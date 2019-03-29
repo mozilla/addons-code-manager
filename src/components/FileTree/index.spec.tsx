@@ -11,12 +11,17 @@ import {
   createInternalVersionEntry,
   getVersionInfo,
 } from '../../reducers/versions';
-import { fakeVersion, fakeVersionEntry } from '../../test-helpers';
+import {
+  fakeVersion,
+  fakeVersionEntry,
+  shallowUntilTarget,
+  spyOn,
+} from '../../test-helpers';
 import { getLocalizedString } from '../../utils';
 import { getTreefoldRenderProps } from '../FileTreeNode/index.spec';
 import FileTreeNode from '../FileTreeNode';
 
-import FileTree, { buildFileTree, DirectoryNode } from '.';
+import FileTree, { DirectoryNode, FileTreeBase, buildFileTree } from '.';
 
 describe(__filename, () => {
   describe('buildFileTree', () => {
@@ -351,8 +356,10 @@ describe(__filename, () => {
   });
 
   describe('FileTree', () => {
-    const getVersion = (version = fakeVersion) => {
-      const store = configureStore();
+    const getVersion = ({
+      store = configureStore(),
+      version = fakeVersion,
+    }) => {
       store.dispatch(versionActions.loadVersionInfo({ version }));
 
       return getVersionInfo(store.getState().versions, version.id);
@@ -360,15 +367,23 @@ describe(__filename, () => {
 
     const render = ({
       onSelect = jest.fn(),
-      version = getVersion(fakeVersion),
+      store = configureStore(),
+      version = getVersion({ store }),
     } = {}) => {
-      return shallow(<FileTree version={version} onSelect={onSelect} />);
+      return shallowUntilTarget(
+        <FileTree version={version} onSelect={onSelect} />,
+        FileTreeBase,
+        {
+          shallowOptions: { context: { store } },
+        },
+      );
     };
 
     it('renders a ListGroup component with a Treefold', () => {
-      const version = getVersion({ ...fakeVersion, id: 777 });
+      const store = configureStore();
+      const version = getVersion({ store });
 
-      const root = render({ version });
+      const root = render({ store, version });
 
       expect(root.find(ListGroup)).toHaveLength(1);
       expect(root.find(Treefold)).toHaveLength(1);
@@ -378,12 +393,13 @@ describe(__filename, () => {
     });
 
     it('passes the onSelect prop to FileTreeNode', () => {
-      const version = getVersion({ ...fakeVersion, id: 777 });
+      const store = configureStore();
+      const version = getVersion({ store });
       const onSelect = jest.fn();
 
       const root = render({ version, onSelect });
 
-      const node = (root.instance() as FileTree).renderNode(
+      const node = (root.instance() as FileTreeBase).renderNode(
         getTreefoldRenderProps(),
       );
 
@@ -394,11 +410,12 @@ describe(__filename, () => {
     });
 
     it('passes the version prop to FileTreeNode', () => {
-      const version = getVersion({ ...fakeVersion, id: 777 });
+      const store = configureStore();
+      const version = getVersion({ store });
 
       const root = render({ version });
 
-      const node = (root.instance() as FileTree).renderNode(
+      const node = (root.instance() as FileTreeBase).renderNode(
         getTreefoldRenderProps(),
       );
 
@@ -406,6 +423,78 @@ describe(__filename, () => {
         'version',
         version,
       );
+    });
+
+    it('dispatches toggleExpandedPath when onToggleExpand is called', () => {
+      const store = configureStore();
+      const version = getVersion({ store });
+      const node = {
+        id: 'some/path',
+        name: 'some name',
+        children: [],
+      };
+
+      const dispatch = spyOn(store, 'dispatch');
+
+      const root = render({ store, version });
+
+      const treeFold = root.find(Treefold);
+      expect(treeFold).toHaveProp('onToggleExpand');
+
+      const onToggleExpand = treeFold.prop('onToggleExpand');
+      onToggleExpand(node);
+
+      expect(dispatch).toHaveBeenCalledWith(
+        versionActions.toggleExpandedPath({
+          path: node.id,
+          versionId: version.id,
+        }),
+      );
+    });
+
+    it('recognizes a node as expanded when it has been added to expandedPaths', () => {
+      const store = configureStore();
+      const node = {
+        id: 'some/path',
+        name: 'some name',
+        children: [],
+      };
+      let version = getVersion({ store });
+
+      store.dispatch(
+        versionActions.toggleExpandedPath({
+          path: node.id,
+          versionId: version.id,
+        }),
+      );
+
+      version = getVersionInfo(store.getState().versions, version.id);
+
+      const root = render({ store, version });
+
+      const treeFold = root.find(Treefold);
+      expect(treeFold).toHaveProp('isNodeExpanded');
+
+      const isNodeExpanded = treeFold.prop('isNodeExpanded');
+      expect(isNodeExpanded(node)).toBeTruthy();
+    });
+
+    it('recognizes a node as not expanded when it has not been added to expandedPaths', () => {
+      const store = configureStore();
+      const node = {
+        id: 'some/path',
+        name: 'some name',
+        children: [],
+      };
+      const version = getVersion({ store });
+
+      const root = render({ store, version });
+
+      const treeFold = root.find(Treefold);
+      expect(treeFold).toHaveProp('isNodeExpanded');
+
+      const isNodeExpanded = treeFold.prop('isNodeExpanded');
+      expect(isNodeExpanded(node)).toBeFalsy();
     });
   });
 });
