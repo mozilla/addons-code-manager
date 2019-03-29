@@ -525,7 +525,10 @@ describe(__filename, () => {
     const version = createInternalVersion(fakeVersion);
     const root = render({ version });
 
-    expect(root.find(LinterProvider)).toHaveProp('version', version);
+    const provider = root.find(LinterProvider);
+    expect(provider).toHaveProp('versionId', version.id);
+    expect(provider).toHaveProp('validationURL', version.validationURL);
+    expect(provider).toHaveProp('selectedPath', version.selectedPath);
   });
 
   describe('isKnownLibrary', () => {
