@@ -232,43 +232,37 @@ describe(__filename, () => {
         expect(policy['connect-src']).toEqual(["'none'"]);
       });
 
-      it('does not add the sentry host to connect-src when REACT_APP_SENTRY_DSN is invalid', async () => {
+      it('throws an error when REACT_APP_SENTRY_DSN is invalid', async () => {
         const fakeEnv = {
           ...prodEnv,
           REACT_APP_SENTRY_DSN: 'invalid',
         };
 
-        const server = request(
-          createServer({
-            env: fakeEnv as ServerEnvVars,
-            rootPath,
-          }),
-        );
-
-        const response = await server.get('/');
-        expect(response.status).toEqual(200);
-        const policy = cspParser(response.header['content-security-policy']);
-        expect(policy['connect-src']).toEqual(["'none'"]);
+        expect(() => {
+          request(
+            createServer({
+              env: fakeEnv as ServerEnvVars,
+              rootPath,
+            }),
+          );
+        }).toThrow(/invalid URL/);
       });
 
-      it('does not add the sentry host to connect-src when REACT_APP_SENTRY_DSN is not a string', async () => {
+      it('throws an error when REACT_APP_SENTRY_DSN is not a string', async () => {
         const fakeEnv = {
           ...prodEnv,
           REACT_APP_SENTRY_DSN: 123,
         };
 
-        const server = request(
-          createServer({
-            // @ts-ignore
-            env: fakeEnv,
-            rootPath,
-          }),
-        );
-
-        const response = await server.get('/');
-        expect(response.status).toEqual(200);
-        const policy = cspParser(response.header['content-security-policy']);
-        expect(policy['connect-src']).toEqual(["'none'"]);
+        expect(() => {
+          request(
+            createServer({
+              // @ts-ignore
+              env: fakeEnv,
+              rootPath,
+            }),
+          );
+        }).toThrow(/argument must be of type string/);
       });
 
       it('tightens connnect-src if API host is unset', async () => {

@@ -79,16 +79,19 @@ export const createServer = ({
   ];
 
   if (env.REACT_APP_SENTRY_DSN) {
+    const dsn = env.REACT_APP_SENTRY_DSN;
+
     try {
-      const { host, protocol } = url.parse(env.REACT_APP_SENTRY_DSN);
+      const { host, protocol } = url.parse(dsn);
 
       if (host && protocol) {
         connectSrc.push(`${protocol}//${host}`);
+      } else {
+        throw new Error(`invalid URL`);
       }
-    } catch {
-      // eslint-disable-next-line no-console
-      console.error(
-        `Could not parse REACT_APP_SENTRY_DSN=${env.REACT_APP_SENTRY_DSN}`,
+    } catch (e) {
+      throw new Error(
+        `Could not parse REACT_APP_SENTRY_DSN=${dsn}: ${e.message}`,
       );
     }
   }
