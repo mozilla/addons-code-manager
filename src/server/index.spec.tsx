@@ -11,6 +11,7 @@ import Cookies from 'universal-cookie';
 import {
   DEFAULT_HOST,
   DEFAULT_PORT,
+  STATIC_PATH,
   ServerEnvVars,
   createServer,
   injectAuthenticationToken,
@@ -143,12 +144,18 @@ describe(__filename, () => {
         expect(policy['frame-ancestors']).toEqual(["'none'"]);
         expect(policy['frame-src']).toEqual(["'none'"]);
         expect(policy['font-src']).toEqual(["'none'"]);
-        expect(policy['img-src']).toEqual([fakeEnv.PUBLIC_URL]);
+        expect(policy['img-src']).toEqual([
+          `${fakeEnv.PUBLIC_URL}${STATIC_PATH}`,
+        ]);
         expect(policy['manifest-src']).toEqual(["'none'"]);
         expect(policy['media-src']).toEqual(["'none'"]);
         expect(policy['object-src']).toEqual(["'none'"]);
-        expect(policy['script-src']).toEqual([fakeEnv.PUBLIC_URL]);
-        expect(policy['style-src']).toEqual([fakeEnv.PUBLIC_URL]);
+        expect(policy['script-src']).toEqual([
+          `${fakeEnv.PUBLIC_URL}${STATIC_PATH}`,
+        ]);
+        expect(policy['style-src']).toEqual([
+          `${fakeEnv.PUBLIC_URL}${STATIC_PATH}`,
+        ]);
         expect(policy['worker-src']).toEqual(["'none'"]);
         expect(policy['report-uri']).toEqual(['/__cspreport__']);
 
@@ -438,6 +445,25 @@ describe(__filename, () => {
         expect(response.text).toContain(JSON.stringify(content));
       });
 
+      it('relaxes img-src for local dev', async () => {
+        const content = '<h1>It works!</h1>';
+        fakeCreateReactAppServerApp.get('/*', (req, res) => res.send(content));
+
+        const server = request(
+          createServer({
+            env: devEnv as ServerEnvVars,
+            rootPath,
+          }),
+        );
+
+        const response = await server.get('/');
+        expect(response.status).toEqual(200);
+        expect(response.header).toHaveProperty('content-security-policy');
+
+        const policy = cspParser(response.header['content-security-policy']);
+        expect(policy['img-src']).toEqual(["'self'"]);
+      });
+
       it('relaxes script-src for local dev', async () => {
         const content = '<h1>It works!</h1>';
         fakeCreateReactAppServerApp.get('/*', (req, res) => res.send(content));
@@ -474,6 +500,20 @@ describe(__filename, () => {
 
         const policy = cspParser(response.header['content-security-policy']);
         expect(policy['style-src']).toEqual(["'self'", "'unsafe-inline'"]);
+      });
+
+      it('serves the favicon.ico file', async () => {
+        const server = request(
+          createServer({
+            env: devEnv as ServerEnvVars,
+            rootPath,
+          }),
+        );
+
+        const response = await server.get(`${STATIC_PATH}favicon.ico`);
+        expect(response.status).toEqual(200);
+        // `icon\n` is the string written in `fixtures/public/favicon.ico`.
+        expect(response.body).toEqual(Buffer.from('icon\n'));
       });
     });
   });

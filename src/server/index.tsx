@@ -11,6 +11,7 @@ import cookiesMiddleware, {
 
 export const DEFAULT_HOST = 'localhost';
 export const DEFAULT_PORT = 3000;
+export const STATIC_PATH = '/static/';
 
 export type ServerEnvVars = {
   NODE_ENV: string;
@@ -64,7 +65,9 @@ export const createServer = ({
     reportUri: '/__cspreport__',
   };
 
-  const cdnURL = env.PUBLIC_URL || "'none'";
+  const staticSrc = env.PUBLIC_URL
+    ? `${env.PUBLIC_URL}${STATIC_PATH}`
+    : "'none'";
 
   // This config sets the non-static CSP for deployed instances.
   const prodCSP = {
@@ -82,12 +85,12 @@ export const createServer = ({
     formAction: ["'none'"],
     frameAncestors: ["'none'"],
     frameSrc: ["'none'"],
-    imgSrc: [cdnURL],
+    imgSrc: [staticSrc],
     manifestSrc: ["'none'"],
     mediaSrc: ["'none'"],
     objectSrc: ["'none'"],
-    scriptSrc: [cdnURL],
-    styleSrc: [cdnURL],
+    scriptSrc: [staticSrc],
+    styleSrc: [staticSrc],
     workerSrc: ["'none'"],
     reportUri: '/__cspreport__',
   };
@@ -201,12 +204,20 @@ export const createServer = ({
       helmet.contentSecurityPolicy({
         directives: {
           ...prodCSP,
+          imgSrc: ["'self'"],
           scriptSrc: ["'self'", "'unsafe-inline'"],
           styleSrc: ["'self'", "'unsafe-inline'"],
           connectSrc: ["'self'"],
         },
       }),
     );
+
+    // In production, this file will be uploaded in the `/static/` directory
+    // and the `index.html` uses this directory, so we need this route to serve
+    // this file in development.
+    app.get(`${STATIC_PATH}favicon.ico`, (req, res) => {
+      return res.sendFile(path.join(rootPath, 'public', 'favicon.ico'));
+    });
 
     app.use(
       proxy('/', {
