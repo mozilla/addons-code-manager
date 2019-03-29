@@ -143,12 +143,15 @@ describe(__filename, () => {
         expect(policy['frame-ancestors']).toEqual(["'none'"]);
         expect(policy['frame-src']).toEqual(["'none'"]);
         expect(policy['font-src']).toEqual(["'none'"]);
-        expect(policy['img-src']).toEqual([fakeEnv.PUBLIC_URL]);
+        expect(policy['img-src']).toEqual([
+          `${fakeEnv.PUBLIC_URL}/static`,
+          `${fakeEnv.PUBLIC_URL}/favicon.ico`,
+        ]);
         expect(policy['manifest-src']).toEqual(["'none'"]);
         expect(policy['media-src']).toEqual(["'none'"]);
         expect(policy['object-src']).toEqual(["'none'"]);
-        expect(policy['script-src']).toEqual([fakeEnv.PUBLIC_URL]);
-        expect(policy['style-src']).toEqual([fakeEnv.PUBLIC_URL]);
+        expect(policy['script-src']).toEqual([`${fakeEnv.PUBLIC_URL}/static`]);
+        expect(policy['style-src']).toEqual([`${fakeEnv.PUBLIC_URL}/static`]);
         expect(policy['worker-src']).toEqual(["'none'"]);
         expect(policy['report-uri']).toEqual(['/__cspreport__']);
 
@@ -436,6 +439,25 @@ describe(__filename, () => {
 
         expect(_injectAuthenticationToken).not.toHaveBeenCalled();
         expect(response.text).toContain(JSON.stringify(content));
+      });
+
+      it('relaxes img-src for local dev', async () => {
+        const content = '<h1>It works!</h1>';
+        fakeCreateReactAppServerApp.get('/*', (req, res) => res.send(content));
+
+        const server = request(
+          createServer({
+            env: devEnv as ServerEnvVars,
+            rootPath,
+          }),
+        );
+
+        const response = await server.get('/');
+        expect(response.status).toEqual(200);
+        expect(response.header).toHaveProperty('content-security-policy');
+
+        const policy = cspParser(response.header['content-security-policy']);
+        expect(policy['img-src']).toEqual(["'self'"]);
       });
 
       it('relaxes script-src for local dev', async () => {

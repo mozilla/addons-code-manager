@@ -64,7 +64,10 @@ export const createServer = ({
     reportUri: '/__cspreport__',
   };
 
-  const cdnURL = env.PUBLIC_URL || "'none'";
+  const staticSrc = env.PUBLIC_URL ? `${env.PUBLIC_URL}/static` : "'none'";
+  const imgSrc = env.PUBLIC_URL
+    ? [staticSrc, `${env.PUBLIC_URL}/favicon.ico`]
+    : ["'none'"];
 
   // This config sets the non-static CSP for deployed instances.
   const prodCSP = {
@@ -82,12 +85,12 @@ export const createServer = ({
     formAction: ["'none'"],
     frameAncestors: ["'none'"],
     frameSrc: ["'none'"],
-    imgSrc: [cdnURL],
+    imgSrc,
     manifestSrc: ["'none'"],
     mediaSrc: ["'none'"],
     objectSrc: ["'none'"],
-    scriptSrc: [cdnURL],
-    styleSrc: [cdnURL],
+    scriptSrc: [staticSrc],
+    styleSrc: [staticSrc],
     workerSrc: ["'none'"],
     reportUri: '/__cspreport__',
   };
@@ -201,6 +204,7 @@ export const createServer = ({
       helmet.contentSecurityPolicy({
         directives: {
           ...prodCSP,
+          imgSrc: ["'self'"],
           scriptSrc: ["'self'", "'unsafe-inline'"],
           styleSrc: ["'self'", "'unsafe-inline'"],
           connectSrc: ["'self'"],
