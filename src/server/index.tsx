@@ -11,6 +11,7 @@ import cookiesMiddleware, {
 
 export const DEFAULT_HOST = 'localhost';
 export const DEFAULT_PORT = 3000;
+export const STATIC_PATH = '/static/';
 
 export type ServerEnvVars = {
   NODE_ENV: string;
@@ -64,7 +65,9 @@ export const createServer = ({
     reportUri: '/__cspreport__',
   };
 
-  const staticSrc = env.PUBLIC_URL ? `${env.PUBLIC_URL}/static` : "'none'";
+  const staticSrc = env.PUBLIC_URL
+    ? `${env.PUBLIC_URL}${STATIC_PATH}`
+    : "'none'";
   const imgSrc = env.PUBLIC_URL
     ? [staticSrc, `${env.PUBLIC_URL}/favicon.ico`]
     : ["'none'"];

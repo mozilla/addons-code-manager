@@ -11,6 +11,7 @@ import Cookies from 'universal-cookie';
 import {
   DEFAULT_HOST,
   DEFAULT_PORT,
+  STATIC_PATH,
   ServerEnvVars,
   createServer,
   injectAuthenticationToken,
@@ -144,14 +145,14 @@ describe(__filename, () => {
         expect(policy['frame-src']).toEqual(["'none'"]);
         expect(policy['font-src']).toEqual(["'none'"]);
         expect(policy['img-src']).toEqual([
-          `${fakeEnv.PUBLIC_URL}/static`,
+          `${fakeEnv.PUBLIC_URL}${STATIC_PATH}`,
           `${fakeEnv.PUBLIC_URL}/favicon.ico`,
         ]);
         expect(policy['manifest-src']).toEqual(["'none'"]);
         expect(policy['media-src']).toEqual(["'none'"]);
         expect(policy['object-src']).toEqual(["'none'"]);
-        expect(policy['script-src']).toEqual([`${fakeEnv.PUBLIC_URL}/static`]);
-        expect(policy['style-src']).toEqual([`${fakeEnv.PUBLIC_URL}/static`]);
+        expect(policy['script-src']).toEqual([`${fakeEnv.PUBLIC_URL}${STATIC_PATH}`]);
+        expect(policy['style-src']).toEqual([`${fakeEnv.PUBLIC_URL}${STATIC_PATH}`]);
         expect(policy['worker-src']).toEqual(["'none'"]);
         expect(policy['report-uri']).toEqual(['/__cspreport__']);
 
