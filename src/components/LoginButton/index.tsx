@@ -22,11 +22,15 @@ export class LoginButtonBase extends React.Component<Props> {
 
   getFxaURL() {
     const { _window, fxaConfig } = this.props;
+    let { href } = _window.location;
+
+    // We use a relative URL for `local` FxA config.
+    if (fxaConfig === 'local') {
+      href = href.replace(_window.location.origin, '');
+    }
 
     return makeApiURL({
-      path: `/accounts/login/start/?config=${fxaConfig}&to=${
-        _window.location.href
-      }`,
+      path: `/accounts/login/start/?config=${fxaConfig}&to=${href}`,
     });
   }
 
