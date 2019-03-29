@@ -7,7 +7,7 @@ import FileTreeNode, {
   PublicProps as FileTreeNodeProps,
 } from '../FileTreeNode';
 import { ConnectedReduxProps } from '../../configureStore';
-import { Version, actions as versionActions } from '../../reducers/versions';
+import { Version, actions as versionsActions } from '../../reducers/versions';
 import { getLocalizedString } from '../../utils';
 
 type FileNode = {
@@ -150,7 +150,7 @@ export class FileTreeBase extends React.Component<Props> {
     const { dispatch, version } = this.props;
 
     dispatch(
-      versionActions.toggleExpandedPath({
+      versionsActions.toggleExpandedPath({
         path: node.id,
         versionId: version.id,
       }),
@@ -184,4 +184,4 @@ export class FileTreeBase extends React.Component<Props> {
   }
 }
 
-export default connect()(FileTreeBase);
+export default connect()(FileTreeBase) as React.ComponentType<PublicProps>;
