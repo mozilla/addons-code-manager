@@ -68,9 +68,6 @@ export const createServer = ({
   const staticSrc = env.PUBLIC_URL
     ? `${env.PUBLIC_URL}${STATIC_PATH}`
     : "'none'";
-  const imgSrc = env.PUBLIC_URL
-    ? [staticSrc, `${env.PUBLIC_URL}/favicon.ico`]
-    : ["'none'"];
 
   // This config sets the non-static CSP for deployed instances.
   const prodCSP = {
@@ -88,7 +85,7 @@ export const createServer = ({
     formAction: ["'none'"],
     frameAncestors: ["'none'"],
     frameSrc: ["'none'"],
-    imgSrc,
+    imgSrc: [staticSrc],
     manifestSrc: ["'none'"],
     mediaSrc: ["'none'"],
     objectSrc: ["'none'"],
@@ -214,6 +211,13 @@ export const createServer = ({
         },
       }),
     );
+
+    // In production, this file will be uploaded in the `/static/` directory
+    // and the `index.html` uses this directory, so we need this route to serve
+    // this file in development.
+    app.get(`${STATIC_PATH}favicon.ico`, (req, res) => {
+      return res.sendFile(path.join(rootPath, 'public', 'favicon.ico'));
+    });
 
     app.use(
       proxy('/', {

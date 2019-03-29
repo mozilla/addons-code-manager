@@ -146,13 +146,16 @@ describe(__filename, () => {
         expect(policy['font-src']).toEqual(["'none'"]);
         expect(policy['img-src']).toEqual([
           `${fakeEnv.PUBLIC_URL}${STATIC_PATH}`,
-          `${fakeEnv.PUBLIC_URL}/favicon.ico`,
         ]);
         expect(policy['manifest-src']).toEqual(["'none'"]);
         expect(policy['media-src']).toEqual(["'none'"]);
         expect(policy['object-src']).toEqual(["'none'"]);
-        expect(policy['script-src']).toEqual([`${fakeEnv.PUBLIC_URL}${STATIC_PATH}`]);
-        expect(policy['style-src']).toEqual([`${fakeEnv.PUBLIC_URL}${STATIC_PATH}`]);
+        expect(policy['script-src']).toEqual([
+          `${fakeEnv.PUBLIC_URL}${STATIC_PATH}`,
+        ]);
+        expect(policy['style-src']).toEqual([
+          `${fakeEnv.PUBLIC_URL}${STATIC_PATH}`,
+        ]);
         expect(policy['worker-src']).toEqual(["'none'"]);
         expect(policy['report-uri']).toEqual(['/__cspreport__']);
 
@@ -497,6 +500,20 @@ describe(__filename, () => {
 
         const policy = cspParser(response.header['content-security-policy']);
         expect(policy['style-src']).toEqual(["'self'", "'unsafe-inline'"]);
+      });
+
+      it('serves the favicon.ico file', async () => {
+        const server = request(
+          createServer({
+            env: devEnv as ServerEnvVars,
+            rootPath,
+          }),
+        );
+
+        const response = await server.get(`${STATIC_PATH}favicon.ico`);
+        expect(response.status).toEqual(200);
+        // `icon\n` is the string written in `fixtures/public/favicon.ico`.
+        expect(response.body).toEqual(Buffer.from('icon\n'));
       });
     });
   });
