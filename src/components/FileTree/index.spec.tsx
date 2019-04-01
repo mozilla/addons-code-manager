@@ -23,9 +23,21 @@ import { getTreefoldRenderProps } from '../FileTreeNode/index.spec';
 import FileTreeNode from '../FileTreeNode';
 import Loading from '../Loading';
 
-import FileTree, { DirectoryNode, FileTreeBase, buildFileTree } from '.';
+import FileTree, {
+  DirectoryNode,
+  FileTreeBase,
+  buildFileTree,
+  getRootPath,
+} from '.';
 
 describe(__filename, () => {
+  describe('getRootPath', () => {
+    const version = createInternalVersion(fakeVersion);
+    const addonName = getLocalizedString(version.addon.name);
+
+    expect(getRootPath(version)).toEqual(`root-${addonName}`);
+  });
+
   describe('buildFileTree', () => {
     it('creates a root node', () => {
       const version = createVersionWithEntries([]);
@@ -546,6 +558,40 @@ describe(__filename, () => {
       expect(() => {
         onToggleExpand(node);
       }).toThrow('Cannot toggle expanded path without a version');
+    });
+
+    it('dispatches expandTree when the Expand All button is clicked', () => {
+      const store = configureStore();
+      const version = getVersion({ store });
+
+      const dispatch = spyOn(store, 'dispatch');
+
+      const root = render({ store, versionId: version.id });
+
+      root.find('#openAll').simulate('click');
+
+      expect(dispatch).toHaveBeenCalledWith(
+        versionActions.expandTree({
+          versionId: version.id,
+        }),
+      );
+    });
+
+    it('dispatches collapseTree when the Collapse All button is clicked', () => {
+      const store = configureStore();
+      const version = getVersion({ store });
+
+      const dispatch = spyOn(store, 'dispatch');
+
+      const root = render({ store, versionId: version.id });
+
+      root.find('#closeAll').simulate('click');
+
+      expect(dispatch).toHaveBeenCalledWith(
+        versionActions.collapseTree({
+          versionId: version.id,
+        }),
+      );
     });
   });
 });

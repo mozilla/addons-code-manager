@@ -235,11 +235,11 @@ export class FileTreeBase extends React.Component<Props> {
           isNodeExpanded={this.isNodeExpanded}
           onToggleExpand={this.onToggleExpand}
         />
-        <button onClick={this.onExpandTree} type="button">
-          {gettext('Expand the tree')}
+        <button id="openAll" onClick={this.onExpandTree} type="button">
+          {gettext('Open all folders')}
         </button>
-        <button onClick={this.onCollapseTree} type="button">
-          {gettext('Collapse the tree')}
+        <button id="closeAll" onClick={this.onCollapseTree} type="button">
+          {gettext('Close all folders')}
         </button>
       </ListGroup>
     );
