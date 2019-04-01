@@ -207,7 +207,7 @@ export const createServer = ({
         env,
       );
 
-      res.set('cache-control', 'private, no-store');
+      res.set('Cache-Control', 'private, no-store');
       res.send(html);
     });
   } else {
@@ -254,7 +254,7 @@ export const createServer = ({
 
           if (contentType.includes('text/html')) {
             // eslint-disable-next-line no-param-reassign
-            proxyResponse.headers['cache-control'] = 'private, no-store';
+            proxyResponse.headers['Cache-Control'] = 'private, no-store';
 
             modifyResponse(
               res,
