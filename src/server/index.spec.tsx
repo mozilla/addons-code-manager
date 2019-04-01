@@ -1,4 +1,5 @@
 /* eslint @typescript-eslint/no-object-literal-type-assertion: 0 */
+import fs from 'fs';
 import http from 'http';
 import path from 'path';
 
@@ -425,6 +426,46 @@ describe(__filename, () => {
           expect(policy['report-uri']).toEqual(['/__cspreport__']);
         });
       });
+
+      it('exposes the content of version.json', async () => {
+        const server = request(
+          createServer({
+            env: prodEnv as ServerEnvVars,
+            rootPath,
+          }),
+        );
+
+        const response = await server.get('/__version__');
+
+        expect(response.status).toEqual(200);
+        expect(response.header).toHaveProperty(
+          'content-type',
+          'application/json; charset=UTF-8',
+        );
+
+        // This file is in `src/server/fixtures/`.
+        const content = fs.readFileSync(path.join(rootPath, 'version.json'), {
+          encoding: 'utf8',
+        });
+        expect(response.text).toEqual(content);
+      });
+
+      it.each(['/__heartbeat__', '/__lbheartbeat__'])(
+        'exposes a "%s" endpoint for ops',
+        async (endpoint) => {
+          const server = request(
+            createServer({
+              env: prodEnv as ServerEnvVars,
+              rootPath,
+            }),
+          );
+
+          const response = await server.get(endpoint);
+
+          expect(response.status).toEqual(200);
+          expect(response.text).toEqual('ok');
+        },
+      );
     });
 
     describe('NODE_ENV=development', () => {
