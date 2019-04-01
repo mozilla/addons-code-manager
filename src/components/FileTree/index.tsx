@@ -142,38 +142,61 @@ export type PublicProps = {
   versionId: number;
 };
 
-type PropsFromState = {
-  version: Version;
+export type DefaultProps = {
+  _log: typeof log;
 };
 
-type Props = PublicProps & PropsFromState & ConnectedReduxProps;
+type PropsFromState = {
+  version: Version | void;
+};
+
+type Props = PublicProps & DefaultProps & PropsFromState & ConnectedReduxProps;
 
 export class FileTreeBase extends React.Component<Props> {
+  static defaultProps: DefaultProps = {
+    _log: log,
+  };
+
   renderNode = (props: TreefoldRenderPropsForFileTree) => {
     const { onSelect, version } = this.props;
 
-    return <FileTreeNode {...props} onSelect={onSelect} version={version} />;
+    if (version) {
+      return <FileTreeNode {...props} onSelect={onSelect} version={version} />;
+    }
+    // This should never happen. See the comment in mapStateToProps.
+    return null;
   };
 
   onToggleExpand = (node: TreeNode) => {
     const { dispatch, version } = this.props;
 
-    dispatch(
-      versionsActions.toggleExpandedPath({
-        path: node.id,
-        versionId: version.id,
-      }),
-    );
+    if (version) {
+      dispatch(
+        versionsActions.toggleExpandedPath({
+          path: node.id,
+          versionId: version.id,
+        }),
+      );
+    }
   };
 
   isNodeExpanded = (node: TreeNode) => {
     const { version } = this.props;
 
-    return version.expandedPaths.includes(node.id);
+    if (version) {
+      return version.expandedPaths.includes(node.id);
+    }
+    // This should never happen. See the comment in mapStateToProps.
+    return false;
   };
 
   render() {
     const { version } = this.props;
+
+    if (!version) {
+      // This should never happen. See the comment in mapStateToProps.
+      return null;
+    }
 
     const tree = buildFileTree(
       getLocalizedString(version.addon.name),
@@ -195,9 +218,9 @@ export class FileTreeBase extends React.Component<Props> {
 
 const mapStateToProps = (
   state: ApplicationState,
-  ownProps: PublicProps,
+  ownProps: PublicProps & DefaultProps,
 ): PropsFromState => {
-  const { versionId } = ownProps;
+  const { _log, versionId } = ownProps;
   const version = getVersionInfo(state.versions, versionId);
 
   if (!version) {
@@ -205,7 +228,7 @@ const mapStateToProps = (
     // parents on this component and only rendering the FileTree if we have a
     // version, but let's log a warning in case we encounter a case where this
     // does happen.
-    log.warn(`No version was loaded for version: `, versionId);
+    _log.warn(`No version was loaded for version: `, versionId);
   }
 
   return {
@@ -214,5 +237,5 @@ const mapStateToProps = (
 };
 
 export default connect(mapStateToProps)(FileTreeBase) as React.ComponentType<
-  PublicProps
+  PublicProps & Partial<DefaultProps>
 >;

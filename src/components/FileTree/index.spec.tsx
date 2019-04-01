@@ -8,10 +8,12 @@ import configureStore from '../../configureStore';
 import {
   Version,
   actions as versionActions,
+  createInternalVersion,
   createInternalVersionEntry,
   getVersionInfo,
 } from '../../reducers/versions';
 import {
+  createFakeLogger,
   fakeVersion,
   fakeVersionEntry,
   shallowUntilTarget,
@@ -366,12 +368,13 @@ describe(__filename, () => {
     };
 
     const render = ({
+      _log = createFakeLogger(),
       onSelect = jest.fn(),
       store = configureStore(),
       version = getVersion({ store }),
     } = {}) => {
       return shallowUntilTarget(
-        <FileTree versionId={version.id} onSelect={onSelect} />,
+        <FileTree _log={_log} versionId={version.id} onSelect={onSelect} />,
         FileTreeBase,
         {
           shallowOptions: { context: { store } },
@@ -495,6 +498,17 @@ describe(__filename, () => {
 
       const isNodeExpanded = treeFold.prop('isNodeExpanded');
       expect(isNodeExpanded(node)).toBeFalsy();
+    });
+
+    it('logs a warning message when no version is loaded', () => {
+      const _log = createFakeLogger();
+
+      render({
+        _log,
+        version: createInternalVersion({ ...fakeVersion, id: 0 }),
+      });
+
+      expect(_log.warn).toHaveBeenCalled();
     });
   });
 });
