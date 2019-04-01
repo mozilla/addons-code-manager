@@ -16,6 +16,7 @@ import {
 } from './reducers/linter';
 import { ExternalUser } from './reducers/users';
 import {
+  createInternalVersion,
   ExternalChange,
   ExternalVersionAddon,
   ExternalVersionEntry,
@@ -24,6 +25,7 @@ import {
   ExternalVersionWithDiff,
   ExternalVersionsList,
   ExternalVersionsListItem,
+  Version,
   VersionEntryType,
 } from './reducers/versions';
 import LinterProvider, {
@@ -112,6 +114,15 @@ export const fakeVersion: ExternalVersionWithContent = Object.freeze({
   validation_url_json: 'http://example.com/validation/json/',
   version: '1.0',
 });
+
+export const createVersionWithEntries = (
+  entries: Version['entries'],
+): Version => {
+  return {
+    ...createInternalVersion(fakeVersion),
+    entries,
+  };
+};
 
 export const fakeUser: ExternalUser = Object.freeze({
   average_addon_rating: 4.3,
