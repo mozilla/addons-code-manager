@@ -1,3 +1,4 @@
+import log from 'loglevel';
 import * as React from 'react';
 import { ListGroup } from 'react-bootstrap';
 import { connect } from 'react-redux';
@@ -197,9 +198,18 @@ const mapStateToProps = (
   ownProps: PublicProps,
 ): PropsFromState => {
   const { versionId } = ownProps;
+  const version = getVersionInfo(state.versions, versionId);
+
+  if (!version) {
+    // This should never happen as we are fetching the version in all of the
+    // parents on this component and only rendering the FileTree if we have a
+    // version, but let's log a warning in case we encounter a case where this
+    // does happen.
+    log.warn(`No version was loaded for version: `, versionId);
+  }
 
   return {
-    version: getVersionInfo(state.versions, versionId),
+    version,
   };
 };
 

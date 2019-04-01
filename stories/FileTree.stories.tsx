@@ -76,14 +76,9 @@ const render = ({ ...moreProps }: Partial<FileTreeProps> = {}) => {
   const store = configureStore();
   store.dispatch(versionActions.loadVersionInfo({ version }));
 
-  const internalVersion = getVersionInfo(
-    store.getState().versions,
-    version.id,
-  ) as Version;
-
   const props: FileTreeProps = {
     onSelect: onSelectFile,
-    versionId: internalVersion.id,
+    versionId: version.id,
     ...moreProps,
   };
   return renderWithStoreAndRouter(<FileTree {...props} />, store);
