@@ -1,6 +1,7 @@
 import fs from 'fs';
 import http from 'http';
 import path from 'path';
+import url from 'url';
 
 import express from 'express';
 import helmet from 'helmet';
@@ -21,6 +22,7 @@ export type ServerEnvVars = {
   REACT_APP_AUTHENTICATION_COOKIE: string;
   REACT_APP_AUTH_TOKEN_PLACEHOLDER: string;
   REACT_APP_CRA_PORT: number;
+  REACT_APP_SENTRY_DSN: string;
   REACT_APP_USE_INSECURE_PROXY: string;
   SERVER_HOST: string;
 };
@@ -68,18 +70,37 @@ export const createServer = ({
   const staticSrc = env.PUBLIC_URL
     ? `${env.PUBLIC_URL}${STATIC_PATH}`
     : "'none'";
+  const connectSrc = [
+    // Relax the connect-src if using the proxy otherwise
+    // Use the env var or 'none' if the API host isn't set.
+    env.REACT_APP_USE_INSECURE_PROXY === 'true'
+      ? "'self'"
+      : env.REACT_APP_API_HOST || "'none'",
+  ];
+
+  if (env.REACT_APP_SENTRY_DSN) {
+    const dsn = env.REACT_APP_SENTRY_DSN;
+
+    try {
+      const { host, protocol } = url.parse(dsn);
+
+      if (host && protocol) {
+        connectSrc.push(`${protocol}//${host}`);
+      } else {
+        throw new Error('could not parse host or protocol');
+      }
+    } catch (e) {
+      throw new Error(
+        `Could not parse REACT_APP_SENTRY_DSN=${dsn}: ${e.message}`,
+      );
+    }
+  }
 
   // This config sets the non-static CSP for deployed instances.
   const prodCSP = {
     defaultSrc: ["'none'"],
     childSrc: ["'none'"],
-    connectSrc: [
-      // Relax the connect-src if using the proxy otherwise
-      // Use the env var or 'none' if the API host isn't set.
-      env.REACT_APP_USE_INSECURE_PROXY === 'true'
-        ? "'self'"
-        : env.REACT_APP_API_HOST || "'none'",
-    ],
+    connectSrc,
     baseUri: ["'self'"],
     fontSrc: ["'none'"],
     formAction: ["'none'"],
