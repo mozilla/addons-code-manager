@@ -127,7 +127,7 @@ export class CompareBase extends React.Component<Props> {
       <React.Fragment>
         <Col md="3">
           {version ? (
-            <FileTree onSelect={this.onSelectFile} version={version} />
+            <FileTree onSelect={this.onSelectFile} versionId={version.id} />
           ) : (
             this.renderLoadingMessageOrError(gettext('Loading file tree...'))
           )}

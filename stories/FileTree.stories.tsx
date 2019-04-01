@@ -1,6 +1,5 @@
 /* eslint @typescript-eslint/camelcase: 0 */
 import React from 'react';
-import { Store } from 'redux';
 import { storiesOf } from '@storybook/react';
 
 import configureStore from '../src/configureStore';
@@ -84,7 +83,7 @@ const render = ({ ...moreProps }: Partial<FileTreeProps> = {}) => {
 
   const props: FileTreeProps = {
     onSelect: onSelectFile,
-    version: internalVersion,
+    versionId: internalVersion.id,
     ...moreProps,
   };
   return renderWithStoreAndRouter(<FileTree {...props} />, store);

@@ -149,10 +149,7 @@ describe(__filename, () => {
     });
 
     expect(root.find(FileTree)).toHaveLength(1);
-    expect(root.find(FileTree)).toHaveProp(
-      'version',
-      createInternalVersion(version),
-    );
+    expect(root.find(FileTree)).toHaveProp('versionId', version.id);
   });
 
   it('renders a DiffView', () => {

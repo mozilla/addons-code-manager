@@ -6,8 +6,12 @@ import Treefold, { TreefoldRenderProps } from 'react-treefold';
 import FileTreeNode, {
   PublicProps as FileTreeNodeProps,
 } from '../FileTreeNode';
-import { ConnectedReduxProps } from '../../configureStore';
-import { Version, actions as versionsActions } from '../../reducers/versions';
+import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
+import {
+  Version,
+  actions as versionsActions,
+  getVersionInfo,
+} from '../../reducers/versions';
 import { getLocalizedString } from '../../utils';
 
 type FileNode = {
@@ -134,10 +138,14 @@ export const buildFileTree = (
 
 export type PublicProps = {
   onSelect: FileTreeNodeProps['onSelect'];
+  versionId: number;
+};
+
+type PropsFromState = {
   version: Version;
 };
 
-type Props = PublicProps & ConnectedReduxProps;
+type Props = PublicProps & PropsFromState & ConnectedReduxProps;
 
 export class FileTreeBase extends React.Component<Props> {
   renderNode = (props: TreefoldRenderPropsForFileTree) => {
@@ -184,4 +192,17 @@ export class FileTreeBase extends React.Component<Props> {
   }
 }
 
-export default connect()(FileTreeBase) as React.ComponentType<PublicProps>;
+const mapStateToProps = (
+  state: ApplicationState,
+  ownProps: PublicProps,
+): PropsFromState => {
+  const { versionId } = ownProps;
+
+  return {
+    version: getVersionInfo(state.versions, versionId),
+  };
+};
+
+export default connect(mapStateToProps)(FileTreeBase) as React.ComponentType<
+  PublicProps
+>;

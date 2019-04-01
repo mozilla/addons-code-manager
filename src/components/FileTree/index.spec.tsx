@@ -371,7 +371,7 @@ describe(__filename, () => {
       version = getVersion({ store }),
     } = {}) => {
       return shallowUntilTarget(
-        <FileTree version={version} onSelect={onSelect} />,
+        <FileTree versionId={version.id} onSelect={onSelect} />,
         FileTreeBase,
         {
           shallowOptions: { context: { store } },
@@ -397,7 +397,7 @@ describe(__filename, () => {
       const version = getVersion({ store });
       const onSelect = jest.fn();
 
-      const root = render({ version, onSelect });
+      const root = render({ onSelect, store, version });
 
       const node = (root.instance() as FileTreeBase).renderNode(
         getTreefoldRenderProps(),
@@ -413,7 +413,7 @@ describe(__filename, () => {
       const store = configureStore();
       const version = getVersion({ store });
 
-      const root = render({ version });
+      const root = render({ store, version });
 
       const node = (root.instance() as FileTreeBase).renderNode(
         getTreefoldRenderProps(),
