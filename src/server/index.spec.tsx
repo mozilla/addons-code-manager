@@ -245,7 +245,7 @@ describe(__filename, () => {
               rootPath,
             }),
           );
-        }).toThrow(/invalid URL/);
+        }).toThrow(/could not parse host or protocol/);
       });
 
       it('throws an error when REACT_APP_SENTRY_DSN is not a string', async () => {

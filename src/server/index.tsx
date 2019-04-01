@@ -87,7 +87,7 @@ export const createServer = ({
       if (host && protocol) {
         connectSrc.push(`${protocol}//${host}`);
       } else {
-        throw new Error(`invalid URL`);
+        throw new Error('could not parse host or protocol');
       }
     } catch (e) {
       throw new Error(
