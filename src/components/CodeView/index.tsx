@@ -52,16 +52,17 @@ type RowProps = {
   ref?: typeof scrollToSelectedLine;
 };
 
-export const CodeViewBase = ({
-  _scrollToSelectedLine = scrollToSelectedLine,
-  content,
-  location,
-  mimeType,
-  version,
-}: Props) => {
-  const language = getLanguageFromMimeType(mimeType);
+export class CodeViewBase extends React.Component<Props> {
+  renderWithLinterInfo = ({ selectedMessageMap }: LinterProviderInfo) => {
+    const {
+      _scrollToSelectedLine = scrollToSelectedLine,
+      content,
+      location,
+      mimeType,
+    } = this.props;
 
-  const renderWithLinterInfo = ({ selectedMessageMap }: LinterProviderInfo) => {
+    const language = getLanguageFromMimeType(mimeType);
+
     return (
       <React.Fragment>
         {selectedMessageMap &&
@@ -130,9 +131,19 @@ export const CodeViewBase = ({
     );
   };
 
-  return (
-    <LinterProvider version={version}>{renderWithLinterInfo}</LinterProvider>
-  );
-};
+  render() {
+    const { version } = this.props;
+
+    return (
+      <LinterProvider
+        versionId={version.id}
+        validationURL={version.validationURL}
+        selectedPath={version.selectedPath}
+      >
+        {this.renderWithLinterInfo}
+      </LinterProvider>
+    );
+  }
+}
 
 export default withRouter(CodeViewBase);

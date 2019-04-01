@@ -8,7 +8,6 @@ import {
   fetchLinterMessages,
   selectMessageMap,
 } from '../../reducers/linter';
-import { Version } from '../../reducers/versions';
 
 export type LinterProviderInfo = {
   messageMap: LinterMessageMap | void;
@@ -23,7 +22,9 @@ export type RenderWithMessages = (info: LinterProviderInfo) => React.ReactNode;
 export type PublicProps = {
   _loadData?: LoadData;
   children: RenderWithMessages;
-  version: Version;
+  versionId: number;
+  validationURL: string;
+  selectedPath: string;
 };
 
 export type DefaultProps = {
@@ -62,7 +63,8 @@ export class LinterProviderBase extends React.Component<Props> {
     const {
       _fetchLinterMessages,
       dispatch,
-      version,
+      validationURL,
+      versionId,
       messageMap,
       messagesAreLoading,
     } = this.props;
@@ -70,8 +72,8 @@ export class LinterProviderBase extends React.Component<Props> {
     if (messageMap === undefined && !messagesAreLoading) {
       dispatch(
         _fetchLinterMessages({
-          versionId: version.id,
-          url: version.validationURL,
+          versionId,
+          url: validationURL,
         }),
       );
     }
@@ -92,13 +94,13 @@ const mapStateToProps = (
   state: ApplicationState,
   ownProps: PublicProps,
 ): PropsFromState => {
-  const { version } = ownProps;
+  const { selectedPath, versionId } = ownProps;
 
   let selectedMessageMap;
-  const map = selectMessageMap(state.linter, version.id);
+  const map = selectMessageMap(state.linter, versionId);
   if (map) {
-    selectedMessageMap = map[version.selectedPath]
-      ? map[version.selectedPath]
+    selectedMessageMap = map[selectedPath]
+      ? map[selectedPath]
       : // No messages exist for this path.
         null;
   }
@@ -110,4 +112,6 @@ const mapStateToProps = (
   };
 };
 
-export default connect(mapStateToProps)(LinterProviderBase);
+export default connect(mapStateToProps)(
+  LinterProviderBase,
+) as React.ComponentType<PublicProps & Partial<DefaultProps>>;

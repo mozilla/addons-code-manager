@@ -39,7 +39,13 @@ describe(__filename, () => {
     store = configureStore(),
     ...moreProps
   }: RenderParams = {}) => {
-    const props = { children, version, ...moreProps };
+    const props = {
+      children,
+      versionId: version.id,
+      validationURL: version.validationURL,
+      selectedPath: version.selectedPath,
+      ...moreProps,
+    };
 
     return shallowUntilTarget(
       <LinterProvider {...props}>{children}</LinterProvider>,
@@ -52,17 +58,14 @@ describe(__filename, () => {
 
   const renderWithFakeThunk = ({
     store = configureStore(),
-    version,
-  }: {
-    store?: Store;
-    version: Version;
-  }) => {
+    ...moreProps
+  }: { store?: Store } & RenderParams) => {
     const dispatch = spyOn(store, 'dispatch');
 
     const fakeThunk = createFakeThunk();
     const _fetchLinterMessages = fakeThunk.createThunk;
 
-    const root = render({ _fetchLinterMessages, store, version });
+    const root = render({ _fetchLinterMessages, store, ...moreProps });
 
     return { _fetchLinterMessages, dispatch, root, fakeThunk };
   };

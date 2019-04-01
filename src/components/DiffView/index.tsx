@@ -201,7 +201,11 @@ export class DiffViewBase extends React.Component<Props> {
     const { version } = this.props;
 
     return (
-      <LinterProvider version={version}>
+      <LinterProvider
+        versionId={version.id}
+        validationURL={version.validationURL}
+        selectedPath={version.selectedPath}
+      >
         {this.renderWithMessages}
       </LinterProvider>
     );

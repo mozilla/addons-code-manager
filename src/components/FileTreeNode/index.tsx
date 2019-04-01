@@ -196,21 +196,16 @@ class FileTreeNodeBase<TreeNodeType> extends React.Component<PublicProps> {
   };
 
   render() {
-    const { version } = this.props;
+    const { node, version } = this.props;
 
     return (
-      <LinterProvider version={version}>
-        {/*
-          props.children needs be an anonymous function so that the
-          shallow prop check in connect(LinterProvider) will always think
-          there is a new value for props.children.
-
-          Without a new value, LinterProvider will not re-render its
-          children often enough. For example, the uncontrolled ListGroup
-          components (which could be nested recursively) need to
-          re-render when their internal state changes.
-        */}
-        {(info: LinterProviderInfo) => this.renderWithLinterInfo(info)}
+      <LinterProvider
+        key={[node.id].concat(version.expandedPaths).join(':')}
+        versionId={version.id}
+        validationURL={version.validationURL}
+        selectedPath={version.selectedPath}
+      >
+        {this.renderWithLinterInfo}
       </LinterProvider>
     );
   }

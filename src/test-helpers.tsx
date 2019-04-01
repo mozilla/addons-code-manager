@@ -28,7 +28,6 @@ import {
 } from './reducers/versions';
 import LinterProvider, {
   LinterProviderInfo,
-  Props as LinterProviderProps,
 } from './components/LinterProvider';
 
 /* eslint-disable @typescript-eslint/camelcase */
@@ -533,9 +532,7 @@ export const simulateLinterProvider = (
     selectedMessageMap = undefined,
   }: Partial<LinterProviderInfo> = {},
 ) => {
-  const provider: ShallowWrapper<LinterProviderProps> = root.find(
-    LinterProvider,
-  );
+  const provider = root.find(LinterProvider);
   expect(provider).toHaveLength(1);
 
   const renderWithLinter = provider.renderProp('children');
