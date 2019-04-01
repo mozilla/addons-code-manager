@@ -5,3 +5,8 @@
   border: 1px solid $light-gray;
   padding: $default-padding;
 }
+
+// See: https://github.com/mozilla/addons-code-manager/issues/424
+.sha256 {
+  word-wrap: break-word;
+}

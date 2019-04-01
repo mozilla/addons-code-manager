@@ -8,10 +8,9 @@ import {
   getVersionFile,
   VersionFile,
 } from '../src/reducers/versions';
-import { fakeVersion } from '../src/test-helpers';
+import { fakeVersion, fakeVersionEntry } from '../src/test-helpers';
 
-storiesOf('FileMetadata', module).add('default', () => {
-  const version = fakeVersion;
+const loadVersionFile = (version = fakeVersion) => {
   const store = configureStore();
   store.dispatch(versionActions.loadVersionInfo({ version }));
   store.dispatch(
@@ -26,6 +25,52 @@ storiesOf('FileMetadata', module).add('default', () => {
     version.id,
     version.file.selected_file,
   ) as VersionFile;
+  return versionFile;
+};
 
-  return <FileMetadata file={versionFile} />;
+storiesOf('FileMetadata', module).addWithChapters('all variants', {
+  chapters: [
+    {
+      sections: [
+        {
+          title: 'with lists of versions loaded',
+          sectionFn: () => {
+            const versionFile = loadVersionFile();
+
+            return <FileMetadata file={versionFile} />;
+          },
+        },
+        {
+          title: 'with a constrained width',
+          sectionFn: () => {
+            const path = 'very-long-file-name.json';
+            const version = {
+              ...fakeVersion,
+              file: {
+                ...fakeVersion.file,
+                entries: {
+                  [path]: {
+                    ...fakeVersionEntry,
+                    filename: path,
+                    path,
+                    sha256:
+                      '521fce5b388cd8f06d7fbf35bf4988b16a3a465fd3f1af92727eeaf5b6ab8ca6',
+                  },
+                },
+                selected_file: path,
+              },
+            };
+
+            const versionFile = loadVersionFile(version);
+
+            return (
+              <div style={{ width: '200px' }}>
+                <FileMetadata file={versionFile} />
+              </div>
+            );
+          },
+        },
+      ],
+    },
+  ],
 });
