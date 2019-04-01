@@ -39,6 +39,4 @@ export class LoginButtonBase extends React.Component<Props> {
   }
 }
 
-export default LoginButtonBase as React.ComponentType<
-  PublicProps & Partial<DefaultProps>
->;
+export default LoginButtonBase;
