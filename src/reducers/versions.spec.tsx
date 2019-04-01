@@ -270,8 +270,6 @@ describe(__filename, () => {
         undefined,
         actions.loadVersionInfo({ version }),
       );
-      // TS looks confused about the third optional argument.
-      // @ts-ignore
       const versionsState = reducer(
         previousState,
         actions.loadDiff({
@@ -280,6 +278,8 @@ describe(__filename, () => {
           headVersionId,
           version,
         }),
+        // TS looks confused about the third optional argument.
+        // @ts-ignore
         { _log },
       );
 
