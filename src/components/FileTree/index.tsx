@@ -7,13 +7,14 @@ import Treefold, { TreefoldRenderProps } from 'react-treefold';
 import FileTreeNode, {
   PublicProps as FileTreeNodeProps,
 } from '../FileTreeNode';
+import Loading from '../Loading';
 import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
 import {
   Version,
   actions as versionsActions,
   getVersionInfo,
 } from '../../reducers/versions';
-import { getLocalizedString } from '../../utils';
+import { getLocalizedString, gettext } from '../../utils';
 
 type FileNode = {
   id: string;
@@ -163,39 +164,39 @@ export class FileTreeBase extends React.Component<Props> {
     if (version) {
       return <FileTreeNode {...props} onSelect={onSelect} version={version} />;
     }
-    // This should never happen. See the comment in mapStateToProps.
-    return null;
+    return <Loading message={gettext('Loading version...')} />;
   };
 
   onToggleExpand = (node: TreeNode) => {
     const { dispatch, version } = this.props;
 
-    if (version) {
-      dispatch(
-        versionsActions.toggleExpandedPath({
-          path: node.id,
-          versionId: version.id,
-        }),
-      );
+    if (!version) {
+      throw new Error('Cannot toggle expanded path without a version');
     }
+
+    dispatch(
+      versionsActions.toggleExpandedPath({
+        path: node.id,
+        versionId: version.id,
+      }),
+    );
   };
 
   isNodeExpanded = (node: TreeNode) => {
     const { version } = this.props;
 
-    if (version) {
-      return version.expandedPaths.includes(node.id);
+    if (!version) {
+      throw new Error('Cannot check if node is expanded without a version');
     }
-    // This should never happen. See the comment in mapStateToProps.
-    return false;
+
+    return version.expandedPaths.includes(node.id);
   };
 
   render() {
     const { version } = this.props;
 
     if (!version) {
-      // This should never happen. See the comment in mapStateToProps.
-      return null;
+      return <Loading message={gettext('Loading version...')} />;
     }
 
     const tree = buildFileTree(

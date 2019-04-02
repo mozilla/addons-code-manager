@@ -22,6 +22,7 @@ import {
 import { getLocalizedString } from '../../utils';
 import { getTreefoldRenderProps } from '../FileTreeNode/index.spec';
 import FileTreeNode from '../FileTreeNode';
+import Loading from '../Loading';
 
 import FileTree, { DirectoryNode, FileTreeBase, buildFileTree } from '.';
 
@@ -509,6 +510,48 @@ describe(__filename, () => {
       });
 
       expect(_log.warn).toHaveBeenCalled();
+    });
+
+    it('renders a Loading component when no version is loaded', () => {
+      const root = render({
+        version: createInternalVersion({ ...fakeVersion, id: 0 }),
+      });
+
+      expect(root.find(Loading)).toHaveLength(1);
+    });
+
+    it('throws an error when isNodeExpanded is called without a version', () => {
+      const node = {
+        id: 'some/path',
+        name: 'some name',
+        children: [],
+      };
+      const root = render({
+        version: createInternalVersion({ ...fakeVersion, id: 0 }),
+      });
+
+      const { isNodeExpanded } = root.instance() as FileTreeBase;
+
+      expect(() => {
+        isNodeExpanded(node);
+      }).toThrow('Cannot check if node is expanded without a version');
+    });
+
+    it('throws an error when onToggleExpand is called without a version', () => {
+      const node = {
+        id: 'some/path',
+        name: 'some name',
+        children: [],
+      };
+      const root = render({
+        version: createInternalVersion({ ...fakeVersion, id: 0 }),
+      });
+
+      const { onToggleExpand } = root.instance() as FileTreeBase;
+
+      expect(() => {
+        onToggleExpand(node);
+      }).toThrow('Cannot toggle expanded path without a version');
     });
   });
 });
