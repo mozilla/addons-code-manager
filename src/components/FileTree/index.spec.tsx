@@ -8,7 +8,6 @@ import configureStore from '../../configureStore';
 import {
   Version,
   actions as versionActions,
-  createInternalVersion,
   createInternalVersionEntry,
   getVersionInfo,
 } from '../../reducers/versions';
@@ -372,10 +371,10 @@ describe(__filename, () => {
       _log = createFakeLogger(),
       onSelect = jest.fn(),
       store = configureStore(),
-      version = getVersion({ store }),
+      versionId = 1234,
     } = {}) => {
       return shallowUntilTarget(
-        <FileTree _log={_log} versionId={version.id} onSelect={onSelect} />,
+        <FileTree _log={_log} versionId={versionId} onSelect={onSelect} />,
         FileTreeBase,
         {
           shallowOptions: { context: { store } },
@@ -387,7 +386,7 @@ describe(__filename, () => {
       const store = configureStore();
       const version = getVersion({ store });
 
-      const root = render({ store, version });
+      const root = render({ store, versionId: version.id });
 
       expect(root.find(ListGroup)).toHaveLength(1);
       expect(root.find(Treefold)).toHaveLength(1);
@@ -401,7 +400,7 @@ describe(__filename, () => {
       const version = getVersion({ store });
       const onSelect = jest.fn();
 
-      const root = render({ onSelect, store, version });
+      const root = render({ onSelect, store, versionId: version.id });
 
       const node = (root.instance() as FileTreeBase).renderNode(
         getTreefoldRenderProps(),
@@ -417,7 +416,7 @@ describe(__filename, () => {
       const store = configureStore();
       const version = getVersion({ store });
 
-      const root = render({ store, version });
+      const root = render({ store, versionId: version.id });
 
       const node = (root.instance() as FileTreeBase).renderNode(
         getTreefoldRenderProps(),
@@ -440,7 +439,7 @@ describe(__filename, () => {
 
       const dispatch = spyOn(store, 'dispatch');
 
-      const root = render({ store, version });
+      const root = render({ store, versionId: version.id });
 
       const treeFold = root.find(Treefold);
       expect(treeFold).toHaveProp('onToggleExpand');
@@ -474,7 +473,7 @@ describe(__filename, () => {
 
       version = getVersionInfo(store.getState().versions, version.id);
 
-      const root = render({ store, version });
+      const root = render({ store, versionId: version.id });
 
       const treeFold = root.find(Treefold);
       expect(treeFold).toHaveProp('isNodeExpanded');
@@ -492,7 +491,7 @@ describe(__filename, () => {
       };
       const version = getVersion({ store });
 
-      const root = render({ store, version });
+      const root = render({ store, versionId: version.id });
 
       const treeFold = root.find(Treefold);
       expect(treeFold).toHaveProp('isNodeExpanded');
@@ -504,20 +503,25 @@ describe(__filename, () => {
     it('logs a warning message when no version is loaded', () => {
       const _log = createFakeLogger();
 
-      render({
-        _log,
-        version: createInternalVersion({ ...fakeVersion, id: 0 }),
-      });
+      render({ _log });
 
       expect(_log.warn).toHaveBeenCalled();
     });
 
     it('renders a Loading component when no version is loaded', () => {
-      const root = render({
-        version: createInternalVersion({ ...fakeVersion, id: 0 }),
-      });
+      const root = render();
 
       expect(root.find(Loading)).toHaveLength(1);
+    });
+
+    it('returns a Loading component from renderNode when no version is loaded', () => {
+      const root = render();
+
+      const node = (root.instance() as FileTreeBase).renderNode(
+        getTreefoldRenderProps(),
+      );
+
+      expect(shallow(<div>{node}</div>).find(Loading)).toHaveLength(1);
     });
 
     it('throws an error when isNodeExpanded is called without a version', () => {
@@ -526,9 +530,7 @@ describe(__filename, () => {
         name: 'some name',
         children: [],
       };
-      const root = render({
-        version: createInternalVersion({ ...fakeVersion, id: 0 }),
-      });
+      const root = render();
 
       const { isNodeExpanded } = root.instance() as FileTreeBase;
 
@@ -543,9 +545,7 @@ describe(__filename, () => {
         name: 'some name',
         children: [],
       };
-      const root = render({
-        version: createInternalVersion({ ...fakeVersion, id: 0 }),
-      });
+      const root = render();
 
       const { onToggleExpand } = root.instance() as FileTreeBase;
 
