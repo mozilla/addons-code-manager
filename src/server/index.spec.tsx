@@ -157,7 +157,9 @@ describe(__filename, () => {
           `${fakeEnv.PUBLIC_URL}${STATIC_PATH}`,
         ]);
         expect(policy['worker-src']).toEqual(["'none'"]);
-        expect(policy['report-uri']).toEqual(['/__cspreport__']);
+        expect(policy['report-uri']).toEqual([
+          `${fakeEnv.REACT_APP_API_HOST}/__cspreport__`,
+        ]);
 
         expect(response.header['referrer-policy']).toEqual('no-referrer');
         expect(response.header['strict-transport-security']).toEqual(
@@ -179,7 +181,9 @@ describe(__filename, () => {
         expect(staticPolicy['base-uri']).toEqual(["'none'"]);
         expect(staticPolicy['form-action']).toEqual(["'none'"]);
         expect(staticPolicy['object-src']).toEqual(["'none'"]);
-        expect(staticPolicy['report-uri']).toEqual(['/__cspreport__']);
+        expect(staticPolicy['report-uri']).toEqual([
+          `${fakeEnv.REACT_APP_API_HOST}/__cspreport__`,
+        ]);
 
         // Everything else, that shouldn't be set for statics.
         expect(staticPolicy['frame-ancestors']).toEqual(undefined);
@@ -191,8 +195,13 @@ describe(__filename, () => {
         expect(staticPolicy['script-src']).toEqual(undefined);
         expect(staticPolicy['style-src']).toEqual(undefined);
         expect(staticPolicy['worker-src']).toEqual(undefined);
+      });
 
-        // Check we have a default no-op CSP report endpoint.
+      it('exposes a default no-op CSP report endpoint', async () => {
+        const server = request(
+          createServer({ env: prodEnv as ServerEnvVars, rootPath }),
+        );
+
         const cspReportResponse = await server.post('/__cspreport__');
         expect(cspReportResponse.status).toEqual(200);
       });
@@ -407,6 +416,13 @@ describe(__filename, () => {
 
           const policy = cspParser(response.header['content-security-policy']);
           expect(policy['connect-src']).toEqual(["'self'"]);
+        });
+
+        it('uses a relative for the CSP report URI', async () => {
+          const response = await server.get('/');
+
+          const policy = cspParser(response.header['content-security-policy']);
+          expect(policy['report-uri']).toEqual(['/__cspreport__']);
         });
       });
     });
