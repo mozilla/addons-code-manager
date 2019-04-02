@@ -201,8 +201,8 @@ describe(__filename, () => {
     });
 
     it('does not add paths for files to expandedPaths when expandTree is dispatched', () => {
-      const path1 = 'path/1';
-      const path2 = 'path/2';
+      const path1 = 'scripts/';
+      const path2 = 'scripts/background.js';
       const entries = {
         [path1]: createFakeEntry('directory', path1),
         [path2]: createFakeEntry('text', path2),
