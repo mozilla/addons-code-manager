@@ -66,7 +66,7 @@ describe(__filename, () => {
   });
 
   describe('createServer', () => {
-    const rootPath = path.join(__dirname, 'fixtures');
+    const fixturesPath = path.join(__dirname, 'fixtures');
 
     describe('NODE_ENV=production', () => {
       const prodEnv = {
@@ -74,7 +74,10 @@ describe(__filename, () => {
       };
 
       it('configures the host and port with default values', () => {
-        const app = createServer({ env: prodEnv as ServerEnvVars, rootPath });
+        const app = createServer({
+          env: prodEnv as ServerEnvVars,
+          rootPath: fixturesPath,
+        });
 
         expect(app.get('host')).toEqual(DEFAULT_HOST);
         expect(app.get('port')).toEqual(DEFAULT_PORT);
@@ -88,7 +91,7 @@ describe(__filename, () => {
           PORT: port,
           SERVER_HOST: host,
         } as ServerEnvVars;
-        const app = createServer({ env, rootPath });
+        const app = createServer({ env, rootPath: fixturesPath });
 
         expect(app.get('host')).toEqual(host);
         expect(app.get('port')).toEqual(port);
@@ -96,7 +99,10 @@ describe(__filename, () => {
 
       it('creates an Express server', async () => {
         const server = request(
-          createServer({ env: prodEnv as ServerEnvVars, rootPath }),
+          createServer({
+            env: prodEnv as ServerEnvVars,
+            rootPath: fixturesPath,
+          }),
         );
 
         const response = await server.get('/');
@@ -110,7 +116,10 @@ describe(__filename, () => {
 
       it('serves the index.html content to all routes', async () => {
         const server = request(
-          createServer({ env: prodEnv as ServerEnvVars, rootPath }),
+          createServer({
+            env: prodEnv as ServerEnvVars,
+            rootPath: fixturesPath,
+          }),
         );
 
         const response = await server.get('/foo-bar');
@@ -128,7 +137,7 @@ describe(__filename, () => {
         const server = request(
           createServer({
             env: fakeEnv as ServerEnvVars,
-            rootPath,
+            rootPath: fixturesPath,
           }),
         );
 
@@ -200,7 +209,10 @@ describe(__filename, () => {
 
       it('exposes a default no-op CSP report endpoint', async () => {
         const server = request(
-          createServer({ env: prodEnv as ServerEnvVars, rootPath }),
+          createServer({
+            env: prodEnv as ServerEnvVars,
+            rootPath: fixturesPath,
+          }),
         );
 
         const cspReportResponse = await server.post('/__cspreport__');
@@ -216,7 +228,7 @@ describe(__filename, () => {
         const server = request(
           createServer({
             env: fakeEnv as ServerEnvVars,
-            rootPath,
+            rootPath: fixturesPath,
           }),
         );
 
@@ -232,7 +244,7 @@ describe(__filename, () => {
         const server = request(
           createServer({
             env: prodEnv as ServerEnvVars,
-            rootPath,
+            rootPath: fixturesPath,
           }),
         );
 
@@ -252,7 +264,7 @@ describe(__filename, () => {
           request(
             createServer({
               env: fakeEnv as ServerEnvVars,
-              rootPath,
+              rootPath: fixturesPath,
             }),
           );
         }).toThrow(/could not parse host or protocol/);
@@ -269,7 +281,7 @@ describe(__filename, () => {
             createServer({
               // @ts-ignore
               env: fakeEnv,
-              rootPath,
+              rootPath: fixturesPath,
             }),
           );
         }).toThrow(/argument must be of type string/);
@@ -279,7 +291,7 @@ describe(__filename, () => {
         const server = request(
           createServer({
             env: prodEnv as ServerEnvVars,
-            rootPath,
+            rootPath: fixturesPath,
           }),
         );
 
@@ -293,7 +305,7 @@ describe(__filename, () => {
         const server = request(
           createServer({
             env: prodEnv as ServerEnvVars,
-            rootPath,
+            rootPath: fixturesPath,
           }),
         );
 
@@ -314,7 +326,7 @@ describe(__filename, () => {
         const server = request(
           createServer({
             env: prodEnv as ServerEnvVars,
-            rootPath,
+            rootPath: fixturesPath,
             _injectAuthenticationToken,
           }),
         );
@@ -342,7 +354,7 @@ describe(__filename, () => {
           server = request(
             createServer({
               env: prodEnvWithInsecureProxy as ServerEnvVars,
-              rootPath,
+              rootPath: fixturesPath,
             }),
           );
 
@@ -431,7 +443,7 @@ describe(__filename, () => {
         const server = request(
           createServer({
             env: prodEnv as ServerEnvVars,
-            rootPath,
+            rootPath: fixturesPath,
           }),
         );
 
@@ -443,10 +455,12 @@ describe(__filename, () => {
           'application/json; charset=UTF-8',
         );
 
-        // This file is in `src/server/fixtures/`.
-        const content = fs.readFileSync(path.join(rootPath, 'version.json'), {
-          encoding: 'utf8',
-        });
+        const content = fs.readFileSync(
+          path.join(fixturesPath, 'version.json'),
+          {
+            encoding: 'utf8',
+          },
+        );
         expect(response.text).toEqual(content);
       });
 
@@ -456,7 +470,7 @@ describe(__filename, () => {
           const server = request(
             createServer({
               env: prodEnv as ServerEnvVars,
-              rootPath,
+              rootPath: fixturesPath,
             }),
           );
 
@@ -500,7 +514,10 @@ describe(__filename, () => {
         fakeCreateReactAppServerApp.get('/*', (req, res) => res.send(content));
 
         const server = request(
-          createServer({ env: devEnv as ServerEnvVars, rootPath }),
+          createServer({
+            env: devEnv as ServerEnvVars,
+            rootPath: fixturesPath,
+          }),
         );
 
         const response = await server.get('/');
@@ -521,7 +538,7 @@ describe(__filename, () => {
         const server = request(
           createServer({
             env: devEnv as ServerEnvVars,
-            rootPath,
+            rootPath: fixturesPath,
             _injectAuthenticationToken,
           }),
         );
@@ -537,7 +554,10 @@ describe(__filename, () => {
         fakeCreateReactAppServerApp.get('/*', (req, res) => res.json(content));
 
         const server = request(
-          createServer({ env: devEnv as ServerEnvVars, rootPath }),
+          createServer({
+            env: devEnv as ServerEnvVars,
+            rootPath: fixturesPath,
+          }),
         );
 
         const response = await server.get('/');
@@ -559,7 +579,7 @@ describe(__filename, () => {
         const server = request(
           createServer({
             env: devEnv as ServerEnvVars,
-            rootPath,
+            rootPath: fixturesPath,
             _injectAuthenticationToken,
           }),
         );
@@ -577,7 +597,7 @@ describe(__filename, () => {
         const server = request(
           createServer({
             env: devEnv as ServerEnvVars,
-            rootPath,
+            rootPath: fixturesPath,
           }),
         );
 
@@ -596,7 +616,7 @@ describe(__filename, () => {
         const server = request(
           createServer({
             env: devEnv as ServerEnvVars,
-            rootPath,
+            rootPath: fixturesPath,
           }),
         );
 
@@ -615,7 +635,7 @@ describe(__filename, () => {
         const server = request(
           createServer({
             env: devEnv as ServerEnvVars,
-            rootPath,
+            rootPath: fixturesPath,
           }),
         );
 
@@ -631,7 +651,7 @@ describe(__filename, () => {
         const server = request(
           createServer({
             env: devEnv as ServerEnvVars,
-            rootPath,
+            rootPath: fixturesPath,
           }),
         );
 
