@@ -189,6 +189,34 @@ describe(__filename, () => {
         expect.any(Object),
       );
     });
+
+    it('can include credentials', async () => {
+      await callApiWithDefaultApiState({
+        endpoint: '/url',
+        includeCredentials: true,
+      });
+
+      expect(fetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          credentials: 'include',
+        }),
+      );
+    });
+
+    it('can omit credentials', async () => {
+      await callApiWithDefaultApiState({
+        endpoint: '/url',
+        includeCredentials: false,
+      });
+
+      expect(fetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          credentials: undefined,
+        }),
+      );
+    });
   });
 
   describe('isErrorResponse', () => {
@@ -267,6 +295,7 @@ describe(__filename, () => {
       expect(fetch).toHaveBeenCalledWith(
         expect.stringMatching(`/api/${defaultVersion}/accounts/session/`),
         {
+          credentials: 'include',
           headers: {},
           method: HttpMethod.DELETE,
         },

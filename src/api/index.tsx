@@ -68,6 +68,7 @@ export enum HttpMethod {
 type CallApiParams = {
   apiState: ApiState;
   endpoint: string;
+  includeCredentials?: boolean;
   lang?: string;
   method?: HttpMethod;
   query?: { [key: string]: string };
@@ -100,6 +101,7 @@ type Headers = {
 export const callApi = async <SuccessResponseType extends {}>({
   apiState,
   endpoint,
+  includeCredentials = false,
   lang = process.env.REACT_APP_DEFAULT_API_LANG,
   method = HttpMethod.GET,
   query = {},
@@ -133,8 +135,9 @@ export const callApi = async <SuccessResponseType extends {}>({
 
   try {
     const response = await fetch(makeApiURL({ path, version }), {
-      method,
+      credentials: includeCredentials ? 'include' : undefined,
       headers,
+      method,
     });
 
     if (!response.ok) {
@@ -191,6 +194,10 @@ export const getVersionsList = async ({
 export const logOutFromServer = async (apiState: ApiState) => {
   return callApi<{}>({
     apiState,
+    // We need to send the credentials (cookies) because the API will return
+    // new `Set-Cookie` headers to clear the cookies in the client. Without
+    // this, logging out would not be possible.
+    includeCredentials: true,
     endpoint: 'accounts/session',
     method: HttpMethod.DELETE,
   });
