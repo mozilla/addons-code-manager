@@ -10,6 +10,8 @@ import cookiesMiddleware, {
   RequestWithCookies,
 } from 'universal-cookie-express';
 
+import { getApiHost } from '../api';
+
 export const DEFAULT_HOST = 'localhost';
 export const DEFAULT_PORT = 3000;
 export const STATIC_PATH = '/static/';
@@ -57,25 +59,29 @@ export const createServer = ({
   rootPath,
   _injectAuthenticationToken = injectAuthenticationToken,
 }: CreateServerParams) => {
-  // This CSP is a tight default. This CSP should be on all requests
-  // that aren't serving a document. This CSP should be set with statics.
+  const useInsecureProxy = env.REACT_APP_USE_INSECURE_PROXY === 'true';
+
+  const reportUri = `${getApiHost({
+    apiHost: env.REACT_APP_API_HOST,
+    useInsecureProxy,
+  })}/__cspreport__`;
+  // This CSP is a tight default. This CSP should be on all requests that
+  // aren't serving a document. This CSP should be set with statics.
   const baseCSP = {
     defaultSrc: ["'none'"],
     baseUri: ["'none'"],
     formAction: ["'none'"],
     objectSrc: ["'none'"],
-    reportUri: '/__cspreport__',
+    reportUri,
   };
 
   const staticSrc = env.PUBLIC_URL
     ? `${env.PUBLIC_URL}${STATIC_PATH}`
     : "'none'";
   const connectSrc = [
-    // Relax the connect-src if using the proxy otherwise
-    // Use the env var or 'none' if the API host isn't set.
-    env.REACT_APP_USE_INSECURE_PROXY === 'true'
-      ? "'self'"
-      : env.REACT_APP_API_HOST || "'none'",
+    // Relax the connect-src if using the proxy otherwise Use the env var or
+    // 'none' if the API host isn't set.
+    useInsecureProxy ? "'self'" : env.REACT_APP_API_HOST || "'none'",
   ];
 
   if (env.REACT_APP_SENTRY_DSN) {
@@ -113,7 +119,7 @@ export const createServer = ({
     scriptSrc: [staticSrc],
     styleSrc: [staticSrc],
     workerSrc: ["'none'"],
-    reportUri: '/__cspreport__',
+    reportUri,
   };
 
   // Create an express server.
@@ -146,7 +152,7 @@ export const createServer = ({
 
   // We use a proxy to forward API requests to REACT_APP_API_HOST (i.e. the
   // AMO/addons-server API). This is useful for local development.
-  if (env.REACT_APP_USE_INSECURE_PROXY === 'true') {
+  if (useInsecureProxy) {
     if (env.NODE_ENV === 'production') {
       // eslint-disable-next-line no-console
       console.warn(`Using an insecure proxy with NODE_ENV=production is risky`);
