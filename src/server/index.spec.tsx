@@ -417,6 +417,13 @@ describe(__filename, () => {
           const policy = cspParser(response.header['content-security-policy']);
           expect(policy['connect-src']).toEqual(["'self'"]);
         });
+
+        it('uses a relative for the CSP report URI', async () => {
+          const response = await server.get('/');
+
+          const policy = cspParser(response.header['content-security-policy']);
+          expect(policy['report-uri']).toEqual(['/__cspreport__']);
+        });
       });
     });
 
