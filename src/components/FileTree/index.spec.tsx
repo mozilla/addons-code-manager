@@ -7,6 +7,7 @@ import { ListGroup } from 'react-bootstrap';
 import configureStore from '../../configureStore';
 import {
   actions as versionActions,
+  createInternalVersion,
   createInternalVersionEntry,
   getVersionInfo,
 } from '../../reducers/versions';
