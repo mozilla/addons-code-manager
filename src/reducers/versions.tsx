@@ -7,6 +7,7 @@ import { ThunkActionCreator } from '../configureStore';
 import { getDiff, getVersion, getVersionsList, isErrorResponse } from '../api';
 import { LocalizedStringMap } from '../utils';
 import { actions as errorsActions } from './errors';
+import { getRootPath } from '../components/FileTree';
 
 type VersionCompatibility = {
   [appName: string]: {
@@ -215,6 +216,12 @@ export const actions = {
   }),
   toggleExpandedPath: createAction('TOGGLE_EXPANDED_PATH', (resolve) => {
     return (payload: { path: string; versionId: number }) => resolve(payload);
+  }),
+  expandTree: createAction('EXPAND_TREE', (resolve) => {
+    return (payload: { versionId: number }) => resolve(payload);
+  }),
+  collapseTree: createAction('COLLAPSE_TREE', (resolve) => {
+    return (payload: { versionId: number }) => resolve(payload);
   }),
   loadVersionsList: createAction('LOAD_VERSIONS_LIST', (resolve) => {
     return (payload: { addonId: number; versions: ExternalVersionsList }) =>
@@ -620,6 +627,41 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
             expandedPaths: expandedPaths.includes(path)
               ? expandedPaths.filter((storedPath) => path !== storedPath)
               : [...expandedPaths, path],
+          },
+        },
+      };
+    }
+    case getType(actions.expandTree): {
+      const { versionId } = action.payload;
+
+      const version = state.versionInfo[versionId];
+      const { entries } = version;
+      const expandedPaths = entries
+        .filter((entry) => entry.type === 'directory')
+        .map((entry) => entry.path);
+      expandedPaths.push(getRootPath(version));
+
+      return {
+        ...state,
+        versionInfo: {
+          ...state.versionInfo,
+          [versionId]: {
+            ...state.versionInfo[versionId],
+            expandedPaths,
+          },
+        },
+      };
+    }
+    case getType(actions.collapseTree): {
+      const { versionId } = action.payload;
+
+      return {
+        ...state,
+        versionInfo: {
+          ...state.versionInfo,
+          [versionId]: {
+            ...state.versionInfo[versionId],
+            expandedPaths: [],
           },
         },
       };

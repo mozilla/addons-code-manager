@@ -6,13 +6,14 @@ import { ListGroup } from 'react-bootstrap';
 
 import configureStore from '../../configureStore';
 import {
-  Version,
   actions as versionActions,
+  createInternalVersion,
   createInternalVersionEntry,
   getVersionInfo,
 } from '../../reducers/versions';
 import {
   createFakeLogger,
+  createVersionWithEntries,
   fakeVersion,
   fakeVersionEntry,
   shallowUntilTarget,
@@ -23,26 +24,36 @@ import { getTreefoldRenderProps } from '../FileTreeNode/index.spec';
 import FileTreeNode from '../FileTreeNode';
 import Loading from '../Loading';
 
-import FileTree, { DirectoryNode, FileTreeBase, buildFileTree } from '.';
+import FileTree, {
+  DirectoryNode,
+  FileTreeBase,
+  buildFileTree,
+  getRootPath,
+} from '.';
 
 describe(__filename, () => {
+  describe('getRootPath', () => {
+    const version = createInternalVersion(fakeVersion);
+    const addonName = getLocalizedString(version.addon.name);
+
+    expect(getRootPath(version)).toEqual(`root-${addonName}`);
+  });
+
   describe('buildFileTree', () => {
     it('creates a root node', () => {
-      const versionId = '1234';
-      const entries: Version['entries'] = [];
+      const version = createVersionWithEntries([]);
+      const addonName = getLocalizedString(version.addon.name);
 
-      const tree = buildFileTree(versionId, entries);
+      const tree = buildFileTree(version);
 
       expect(tree).toEqual({
-        id: `root-${versionId}`,
-        name: versionId,
+        id: `root-${addonName}`,
+        name: addonName,
         children: [],
       });
     });
 
     it('converts a non-directory entry to a file node', () => {
-      const versionId = '1234';
-
       const filename = 'some-filename';
       const entries = [
         createInternalVersionEntry({
@@ -51,8 +62,9 @@ describe(__filename, () => {
           filename,
         }),
       ];
+      const version = createVersionWithEntries(entries);
 
-      const tree = buildFileTree(versionId, entries);
+      const tree = buildFileTree(version);
 
       expect(tree.children).toEqual([
         {
@@ -63,8 +75,6 @@ describe(__filename, () => {
     });
 
     it('converts a directory entry to a directory node', () => {
-      const versionId = '1234';
-
       const filename = 'some-directory';
       const entries = [
         createInternalVersionEntry({
@@ -73,8 +83,9 @@ describe(__filename, () => {
           filename,
         }),
       ];
+      const version = createVersionWithEntries(entries);
 
-      const tree = buildFileTree(versionId, entries);
+      const tree = buildFileTree(version);
 
       expect(tree.children).toEqual([
         {
@@ -86,8 +97,6 @@ describe(__filename, () => {
     });
 
     it('finds the appropriate node to add a new entry to it', () => {
-      const versionId = '1234';
-
       const directory = 'parent';
       const file = 'child';
 
@@ -105,8 +114,9 @@ describe(__filename, () => {
           path: `${directory}/${file}`,
         }),
       ];
+      const version = createVersionWithEntries(entries);
 
-      const tree = buildFileTree(versionId, entries);
+      const tree = buildFileTree(version);
 
       expect(tree.children).toEqual([
         {
@@ -123,8 +133,6 @@ describe(__filename, () => {
     });
 
     it('traverses multiple levels to find the right directory', () => {
-      const versionId = 'some-name';
-
       const directoryName = 'same-file';
       const fileName = 'same-nfile';
 
@@ -149,8 +157,9 @@ describe(__filename, () => {
           path: `${directoryName}/${directoryName}/${fileName}`,
         }),
       ];
+      const version = createVersionWithEntries(entries);
 
-      const data = buildFileTree(versionId, entries);
+      const data = buildFileTree(version);
 
       expect(data.children).toEqual([
         {
@@ -173,7 +182,6 @@ describe(__filename, () => {
     });
 
     it('sorts the nodes so that directories come first', () => {
-      const versionId = '1234';
       const entries = [
         createInternalVersionEntry({
           ...fakeVersionEntry,
@@ -191,8 +199,9 @@ describe(__filename, () => {
           mime_category: 'directory',
         }),
       ];
+      const version = createVersionWithEntries(entries);
 
-      const tree = buildFileTree(versionId, entries);
+      const tree = buildFileTree(version);
 
       expect(tree.children).toEqual([
         {
@@ -213,7 +222,6 @@ describe(__filename, () => {
     });
 
     it('sorts files alphabetically', () => {
-      const versionId = '1234';
       const entries = [
         createInternalVersionEntry({
           ...fakeVersionEntry,
@@ -228,8 +236,9 @@ describe(__filename, () => {
           filename: 'A',
         }),
       ];
+      const version = createVersionWithEntries(entries);
 
-      const tree = buildFileTree(versionId, entries);
+      const tree = buildFileTree(version);
 
       expect(tree.children).toEqual([
         {
@@ -248,7 +257,6 @@ describe(__filename, () => {
     });
 
     it('sorts directories alphabetically', () => {
-      const versionId = '1234';
       const entries = [
         createInternalVersionEntry({
           ...fakeVersionEntry,
@@ -261,8 +269,9 @@ describe(__filename, () => {
           mime_category: 'directory',
         }),
       ];
+      const version = createVersionWithEntries(entries);
 
-      const tree = buildFileTree(versionId, entries);
+      const tree = buildFileTree(version);
 
       expect(tree.children).toEqual([
         {
@@ -279,7 +288,6 @@ describe(__filename, () => {
     });
 
     it('sorts the nodes recursively', () => {
-      const versionId = '1234';
       const entries = [
         createInternalVersionEntry({
           ...fakeVersionEntry,
@@ -300,8 +308,9 @@ describe(__filename, () => {
           path: 'parent/A',
         }),
       ];
+      const version = createVersionWithEntries(entries);
 
-      const tree = buildFileTree(versionId, entries);
+      const tree = buildFileTree(version);
       const firstNode = tree.children[0] as DirectoryNode;
 
       expect(firstNode.children).toEqual([
@@ -317,7 +326,6 @@ describe(__filename, () => {
     });
 
     it('puts directories first in a child node', () => {
-      const versionId = '1234';
       const entries = [
         createInternalVersionEntry({
           ...fakeVersionEntry,
@@ -339,8 +347,9 @@ describe(__filename, () => {
           path: 'parent/A',
         }),
       ];
+      const version = createVersionWithEntries(entries);
 
-      const tree = buildFileTree(versionId, entries);
+      const tree = buildFileTree(version);
       const firstNode = tree.children[0] as DirectoryNode;
 
       expect(firstNode.children).toEqual([
@@ -390,9 +399,7 @@ describe(__filename, () => {
 
       expect(root.find(ListGroup)).toHaveLength(1);
       expect(root.find(Treefold)).toHaveLength(1);
-      expect(root.find(Treefold)).toHaveProp('nodes', [
-        buildFileTree(getLocalizedString(version.addon.name), version.entries),
-      ]);
+      expect(root.find(Treefold)).toHaveProp('nodes', [buildFileTree(version)]);
     });
 
     it('passes the onSelect prop to FileTreeNode', () => {
@@ -552,6 +559,40 @@ describe(__filename, () => {
       expect(() => {
         onToggleExpand(node);
       }).toThrow('Cannot toggle expanded path without a version');
+    });
+
+    it('dispatches expandTree when the Expand All button is clicked', () => {
+      const store = configureStore();
+      const version = getVersion({ store });
+
+      const dispatch = spyOn(store, 'dispatch');
+
+      const root = render({ store, versionId: version.id });
+
+      root.find('#openAll').simulate('click');
+
+      expect(dispatch).toHaveBeenCalledWith(
+        versionActions.expandTree({
+          versionId: version.id,
+        }),
+      );
+    });
+
+    it('dispatches collapseTree when the Collapse All button is clicked', () => {
+      const store = configureStore();
+      const version = getVersion({ store });
+
+      const dispatch = spyOn(store, 'dispatch');
+
+      const root = render({ store, versionId: version.id });
+
+      root.find('#closeAll').simulate('click');
+
+      expect(dispatch).toHaveBeenCalledWith(
+        versionActions.collapseTree({
+          versionId: version.id,
+        }),
+      );
     });
   });
 });

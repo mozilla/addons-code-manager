@@ -21,7 +21,9 @@ import reducer, {
   getVersionInfo,
   initialState,
 } from './versions';
+import { getRootPath } from '../components/FileTree';
 import {
+  createFakeEntry,
   fakeExternalDiff,
   fakeVersion,
   fakeVersionAddon,
@@ -176,6 +178,67 @@ describe(__filename, () => {
       expect(state).toHaveProperty(`versionInfo.${version.id}.expandedPaths`, [
         path2,
       ]);
+    });
+
+    it('adds all paths to expandedPaths when expandTree is dispatched', () => {
+      const path1 = 'path/1';
+      const path2 = 'path/2';
+      const entries = {
+        [path1]: createFakeEntry('directory', path1),
+        [path2]: createFakeEntry('directory', path2),
+      };
+
+      const version = { ...fakeVersion, file: { ...fakeVersionFile, entries } };
+      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+
+      state = reducer(state, actions.expandTree({ versionId: version.id }));
+
+      expect(state).toHaveProperty(`versionInfo.${version.id}.expandedPaths`, [
+        path1,
+        path2,
+        getRootPath(createInternalVersion(version)),
+      ]);
+    });
+
+    it('does not add paths for files to expandedPaths when expandTree is dispatched', () => {
+      const path1 = 'scripts/';
+      const path2 = 'scripts/background.js';
+      const entries = {
+        [path1]: createFakeEntry('directory', path1),
+        [path2]: createFakeEntry('text', path2),
+      };
+
+      const version = { ...fakeVersion, file: { ...fakeVersionFile, entries } };
+      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+
+      state = reducer(state, actions.expandTree({ versionId: version.id }));
+
+      expect(state).toHaveProperty(`versionInfo.${version.id}.expandedPaths`, [
+        path1,
+        getRootPath(createInternalVersion(version)),
+      ]);
+    });
+
+    it('removes all paths from expandedPaths when collapseTree is dispatched', () => {
+      const version = fakeVersion;
+      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+
+      const path1 = 'new/selected/path1';
+      const path2 = 'new/selected/path2';
+      state = reducer(
+        state,
+        actions.toggleExpandedPath({ path: path1, versionId: version.id }),
+      );
+      state = reducer(
+        state,
+        actions.toggleExpandedPath({ path: path2, versionId: version.id }),
+      );
+      state = reducer(state, actions.collapseTree({ versionId: version.id }));
+
+      expect(state).toHaveProperty(
+        `versionInfo.${version.id}.expandedPaths`,
+        [],
+      );
     });
 
     it('stores lists of versions by add-on ID', () => {

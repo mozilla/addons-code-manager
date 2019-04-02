@@ -1,0 +1,14 @@
+.controlButtons {
+  display: grid;
+  grid-column-gap: 10px;
+  grid-template-columns: 1fr 1fr;
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+.button {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
