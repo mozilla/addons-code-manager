@@ -189,6 +189,19 @@ describe(__filename, () => {
         expect.any(Object),
       );
     });
+
+    it('accepts credentials', async () => {
+      const credentials = 'include';
+
+      await callApiWithDefaultApiState({ endpoint: '/url', credentials });
+
+      expect(fetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          credentials,
+        }),
+      );
+    });
   });
 
   describe('isErrorResponse', () => {
@@ -267,6 +280,7 @@ describe(__filename, () => {
       expect(fetch).toHaveBeenCalledWith(
         expect.stringMatching(`/api/${defaultVersion}/accounts/session/`),
         {
+          credentials: 'include',
           headers: {},
           method: HttpMethod.DELETE,
         },

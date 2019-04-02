@@ -67,6 +67,7 @@ export enum HttpMethod {
 
 type CallApiParams = {
   apiState: ApiState;
+  credentials?: 'omit' | 'same-origin' | 'include';
   endpoint: string;
   lang?: string;
   method?: HttpMethod;
@@ -99,6 +100,7 @@ type Headers = {
 // https://github.com/Microsoft/TypeScript/issues/4922
 export const callApi = async <SuccessResponseType extends {}>({
   apiState,
+  credentials,
   endpoint,
   lang = process.env.REACT_APP_DEFAULT_API_LANG,
   method = HttpMethod.GET,
@@ -133,8 +135,9 @@ export const callApi = async <SuccessResponseType extends {}>({
 
   try {
     const response = await fetch(makeApiURL({ path, version }), {
-      method,
+      credentials,
       headers,
+      method,
     });
 
     if (!response.ok) {
@@ -191,6 +194,7 @@ export const getVersionsList = async ({
 export const logOutFromServer = async (apiState: ApiState) => {
   return callApi<{}>({
     apiState,
+    credentials: 'include',
     endpoint: 'accounts/session',
     method: HttpMethod.DELETE,
   });
