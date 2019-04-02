@@ -185,6 +185,16 @@ export const createServer = ({
   // Return 200 for csp reports - this will need to be overridden when deployed.
   app.post('/__cspreport__', (req, res) => res.status(200).end('ok'));
 
+  app.get('/__version__', (req, res) => {
+    const versionFile = path.join(rootPath, 'version.json');
+
+    return res.sendFile(versionFile);
+  });
+
+  app.get(['/__heartbeat__', '/__lbheartbeat__'], (req, res) => {
+    return res.status(200).end('ok');
+  });
+
   if (env.NODE_ENV === 'production') {
     // In production mode, we use a simple node server that serves all the
     // static files, including the `index.html` file in which we inject the

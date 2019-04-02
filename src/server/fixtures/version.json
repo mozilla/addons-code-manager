@@ -1,0 +1,6 @@
+{
+  "build": "https://circleci.com/gh/mozilla/addons-code-manager/123",
+  "commit": "a3c64f94133c949ef838665c150a0df0c15f246e",
+  "source": "https://github.com/mozilla/addons-code-manager",
+  "version": "2019.04.01"
+}
