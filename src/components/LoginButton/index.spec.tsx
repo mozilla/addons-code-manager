@@ -32,4 +32,29 @@ describe(__filename, () => {
       }),
     );
   });
+
+  it('passes a relative URL to addons-server when FxA config is `local`', () => {
+    const fxaConfig = 'local';
+    const origin = 'https://example.org';
+    const path = '/en-US/browse/4913/versions/1527/';
+    const href = `${origin}${path}`;
+    const _window = {
+      ...window,
+      location: {
+        ...window.location,
+        href,
+        origin,
+      },
+    };
+
+    const root = render({ fxaConfig, _window });
+
+    expect(root.find(Button)).toHaveLength(1);
+    expect(root.find(Button)).toHaveProp(
+      'href',
+      makeApiURL({
+        path: `/accounts/login/start/?config=${fxaConfig}&to=${path}`,
+      }),
+    );
+  });
 });
