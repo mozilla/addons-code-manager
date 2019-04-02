@@ -190,15 +190,16 @@ describe(__filename, () => {
       );
     });
 
-    it('accepts credentials', async () => {
-      const credentials = 'include';
-
-      await callApiWithDefaultApiState({ endpoint: '/url', credentials });
+    it('can include credentials', async () => {
+      await callApiWithDefaultApiState({
+        endpoint: '/url',
+        includeCredentials: true,
+      });
 
       expect(fetch).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
-          credentials,
+          credentials: 'include',
         }),
       );
     });

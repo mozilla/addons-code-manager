@@ -67,8 +67,8 @@ export enum HttpMethod {
 
 type CallApiParams = {
   apiState: ApiState;
-  credentials?: 'omit' | 'same-origin' | 'include';
   endpoint: string;
+  includeCredentials?: boolean;
   lang?: string;
   method?: HttpMethod;
   query?: { [key: string]: string };
@@ -100,8 +100,8 @@ type Headers = {
 // https://github.com/Microsoft/TypeScript/issues/4922
 export const callApi = async <SuccessResponseType extends {}>({
   apiState,
-  credentials,
   endpoint,
+  includeCredentials = false,
   lang = process.env.REACT_APP_DEFAULT_API_LANG,
   method = HttpMethod.GET,
   query = {},
@@ -135,7 +135,7 @@ export const callApi = async <SuccessResponseType extends {}>({
 
   try {
     const response = await fetch(makeApiURL({ path, version }), {
-      credentials,
+      credentials: includeCredentials ? 'include' : undefined,
       headers,
       method,
     });
@@ -194,7 +194,7 @@ export const getVersionsList = async ({
 export const logOutFromServer = async (apiState: ApiState) => {
   return callApi<{}>({
     apiState,
-    credentials: 'include',
+    includeCredentials: true,
     endpoint: 'accounts/session',
     method: HttpMethod.DELETE,
   });
