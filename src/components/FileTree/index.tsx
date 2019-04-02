@@ -1,9 +1,10 @@
 import log from 'loglevel';
 import * as React from 'react';
-import { ListGroup } from 'react-bootstrap';
+import { Button, ListGroup } from 'react-bootstrap';
 import { connect } from 'react-redux';
 import Treefold, { TreefoldRenderProps } from 'react-treefold';
 
+import styles from './styles.module.scss';
 import FileTreeNode, {
   PublicProps as FileTreeNodeProps,
 } from '../FileTreeNode';
@@ -191,21 +192,25 @@ export class FileTreeBase extends React.Component<Props> {
   onExpandTree = () => {
     const { dispatch, version } = this.props;
 
-    dispatch(
-      versionsActions.expandTree({
-        versionId: version.id,
-      }),
-    );
+    if (version) {
+      dispatch(
+        versionsActions.expandTree({
+          versionId: version.id,
+        }),
+      );
+    }
   };
 
   onCollapseTree = () => {
     const { dispatch, version } = this.props;
 
-    dispatch(
-      versionsActions.collapseTree({
-        versionId: version.id,
-      }),
-    );
+    if (version) {
+      dispatch(
+        versionsActions.collapseTree({
+          versionId: version.id,
+        }),
+      );
+    }
   };
 
   isNodeExpanded = (node: TreeNode) => {
@@ -229,18 +234,34 @@ export class FileTreeBase extends React.Component<Props> {
 
     return (
       <ListGroup>
+        <div className={styles.controlButtons}>
+          <Button
+            className={styles.button}
+            id="openAll"
+            onClick={this.onExpandTree}
+            size="sm"
+            type="button"
+            variant="light"
+          >
+            {gettext('Open all folders')}
+          </Button>
+          <Button
+            className={styles.button}
+            id="closeAll"
+            onClick={this.onCollapseTree}
+            size="sm"
+            type="button"
+            variant="light"
+          >
+            {gettext('Close all folders')}
+          </Button>
+        </div>
         <Treefold
           nodes={[tree]}
           render={this.renderNode}
           isNodeExpanded={this.isNodeExpanded}
           onToggleExpand={this.onToggleExpand}
         />
-        <button id="openAll" onClick={this.onExpandTree} type="button">
-          {gettext('Open all folders')}
-        </button>
-        <button id="closeAll" onClick={this.onCollapseTree} type="button">
-          {gettext('Close all folders')}
-        </button>
       </ListGroup>
     );
   }

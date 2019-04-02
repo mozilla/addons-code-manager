@@ -48,13 +48,14 @@ export const fakeVersionEntry: ExternalVersionEntry = Object.freeze({
   size: 123,
 });
 
-export const createFakeDirectoryEntry = (
+export const createFakeEntry = (
+  mime_category: VersionEntryType,
   path: string,
 ): ExternalVersionEntry => {
   return {
     ...fakeVersionEntry,
     filename: path,
-    mime_category: 'directory' as VersionEntryType,
+    mime_category,
     path,
   };
 };

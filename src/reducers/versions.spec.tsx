@@ -23,7 +23,7 @@ import reducer, {
 } from './versions';
 import { getRootPath } from '../components/FileTree';
 import {
-  createFakeDirectoryEntry,
+  createFakeEntry,
   fakeExternalDiff,
   fakeVersion,
   fakeVersionAddon,
@@ -184,8 +184,8 @@ describe(__filename, () => {
       const path1 = 'path/1';
       const path2 = 'path/2';
       const entries = {
-        [path1]: createFakeDirectoryEntry(path1),
-        [path2]: createFakeDirectoryEntry(path2),
+        [path1]: createFakeEntry('directory', path1),
+        [path2]: createFakeEntry('directory', path2),
       };
 
       const version = { ...fakeVersion, file: { ...fakeVersionFile, entries } };
@@ -200,14 +200,38 @@ describe(__filename, () => {
       ]);
     });
 
+    it('does not add paths for files to expandedPaths when expandTree is dispatched', () => {
+      const path1 = 'path/1';
+      const path2 = 'path/2';
+      const entries = {
+        [path1]: createFakeEntry('directory', path1),
+        [path2]: createFakeEntry('text', path2),
+      };
+
+      const version = { ...fakeVersion, file: { ...fakeVersionFile, entries } };
+      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+
+      state = reducer(state, actions.expandTree({ versionId: version.id }));
+
+      expect(state).toHaveProperty(`versionInfo.${version.id}.expandedPaths`, [
+        path1,
+        getRootPath(createInternalVersion(version)),
+      ]);
+    });
+
     it('removes all paths from expandedPaths when collapseTree is dispatched', () => {
       const version = fakeVersion;
       let state = reducer(undefined, actions.loadVersionInfo({ version }));
 
-      const path = 'new/selected/path';
+      const path1 = 'new/selected/path1';
+      const path2 = 'new/selected/path2';
       state = reducer(
         state,
-        actions.toggleExpandedPath({ path, versionId: version.id }),
+        actions.toggleExpandedPath({ path: path1, versionId: version.id }),
+      );
+      state = reducer(
+        state,
+        actions.toggleExpandedPath({ path: path2, versionId: version.id }),
       );
       state = reducer(state, actions.collapseTree({ versionId: version.id }));
 
