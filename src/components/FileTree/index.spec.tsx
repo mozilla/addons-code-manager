@@ -12,6 +12,7 @@ import {
   getVersionInfo,
 } from '../../reducers/versions';
 import {
+  createFakeLogger,
   fakeVersion,
   fakeVersionEntry,
   shallowUntilTarget,
@@ -20,6 +21,7 @@ import {
 import { getLocalizedString } from '../../utils';
 import { getTreefoldRenderProps } from '../FileTreeNode/index.spec';
 import FileTreeNode from '../FileTreeNode';
+import Loading from '../Loading';
 
 import FileTree, { DirectoryNode, FileTreeBase, buildFileTree } from '.';
 
@@ -366,12 +368,13 @@ describe(__filename, () => {
     };
 
     const render = ({
+      _log = createFakeLogger(),
       onSelect = jest.fn(),
       store = configureStore(),
-      version = getVersion({ store }),
+      versionId = 1234,
     } = {}) => {
       return shallowUntilTarget(
-        <FileTree version={version} onSelect={onSelect} />,
+        <FileTree _log={_log} versionId={versionId} onSelect={onSelect} />,
         FileTreeBase,
         {
           shallowOptions: { context: { store } },
@@ -383,7 +386,7 @@ describe(__filename, () => {
       const store = configureStore();
       const version = getVersion({ store });
 
-      const root = render({ store, version });
+      const root = render({ store, versionId: version.id });
 
       expect(root.find(ListGroup)).toHaveLength(1);
       expect(root.find(Treefold)).toHaveLength(1);
@@ -397,7 +400,7 @@ describe(__filename, () => {
       const version = getVersion({ store });
       const onSelect = jest.fn();
 
-      const root = render({ version, onSelect });
+      const root = render({ onSelect, store, versionId: version.id });
 
       const node = (root.instance() as FileTreeBase).renderNode(
         getTreefoldRenderProps(),
@@ -413,7 +416,7 @@ describe(__filename, () => {
       const store = configureStore();
       const version = getVersion({ store });
 
-      const root = render({ version });
+      const root = render({ store, versionId: version.id });
 
       const node = (root.instance() as FileTreeBase).renderNode(
         getTreefoldRenderProps(),
@@ -436,7 +439,7 @@ describe(__filename, () => {
 
       const dispatch = spyOn(store, 'dispatch');
 
-      const root = render({ store, version });
+      const root = render({ store, versionId: version.id });
 
       const treeFold = root.find(Treefold);
       expect(treeFold).toHaveProp('onToggleExpand');
@@ -470,7 +473,7 @@ describe(__filename, () => {
 
       version = getVersionInfo(store.getState().versions, version.id);
 
-      const root = render({ store, version });
+      const root = render({ store, versionId: version.id });
 
       const treeFold = root.find(Treefold);
       expect(treeFold).toHaveProp('isNodeExpanded');
@@ -488,13 +491,67 @@ describe(__filename, () => {
       };
       const version = getVersion({ store });
 
-      const root = render({ store, version });
+      const root = render({ store, versionId: version.id });
 
       const treeFold = root.find(Treefold);
       expect(treeFold).toHaveProp('isNodeExpanded');
 
       const isNodeExpanded = treeFold.prop('isNodeExpanded');
       expect(isNodeExpanded(node)).toBeFalsy();
+    });
+
+    it('logs a warning message when no version is loaded', () => {
+      const _log = createFakeLogger();
+
+      render({ _log });
+
+      expect(_log.warn).toHaveBeenCalled();
+    });
+
+    it('renders a Loading component when no version is loaded', () => {
+      const root = render();
+
+      expect(root.find(Loading)).toHaveLength(1);
+    });
+
+    it('returns a Loading component from renderNode when no version is loaded', () => {
+      const root = render();
+
+      const node = (root.instance() as FileTreeBase).renderNode(
+        getTreefoldRenderProps(),
+      );
+
+      expect(shallow(<div>{node}</div>).find(Loading)).toHaveLength(1);
+    });
+
+    it('throws an error when isNodeExpanded is called without a version', () => {
+      const node = {
+        id: 'some/path',
+        name: 'some name',
+        children: [],
+      };
+      const root = render();
+
+      const { isNodeExpanded } = root.instance() as FileTreeBase;
+
+      expect(() => {
+        isNodeExpanded(node);
+      }).toThrow('Cannot check if node is expanded without a version');
+    });
+
+    it('throws an error when onToggleExpand is called without a version', () => {
+      const node = {
+        id: 'some/path',
+        name: 'some name',
+        children: [],
+      };
+      const root = render();
+
+      const { onToggleExpand } = root.instance() as FileTreeBase;
+
+      expect(() => {
+        onToggleExpand(node);
+      }).toThrow('Cannot toggle expanded path without a version');
     });
   });
 });

@@ -1,3 +1,4 @@
+import log from 'loglevel';
 import * as React from 'react';
 import { ListGroup } from 'react-bootstrap';
 import { connect } from 'react-redux';
@@ -6,9 +7,14 @@ import Treefold, { TreefoldRenderProps } from 'react-treefold';
 import FileTreeNode, {
   PublicProps as FileTreeNodeProps,
 } from '../FileTreeNode';
-import { ConnectedReduxProps } from '../../configureStore';
-import { Version, actions as versionsActions } from '../../reducers/versions';
-import { getLocalizedString } from '../../utils';
+import Loading from '../Loading';
+import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
+import {
+  Version,
+  actions as versionsActions,
+  getVersionInfo,
+} from '../../reducers/versions';
+import { getLocalizedString, gettext } from '../../utils';
 
 type FileNode = {
   id: string;
@@ -134,20 +140,39 @@ export const buildFileTree = (
 
 export type PublicProps = {
   onSelect: FileTreeNodeProps['onSelect'];
-  version: Version;
+  versionId: number;
 };
 
-type Props = PublicProps & ConnectedReduxProps;
+export type DefaultProps = {
+  _log: typeof log;
+};
+
+type PropsFromState = {
+  version: Version | void;
+};
+
+type Props = PublicProps & DefaultProps & PropsFromState & ConnectedReduxProps;
 
 export class FileTreeBase extends React.Component<Props> {
+  static defaultProps: DefaultProps = {
+    _log: log,
+  };
+
   renderNode = (props: TreefoldRenderPropsForFileTree) => {
     const { onSelect, version } = this.props;
 
-    return <FileTreeNode {...props} onSelect={onSelect} version={version} />;
+    if (version) {
+      return <FileTreeNode {...props} onSelect={onSelect} version={version} />;
+    }
+    return <Loading message={gettext('Loading version...')} />;
   };
 
   onToggleExpand = (node: TreeNode) => {
     const { dispatch, version } = this.props;
+
+    if (!version) {
+      throw new Error('Cannot toggle expanded path without a version');
+    }
 
     dispatch(
       versionsActions.toggleExpandedPath({
@@ -160,11 +185,19 @@ export class FileTreeBase extends React.Component<Props> {
   isNodeExpanded = (node: TreeNode) => {
     const { version } = this.props;
 
+    if (!version) {
+      throw new Error('Cannot check if node is expanded without a version');
+    }
+
     return version.expandedPaths.includes(node.id);
   };
 
   render() {
     const { version } = this.props;
+
+    if (!version) {
+      return <Loading message={gettext('Loading version...')} />;
+    }
 
     const tree = buildFileTree(
       getLocalizedString(version.addon.name),
@@ -184,4 +217,26 @@ export class FileTreeBase extends React.Component<Props> {
   }
 }
 
-export default connect()(FileTreeBase) as React.ComponentType<PublicProps>;
+const mapStateToProps = (
+  state: ApplicationState,
+  ownProps: PublicProps & DefaultProps,
+): PropsFromState => {
+  const { _log, versionId } = ownProps;
+  const version = getVersionInfo(state.versions, versionId);
+
+  if (!version) {
+    // This should never happen as we are fetching the version in all of the
+    // parents on this component and only rendering the FileTree if we have a
+    // version, but let's log a warning in case we encounter a case where this
+    // does happen.
+    _log.warn(`No version was loaded for version: `, versionId);
+  }
+
+  return {
+    version,
+  };
+};
+
+export default connect(mapStateToProps)(FileTreeBase) as React.ComponentType<
+  PublicProps & Partial<DefaultProps>
+>;

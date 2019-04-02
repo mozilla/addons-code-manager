@@ -11,7 +11,6 @@ import {
 import configureStore from '../../configureStore';
 import {
   actions as versionActions,
-  createInternalVersion,
   getVersionFile,
 } from '../../reducers/versions';
 import FileTree from '../../components/FileTree';
@@ -103,10 +102,7 @@ describe(__filename, () => {
     const root = render({ store, versionId: String(version.id) });
 
     expect(root.find(FileTree)).toHaveLength(1);
-    expect(root.find(FileTree)).toHaveProp(
-      'version',
-      createInternalVersion(version),
-    );
+    expect(root.find(FileTree)).toHaveProp('versionId', version.id);
   });
 
   it('renders a FileMetadata component when a version file has loaded', () => {

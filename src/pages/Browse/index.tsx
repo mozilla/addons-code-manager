@@ -91,7 +91,7 @@ export class BrowseBase extends React.Component<Props> {
         <Col md="3">
           <Row>
             <Col>
-              <FileTree onSelect={this.onSelectFile} version={version} />
+              <FileTree onSelect={this.onSelectFile} versionId={version.id} />
             </Col>
           </Row>
           {file && (
