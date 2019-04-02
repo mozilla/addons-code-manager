@@ -203,6 +203,20 @@ describe(__filename, () => {
         }),
       );
     });
+
+    it('can omit credentials', async () => {
+      await callApiWithDefaultApiState({
+        endpoint: '/url',
+        includeCredentials: false,
+      });
+
+      expect(fetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          credentials: undefined,
+        }),
+      );
+    });
   });
 
   describe('isErrorResponse', () => {

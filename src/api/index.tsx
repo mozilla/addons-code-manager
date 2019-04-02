@@ -194,6 +194,9 @@ export const getVersionsList = async ({
 export const logOutFromServer = async (apiState: ApiState) => {
   return callApi<{}>({
     apiState,
+    // We need to send the credentials (cookies) because the API will return
+    // new `Set-Cookie` headers to clear the cookies in the client. Without
+    // this, logging out would not be possible.
     includeCredentials: true,
     endpoint: 'accounts/session',
     method: HttpMethod.DELETE,
