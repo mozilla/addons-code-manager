@@ -1,372 +1,33 @@
 /* eslint @typescript-eslint/camelcase: 0 */
-import * as React from 'react';
 import { shallow } from 'enzyme';
-import Treefold from 'react-treefold';
+import * as React from 'react';
 import { ListGroup } from 'react-bootstrap';
+import Treefold from 'react-treefold';
+import { Store } from 'redux';
 
 import configureStore from '../../configureStore';
 import {
+  actions as fileTreeActions,
+  buildFileTree,
+} from '../../reducers/fileTree';
+import {
   Version,
   actions as versionActions,
-  createInternalVersion,
-  createInternalVersionEntry,
   getVersionInfo,
 } from '../../reducers/versions';
 import {
   createFakeLogger,
-  createVersionWithEntries,
   fakeVersion,
-  fakeVersionEntry,
   shallowUntilTarget,
   spyOn,
 } from '../../test-helpers';
-import { getLocalizedString } from '../../utils';
 import { getTreefoldRenderProps } from '../FileTreeNode/index.spec';
 import FileTreeNode from '../FileTreeNode';
 import Loading from '../Loading';
 
-import FileTree, {
-  DirectoryNode,
-  FileTreeBase,
-  buildFileTree,
-  getRootPath,
-} from '.';
+import FileTree, { DefaultProps, FileTreeBase, PublicProps } from '.';
 
 describe(__filename, () => {
-  describe('getRootPath', () => {
-    const version = createInternalVersion(fakeVersion);
-    const addonName = getLocalizedString(version.addon.name);
-
-    expect(getRootPath(version)).toEqual(`root-${addonName}`);
-  });
-
-  describe('buildFileTree', () => {
-    it('creates a root node', () => {
-      const version = createVersionWithEntries([]);
-      const addonName = getLocalizedString(version.addon.name);
-
-      const tree = buildFileTree(version);
-
-      expect(tree).toEqual({
-        id: `root-${addonName}`,
-        name: addonName,
-        children: [],
-      });
-    });
-
-    it('converts a non-directory entry to a file node', () => {
-      const filename = 'some-filename';
-      const entries = [
-        createInternalVersionEntry({
-          ...fakeVersionEntry,
-          mime_category: 'text',
-          filename,
-        }),
-      ];
-      const version = createVersionWithEntries(entries);
-
-      const tree = buildFileTree(version);
-
-      expect(tree.children).toEqual([
-        {
-          id: entries[0].path,
-          name: filename,
-        },
-      ]);
-    });
-
-    it('converts a directory entry to a directory node', () => {
-      const filename = 'some-directory';
-      const entries = [
-        createInternalVersionEntry({
-          ...fakeVersionEntry,
-          mime_category: 'directory',
-          filename,
-        }),
-      ];
-      const version = createVersionWithEntries(entries);
-
-      const tree = buildFileTree(version);
-
-      expect(tree.children).toEqual([
-        {
-          id: entries[0].path,
-          name: filename,
-          children: [],
-        },
-      ]);
-    });
-
-    it('finds the appropriate node to add a new entry to it', () => {
-      const directory = 'parent';
-      const file = 'child';
-
-      const entries = [
-        createInternalVersionEntry({
-          ...fakeVersionEntry,
-          filename: directory,
-          mime_category: 'directory',
-        }),
-        createInternalVersionEntry({
-          ...fakeVersionEntry,
-          depth: 1,
-          filename: file,
-          mime_category: 'text',
-          path: `${directory}/${file}`,
-        }),
-      ];
-      const version = createVersionWithEntries(entries);
-
-      const tree = buildFileTree(version);
-
-      expect(tree.children).toEqual([
-        {
-          id: entries[0].path,
-          name: directory,
-          children: [
-            {
-              id: entries[1].path,
-              name: file,
-            },
-          ],
-        },
-      ]);
-    });
-
-    it('traverses multiple levels to find the right directory', () => {
-      const directoryName = 'same-file';
-      const fileName = 'same-nfile';
-
-      const entries = [
-        createInternalVersionEntry({
-          ...fakeVersionEntry,
-          filename: directoryName,
-          mime_category: 'directory',
-        }),
-        createInternalVersionEntry({
-          ...fakeVersionEntry,
-          depth: 1,
-          filename: directoryName,
-          mime_category: 'directory',
-          path: `${directoryName}/${directoryName}`,
-        }),
-        createInternalVersionEntry({
-          ...fakeVersionEntry,
-          depth: 2,
-          filename: fileName,
-          mime_category: 'text',
-          path: `${directoryName}/${directoryName}/${fileName}`,
-        }),
-      ];
-      const version = createVersionWithEntries(entries);
-
-      const data = buildFileTree(version);
-
-      expect(data.children).toEqual([
-        {
-          id: entries[0].path,
-          name: directoryName,
-          children: [
-            {
-              id: entries[1].path,
-              name: directoryName,
-              children: [
-                {
-                  id: entries[2].path,
-                  name: fileName,
-                },
-              ],
-            },
-          ],
-        },
-      ]);
-    });
-
-    it('sorts the nodes so that directories come first', () => {
-      const entries = [
-        createInternalVersionEntry({
-          ...fakeVersionEntry,
-          filename: 'B',
-          mime_category: 'directory',
-        }),
-        createInternalVersionEntry({
-          ...fakeVersionEntry,
-          filename: 'A',
-          mime_category: 'text',
-        }),
-        createInternalVersionEntry({
-          ...fakeVersionEntry,
-          filename: 'C',
-          mime_category: 'directory',
-        }),
-      ];
-      const version = createVersionWithEntries(entries);
-
-      const tree = buildFileTree(version);
-
-      expect(tree.children).toEqual([
-        {
-          id: entries[0].path,
-          name: 'B',
-          children: [],
-        },
-        {
-          id: entries[2].path,
-          name: 'C',
-          children: [],
-        },
-        {
-          id: entries[1].path,
-          name: 'A',
-        },
-      ]);
-    });
-
-    it('sorts files alphabetically', () => {
-      const entries = [
-        createInternalVersionEntry({
-          ...fakeVersionEntry,
-          filename: 'C',
-        }),
-        createInternalVersionEntry({
-          ...fakeVersionEntry,
-          filename: 'B',
-        }),
-        createInternalVersionEntry({
-          ...fakeVersionEntry,
-          filename: 'A',
-        }),
-      ];
-      const version = createVersionWithEntries(entries);
-
-      const tree = buildFileTree(version);
-
-      expect(tree.children).toEqual([
-        {
-          id: entries[2].path,
-          name: 'A',
-        },
-        {
-          id: entries[1].path,
-          name: 'B',
-        },
-        {
-          id: entries[0].path,
-          name: 'C',
-        },
-      ]);
-    });
-
-    it('sorts directories alphabetically', () => {
-      const entries = [
-        createInternalVersionEntry({
-          ...fakeVersionEntry,
-          filename: 'B',
-          mime_category: 'directory',
-        }),
-        createInternalVersionEntry({
-          ...fakeVersionEntry,
-          filename: 'A',
-          mime_category: 'directory',
-        }),
-      ];
-      const version = createVersionWithEntries(entries);
-
-      const tree = buildFileTree(version);
-
-      expect(tree.children).toEqual([
-        {
-          id: entries[1].path,
-          name: 'A',
-          children: [],
-        },
-        {
-          id: entries[0].path,
-          name: 'B',
-          children: [],
-        },
-      ]);
-    });
-
-    it('sorts the nodes recursively', () => {
-      const entries = [
-        createInternalVersionEntry({
-          ...fakeVersionEntry,
-          filename: 'parent',
-          mime_category: 'directory',
-          path: 'parent',
-        }),
-        createInternalVersionEntry({
-          ...fakeVersionEntry,
-          depth: 1,
-          filename: 'B',
-          path: 'parent/B',
-        }),
-        createInternalVersionEntry({
-          ...fakeVersionEntry,
-          depth: 1,
-          filename: 'A',
-          path: 'parent/A',
-        }),
-      ];
-      const version = createVersionWithEntries(entries);
-
-      const tree = buildFileTree(version);
-      const firstNode = tree.children[0] as DirectoryNode;
-
-      expect(firstNode.children).toEqual([
-        {
-          id: entries[2].path,
-          name: 'A',
-        },
-        {
-          id: entries[1].path,
-          name: 'B',
-        },
-      ]);
-    });
-
-    it('puts directories first in a child node', () => {
-      const entries = [
-        createInternalVersionEntry({
-          ...fakeVersionEntry,
-          filename: 'parent',
-          mime_category: 'directory',
-          path: 'parent',
-        }),
-        createInternalVersionEntry({
-          ...fakeVersionEntry,
-          depth: 1,
-          filename: 'B',
-          mime_category: 'directory',
-          path: 'parent/B',
-        }),
-        createInternalVersionEntry({
-          ...fakeVersionEntry,
-          depth: 1,
-          filename: 'A',
-          path: 'parent/A',
-        }),
-      ];
-      const version = createVersionWithEntries(entries);
-
-      const tree = buildFileTree(version);
-      const firstNode = tree.children[0] as DirectoryNode;
-
-      expect(firstNode.children).toEqual([
-        {
-          id: entries[1].path,
-          name: 'B',
-          children: [],
-        },
-        {
-          id: entries[2].path,
-          name: 'A',
-        },
-      ]);
-    });
-  });
-
   describe('FileTree', () => {
     const getVersion = ({
       store = configureStore(),
@@ -374,33 +35,86 @@ describe(__filename, () => {
     }) => {
       store.dispatch(versionActions.loadVersionInfo({ version }));
 
-      const versionInfo = getVersionInfo(store.getState().versions, version.id);
-
-      if (!versionInfo) {
-        throw new Error('Expected a valid version but did not get one.');
-      }
-
-      return versionInfo;
+      return getVersionInfo(store.getState().versions, version.id);
     };
+
+    type RenderParams = {
+      store?: Store;
+      versionId?: number;
+    } & Partial<PublicProps & DefaultProps>;
 
     const render = ({
-      _log = createFakeLogger(),
-      onSelect = jest.fn(),
       store = configureStore(),
       versionId = 1234,
-    } = {}) => {
-      return shallowUntilTarget(
-        <FileTree _log={_log} versionId={versionId} onSelect={onSelect} />,
-        FileTreeBase,
-        {
-          shallowOptions: { context: { store } },
-        },
-      );
+      ...moreProps
+    }: RenderParams = {}) => {
+      const props = {
+        _log: createFakeLogger(),
+        onSelect: jest.fn(),
+        versionId,
+        ...moreProps,
+      };
+
+      return shallowUntilTarget(<FileTree {...props} />, FileTreeBase, {
+        shallowOptions: { context: { store } },
+      });
     };
+
+    const _buildTree = (store: Store, version: Version) => {
+      store.dispatch(fileTreeActions.buildTree({ version }));
+    };
+
+    it('calls loadData on construction', () => {
+      const _loadData = jest.fn();
+
+      render({ _loadData });
+
+      expect(_loadData).toHaveBeenCalled();
+    });
+
+    it('calls loadData on update', () => {
+      const _loadData = jest.fn();
+
+      const root = render({ _loadData });
+
+      _loadData.mockClear();
+      // Simulate an update.
+      root.setProps({});
+
+      expect(_loadData).toHaveBeenCalledWith();
+    });
+
+    it('dispatches buildTree when tree is undefined', () => {
+      const store = configureStore();
+      const version = getVersion({ store });
+
+      const dispatch = spyOn(store, 'dispatch');
+
+      render({ store, versionId: version.id });
+
+      expect(dispatch).toHaveBeenCalledWith(
+        fileTreeActions.buildTree({
+          version,
+        }),
+      );
+    });
+
+    it('does not dispatch buildTree when tree is defined', () => {
+      const store = configureStore();
+      const version = getVersion({ store });
+      _buildTree(store, version);
+
+      const dispatch = spyOn(store, 'dispatch');
+
+      render({ store, versionId: version.id });
+
+      expect(dispatch).not.toHaveBeenCalled();
+    });
 
     it('renders a ListGroup component with a Treefold', () => {
       const store = configureStore();
       const version = getVersion({ store });
+      _buildTree(store, version);
 
       const root = render({ store, versionId: version.id });
 
@@ -451,6 +165,8 @@ describe(__filename, () => {
         children: [],
       };
 
+      _buildTree(store, version);
+
       const dispatch = spyOn(store, 'dispatch');
 
       const root = render({ store, versionId: version.id });
@@ -477,6 +193,8 @@ describe(__filename, () => {
         children: [],
       };
       let version = getVersion({ store });
+
+      _buildTree(store, version);
 
       store.dispatch(
         versionActions.toggleExpandedPath({
@@ -507,6 +225,8 @@ describe(__filename, () => {
         children: [],
       };
       const version = getVersion({ store });
+
+      _buildTree(store, version);
 
       const root = render({ store, versionId: version.id });
 
@@ -575,6 +295,8 @@ describe(__filename, () => {
       const store = configureStore();
       const version = getVersion({ store });
 
+      _buildTree(store, version);
+
       const dispatch = spyOn(store, 'dispatch');
 
       const root = render({ store, versionId: version.id });
@@ -591,6 +313,8 @@ describe(__filename, () => {
     it('dispatches collapseTree when the Collapse All button is clicked', () => {
       const store = configureStore();
       const version = getVersion({ store });
+
+      _buildTree(store, version);
 
       const dispatch = spyOn(store, 'dispatch');
 

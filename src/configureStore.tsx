@@ -17,6 +17,7 @@ import thunk, {
 
 import api, { ApiState } from './reducers/api';
 import errors, { ErrorsState } from './reducers/errors';
+import fileTree, { FileTreeState } from './reducers/fileTree';
 import linter, { LinterState } from './reducers/linter';
 import users, { UsersState } from './reducers/users';
 import versions, { VersionsState } from './reducers/versions';
@@ -24,6 +25,7 @@ import versions, { VersionsState } from './reducers/versions';
 export type ApplicationState = {
   api: ApiState;
   errors: ErrorsState;
+  fileTree: FileTreeState;
   linter: LinterState;
   users: UsersState;
   versions: VersionsState;
@@ -50,6 +52,7 @@ const createRootReducer = () => {
   return combineReducers<ApplicationState>({
     api,
     errors,
+    fileTree,
     linter,
     users,
     versions,

@@ -22,7 +22,7 @@ import reducer, {
   initialState,
   isFileLoading,
 } from './versions';
-import { getRootPath } from '../components/FileTree';
+import { getRootPath } from './fileTree';
 import {
   createFakeEntry,
   fakeExternalDiff,
