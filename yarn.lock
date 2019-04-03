@@ -14432,10 +14432,10 @@ typedarray@^0.0.6:
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
 
-typesafe-actions@3.4.0:
-  version "3.4.0"
-  resolved "https://registry.yarnpkg.com/typesafe-actions/-/typesafe-actions-3.4.0.tgz#cdf925941eafc75a659ebc2d584b673b86a1a5ab"
-  integrity sha512-FW6f61NEe8B8vDftLs3vFMLzyROvqlDS6jhbc2j/fPlCZ6MsY3V4bE4i83uPGfy7Kvvq70ePtsb4nPes9ROXqw==
+typesafe-actions@4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/typesafe-actions/-/typesafe-actions-4.0.0.tgz#b41aca3538dd4cf51ed7c7f4e6ee3b517a1d6dc8"
+  integrity sha512-VWIQZpUgEqddDbNi1c9eq5T6nzQVGP01HA74O4PXnyzDrewBL6L6usSigH8ZEpqmM/pw59BKttXeiCu6bF7RNA==
 
 "typescript@2 || 3":
   version "3.3.3333"
