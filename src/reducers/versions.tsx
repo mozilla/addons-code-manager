@@ -141,9 +141,12 @@ export type VersionFile = {
   content: string;
   created: string;
   downloadURL: string | null;
+  // This is the basename of the file.
   filename: string;
   id: number;
   mimeType: string;
+  // This is the relative path to the file, including directories.
+  path: string;
   sha256: string;
   size: number;
   type: VersionEntryType;
@@ -228,7 +231,13 @@ export const actions = {
       resolve(payload);
   }),
   beginFetchDiff: createAction('BEGIN_FETCH_DIFF'),
+  beginFetchVersionFile: createAction('BEGIN_FETCH_VERSION_FILE', (resolve) => {
+    return (payload: { path: string; versionId: number }) => resolve(payload);
+  }),
   abortFetchDiff: createAction('ABORT_FETCH_DIFF'),
+  abortFetchVersionFile: createAction('ABORT_FETCH_VERSION_FILE', (resolve) => {
+    return (payload: { path: string; versionId: number }) => resolve(payload);
+  }),
   loadDiff: createAction('LOAD_DIFF', (resolve) => {
     return (payload: {
       addonId: number;
@@ -256,12 +265,18 @@ export type VersionsState = {
       [path: string]: InternalVersionFile;
     };
   };
+  versionFilesLoading: {
+    [versionId: number]: {
+      [path: string]: boolean;
+    };
+  };
 };
 
 export const initialState: VersionsState = {
   byAddonId: {},
   compareInfo: undefined,
   versionFiles: {},
+  versionFilesLoading: {},
   versionInfo: {},
 };
 
@@ -352,6 +367,7 @@ export const getVersionFile = (
         ...file,
         filename: entry.filename,
         mimeType: entry.mimeType,
+        path,
         sha256: entry.sha256,
         type: entry.type,
         version: version.version,
@@ -361,6 +377,18 @@ export const getVersionFile = (
 
   // The version or file was not found.
   return undefined;
+};
+
+export const isFileLoading = (
+  versions: VersionsState,
+  versionId: number,
+  path: string,
+): boolean => {
+  if (versions.versionFilesLoading[versionId]) {
+    return versions.versionFilesLoading[versionId][path] || false;
+  }
+
+  return false;
 };
 
 type FetchVersionParams = {
@@ -413,7 +441,7 @@ export const fetchVersionFile = ({
   return async (dispatch, getState) => {
     const { api: apiState } = getState();
 
-    dispatch(actions.updateSelectedPath({ selectedPath: path, versionId }));
+    dispatch(actions.beginFetchVersionFile({ path, versionId }));
 
     const response = await _getVersion({
       addonId,
@@ -423,6 +451,7 @@ export const fetchVersionFile = ({
     });
 
     if (isErrorResponse(response)) {
+      dispatch(actions.abortFetchVersionFile({ path, versionId }));
       dispatch(errorsActions.addError({ error: response.error }));
     } else {
       dispatch(actions.loadVersionFile({ path, version: response }));
@@ -595,6 +624,41 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
           [version.id]: {
             ...state.versionFiles[version.id],
             [path]: createInternalVersionFile(version.file),
+          },
+        },
+        versionFilesLoading: {
+          ...state.versionFilesLoading,
+          [version.id]: {
+            ...state.versionFilesLoading[version.id],
+            [path]: false,
+          },
+        },
+      };
+    }
+    case getType(actions.beginFetchVersionFile): {
+      const { path, versionId } = action.payload;
+
+      return {
+        ...state,
+        versionFilesLoading: {
+          ...state.versionFilesLoading,
+          [versionId]: {
+            ...state.versionFilesLoading[versionId],
+            [path]: true,
+          },
+        },
+      };
+    }
+    case getType(actions.abortFetchVersionFile): {
+      const { path, versionId } = action.payload;
+
+      return {
+        ...state,
+        versionFilesLoading: {
+          ...state.versionFilesLoading,
+          [versionId]: {
+            ...state.versionFilesLoading[versionId],
+            [path]: false,
           },
         },
       };

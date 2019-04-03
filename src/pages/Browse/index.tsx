@@ -10,10 +10,12 @@ import FileTree from '../../components/FileTree';
 import {
   Version,
   VersionFile,
+  actions,
   fetchVersion,
   fetchVersionFile,
   getVersionFile,
   getVersionInfo,
+  isFileLoading,
 } from '../../reducers/versions';
 import { gettext } from '../../utils';
 import Loading from '../../components/Loading';
@@ -21,7 +23,9 @@ import CodeView from '../../components/CodeView';
 import FileMetadata from '../../components/FileMetadata';
 import styles from './styles.module.scss';
 
-export type PublicProps = {
+export type PublicProps = {};
+
+export type DefaultProps = {
   _fetchVersion: typeof fetchVersion;
   _fetchVersionFile: typeof fetchVersionFile;
   _log: typeof log;
@@ -35,12 +39,14 @@ type PropsFromRouter = {
 type PropsFromState = {
   apiState: ApiState;
   file: VersionFile | null | void;
+  fileIsLoading: boolean;
   version: Version;
 };
 
 export type Props = RouteComponentProps<PropsFromRouter> &
   PropsFromState &
   PublicProps &
+  DefaultProps &
   ConnectedReduxProps;
 
 export class BrowseBase extends React.Component<Props> {
@@ -54,6 +60,8 @@ export class BrowseBase extends React.Component<Props> {
     const { _fetchVersion, dispatch, match } = this.props;
     const { addonId, versionId } = match.params;
 
+    // This also fetches / loads the default version file.
+    // Example: manifest.json
     dispatch(
       _fetchVersion({
         addonId: parseInt(addonId, 10),
@@ -62,15 +70,35 @@ export class BrowseBase extends React.Component<Props> {
     );
   }
 
+  componentDidUpdate() {
+    const {
+      _fetchVersionFile,
+      dispatch,
+      file,
+      fileIsLoading,
+      match,
+      version,
+    } = this.props;
+
+    if (version && version.selectedPath && !fileIsLoading && !file) {
+      dispatch(
+        _fetchVersionFile({
+          addonId: parseInt(match.params.addonId, 10),
+          versionId: version.id,
+          path: version.selectedPath,
+        }),
+      );
+    }
+  }
+
   onSelectFile = (path: string) => {
-    const { _fetchVersionFile, dispatch, match } = this.props;
-    const { addonId, versionId } = match.params;
+    const { dispatch, match } = this.props;
+    const { versionId } = match.params;
 
     dispatch(
-      _fetchVersionFile({
-        addonId: parseInt(addonId, 10),
+      actions.updateSelectedPath({
         versionId: parseInt(versionId, 10),
-        path,
+        selectedPath: path,
       }),
     );
   };
@@ -124,17 +152,20 @@ const mapStateToProps = (
 ): PropsFromState => {
   const { match } = ownProps;
   const versionId = parseInt(match.params.versionId, 10);
-
   const version = getVersionInfo(state.versions, versionId);
-  const file = version
-    ? getVersionFile(state.versions, versionId, version.selectedPath)
-    : null;
 
   return {
     apiState: state.api,
-    file,
+    file: version
+      ? getVersionFile(state.versions, versionId, version.selectedPath)
+      : null,
+    fileIsLoading: version
+      ? isFileLoading(state.versions, versionId, version.selectedPath)
+      : false,
     version,
   };
 };
 
-export default connect(mapStateToProps)(BrowseBase);
+export default connect(mapStateToProps)(BrowseBase) as React.ComponentType<
+  PublicProps & Partial<DefaultProps>
+>;
