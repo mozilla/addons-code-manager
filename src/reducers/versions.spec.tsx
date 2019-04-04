@@ -20,6 +20,7 @@ import reducer, {
   getVersionFiles,
   getVersionInfo,
   initialState,
+  isFileLoading,
 } from './versions';
 import { getRootPath } from '../components/FileTree';
 import {
@@ -46,14 +47,15 @@ describe(__filename, () => {
         actions.loadVersionFile({ path, version }),
       );
 
-      expect(state).toEqual({
-        ...initialState,
-        versionFiles: {
-          [version.id]: {
-            [path]: createInternalVersionFile(version.file),
+      expect(state).toEqual(
+        expect.objectContaining({
+          versionFiles: {
+            [version.id]: {
+              [path]: createInternalVersionFile(version.file),
+            },
           },
-        },
-      });
+        }),
+      );
     });
 
     it('preserves existing files', () => {
@@ -67,15 +69,16 @@ describe(__filename, () => {
       );
       state = reducer(state, actions.loadVersionFile({ path: path2, version }));
 
-      expect(state).toEqual({
-        ...initialState,
-        versionFiles: {
-          [version.id]: {
-            [path1]: createInternalVersionFile(version.file),
-            [path2]: createInternalVersionFile(version.file),
+      expect(state).toEqual(
+        expect.objectContaining({
+          versionFiles: {
+            [version.id]: {
+              [path1]: createInternalVersionFile(version.file),
+              [path2]: createInternalVersionFile(version.file),
+            },
           },
-        },
-      });
+        }),
+      );
     });
 
     it('loads version info', () => {
@@ -428,7 +431,8 @@ describe(__filename, () => {
     it('returns a version file', () => {
       const downloadURL = 'http://example.org/download/file';
       const mimeType = 'mime/type';
-      const path = 'test.js';
+      const filename = 'test.js';
+      const path = `some/dir/${filename}`;
       const sha256 = 'some-sha';
       const type = 'text';
       const versionString = '1.0.1';
@@ -440,7 +444,7 @@ describe(__filename, () => {
           entries: {
             [path]: {
               ...fakeVersionEntry,
-              filename: path,
+              filename,
               mime_category: type as VersionEntryType,
               mimetype: mimeType,
               path,
@@ -457,8 +461,9 @@ describe(__filename, () => {
       expect(getVersionFile(state, version.id, path)).toEqual({
         ...createInternalVersionFile(version.file),
         downloadURL,
-        filename: path,
+        filename,
         mimeType,
+        path,
         sha256,
         type,
         version: versionString,
@@ -698,8 +703,8 @@ describe(__filename, () => {
       });
     });
 
-    it('dispatches updateSelectedPath', async () => {
-      const version = fakeVersion;
+    it('dispatches beginFetchVersionFile', async () => {
+      const version = { ...fakeVersion, id: 3214 };
       const path = 'some/path.js';
 
       const { dispatch, thunk } = _fetchVersionFile({ version, path });
@@ -707,10 +712,7 @@ describe(__filename, () => {
       await thunk();
 
       expect(dispatch).toHaveBeenCalledWith(
-        actions.updateSelectedPath({
-          selectedPath: path,
-          versionId: version.id,
-        }),
+        actions.beginFetchVersionFile({ path, versionId: version.id }),
       );
     });
 
@@ -743,6 +745,26 @@ describe(__filename, () => {
         expect.objectContaining({
           type: getType(actions.loadVersionFile),
         }),
+      );
+    });
+
+    it('dispatches abortFetchVersionFile() when API response is not successful', async () => {
+      const path = 'scripts/background.js';
+      const version = { ...fakeVersion, id: 54123 };
+      const _getVersion = jest
+        .fn()
+        .mockReturnValue(Promise.resolve({ error: new Error('Bad Request') }));
+
+      const { dispatch, thunk } = _fetchVersionFile({
+        _getVersion,
+        path,
+        version,
+      });
+
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(
+        actions.abortFetchVersionFile({ path, versionId: version.id }),
       );
     });
   });
@@ -1184,6 +1206,132 @@ describe(__filename, () => {
       await thunk();
 
       expect(dispatch).toHaveBeenCalledWith(actions.abortFetchDiff());
+    });
+  });
+
+  describe('beginFetchVersionFile', () => {
+    it('sets a loading flag for the file', () => {
+      const path = 'scripts/background.js';
+      const versionId = 98765;
+
+      const state = reducer(
+        undefined,
+        actions.beginFetchVersionFile({ path, versionId }),
+      );
+
+      expect(state.versionFilesLoading[versionId][path]).toEqual(true);
+    });
+
+    it('preserves other loading flags', () => {
+      const path1 = 'scripts/background.js';
+      const path2 = 'scripts/content.js';
+      const versionId = 98765;
+
+      let state;
+      state = reducer(
+        state,
+        actions.beginFetchVersionFile({ path: path1, versionId }),
+      );
+      state = reducer(
+        state,
+        actions.beginFetchVersionFile({ path: path2, versionId }),
+      );
+
+      expect(state.versionFilesLoading[versionId][path1]).toEqual(true);
+      expect(state.versionFilesLoading[versionId][path2]).toEqual(true);
+    });
+  });
+
+  describe('abortFetchVersionFile', () => {
+    it('resets a loading flag for the file', () => {
+      const path = 'scripts/background.js';
+      const versionId = 98765;
+
+      let state;
+      state = reducer(
+        state,
+        actions.beginFetchVersionFile({ path, versionId }),
+      );
+      state = reducer(
+        state,
+        actions.abortFetchVersionFile({ path, versionId }),
+      );
+
+      expect(state.versionFilesLoading[versionId][path]).toEqual(false);
+    });
+
+    it('preserves other loading flags', () => {
+      const path1 = 'scripts/background.js';
+      const path2 = 'scripts/content.js';
+      const versionId = 98765;
+
+      let state;
+      state = reducer(
+        state,
+        actions.beginFetchVersionFile({ path: path1, versionId }),
+      );
+      state = reducer(
+        state,
+        actions.abortFetchVersionFile({ path: path2, versionId }),
+      );
+
+      expect(state.versionFilesLoading[versionId][path1]).toEqual(true);
+      expect(state.versionFilesLoading[versionId][path2]).toEqual(false);
+    });
+  });
+
+  describe('isFileLoading', () => {
+    it('returns true when file is loading', () => {
+      const path = 'scripts/background.js';
+      const versionId = 54598;
+
+      const state = reducer(
+        undefined,
+        actions.beginFetchVersionFile({
+          path,
+          versionId,
+        }),
+      );
+
+      expect(isFileLoading(state, versionId, path)).toEqual(true);
+    });
+
+    it('returns false when file is not loading', () => {
+      const path = 'scripts/background.js';
+      const versionId = 54598;
+
+      const state = reducer(
+        undefined,
+        actions.abortFetchVersionFile({
+          path,
+          versionId,
+        }),
+      );
+
+      expect(isFileLoading(state, versionId, path)).toEqual(false);
+    });
+
+    it('returns false when no files have ever loaded', () => {
+      const path = 'scripts/background.js';
+      const versionId = 54598;
+
+      expect(isFileLoading(initialState, versionId, path)).toEqual(false);
+    });
+
+    it('returns false when this specific file has never loaded', () => {
+      const path = 'scripts/background.js';
+      const versionId = 54598;
+
+      // Begin loading an unrelated path.
+      const state = reducer(
+        undefined,
+        actions.beginFetchVersionFile({
+          versionId,
+          path: 'manifest.json',
+        }),
+      );
+
+      expect(isFileLoading(state, versionId, path)).toEqual(false);
     });
   });
 });

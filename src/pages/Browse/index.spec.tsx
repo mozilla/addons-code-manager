@@ -5,6 +5,7 @@ import {
   createFakeHistory,
   createFakeThunk,
   fakeVersion,
+  fakeVersionEntry,
   shallowUntilTarget,
   spyOn,
 } from '../../test-helpers';
@@ -18,7 +19,7 @@ import Loading from '../../components/Loading';
 import CodeView from '../../components/CodeView';
 import FileMetadata from '../../components/FileMetadata';
 
-import Browse, { BrowseBase, PublicProps } from '.';
+import Browse, { BrowseBase, Props as BrowseProps } from '.';
 
 describe(__filename, () => {
   const createFakeRouteComponentProps = ({
@@ -41,9 +42,9 @@ describe(__filename, () => {
   };
 
   type RenderParams = {
-    _fetchVersion?: PublicProps['_fetchVersion'];
-    _fetchVersionFile?: PublicProps['_fetchVersionFile'];
-    _log?: PublicProps['_log'];
+    _fetchVersion?: BrowseProps['_fetchVersion'];
+    _fetchVersionFile?: BrowseProps['_fetchVersionFile'];
+    _log?: BrowseProps['_log'];
     addonId?: string;
     versionId?: string;
     store?: Store;
@@ -84,6 +85,57 @@ describe(__filename, () => {
     );
   };
 
+  const setUpVersionFileUpdate = ({
+    extraFileEntries = {},
+    initialPath = 'manifest.json',
+    loadVersionAndFile = true,
+  } = {}) => {
+    const addonId = 9876;
+    const version = {
+      ...fakeVersion,
+      id: 1234,
+      file: {
+        ...fakeVersion.file,
+        entries: {
+          ...fakeVersion.file.entries,
+          ...extraFileEntries,
+        },
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        selected_file: initialPath,
+      },
+    };
+    const store = configureStore();
+
+    if (loadVersionAndFile) {
+      _loadVersionAndFile({ store, version });
+    }
+
+    const fakeThunk = createFakeThunk();
+    const _fetchVersionFile = fakeThunk.createThunk;
+
+    return {
+      _fetchVersionFile,
+      addonId,
+      fakeThunk,
+      store,
+      renderAndUpdate: (props = {}) => {
+        const dispatchSpy = spyOn(store, 'dispatch');
+        const root = render({
+          _fetchVersionFile,
+          store,
+          addonId: String(addonId),
+          versionId: String(version.id),
+        });
+
+        dispatchSpy.mockClear();
+        root.setProps(props);
+
+        return { dispatchSpy };
+      },
+      version,
+    };
+  };
+
   it('renders a page with a loading message', () => {
     const versionId = '123456';
 
@@ -91,6 +143,27 @@ describe(__filename, () => {
 
     expect(root.find(Loading)).toHaveLength(1);
     expect(root.find(Loading)).toHaveProp('message', 'Loading version...');
+  });
+
+  it('dispatches fetchVersion on mount', () => {
+    const addonId = 9876;
+    const versionId = 4321;
+
+    const store = configureStore();
+    const dispatch = spyOn(store, 'dispatch');
+
+    const fakeThunk = createFakeThunk();
+    const _fetchVersion = fakeThunk.createThunk;
+
+    render({
+      _fetchVersion,
+      store,
+      addonId: String(addonId),
+      versionId: String(versionId),
+    });
+
+    expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(_fetchVersion).toHaveBeenCalledWith({ addonId, versionId });
   });
 
   it('renders a FileTree component when a version has been loaded', () => {
@@ -156,20 +229,17 @@ describe(__filename, () => {
     expect(root.find(Loading)).toHaveProp('message', 'Loading content...');
   });
 
-  it('dispatches fetchVersionFile() when a file is selected', () => {
+  it('dispatches updateSelectedPath() when a file is selected', () => {
     const addonId = 123456;
-    const version = fakeVersion;
+    const version = { ...fakeVersion, id: 98765 };
     const path = 'some-path';
 
     const store = configureStore();
     _loadVersionAndFile({ store, version });
 
     const dispatch = spyOn(store, 'dispatch');
-    const fakeThunk = createFakeThunk();
-    const _fetchVersionFile = fakeThunk.createThunk;
 
     const root = render({
-      _fetchVersionFile,
       store,
       addonId: String(addonId),
       versionId: String(version.id),
@@ -181,11 +251,111 @@ describe(__filename, () => {
     const onSelectFile = fileTree.prop('onSelect');
     onSelectFile(path);
 
-    expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(dispatch).toHaveBeenCalledWith(
+      versionActions.updateSelectedPath({
+        versionId: version.id,
+        selectedPath: path,
+      }),
+    );
+  });
+
+  it('does not dispatch fetchVersionFile on update before a version has loaded', () => {
+    const { renderAndUpdate } = setUpVersionFileUpdate({
+      loadVersionAndFile: false,
+    });
+
+    const { dispatchSpy } = renderAndUpdate();
+
+    expect(dispatchSpy).not.toHaveBeenCalled();
+  });
+
+  it('does not dispatch fetchVersionFile on update when nothing has changed', () => {
+    const { renderAndUpdate } = setUpVersionFileUpdate();
+    const { dispatchSpy } = renderAndUpdate();
+
+    expect(dispatchSpy).not.toHaveBeenCalled();
+  });
+
+  it('dispatches fetchVersionFile when path is updated', () => {
+    const initialPath = 'scripts/content.js';
+    const {
+      _fetchVersionFile,
+      addonId,
+      fakeThunk,
+      version,
+      store,
+      renderAndUpdate,
+    } = setUpVersionFileUpdate({ initialPath });
+
+    const selectedPath = 'scripts/background.js';
+    store.dispatch(
+      versionActions.updateSelectedPath({
+        versionId: version.id,
+        selectedPath,
+      }),
+    );
+
+    const { dispatchSpy } = renderAndUpdate();
+
+    expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
     expect(_fetchVersionFile).toHaveBeenCalledWith({
       addonId,
       versionId: version.id,
-      path,
+      path: selectedPath,
     });
+  });
+
+  it('does not dispatch fetchVersionFile on update if a file is loading', () => {
+    const { version, store, renderAndUpdate } = setUpVersionFileUpdate({
+      initialPath: 'scripts/content.js',
+    });
+
+    const selectedPath = 'scripts/background.js';
+    store.dispatch(
+      versionActions.updateSelectedPath({
+        versionId: version.id,
+        selectedPath,
+      }),
+    );
+    store.dispatch(
+      versionActions.beginFetchVersionFile({
+        versionId: version.id,
+        path: selectedPath,
+      }),
+    );
+
+    const { dispatchSpy } = renderAndUpdate();
+
+    expect(dispatchSpy).not.toHaveBeenCalled();
+  });
+
+  it('does not dispatch fetchVersionFile when switching paths to a loaded file', () => {
+    const selectedPath = 'scripts/background.js';
+
+    const { version, store, renderAndUpdate } = setUpVersionFileUpdate({
+      extraFileEntries: {
+        [selectedPath]: { ...fakeVersionEntry, path: selectedPath },
+      },
+      initialPath: 'scripts/content.js',
+    });
+
+    // Setup a file that was previously loaded.
+    store.dispatch(
+      versionActions.loadVersionFile({
+        path: selectedPath,
+        version,
+      }),
+    );
+    // Switch back to this file.
+    store.dispatch(
+      versionActions.updateSelectedPath({
+        versionId: version.id,
+        selectedPath,
+      }),
+    );
+
+    const { dispatchSpy } = renderAndUpdate();
+
+    expect(dispatchSpy).not.toHaveBeenCalled();
   });
 });
