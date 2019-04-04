@@ -34,7 +34,6 @@ export type PublicProps = {
 };
 
 export type DefaultProps = {
-  _buildTree: typeof fileTreeActions.buildTree;
   _log: typeof log;
 };
 
@@ -49,7 +48,6 @@ export class FileTreeBase extends React.Component<Props> {
   loadData: LoadData;
 
   static defaultProps: DefaultProps = {
-    _buildTree: fileTreeActions.buildTree,
     _log: log,
   };
 
@@ -68,10 +66,10 @@ export class FileTreeBase extends React.Component<Props> {
   }
 
   _loadData = () => {
-    const { _buildTree, dispatch, tree, version } = this.props;
+    const { dispatch, tree, version } = this.props;
 
     if (version && !tree) {
-      dispatch(_buildTree({ version }));
+      dispatch(fileTreeActions.buildTree({ version }));
     }
   };
 
