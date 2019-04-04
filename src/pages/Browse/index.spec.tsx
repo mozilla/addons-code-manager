@@ -118,7 +118,7 @@ describe(__filename, () => {
       addonId,
       fakeThunk,
       store,
-      updateProps: (props = {}) => {
+      renderAndUpdate: (props = {}) => {
         const dispatchSpy = spyOn(store, 'dispatch');
         const root = render({
           _fetchVersionFile,
@@ -260,18 +260,18 @@ describe(__filename, () => {
   });
 
   it('does not dispatch fetchVersionFile on update before a version has loaded', () => {
-    const { updateProps } = setUpVersionFileUpdate({
+    const { renderAndUpdate } = setUpVersionFileUpdate({
       loadVersionAndFile: false,
     });
 
-    const { dispatchSpy } = updateProps();
+    const { dispatchSpy } = renderAndUpdate();
 
     expect(dispatchSpy).not.toHaveBeenCalled();
   });
 
   it('does not dispatch fetchVersionFile on update when nothing has changed', () => {
-    const { updateProps } = setUpVersionFileUpdate();
-    const { dispatchSpy } = updateProps();
+    const { renderAndUpdate } = setUpVersionFileUpdate();
+    const { dispatchSpy } = renderAndUpdate();
 
     expect(dispatchSpy).not.toHaveBeenCalled();
   });
@@ -284,7 +284,7 @@ describe(__filename, () => {
       fakeThunk,
       version,
       store,
-      updateProps,
+      renderAndUpdate,
     } = setUpVersionFileUpdate({ initialPath });
 
     const selectedPath = 'scripts/background.js';
@@ -295,7 +295,7 @@ describe(__filename, () => {
       }),
     );
 
-    const { dispatchSpy } = updateProps();
+    const { dispatchSpy } = renderAndUpdate();
 
     expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
     expect(_fetchVersionFile).toHaveBeenCalledWith({
@@ -306,7 +306,7 @@ describe(__filename, () => {
   });
 
   it('does not dispatch fetchVersionFile on update if a file is loading', () => {
-    const { version, store, updateProps } = setUpVersionFileUpdate({
+    const { version, store, renderAndUpdate } = setUpVersionFileUpdate({
       initialPath: 'scripts/content.js',
     });
 
@@ -324,7 +324,7 @@ describe(__filename, () => {
       }),
     );
 
-    const { dispatchSpy } = updateProps();
+    const { dispatchSpy } = renderAndUpdate();
 
     expect(dispatchSpy).not.toHaveBeenCalled();
   });
@@ -332,7 +332,7 @@ describe(__filename, () => {
   it('does not dispatch fetchVersionFile when switching paths to a loaded file', () => {
     const selectedPath = 'scripts/background.js';
 
-    const { version, store, updateProps } = setUpVersionFileUpdate({
+    const { version, store, renderAndUpdate } = setUpVersionFileUpdate({
       extraFileEntries: {
         [selectedPath]: { ...fakeVersionEntry, path: selectedPath },
       },
@@ -354,7 +354,7 @@ describe(__filename, () => {
       }),
     );
 
-    const { dispatchSpy } = updateProps();
+    const { dispatchSpy } = renderAndUpdate();
 
     expect(dispatchSpy).not.toHaveBeenCalled();
   });
