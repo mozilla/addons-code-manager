@@ -7,7 +7,11 @@ import Loading from '../Loading';
 import { ApplicationState } from '../../reducers';
 import { ConnectedReduxProps } from '../../configureStore';
 import VersionSelect from '../VersionSelect';
-import { VersionsMap, fetchVersionsList } from '../../reducers/versions';
+import {
+  VersionsListItem,
+  VersionsMap,
+  fetchVersionsList,
+} from '../../reducers/versions';
 import { gettext } from '../../utils';
 import styles from './styles.module.scss';
 
@@ -36,6 +40,22 @@ type Props = PublicProps &
   DefaultProps &
   PropsFromState &
   RouterProps;
+
+export const higherVersionsThan = (versionId: string) => {
+  if (!versionId) {
+    return Boolean;
+  }
+
+  return (version: VersionsListItem) => version.id > parseInt(versionId, 10);
+};
+
+export const lowerVersionsThan = (versionId: string) => {
+  if (!versionId) {
+    return Boolean;
+  }
+
+  return (version: VersionsListItem) => version.id < parseInt(versionId, 10);
+};
 
 export class VersionChooserBase extends React.Component<Props> {
   static defaultProps: DefaultProps = {
@@ -93,18 +113,26 @@ export class VersionChooserBase extends React.Component<Props> {
               <VersionSelect
                 className={styles.baseVersionSelect}
                 label={gettext('Choose an old version')}
-                listedVersions={versionsMap.listed}
+                listedVersions={versionsMap.listed.filter(
+                  lowerVersionsThan(headVersionId),
+                )}
                 onChange={this.onOldVersionChange}
-                unlistedVersions={versionsMap.unlisted}
+                unlistedVersions={versionsMap.unlisted.filter(
+                  lowerVersionsThan(headVersionId),
+                )}
                 value={baseVersionId}
               />
 
               <VersionSelect
                 className={styles.headVersionSelect}
                 label={gettext('Choose a new version')}
-                listedVersions={versionsMap.listed}
+                listedVersions={versionsMap.listed.filter(
+                  higherVersionsThan(baseVersionId),
+                )}
                 onChange={this.onNewVersionChange}
-                unlistedVersions={versionsMap.unlisted}
+                unlistedVersions={versionsMap.unlisted.filter(
+                  higherVersionsThan(baseVersionId),
+                )}
                 value={headVersionId}
                 withLeftArrow
               />

@@ -7,6 +7,7 @@ import VersionSelect from '../VersionSelect';
 import Loading from '../Loading';
 import {
   ExternalVersionsList,
+  ExternalVersionsListItem,
   actions as versionActions,
 } from '../../reducers/versions';
 import {
@@ -25,10 +26,22 @@ import VersionChooser, {
   PropsFromRouter,
   PublicProps,
   VersionChooserBase,
+  higherVersionsThan,
+  lowerVersionsThan,
 } from '.';
 
 describe(__filename, () => {
   const lang = 'en-US';
+
+  const fakeListedVersion: ExternalVersionsListItem = {
+    ...fakeVersionsListItem,
+    channel: 'listed',
+  };
+
+  const fakeUnlistedVersion: ExternalVersionsListItem = {
+    ...fakeVersionsListItem,
+    channel: 'unlisted',
+  };
 
   type RenderParams = Partial<PublicProps> &
     Partial<PropsFromRouter> &
@@ -41,7 +54,7 @@ describe(__filename, () => {
     _fetchVersionsList,
     addonId = 123,
     baseVersionId = '1',
-    headVersionId = '2',
+    headVersionId = '4',
     history = createFakeHistory(),
     store = configureStore(),
   }: RenderParams = {}) => {
@@ -106,21 +119,55 @@ describe(__filename, () => {
     expect(root.find(VersionSelect).at(1)).toHaveProp('withLeftArrow', true);
   });
 
+  it('filters the listed/unlisted versions given to each VersionSelect', () => {
+    const addonId = 999;
+    const baseVersionId = '3';
+    const headVersionId = '5';
+
+    const listedVersions: ExternalVersionsList = [
+      { ...fakeListedVersion, id: 3 },
+      { ...fakeListedVersion, id: 4 },
+      { ...fakeListedVersion, id: 5 },
+      { ...fakeListedVersion, id: 7 },
+    ];
+    const unlistedVersions: ExternalVersionsList = [
+      { ...fakeUnlistedVersion, id: 2 },
+      { ...fakeUnlistedVersion, id: 6 },
+    ];
+
+    const store = configureStore();
+    _loadVersionsList(store, addonId, [...listedVersions, ...unlistedVersions]);
+
+    const root = render({ addonId, baseVersionId, headVersionId, store });
+
+    const oldVersionSelect = root.find(`.${styles.baseVersionSelect}`);
+    expect(oldVersionSelect).toHaveProp(
+      'listedVersions',
+      listedVersions.filter(lowerVersionsThan(headVersionId)),
+    );
+    expect(oldVersionSelect).toHaveProp(
+      'unlistedVersions',
+      unlistedVersions.filter(lowerVersionsThan(headVersionId)),
+    );
+
+    const newVersionSelect = root.find(`.${styles.headVersionSelect}`);
+    expect(newVersionSelect).toHaveProp(
+      'listedVersions',
+      listedVersions.filter(higherVersionsThan(baseVersionId)),
+    );
+    expect(newVersionSelect).toHaveProp(
+      'unlistedVersions',
+      unlistedVersions.filter(higherVersionsThan(baseVersionId)),
+    );
+  });
+
   it('splits the list of versions into listed and unlisted lists', () => {
     const addonId = 999;
     const listedVersions: ExternalVersionsList = [
-      {
-        ...fakeVersionsListItem,
-        id: 1,
-        channel: 'listed',
-      },
+      { ...fakeListedVersion, id: 2 },
     ];
     const unlistedVersions: ExternalVersionsList = [
-      {
-        ...fakeVersionsListItem,
-        id: 2,
-        channel: 'unlisted',
-      },
+      { ...fakeUnlistedVersion, id: 3 },
     ];
 
     const store = configureStore();
