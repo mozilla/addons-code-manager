@@ -60,7 +60,7 @@ export const makeApiURL = ({
     }
 
     let adjustedPath = path;
-    if (!path.startsWith('/')) {
+    if (!adjustedPath.startsWith('/')) {
       adjustedPath = `/${adjustedPath}`;
     }
     parts.push(adjustedPath);
