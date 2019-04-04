@@ -34,7 +34,7 @@ type PropsFromState = {
   compareInfo: CompareInfo | null | void;
   isLoading: boolean;
   path: string | void;
-  version: Version;
+  version: Version | void;
 };
 
 type Props = RouteComponentProps<PropsFromRouter> &
@@ -140,7 +140,7 @@ export class CompareBase extends React.Component<Props> {
           </Row>
           <Row>
             <Col>
-              {compareInfo ? (
+              {version && compareInfo ? (
                 <DiffView
                   diffs={compareInfo.diffs}
                   mimeType={compareInfo.mimeType}

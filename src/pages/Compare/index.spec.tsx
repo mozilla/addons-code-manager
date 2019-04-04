@@ -113,7 +113,7 @@ describe(__filename, () => {
     );
   };
 
-  it('renders loading messages when no diff has been loaded', () => {
+  it('renders loading messages when no version has been loaded', () => {
     const addonId = 123;
     const root = render({ addonId: String(addonId) });
 
@@ -126,6 +126,23 @@ describe(__filename, () => {
     // This component is always displayed.
     expect(root.find(VersionChooser)).toHaveLength(1);
     expect(root.find(VersionChooser)).toHaveProp('addonId', addonId);
+  });
+
+  it('renders a loading message when no diff has been loaded', () => {
+    const addonId = 123;
+    const baseVersionId = 1;
+    const version = { ...fakeVersionWithDiff, id: baseVersionId + 1 };
+    const store = configureStore();
+    store.dispatch(versionsActions.loadVersionInfo({ version }));
+
+    const root = render({
+      addonId: String(addonId),
+      headVersionId: String(version.id),
+      store,
+    });
+
+    expect(root.find(Loading)).toHaveLength(1);
+    expect(root.find(Loading)).toHaveProp('message', 'Loading diff...');
   });
 
   it('renders a FileTree component when a diff has been loaded', () => {

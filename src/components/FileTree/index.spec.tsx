@@ -6,6 +6,7 @@ import { ListGroup } from 'react-bootstrap';
 
 import configureStore from '../../configureStore';
 import {
+  Version,
   actions as versionActions,
   createInternalVersion,
   createInternalVersionEntry,
@@ -373,7 +374,13 @@ describe(__filename, () => {
     }) => {
       store.dispatch(versionActions.loadVersionInfo({ version }));
 
-      return getVersionInfo(store.getState().versions, version.id);
+      const versionInfo = getVersionInfo(store.getState().versions, version.id);
+
+      if (!versionInfo) {
+        throw new Error('Expected a valid version but did not get one.');
+      }
+
+      return versionInfo;
     };
 
     const render = ({
@@ -478,7 +485,10 @@ describe(__filename, () => {
         }),
       );
 
-      version = getVersionInfo(store.getState().versions, version.id);
+      version = getVersionInfo(
+        store.getState().versions,
+        version.id,
+      ) as Version;
 
       const root = render({ store, versionId: version.id });
 

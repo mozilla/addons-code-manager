@@ -338,7 +338,10 @@ export const getVersionFiles = (versions: VersionsState, versionId: number) => {
   return versions.versionFiles[versionId];
 };
 
-export const getVersionInfo = (versions: VersionsState, versionId: number) => {
+export const getVersionInfo = (
+  versions: VersionsState,
+  versionId: number,
+): Version | void => {
   return versions.versionInfo[versionId];
 };
 
@@ -756,7 +759,13 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
     case getType(actions.loadDiff): {
       const { baseVersionId, headVersionId, version } = action.payload;
 
-      const { entries, selectedPath } = getVersionInfo(state, headVersionId);
+      const headVersion = getVersionInfo(state, headVersionId);
+      if (!headVersion) {
+        _log.debug(`Version missing for headVersionId: ${headVersionId}`);
+        return state;
+      }
+
+      const { entries, selectedPath } = headVersion;
       const entry = entries.find((e) => e.path === selectedPath);
 
       if (!entry) {
