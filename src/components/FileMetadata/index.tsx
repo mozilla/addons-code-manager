@@ -3,6 +3,7 @@ import * as React from 'react';
 import { VersionFile } from '../../reducers/versions';
 import styles from './styles.module.scss';
 import { formatFilesize, gettext } from '../../utils';
+import { makeApiURL } from '../../api';
 
 type PublicProps = {
   file: VersionFile;
@@ -28,7 +29,9 @@ const FileMetadataBase = ({ file }: PublicProps) => {
           <React.Fragment>
             <dt>{gettext('Download link')}</dt>
             <dd className={styles.downloadURL}>
-              <a href={file.downloadURL}>{file.filename}</a>
+              <a href={makeApiURL({ url: file.downloadURL })}>
+                {file.filename}
+              </a>
             </dd>
           </React.Fragment>
         )}

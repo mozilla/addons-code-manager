@@ -10,6 +10,7 @@ import {
 import { fakeVersion } from '../../test-helpers';
 import styles from './styles.module.scss';
 import { formatFilesize } from '../../utils';
+import { makeApiURL } from '../../api';
 
 import FileMetadata from '.';
 
@@ -45,7 +46,11 @@ describe(__filename, () => {
     const downloadLink = root.find(`.${styles.downloadURL}`).find('a');
     expect(downloadLink).toHaveLength(1);
     expect(downloadLink).toHaveText(file.filename);
-    expect(downloadLink).toHaveProp('href', file.downloadURL);
+    expect(downloadLink).toHaveProp(
+      'href',
+      // `downloadURL` can only be `null` when `file` is a directory.
+      makeApiURL({ url: file.downloadURL as string }),
+    );
   });
 
   it('renders a formatted filesize', () => {

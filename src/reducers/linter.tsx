@@ -159,10 +159,9 @@ export const fetchLinterMessages = ({
     dispatch(actions.beginFetchLinterResult({ versionId }));
 
     // This is a special URL and returns a non-standard JSON response.
-    const response = await fetch(
-      makeApiURL({ path: url, version: null, prefix: null }),
-      { credentials: 'include' },
-    );
+    const response = await fetch(makeApiURL({ url }), {
+      credentials: 'include',
+    });
 
     try {
       if (!response.ok) {

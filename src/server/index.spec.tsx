@@ -411,12 +411,22 @@ describe(__filename, () => {
           expect(response.header).not.toHaveProperty('set-cookie');
         });
 
-        // The Browse API returns a `validation_url_json` field with the URL to
-        // the addons-linter validation report (in JSON).
-        // See: https://addons-server.readthedocs.io/en/latest/topics/api/reviewers.html#browse
+        // The Browse/Compare APIs return a `validation_url_json` field with
+        // the URL to the addons-linter validation report (in JSON).
+        // See: https://addons-server.readthedocs.io/en/latest/topics/api/reviewers.html
         it('forwards the addons-linter validation URLs to the REACT_APP_API_HOST server', async () => {
           const response = await server.get(
             '/en-US/developers/addon/amo-info-with-extra-dirs/file/262459/validation.json',
+          );
+
+          expect(response.text).toEqual(apiResponseBody);
+        });
+
+        // The Browse/Compare APIs return a `download_url` field with the URL
+        // to download the content of the selected file.
+        it('forwards the download URLs to the REACT_APP_API_HOST server', async () => {
+          const response = await server.get(
+            '/en-US/reviewers/download-git-file/1532144/manifest.json/',
           );
 
           expect(response.text).toEqual(apiResponseBody);

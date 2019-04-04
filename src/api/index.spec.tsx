@@ -380,15 +380,13 @@ describe(__filename, () => {
   });
 
   describe('makeApiURL', () => {
-    it('constructs an API URL for a given path', () => {
+    it('constructs an API url for a given path', () => {
       const apiHost = 'https://example.org';
       const path = '/foo/';
-      const _getApiHost = jest.fn().mockReturnValue(apiHost);
 
-      expect(makeApiURL({ _getApiHost, path })).toEqual(
+      expect(makeApiURL({ apiHost, path })).toEqual(
         `${apiHost}/api/${defaultVersion}${path}`,
       );
-      expect(_getApiHost).toHaveBeenCalled();
     });
 
     it('can omit the version', () => {
@@ -402,9 +400,8 @@ describe(__filename, () => {
     it('can omit the prefix', () => {
       const path = '/foo/';
       const apiHost = 'https://example.org';
-      const _getApiHost = jest.fn().mockReturnValue(apiHost);
 
-      expect(makeApiURL({ _getApiHost, path, prefix: null })).toEqual(
+      expect(makeApiURL({ apiHost, path, prefix: null })).toEqual(
         `${apiHost}/${defaultVersion}${path}`,
       );
     });
@@ -412,10 +409,9 @@ describe(__filename, () => {
     it('can omit both the prefix and version', () => {
       const path = '/foo/';
       const apiHost = 'https://example.org';
-      const _getApiHost = jest.fn().mockReturnValue(apiHost);
 
       expect(
-        makeApiURL({ _getApiHost, path, prefix: null, version: null }),
+        makeApiURL({ apiHost, path, prefix: null, version: null }),
       ).toEqual(`${apiHost}${path}`);
     });
 
@@ -443,6 +439,54 @@ describe(__filename, () => {
       expect(makeApiURL({ path })).toEqual(
         expect.stringMatching(`/api/${defaultVersion}/${path}`),
       );
+    });
+
+    it('constructs an API url for a given url', () => {
+      const url = 'https://example.org/foo/';
+
+      expect(makeApiURL({ url })).toEqual(url);
+    });
+
+    it('removes the apiHost of an url when apiHost is defined and useInsecureProxy is true', () => {
+      const apiHost = 'https://example.org';
+      const path = '/foo/';
+      const url = `${apiHost}${path}`;
+
+      expect(makeApiURL({ apiHost, url, useInsecureProxy: true })).toEqual(
+        path,
+      );
+    });
+
+    it('does not change the given url when apiHost is defined but useInsecureProxy is false', () => {
+      const apiHost = 'https://example.org';
+      const path = '/foo/';
+      const url = `${apiHost}${path}`;
+
+      expect(makeApiURL({ apiHost, url, useInsecureProxy: false })).toEqual(
+        url,
+      );
+    });
+
+    it('does not change the given url when useInsecureProxy is true but apiHost is not defined', () => {
+      const apiHost = 'https://example.org';
+      const path = '/foo/';
+      const url = `${apiHost}${path}`;
+
+      expect(
+        makeApiURL({ apiHost: null, url, useInsecureProxy: true }),
+      ).toEqual(url);
+    });
+
+    it('throws when both url and path are passed', () => {
+      expect(() => {
+        makeApiURL({ path: 'some-path', url: 'some-url' });
+      }).toThrow(/Cannot receive both `path` and `url` parameters/);
+    });
+
+    it('throws when neither url nor path are passed', () => {
+      expect(() => {
+        makeApiURL({});
+      }).toThrow(/Either `path` or `url` must be defined/);
     });
   });
 });

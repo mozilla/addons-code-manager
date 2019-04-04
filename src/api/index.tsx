@@ -26,33 +26,53 @@ export const getApiHost = ({
 };
 
 type MakApiUrlParams = {
-  _getApiHost?: typeof getApiHost;
-  version?: string | null;
-  path: string;
+  apiHost?: string | null;
+  path?: string;
   prefix?: string | null;
+  url?: string;
+  useInsecureProxy?: boolean;
+  version?: string | null;
 };
 
 export const makeApiURL = ({
-  _getApiHost = getApiHost,
+  apiHost = process.env.REACT_APP_API_HOST,
   path,
   prefix = 'api',
+  url,
+  useInsecureProxy = process.env.REACT_APP_USE_INSECURE_PROXY === 'true',
   version = process.env.REACT_APP_DEFAULT_API_VERSION,
 }: MakApiUrlParams) => {
-  const parts = [_getApiHost()];
-
-  if (prefix) {
-    parts.push(`/${prefix}`);
+  if (path && url) {
+    throw new Error('Cannot receive both `path` and `url` parameters.');
   }
 
-  if (version) {
-    parts.push(`/${version}`);
-  }
+  const parts = [];
 
-  let adjustedPath = path;
-  if (!path.startsWith('/')) {
-    adjustedPath = `/${adjustedPath}`;
+  if (path) {
+    parts.push(getApiHost({ apiHost, useInsecureProxy }));
+
+    if (prefix) {
+      parts.push(`/${prefix}`);
+    }
+
+    if (version) {
+      parts.push(`/${version}`);
+    }
+
+    let adjustedPath = path;
+    if (!adjustedPath.startsWith('/')) {
+      adjustedPath = `/${adjustedPath}`;
+    }
+    parts.push(adjustedPath);
+  } else if (url) {
+    let adjustedUrl = url;
+    if (apiHost && useInsecureProxy) {
+      adjustedUrl = adjustedUrl.replace(apiHost, '');
+    }
+    parts.push(adjustedUrl);
+  } else {
+    throw new Error('Either `path` or `url` must be defined.');
   }
-  parts.push(adjustedPath);
 
   return parts.join('');
 };
