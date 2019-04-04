@@ -3,9 +3,11 @@ import reducer, {
   DirectoryNode,
   actions,
   buildFileTree,
+  buildTreePathList,
   getRootPath,
   initialState,
   getTree,
+  getTreePathList,
 } from './fileTree';
 import { createInternalVersion, createInternalVersionEntry } from './versions';
 import {
@@ -25,6 +27,23 @@ describe(__filename, () => {
         ...initialState,
         forVersionId: version.id,
         tree: buildFileTree(version),
+      });
+    });
+
+    it('builds and loads a treePathList', () => {
+      const version = createInternalVersion(fakeVersion);
+      let state = reducer(undefined, actions.buildTree({ version }));
+      const tree = getTree(state, version.id) as DirectoryNode;
+      state = reducer(
+        state,
+        actions.buildTreePathList({ versionId: version.id }),
+      );
+
+      expect(state).toEqual({
+        ...initialState,
+        forVersionId: version.id,
+        tree: buildFileTree(version),
+        treePathList: buildTreePathList(tree),
       });
     });
   });
@@ -53,6 +72,45 @@ describe(__filename, () => {
       );
 
       expect(getTree(state, version1.id)).toEqual(undefined);
+    });
+  });
+
+  describe('getTreePathList', () => {
+    it('returns a treePathList', () => {
+      const version = createInternalVersion(fakeVersion);
+      let state = reducer(undefined, actions.buildTree({ version }));
+      const tree = getTree(state, version.id) as DirectoryNode;
+      state = reducer(
+        state,
+        actions.buildTreePathList({ versionId: version.id }),
+      );
+
+      expect(getTreePathList(state, version.id)).toEqual(
+        buildTreePathList(tree),
+      );
+    });
+
+    it('returns undefined if there is no treePathList loaded', () => {
+      const version = createInternalVersion(fakeVersion);
+      const state = reducer(undefined, actions.buildTree({ version }));
+
+      expect(getTreePathList(state, version.id)).toEqual(undefined);
+    });
+
+    it('returns undefined if a version is requested that has not been loaded', () => {
+      const version1id = 1;
+      const version2id = 2;
+      const version1 = createInternalVersion({
+        ...fakeVersion,
+        id: version1id,
+      });
+      let state = reducer(undefined, actions.buildTree({ version: version1 }));
+      state = reducer(
+        state,
+        actions.buildTreePathList({ versionId: version1id }),
+      );
+
+      expect(getTreePathList(state, version2id)).toEqual(undefined);
     });
   });
 
@@ -412,6 +470,47 @@ describe(__filename, () => {
           id: entries[2].path,
           name: 'A',
         },
+      ]);
+    });
+  });
+
+  describe('buildTreePathList', () => {
+    it('builds a treePathList from a tree', () => {
+      const file1 = 'file1.js';
+      const file2 = 'file2.js';
+      const folder1 = 'folder1';
+      const folder2 = 'folder2';
+
+      const tree: DirectoryNode = {
+        id: 'root',
+        name: 'addon name',
+        children: [
+          {
+            id: folder1,
+            name: folder1,
+            children: [
+              {
+                id: folder2,
+                name: folder2,
+                children: [
+                  { id: `${folder1}/${folder2}/${file1}`, name: file1 },
+                  { id: `${folder1}/${folder2}/${file2}`, name: file2 },
+                ],
+              },
+              { id: `${folder1}/${file1}`, name: file1 },
+              { id: `${folder1}/${file2}`, name: file2 },
+            ],
+          },
+          { id: file1, name: file1 },
+        ],
+      };
+
+      expect(buildTreePathList(tree)).toEqual([
+        `${folder1}/${folder2}/${file1}`,
+        `${folder1}/${folder2}/${file2}`,
+        `${folder1}/${file1}`,
+        `${folder1}/${file2}`,
+        file1,
       ]);
     });
   });

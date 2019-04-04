@@ -87,6 +87,16 @@ describe(__filename, () => {
       expect(_loadData).toHaveBeenCalledWith();
     });
 
+    it('does not dispatch anything when version is undefined', () => {
+      const store = configureStore();
+
+      const dispatch = spyOn(store, 'dispatch');
+
+      render({ store });
+
+      expect(dispatch).not.toHaveBeenCalled();
+    });
+
     it('dispatches buildTree when tree is undefined', () => {
       const store = configureStore();
       const version = getVersion({ store });
@@ -111,7 +121,61 @@ describe(__filename, () => {
 
       render({ store, versionId: version.id });
 
-      expect(dispatch).not.toHaveBeenCalled();
+      expect(dispatch).not.toHaveBeenCalledWith(
+        fileTreeActions.buildTree({
+          version,
+        }),
+      );
+    });
+
+    it('dispatches buildTreePathList when treePathList is undefined', () => {
+      const store = configureStore();
+      const version = getVersion({ store });
+      _buildTree(store, version);
+
+      const dispatch = spyOn(store, 'dispatch');
+
+      render({ store, versionId: version.id });
+
+      expect(dispatch).toHaveBeenCalledWith(
+        fileTreeActions.buildTreePathList({
+          versionId: version.id,
+        }),
+      );
+    });
+
+    it('does not dispatch buildTreePathList when tree is not defined', () => {
+      const store = configureStore();
+      const version = getVersion({ store });
+
+      const dispatch = spyOn(store, 'dispatch');
+
+      render({ store, versionId: version.id });
+
+      expect(dispatch).not.toHaveBeenCalledWith(
+        fileTreeActions.buildTreePathList({
+          versionId: version.id,
+        }),
+      );
+    });
+
+    it('does not dispatch buildTreePathList when treePathList is defined', () => {
+      const store = configureStore();
+      const version = getVersion({ store });
+      _buildTree(store, version);
+      store.dispatch(
+        fileTreeActions.buildTreePathList({ versionId: version.id }),
+      );
+
+      const dispatch = spyOn(store, 'dispatch');
+
+      render({ store, versionId: version.id });
+
+      expect(dispatch).not.toHaveBeenCalledWith(
+        fileTreeActions.buildTreePathList({
+          versionId: version.id,
+        }),
+      );
     });
 
     it('renders a ListGroup component with a Treefold', () => {

@@ -15,6 +15,7 @@ import {
   TreeNode,
   actions as fileTreeActions,
   getTree,
+  getTreePathList,
 } from '../../reducers/fileTree';
 import {
   Version,
@@ -39,6 +40,7 @@ export type DefaultProps = {
 
 type PropsFromState = {
   tree: DirectoryNode | void;
+  treePathList: string[] | void;
   version: Version | void;
 };
 
@@ -66,10 +68,15 @@ export class FileTreeBase extends React.Component<Props> {
   }
 
   _loadData = () => {
-    const { dispatch, tree, version } = this.props;
+    const { dispatch, tree, treePathList, version } = this.props;
 
-    if (version && !tree) {
-      dispatch(fileTreeActions.buildTree({ version }));
+    if (version) {
+      if (!tree) {
+        dispatch(fileTreeActions.buildTree({ version }));
+      } else if (!treePathList) {
+        console.log(tree);
+        dispatch(fileTreeActions.buildTreePathList({ versionId: version.id }));
+      }
     }
   };
 
@@ -190,6 +197,9 @@ const mapStateToProps = (
 
   return {
     tree: version ? getTree(state.fileTree, version.id) : undefined,
+    treePathList: version
+      ? getTreePathList(state.fileTree, version.id)
+      : undefined,
     version,
   };
 };
