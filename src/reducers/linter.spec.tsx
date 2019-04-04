@@ -430,10 +430,9 @@ describe(__filename, () => {
       const { thunk } = _fetchLinterMessages({ url });
       await thunk();
 
-      expect(fetchMock).toHaveBeenCalledWith(
-        makeApiURL({ path: url, version: null, prefix: null }),
-        { credentials: 'include' },
-      );
+      expect(fetchMock).toHaveBeenCalledWith(makeApiURL({ url }), {
+        credentials: 'include',
+      });
     });
 
     it('dispatches beginFetchLinterResult', async () => {

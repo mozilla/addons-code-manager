@@ -159,26 +159,33 @@ export const createServer = ({
     }
 
     app.use(
-      proxy(['/api/**', '/**/validation.json'], {
-        target: env.REACT_APP_API_HOST,
-        autoRewrite: true,
-        changeOrigin: true,
-        cookieDomainRewrite: '',
-        protocolRewrite: 'http',
-        secure: false,
-        onProxyRes: (proxyResponse: http.IncomingMessage) => {
-          // We make cookies unsecure because local development uses http and
-          // not https. Without this change, the server code would not be able
-          // to read the cookie that stores the authentication token.
-          if (proxyResponse.headers['set-cookie']) {
-            const cookies = proxyResponse.headers['set-cookie'].map(
-              (cookie: string) => cookie.replace(/;\s*?(Secure)/i, ''),
-            );
-            // eslint-disable-next-line no-param-reassign
-            proxyResponse.headers['set-cookie'] = cookies;
-          }
+      proxy(
+        [
+          '/api/**',
+          '/**/validation.json',
+          '/**/reviewers/download-git-file/**/',
+        ],
+        {
+          target: env.REACT_APP_API_HOST,
+          autoRewrite: true,
+          changeOrigin: true,
+          cookieDomainRewrite: '',
+          protocolRewrite: 'http',
+          secure: false,
+          onProxyRes: (proxyResponse: http.IncomingMessage) => {
+            // We make cookies unsecure because local development uses http and
+            // not https. Without this change, the server code would not be able
+            // to read the cookie that stores the authentication token.
+            if (proxyResponse.headers['set-cookie']) {
+              const cookies = proxyResponse.headers['set-cookie'].map(
+                (cookie: string) => cookie.replace(/;\s*?(Secure)/i, ''),
+              );
+              // eslint-disable-next-line no-param-reassign
+              proxyResponse.headers['set-cookie'] = cookies;
+            }
+          },
         },
-      }),
+      ),
     );
   }
 
