@@ -761,7 +761,7 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
 
       const headVersion = getVersionInfo(state, headVersionId);
       if (!headVersion) {
-        _log.debug(`Version missing for headVersionId: ${headVersionId}`);
+        _log.error(`Version missing for headVersionId: ${headVersionId}`);
         return state;
       }
 

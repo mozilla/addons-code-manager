@@ -353,21 +353,12 @@ describe(__filename, () => {
       expect(versionsState).toEqual(previousState);
     });
 
-    it('logs a debug message when headVersion is missing on loadDiff()', () => {
+    it('logs an error message when headVersion is missing on loadDiff()', () => {
       const addonId = 1;
       const baseVersionId = 2;
-      const path = 'some/other/file.js';
-      const _log = createFakeLogger();
-
-      const version = {
-        ...fakeVersionWithDiff,
-        file: {
-          ...fakeVersionWithDiff.file,
-          // eslint-disable-next-line @typescript-eslint/camelcase
-          selected_file: path,
-        },
-      };
+      const version = fakeVersionWithDiff;
       const headVersionId = version.id;
+      const _log = createFakeLogger();
 
       const versionsState = reducer(
         undefined,
@@ -382,7 +373,7 @@ describe(__filename, () => {
         { _log },
       );
 
-      expect(_log.debug).toHaveBeenCalled();
+      expect(_log.error).toHaveBeenCalled();
       expect(versionsState).toEqual(initialState);
     });
   });

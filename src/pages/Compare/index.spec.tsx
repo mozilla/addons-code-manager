@@ -129,17 +129,11 @@ describe(__filename, () => {
   });
 
   it('renders a loading message when no diff has been loaded', () => {
-    const addonId = 123;
-    const baseVersionId = 1;
-    const version = { ...fakeVersionWithDiff, id: baseVersionId + 1 };
+    const version = fakeVersionWithDiff;
     const store = configureStore();
     store.dispatch(versionsActions.loadVersionInfo({ version }));
 
-    const root = render({
-      addonId: String(addonId),
-      headVersionId: String(version.id),
-      store,
-    });
+    const root = render({ headVersionId: String(version.id), store });
 
     expect(root.find(Loading)).toHaveLength(1);
     expect(root.find(Loading)).toHaveProp('message', 'Loading diff...');
