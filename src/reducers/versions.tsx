@@ -7,7 +7,7 @@ import { ThunkActionCreator } from '../configureStore';
 import { getDiff, getVersion, getVersionsList, isErrorResponse } from '../api';
 import { LocalizedStringMap } from '../utils';
 import { actions as errorsActions } from './errors';
-import { getRootPath } from '../components/FileTree';
+import { getRootPath } from './fileTree';
 
 type VersionCompatibility = {
   [appName: string]: {
