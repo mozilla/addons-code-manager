@@ -40,7 +40,7 @@ type PropsFromState = {
   apiState: ApiState;
   file: VersionFile | null | void;
   fileIsLoading: boolean;
-  version: Version;
+  version: Version | void;
 };
 
 export type Props = RouteComponentProps<PropsFromRouter> &

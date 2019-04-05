@@ -352,6 +352,30 @@ describe(__filename, () => {
       expect(_log.debug).toHaveBeenCalled();
       expect(versionsState).toEqual(previousState);
     });
+
+    it('logs an error message when headVersion is missing on loadDiff()', () => {
+      const addonId = 1;
+      const baseVersionId = 2;
+      const version = fakeVersionWithDiff;
+      const headVersionId = version.id;
+      const _log = createFakeLogger();
+
+      const versionsState = reducer(
+        undefined,
+        actions.loadDiff({
+          addonId,
+          baseVersionId,
+          headVersionId,
+          version,
+        }),
+        // TS looks confused about the third optional argument.
+        // @ts-ignore
+        { _log },
+      );
+
+      expect(_log.error).toHaveBeenCalled();
+      expect(versionsState).toEqual(initialState);
+    });
   });
 
   describe('createInternalVersionAddon', () => {
