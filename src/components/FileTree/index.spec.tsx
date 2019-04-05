@@ -32,10 +32,10 @@ describe(__filename, () => {
     const getVersion = ({
       store = configureStore(),
       version = fakeVersion,
-    }) => {
+    }): Version => {
       store.dispatch(versionActions.loadVersionInfo({ version }));
 
-      return getVersionInfo(store.getState().versions, version.id);
+      return getVersionInfo(store.getState().versions, version.id) as Version;
     };
 
     type RenderParams = {
