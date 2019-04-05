@@ -81,9 +81,8 @@ describe(__filename, () => {
 
       const root = render({ _loadData, store, versionId: version.id });
 
-      _loadData.mockClear();
       // Simulate an update.
-      root.setProps({});
+      root.setProps({ versionId: version.id + 1 });
 
       expect(_loadData).toHaveBeenCalledWith();
     });
