@@ -98,9 +98,10 @@ export const buildFileTree = (version: Version): DirectoryNode => {
 
           if (foundNode) {
             currentNode = foundNode;
+          } else {
+            // This should not happen, but throw an exception if it does.
+            throw new Error(`Could not find parent of entry: ${entry.path}`);
           }
-
-          // TODO: this should not happen but what if we don't find a node?
         }
       }
 
@@ -148,9 +149,9 @@ export const actions = {
 
 export const getTree = (
   treeState: FileTreeState,
-  version: Version | void,
+  versionId: number,
 ): void | DirectoryNode => {
-  if (!version || treeState.forVersionId !== version.id) {
+  if (treeState.forVersionId !== versionId) {
     return undefined;
   }
   return treeState.tree;

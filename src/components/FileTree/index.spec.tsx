@@ -65,17 +65,21 @@ describe(__filename, () => {
     };
 
     it('calls loadData on construction', () => {
+      const store = configureStore();
+      const version = getVersion({ store });
       const _loadData = jest.fn();
 
-      render({ _loadData });
+      render({ _loadData, store, versionId: version.id });
 
       expect(_loadData).toHaveBeenCalled();
     });
 
     it('calls loadData on update', () => {
+      const store = configureStore();
+      const version = getVersion({ store });
       const _loadData = jest.fn();
 
-      const root = render({ _loadData });
+      const root = render({ _loadData, store, versionId: version.id });
 
       _loadData.mockClear();
       // Simulate an update.

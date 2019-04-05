@@ -189,7 +189,7 @@ const mapStateToProps = (
   }
 
   return {
-    tree: getTree(state.fileTree, version),
+    tree: version ? getTree(state.fileTree, version.id) : undefined,
     version,
   };
 };

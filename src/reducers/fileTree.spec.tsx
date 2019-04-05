@@ -34,14 +34,14 @@ describe(__filename, () => {
       const version = createInternalVersion(fakeVersion);
       const state = reducer(undefined, actions.buildTree({ version }));
 
-      expect(getTree(state, version)).toEqual(buildFileTree(version));
+      expect(getTree(state, version.id)).toEqual(buildFileTree(version));
     });
 
     it('returns undefined if there is no tree loaded', () => {
       const version = createInternalVersion(fakeVersion);
       const state = initialState;
 
-      expect(getTree(state, version)).toEqual(undefined);
+      expect(getTree(state, version.id)).toEqual(undefined);
     });
 
     it('returns undefined if a version is requested that has not been loaded', () => {
@@ -52,13 +52,7 @@ describe(__filename, () => {
         actions.buildTree({ version: version2 }),
       );
 
-      expect(getTree(state, version1)).toEqual(undefined);
-    });
-
-    it('returns undefined if no version is passed', () => {
-      const state = initialState;
-
-      expect(getTree(state, undefined)).toEqual(undefined);
+      expect(getTree(state, version1.id)).toEqual(undefined);
     });
   });
 
@@ -160,6 +154,32 @@ describe(__filename, () => {
           ],
         },
       ]);
+    });
+
+    it('throws an error when it cannot find the appropriate node to add a new entry to', () => {
+      const directory = 'parent';
+      const file = 'child';
+      const badDirectoryName = 'incorrect-directory-name';
+
+      const entries = [
+        createInternalVersionEntry({
+          ...fakeVersionEntry,
+          filename: directory,
+          mime_category: 'directory',
+        }),
+        createInternalVersionEntry({
+          ...fakeVersionEntry,
+          depth: 1,
+          filename: file,
+          mime_category: 'text',
+          path: `${badDirectoryName}/${file}`,
+        }),
+      ];
+      const version = createVersionWithEntries(entries);
+
+      expect(() => {
+        buildFileTree(version);
+      }).toThrow(`Could not find parent of entry: ${badDirectoryName}/${file}`);
     });
 
     it('traverses multiple levels to find the right directory', () => {
