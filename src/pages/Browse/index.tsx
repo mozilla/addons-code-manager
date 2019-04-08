@@ -7,6 +7,7 @@ import log from 'loglevel';
 import { ApplicationState } from '../../reducers';
 import { ConnectedReduxProps } from '../../configureStore';
 import { ApiState } from '../../reducers/api';
+import CodeOverview from '../../components/CodeOverview';
 import FileTree from '../../components/FileTree';
 import {
   Version,
@@ -152,14 +153,21 @@ export class BrowseBase extends React.Component<Props> {
             </Row>
           )}
         </Col>
-        <Col md="9">
-          {file ? (
-            <CodeView
-              mimeType={file.mimeType}
-              content={file.content}
-              version={version}
-            />
-          ) : (
+        {file ? (
+          <React.Fragment>
+            <Col md="1">
+              <CodeOverview content={file.content} version={version} />
+            </Col>
+            <Col md="8">
+              <CodeView
+                mimeType={file.mimeType}
+                content={file.content}
+                version={version}
+              />
+            </Col>
+          </React.Fragment>
+        ) : (
+          <Col md="9">
             <Loading message={gettext('Loading content...')} />
           )}
         </Col>
