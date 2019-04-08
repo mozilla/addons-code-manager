@@ -3,6 +3,7 @@ import reducer, {
   DirectoryNode,
   actions,
   buildFileTree,
+  buildFileTreeNodes,
   buildTreePathList,
   getRootPath,
   initialState,
@@ -21,15 +22,11 @@ describe(__filename, () => {
     it('builds and loads a tree', () => {
       const version = createInternalVersion(fakeVersion);
       const state = reducer(undefined, actions.buildTree({ version }));
-      const nodes = buildFileTree(version);
 
       expect(state).toEqual({
         ...initialState,
         forVersionId: version.id,
-        tree: {
-          nodes,
-          pathList: buildTreePathList(nodes),
-        },
+        tree: buildFileTree(version),
       });
     });
   });
@@ -38,12 +35,8 @@ describe(__filename, () => {
     it('returns a tree', () => {
       const version = createInternalVersion(fakeVersion);
       const state = reducer(undefined, actions.buildTree({ version }));
-      const nodes = buildFileTree(version);
 
-      expect(getTree(state, version.id)).toEqual({
-        nodes,
-        pathList: buildTreePathList(nodes),
-      });
+      expect(getTree(state, version.id)).toEqual(buildFileTree(version));
     });
 
     it('returns undefined if there is no tree loaded', () => {
@@ -77,7 +70,7 @@ describe(__filename, () => {
       const version = createVersionWithEntries([]);
       const addonName = getLocalizedString(version.addon.name);
 
-      const tree = buildFileTree(version);
+      const tree = buildFileTreeNodes(version);
 
       expect(tree).toEqual({
         id: `root-${addonName}`,
@@ -97,7 +90,7 @@ describe(__filename, () => {
       ];
       const version = createVersionWithEntries(entries);
 
-      const tree = buildFileTree(version);
+      const tree = buildFileTreeNodes(version);
 
       expect(tree.children).toEqual([
         {
@@ -118,7 +111,7 @@ describe(__filename, () => {
       ];
       const version = createVersionWithEntries(entries);
 
-      const tree = buildFileTree(version);
+      const tree = buildFileTreeNodes(version);
 
       expect(tree.children).toEqual([
         {
@@ -149,7 +142,7 @@ describe(__filename, () => {
       ];
       const version = createVersionWithEntries(entries);
 
-      const tree = buildFileTree(version);
+      const tree = buildFileTreeNodes(version);
 
       expect(tree.children).toEqual([
         {
@@ -187,7 +180,7 @@ describe(__filename, () => {
       const version = createVersionWithEntries(entries);
 
       expect(() => {
-        buildFileTree(version);
+        buildFileTreeNodes(version);
       }).toThrow(`Could not find parent of entry: ${badDirectoryName}/${file}`);
     });
 
@@ -218,7 +211,7 @@ describe(__filename, () => {
       ];
       const version = createVersionWithEntries(entries);
 
-      const data = buildFileTree(version);
+      const data = buildFileTreeNodes(version);
 
       expect(data.children).toEqual([
         {
@@ -260,7 +253,7 @@ describe(__filename, () => {
       ];
       const version = createVersionWithEntries(entries);
 
-      const tree = buildFileTree(version);
+      const tree = buildFileTreeNodes(version);
 
       expect(tree.children).toEqual([
         {
@@ -297,7 +290,7 @@ describe(__filename, () => {
       ];
       const version = createVersionWithEntries(entries);
 
-      const tree = buildFileTree(version);
+      const tree = buildFileTreeNodes(version);
 
       expect(tree.children).toEqual([
         {
@@ -330,7 +323,7 @@ describe(__filename, () => {
       ];
       const version = createVersionWithEntries(entries);
 
-      const tree = buildFileTree(version);
+      const tree = buildFileTreeNodes(version);
 
       expect(tree.children).toEqual([
         {
@@ -369,7 +362,7 @@ describe(__filename, () => {
       ];
       const version = createVersionWithEntries(entries);
 
-      const tree = buildFileTree(version);
+      const tree = buildFileTreeNodes(version);
       const firstNode = tree.children[0] as DirectoryNode;
 
       expect(firstNode.children).toEqual([
@@ -408,7 +401,7 @@ describe(__filename, () => {
       ];
       const version = createVersionWithEntries(entries);
 
-      const tree = buildFileTree(version);
+      const tree = buildFileTreeNodes(version);
       const firstNode = tree.children[0] as DirectoryNode;
 
       expect(firstNode.children).toEqual([

@@ -133,7 +133,9 @@ describe(__filename, () => {
 
       expect(root.find(ListGroup)).toHaveLength(1);
       expect(root.find(Treefold)).toHaveLength(1);
-      expect(root.find(Treefold)).toHaveProp('nodes', [buildFileTree(version)]);
+      expect(root.find(Treefold)).toHaveProp('nodes', [
+        buildFileTree(version).nodes,
+      ]);
     });
 
     it('passes the onSelect prop to FileTreeNode', () => {

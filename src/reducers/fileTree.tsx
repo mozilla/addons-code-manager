@@ -49,7 +49,7 @@ export const getRootPath = (version: Version) => {
   return `root-${getVersionName(version)}`;
 };
 
-export const buildFileTree = (version: Version): DirectoryNode => {
+export const buildFileTreeNodes = (version: Version): DirectoryNode => {
   const { entries } = version;
   const root: DirectoryNode = {
     id: getRootPath(version),
@@ -149,6 +149,14 @@ export const buildTreePathList = (nodes: DirectoryNode): string[] => {
   return treePathList;
 };
 
+export const buildFileTree = (version: Version): FileTree => {
+  const nodes = buildFileTreeNodes(version);
+  return {
+    nodes,
+    pathList: buildTreePathList(nodes),
+  };
+};
+
 export type FileTree = {
   nodes: DirectoryNode | void;
   pathList: string[] | void;
@@ -187,13 +195,12 @@ const reducer: Reducer<FileTreeState, ActionType<typeof actions>> = (
   switch (action.type) {
     case getType(actions.buildTree): {
       const { version } = action.payload;
-      const nodes = buildFileTree(version);
-      const pathList = buildTreePathList(nodes);
+      const tree = buildFileTree(version);
 
       return {
         ...state,
         forVersionId: version.id,
-        tree: { nodes, pathList },
+        tree,
       };
     }
     default:

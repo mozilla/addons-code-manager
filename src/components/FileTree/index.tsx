@@ -11,7 +11,7 @@ import FileTreeNode, {
 import Loading from '../Loading';
 import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
 import {
-  DirectoryNode,
+  FileTree,
   TreeNode,
   actions as fileTreeActions,
   getTree,
@@ -38,7 +38,7 @@ export type DefaultProps = {
 };
 
 type PropsFromState = {
-  treeNodes: DirectoryNode | void;
+  treeNodes: FileTree['nodes'] | void;
   version: Version | void;
 };
 
