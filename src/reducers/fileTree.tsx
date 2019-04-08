@@ -1,7 +1,9 @@
+import log from 'loglevel';
 import { Reducer } from 'redux';
 import { ActionType, createAction, getType } from 'typesafe-actions';
 
-import { Version } from './versions';
+import { Version, actions as versionActions } from './versions';
+import { ThunkActionCreator } from '../configureStore';
 import { getLocalizedString } from '../utils';
 
 type FileNode = {
@@ -154,6 +156,74 @@ export const buildFileTree = (version: Version): FileTree => {
   return {
     nodes,
     pathList: buildTreePathList(nodes),
+  };
+};
+
+type GetRelativePathParams = {
+  _log: typeof log;
+  currentPath: string;
+  pathList: string[];
+  position: 'previous' | 'next';
+};
+
+export const getRelativePath = ({
+  _log = log,
+  currentPath,
+  pathList,
+  position,
+}: GetRelativePathParams): string | void => {
+  const currentIndex = pathList.indexOf(currentPath);
+  if (!currentIndex) {
+    _log.debug(`Cannot find ${currentPath} in pathList: ${pathList}`);
+    return undefined;
+  }
+  const newIndex =
+    position === 'previous' ? currentIndex - 1 : currentIndex + 1;
+  const validIndex = newIndex >= 0 && pathList.length >= newIndex;
+  if (!validIndex) {
+    _log.debug(`There is not a ${position} file wrt ${currentPath}`);
+  }
+  return validIndex ? pathList[newIndex] : undefined;
+};
+
+type GoToNextFileParams = {
+  _log: typeof log;
+  currentPath: string;
+};
+
+export const goToNextFile = ({
+  _log = log,
+  currentPath,
+}: GoToNextFileParams): ThunkActionCreator => {
+  return async (dispatch, getState) => {
+    const { fileTree: fileTreeState } = getState();
+    const { forVersionId, tree } = fileTreeState;
+    const { pathList } = tree;
+
+    if (!forVersionId || !pathList) {
+      _log.debug('Cannot navigate to next file with no version loaded');
+      return;
+    }
+
+    const nextPath = getRelativePath({
+      _log,
+      currentPath,
+      pathList,
+      position: 'next',
+    });
+
+    if (!nextPath) {
+      // There is no next file, so do nothing.
+      // TODO: I don't think we need to log in this case.
+      return;
+    }
+
+    dispatch(
+      versionActions.updateSelectedPath({
+        selectedPath: nextPath,
+        versionId: forVersionId,
+      }),
+    );
   };
 };
 
