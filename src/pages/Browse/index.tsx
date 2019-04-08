@@ -155,15 +155,15 @@ export class BrowseBase extends React.Component<Props> {
         </Col>
         {file ? (
           <React.Fragment>
-            <Col md="1">
-              <CodeOverview content={file.content} version={version} />
-            </Col>
             <Col md="8">
               <CodeView
                 mimeType={file.mimeType}
                 content={file.content}
                 version={version}
               />
+            </Col>
+            <Col md="1">
+              <CodeOverview content={file.content} version={version} />
             </Col>
           </React.Fragment>
         ) : (
