@@ -7,7 +7,6 @@ import reducer, {
   getRootPath,
   initialState,
   getTree,
-  getTreePathList,
 } from './fileTree';
 import { createInternalVersion, createInternalVersionEntry } from './versions';
 import {
@@ -22,28 +21,15 @@ describe(__filename, () => {
     it('builds and loads a tree', () => {
       const version = createInternalVersion(fakeVersion);
       const state = reducer(undefined, actions.buildTree({ version }));
+      const nodes = buildFileTree(version);
 
       expect(state).toEqual({
         ...initialState,
         forVersionId: version.id,
-        tree: buildFileTree(version),
-      });
-    });
-
-    it('builds and loads a treePathList', () => {
-      const version = createInternalVersion(fakeVersion);
-      let state = reducer(undefined, actions.buildTree({ version }));
-      const tree = getTree(state, version.id) as DirectoryNode;
-      state = reducer(
-        state,
-        actions.buildTreePathList({ versionId: version.id }),
-      );
-
-      expect(state).toEqual({
-        ...initialState,
-        forVersionId: version.id,
-        tree: buildFileTree(version),
-        treePathList: buildTreePathList(tree),
+        tree: {
+          nodes,
+          pathList: buildTreePathList(nodes),
+        },
       });
     });
   });
@@ -52,8 +38,12 @@ describe(__filename, () => {
     it('returns a tree', () => {
       const version = createInternalVersion(fakeVersion);
       const state = reducer(undefined, actions.buildTree({ version }));
+      const nodes = buildFileTree(version);
 
-      expect(getTree(state, version.id)).toEqual(buildFileTree(version));
+      expect(getTree(state, version.id)).toEqual({
+        nodes,
+        pathList: buildTreePathList(nodes),
+      });
     });
 
     it('returns undefined if there is no tree loaded', () => {
@@ -72,45 +62,6 @@ describe(__filename, () => {
       );
 
       expect(getTree(state, version1.id)).toEqual(undefined);
-    });
-  });
-
-  describe('getTreePathList', () => {
-    it('returns a treePathList', () => {
-      const version = createInternalVersion(fakeVersion);
-      let state = reducer(undefined, actions.buildTree({ version }));
-      const tree = getTree(state, version.id) as DirectoryNode;
-      state = reducer(
-        state,
-        actions.buildTreePathList({ versionId: version.id }),
-      );
-
-      expect(getTreePathList(state, version.id)).toEqual(
-        buildTreePathList(tree),
-      );
-    });
-
-    it('returns undefined if there is no treePathList loaded', () => {
-      const version = createInternalVersion(fakeVersion);
-      const state = reducer(undefined, actions.buildTree({ version }));
-
-      expect(getTreePathList(state, version.id)).toEqual(undefined);
-    });
-
-    it('returns undefined if a version is requested that has not been loaded', () => {
-      const version1id = 1;
-      const version2id = 2;
-      const version1 = createInternalVersion({
-        ...fakeVersion,
-        id: version1id,
-      });
-      let state = reducer(undefined, actions.buildTree({ version: version1 }));
-      state = reducer(
-        state,
-        actions.buildTreePathList({ versionId: version1id }),
-      );
-
-      expect(getTreePathList(state, version2id)).toEqual(undefined);
     });
   });
 

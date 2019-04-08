@@ -15,7 +15,6 @@ import {
   TreeNode,
   actions as fileTreeActions,
   getTree,
-  getTreePathList,
 } from '../../reducers/fileTree';
 import {
   Version,
@@ -39,8 +38,7 @@ export type DefaultProps = {
 };
 
 type PropsFromState = {
-  tree: DirectoryNode | void;
-  treePathList: string[] | void;
+  treeNodes: DirectoryNode | void;
   version: Version | void;
 };
 
@@ -68,15 +66,10 @@ export class FileTreeBase extends React.Component<Props> {
   }
 
   _loadData = () => {
-    const { dispatch, tree, treePathList, version } = this.props;
+    const { dispatch, treeNodes, version } = this.props;
 
-    if (version) {
-      if (!tree) {
-        dispatch(fileTreeActions.buildTree({ version }));
-      } else if (!treePathList) {
-        console.log(tree);
-        dispatch(fileTreeActions.buildTreePathList({ versionId: version.id }));
-      }
+    if (version && !treeNodes) {
+      dispatch(fileTreeActions.buildTree({ version }));
     }
   };
 
@@ -139,9 +132,9 @@ export class FileTreeBase extends React.Component<Props> {
   };
 
   render() {
-    const { tree, version } = this.props;
+    const { treeNodes, version } = this.props;
 
-    if (!version || !tree) {
+    if (!version || !treeNodes) {
       return <Loading message={gettext('Loading version...')} />;
     }
 
@@ -170,7 +163,7 @@ export class FileTreeBase extends React.Component<Props> {
           </Button>
         </div>
         <Treefold
-          nodes={[tree]}
+          nodes={[treeNodes]}
           render={this.renderNode}
           isNodeExpanded={this.isNodeExpanded}
           onToggleExpand={this.onToggleExpand}
@@ -195,11 +188,11 @@ const mapStateToProps = (
     _log.warn(`No version was loaded for version: `, versionId);
   }
 
+  const tree = version ? getTree(state.fileTree, version.id) : undefined;
+  const treeNodes = tree ? tree.nodes : undefined;
+
   return {
-    tree: version ? getTree(state.fileTree, version.id) : undefined,
-    treePathList: version
-      ? getTreePathList(state.fileTree, version.id)
-      : undefined,
+    treeNodes,
     version,
   };
 };

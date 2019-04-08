@@ -1,4 +1,3 @@
-import log from 'loglevel';
 import { Reducer } from 'redux';
 import { ActionType, createAction, getType } from 'typesafe-actions';
 
@@ -132,7 +131,7 @@ export const buildFileTree = (version: Version): DirectoryNode => {
   return root;
 };
 
-export const buildTreePathList = (tree: DirectoryNode): string[] => {
+export const buildTreePathList = (nodes: DirectoryNode): string[] => {
   const treePathList: string[] = [];
 
   const extractPaths = (node: TreeNode) => {
@@ -145,80 +144,56 @@ export const buildTreePathList = (tree: DirectoryNode): string[] => {
     }
   };
 
-  extractPaths(tree);
+  extractPaths(nodes);
 
   return treePathList;
 };
 
+export type FileTree = {
+  nodes: DirectoryNode | void;
+  pathList: string[] | void;
+};
+
 export type FileTreeState = {
   forVersionId: void | number;
-  tree: DirectoryNode | void;
-  treePathList: string[] | void;
+  tree: FileTree;
 };
 
 export const initialState: FileTreeState = {
   forVersionId: undefined,
-  tree: undefined,
-  treePathList: undefined,
+  tree: { nodes: undefined, pathList: undefined },
 };
 
 export const actions = {
   buildTree: createAction('BUILD_TREE', (resolve) => {
     return (payload: { version: Version }) => resolve(payload);
   }),
-  buildTreePathList: createAction('BUILD_TREE_PATH_LIST', (resolve) => {
-    return (payload: { versionId: number }) => resolve(payload);
-  }),
 };
 
 export const getTree = (
   treeState: FileTreeState,
   versionId: number,
-): void | DirectoryNode => {
+): void | FileTree => {
   if (treeState.forVersionId !== versionId) {
     return undefined;
   }
   return treeState.tree;
 };
 
-export const getTreePathList = (
-  treeState: FileTreeState,
-  versionId: number,
-): void | string[] => {
-  if (treeState.forVersionId !== versionId) {
-    return undefined;
-  }
-  return treeState.treePathList;
-};
-
 const reducer: Reducer<FileTreeState, ActionType<typeof actions>> = (
   state = initialState,
   action,
-  { _log = log } = {},
 ): FileTreeState => {
   switch (action.type) {
     case getType(actions.buildTree): {
       const { version } = action.payload;
-      const tree = buildFileTree(version);
+      const nodes = buildFileTree(version);
+      const pathList = buildTreePathList(nodes);
 
       return {
         ...state,
         forVersionId: version.id,
-        tree,
-      };
-    }
-    case getType(actions.buildTreePathList): {
-      const { versionId } = action.payload;
-      const { forVersionId, tree } = state;
-
-      if (!versionId || forVersionId !== versionId || !tree) {
-        _log.warn('No version loaded for versionId: ', versionId);
-        return state;
-      }
-
-      return {
-        ...state,
-        treePathList: buildTreePathList(tree),
+        tree: { nodes, pathList },
       };
     }
     default:
