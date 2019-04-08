@@ -1,6 +1,6 @@
 @import '../../scss/variables';
 
-.overview {
+.CodeOverview {
   border-radius: $border-radius;
   border: 1px solid $light-gray;
   height: 100vh;
@@ -16,12 +16,12 @@
 }
 
 .linterMessage,
-.codeLineWhitespace,
-.codeLine {
+.codeShapeWhitespace,
+.codeShape {
   border-radius: $border-radius;
 }
 
-.codeLine {
+.codeShape {
   background-color: $light-gray;
 }
 

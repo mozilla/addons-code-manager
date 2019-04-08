@@ -177,9 +177,9 @@ export default class CodeOverview extends React.Component<Props, State> {
 
       let className;
       if (shape.token === WHITESPACE_TOKEN) {
-        className = styles.codeLineWhitespace;
+        className = styles.codeShapeWhitespace;
       } else {
-        className = styles.codeLine;
+        className = styles.codeShape;
       }
 
       return (
@@ -249,7 +249,7 @@ export default class CodeOverview extends React.Component<Props, State> {
 
   renderWithLinterInfo = ({ selectedMessageMap }: LinterProviderInfo) => {
     return (
-      <div ref={this.overviewRef} className={styles.overview}>
+      <div ref={this.overviewRef} className={styles.CodeOverview}>
         {this.renderOverview(selectedMessageMap)}
       </div>
     );
