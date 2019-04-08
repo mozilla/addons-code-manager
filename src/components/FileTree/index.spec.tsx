@@ -87,6 +87,16 @@ describe(__filename, () => {
       expect(_loadData).toHaveBeenCalledWith();
     });
 
+    it('does not dispatch buildTree when version is undefined', () => {
+      const store = configureStore();
+
+      const dispatch = spyOn(store, 'dispatch');
+
+      render({ store });
+
+      expect(dispatch).not.toHaveBeenCalled();
+    });
+
     it('dispatches buildTree when tree is undefined', () => {
       const store = configureStore();
       const version = getVersion({ store });
@@ -123,7 +133,9 @@ describe(__filename, () => {
 
       expect(root.find(ListGroup)).toHaveLength(1);
       expect(root.find(Treefold)).toHaveLength(1);
-      expect(root.find(Treefold)).toHaveProp('nodes', [buildFileTree(version)]);
+      expect(root.find(Treefold)).toHaveProp('nodes', [
+        buildFileTree(version).nodes,
+      ]);
     });
 
     it('passes the onSelect prop to FileTreeNode', () => {

@@ -49,7 +49,7 @@ export const getRootPath = (version: Version) => {
   return `root-${getVersionName(version)}`;
 };
 
-export const buildFileTree = (version: Version): DirectoryNode => {
+export const buildFileTreeNodes = (version: Version): DirectoryNode => {
   const { entries } = version;
   const root: DirectoryNode = {
     id: getRootPath(version),
@@ -131,14 +131,45 @@ export const buildFileTree = (version: Version): DirectoryNode => {
   return root;
 };
 
+export const buildTreePathList = (nodes: DirectoryNode): string[] => {
+  const treePathList: string[] = [];
+
+  const extractPaths = (node: TreeNode) => {
+    if ('children' in node) {
+      for (const child of node.children) {
+        extractPaths(child);
+      }
+    } else {
+      treePathList.push(node.id);
+    }
+  };
+
+  extractPaths(nodes);
+
+  return treePathList;
+};
+
+export const buildFileTree = (version: Version): FileTree => {
+  const nodes = buildFileTreeNodes(version);
+  return {
+    nodes,
+    pathList: buildTreePathList(nodes),
+  };
+};
+
+export type FileTree = {
+  nodes: DirectoryNode | void;
+  pathList: string[] | void;
+};
+
 export type FileTreeState = {
   forVersionId: void | number;
-  tree: DirectoryNode | void;
+  tree: FileTree;
 };
 
 export const initialState: FileTreeState = {
   forVersionId: undefined,
-  tree: undefined,
+  tree: { nodes: undefined, pathList: undefined },
 };
 
 export const actions = {
@@ -150,7 +181,7 @@ export const actions = {
 export const getTree = (
   treeState: FileTreeState,
   versionId: number,
-): void | DirectoryNode => {
+): void | FileTree => {
   if (treeState.forVersionId !== versionId) {
     return undefined;
   }

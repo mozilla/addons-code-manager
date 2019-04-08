@@ -11,7 +11,7 @@ import FileTreeNode, {
 import Loading from '../Loading';
 import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
 import {
-  DirectoryNode,
+  FileTree,
   TreeNode,
   actions as fileTreeActions,
   getTree,
@@ -38,7 +38,7 @@ export type DefaultProps = {
 };
 
 type PropsFromState = {
-  tree: DirectoryNode | void;
+  treeNodes: FileTree['nodes'] | void;
   version: Version | void;
 };
 
@@ -66,9 +66,9 @@ export class FileTreeBase extends React.Component<Props> {
   }
 
   _loadData = () => {
-    const { dispatch, tree, version } = this.props;
+    const { dispatch, treeNodes, version } = this.props;
 
-    if (version && !tree) {
+    if (version && !treeNodes) {
       dispatch(fileTreeActions.buildTree({ version }));
     }
   };
@@ -132,9 +132,9 @@ export class FileTreeBase extends React.Component<Props> {
   };
 
   render() {
-    const { tree, version } = this.props;
+    const { treeNodes, version } = this.props;
 
-    if (!version || !tree) {
+    if (!version || !treeNodes) {
       return <Loading message={gettext('Loading version...')} />;
     }
 
@@ -163,7 +163,7 @@ export class FileTreeBase extends React.Component<Props> {
           </Button>
         </div>
         <Treefold
-          nodes={[tree]}
+          nodes={[treeNodes]}
           render={this.renderNode}
           isNodeExpanded={this.isNodeExpanded}
           onToggleExpand={this.onToggleExpand}
@@ -188,8 +188,11 @@ const mapStateToProps = (
     _log.warn(`No version was loaded for version: `, versionId);
   }
 
+  const tree = version ? getTree(state.fileTree, version.id) : undefined;
+  const treeNodes = tree ? tree.nodes : undefined;
+
   return {
-    tree: version ? getTree(state.fileTree, version.id) : undefined,
+    treeNodes,
     version,
   };
 };

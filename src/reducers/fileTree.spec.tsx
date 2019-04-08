@@ -3,6 +3,8 @@ import reducer, {
   DirectoryNode,
   actions,
   buildFileTree,
+  buildFileTreeNodes,
+  buildTreePathList,
   getRootPath,
   initialState,
   getTree,
@@ -68,7 +70,7 @@ describe(__filename, () => {
       const version = createVersionWithEntries([]);
       const addonName = getLocalizedString(version.addon.name);
 
-      const tree = buildFileTree(version);
+      const tree = buildFileTreeNodes(version);
 
       expect(tree).toEqual({
         id: `root-${addonName}`,
@@ -88,7 +90,7 @@ describe(__filename, () => {
       ];
       const version = createVersionWithEntries(entries);
 
-      const tree = buildFileTree(version);
+      const tree = buildFileTreeNodes(version);
 
       expect(tree.children).toEqual([
         {
@@ -109,7 +111,7 @@ describe(__filename, () => {
       ];
       const version = createVersionWithEntries(entries);
 
-      const tree = buildFileTree(version);
+      const tree = buildFileTreeNodes(version);
 
       expect(tree.children).toEqual([
         {
@@ -140,7 +142,7 @@ describe(__filename, () => {
       ];
       const version = createVersionWithEntries(entries);
 
-      const tree = buildFileTree(version);
+      const tree = buildFileTreeNodes(version);
 
       expect(tree.children).toEqual([
         {
@@ -178,7 +180,7 @@ describe(__filename, () => {
       const version = createVersionWithEntries(entries);
 
       expect(() => {
-        buildFileTree(version);
+        buildFileTreeNodes(version);
       }).toThrow(`Could not find parent of entry: ${badDirectoryName}/${file}`);
     });
 
@@ -209,7 +211,7 @@ describe(__filename, () => {
       ];
       const version = createVersionWithEntries(entries);
 
-      const data = buildFileTree(version);
+      const data = buildFileTreeNodes(version);
 
       expect(data.children).toEqual([
         {
@@ -251,7 +253,7 @@ describe(__filename, () => {
       ];
       const version = createVersionWithEntries(entries);
 
-      const tree = buildFileTree(version);
+      const tree = buildFileTreeNodes(version);
 
       expect(tree.children).toEqual([
         {
@@ -288,7 +290,7 @@ describe(__filename, () => {
       ];
       const version = createVersionWithEntries(entries);
 
-      const tree = buildFileTree(version);
+      const tree = buildFileTreeNodes(version);
 
       expect(tree.children).toEqual([
         {
@@ -321,7 +323,7 @@ describe(__filename, () => {
       ];
       const version = createVersionWithEntries(entries);
 
-      const tree = buildFileTree(version);
+      const tree = buildFileTreeNodes(version);
 
       expect(tree.children).toEqual([
         {
@@ -360,7 +362,7 @@ describe(__filename, () => {
       ];
       const version = createVersionWithEntries(entries);
 
-      const tree = buildFileTree(version);
+      const tree = buildFileTreeNodes(version);
       const firstNode = tree.children[0] as DirectoryNode;
 
       expect(firstNode.children).toEqual([
@@ -399,7 +401,7 @@ describe(__filename, () => {
       ];
       const version = createVersionWithEntries(entries);
 
-      const tree = buildFileTree(version);
+      const tree = buildFileTreeNodes(version);
       const firstNode = tree.children[0] as DirectoryNode;
 
       expect(firstNode.children).toEqual([
@@ -412,6 +414,47 @@ describe(__filename, () => {
           id: entries[2].path,
           name: 'A',
         },
+      ]);
+    });
+  });
+
+  describe('buildTreePathList', () => {
+    it('builds a treePathList from a tree', () => {
+      const file1 = 'file1.js';
+      const file2 = 'file2.js';
+      const folder1 = 'folder1';
+      const folder2 = 'folder2';
+
+      const tree: DirectoryNode = {
+        id: 'root',
+        name: 'addon name',
+        children: [
+          {
+            id: folder1,
+            name: folder1,
+            children: [
+              {
+                id: folder2,
+                name: folder2,
+                children: [
+                  { id: `${folder1}/${folder2}/${file1}`, name: file1 },
+                  { id: `${folder1}/${folder2}/${file2}`, name: file2 },
+                ],
+              },
+              { id: `${folder1}/${file1}`, name: file1 },
+              { id: `${folder1}/${file2}`, name: file2 },
+            ],
+          },
+          { id: file1, name: file1 },
+        ],
+      };
+
+      expect(buildTreePathList(tree)).toEqual([
+        `${folder1}/${folder2}/${file1}`,
+        `${folder1}/${folder2}/${file2}`,
+        `${folder1}/${file1}`,
+        `${folder1}/${file2}`,
+        file1,
       ]);
     });
   });
