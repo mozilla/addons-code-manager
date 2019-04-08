@@ -197,6 +197,8 @@ export default class CodeOverview extends React.Component<Props, State> {
       return null;
     }
 
+    // TODO: somehow synchronize with the $default-padding value? Hmm.
+
     // Calculate the height of the overview div minus $default-padding.
     const innerOverviewHeight = (this.state.overviewHeight || 0) - 20;
 
@@ -228,6 +230,7 @@ export default class CodeOverview extends React.Component<Props, State> {
       // Use the first line in the group.
       const line = shapes ? shapes[0].line : undefined;
 
+      // TODO: use a shared function for creating line anchor HREFs.
       content.push(
         <a
           href={`#${line ? `L${line}` : ''}`}
