@@ -1,0 +1,38 @@
+@import '../../scss/variables';
+
+.overview {
+  border-radius: $border-radius;
+  border: 1px solid $light-gray;
+  height: 100vh;
+  padding: $default-padding;
+  position: sticky;
+  top: 0;
+}
+
+.line {
+  display: flex;
+  line-height: 1;
+  width: 100%;
+}
+
+.linterMessage,
+.codeLineWhitespace,
+.codeLine {
+  border-radius: $border-radius;
+}
+
+.codeLine {
+  background-color: $light-gray;
+}
+
+.linterMessage {
+  width: 100%;
+}
+
+.linterError {
+  background-color: $red;
+}
+
+.linterWarning {
+  background-color: $orange;
+}
