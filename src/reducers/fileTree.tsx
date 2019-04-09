@@ -160,7 +160,7 @@ export const buildFileTree = (version: Version): FileTree => {
 };
 
 type GetRelativePathParams = {
-  _log: typeof log;
+  _log?: typeof log;
   currentPath: string;
   pathList: string[];
   position: 'previous' | 'next';
@@ -173,7 +173,7 @@ export const getRelativePath = ({
   position,
 }: GetRelativePathParams): string | void => {
   const currentIndex = pathList.indexOf(currentPath);
-  if (!currentIndex) {
+  if (currentIndex < 0) {
     _log.debug(`Cannot find ${currentPath} in pathList: ${pathList}`);
     return undefined;
   }

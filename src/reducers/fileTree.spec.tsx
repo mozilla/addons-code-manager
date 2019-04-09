@@ -5,12 +5,14 @@ import reducer, {
   buildFileTree,
   buildFileTreeNodes,
   buildTreePathList,
+  getRelativePath,
   getRootPath,
-  initialState,
   getTree,
+  initialState,
 } from './fileTree';
 import { createInternalVersion, createInternalVersionEntry } from './versions';
 import {
+  createFakeLogger,
   createVersionWithEntries,
   fakeVersion,
   fakeVersionEntry,
@@ -456,6 +458,58 @@ describe(__filename, () => {
         `${folder1}/${file2}`,
         file1,
       ]);
+    });
+  });
+
+  describe('getRelativePath', () => {
+    const file1 = 'file1.js';
+    const file2 = 'file2.js';
+    const file3 = 'file3.js';
+    const pathList = [file1, file2, file3];
+
+    it('returns the next file in the list', () => {
+      expect(
+        getRelativePath({ currentPath: file2, pathList, position: 'next' }),
+      ).toEqual(file3);
+    });
+
+    it('returns the previous file in the list', () => {
+      expect(
+        getRelativePath({ currentPath: file2, pathList, position: 'previous' }),
+      ).toEqual(file1);
+    });
+
+    it('wraps around to the first file in the list', () => {
+      expect(
+        getRelativePath({ currentPath: file3, pathList, position: 'next' }),
+      ).toEqual(file1);
+    });
+
+    it('wraps around to the last file in the list', () => {
+      expect(
+        getRelativePath({ currentPath: file1, pathList, position: 'previous' }),
+      ).toEqual(file3);
+    });
+
+    it('returns undefined if the currentPath is not found', () => {
+      expect(
+        getRelativePath({
+          currentPath: 'bad-file-name',
+          pathList,
+          position: 'previous',
+        }),
+      ).toEqual(undefined);
+    });
+
+    it('logs a debug message if the currentPath is not found', () => {
+      const _log = createFakeLogger();
+      getRelativePath({
+        _log,
+        currentPath: 'bad-file-name',
+        pathList,
+        position: 'previous',
+      });
+      expect(_log.debug).toHaveBeenCalled();
     });
   });
 });
