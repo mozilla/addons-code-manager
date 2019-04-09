@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 
 import { ConnectedReduxProps } from '../../configureStore';
 import {
-  PathList,
+  FileTree,
   RelativePathPosition,
   goToRelativeFile,
 } from '../../reducers/fileTree';
@@ -11,11 +11,11 @@ import { actions as versionsActions } from '../../reducers/versions';
 import styles from './styles.module.scss';
 import { gettext } from '../../utils';
 
-const keys = ['k', 'j', 'e', 'c', 'h'];
+const keys = ['k', 'j', 'e', 'c'];
 
 export type PublicProps = {
   currentPath: string;
-  pathList: PathList;
+  pathList: FileTree['pathList'];
   versionId: number;
 };
 
@@ -108,8 +108,6 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
           <dd>{gettext('Open all folders')}</dd>
           <dt>c</dt>
           <dd>{gettext('Close all folders')}</dd>
-          <dt>h</dt>
-          <dd>{gettext('Hide or unhide tree')}</dd>
         </dl>
       </div>
     );

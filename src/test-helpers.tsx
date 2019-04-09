@@ -541,6 +541,30 @@ export const createFakeEvent = (extraProps = {}) => {
   };
 };
 
+type CreateFakeKeyboardEventParams = {
+  altKey?: boolean;
+  ctrlKey?: boolean;
+  key: string;
+  metaKey?: boolean;
+  shiftKey?: boolean;
+};
+
+export const createFakeKeyboardEvent = ({
+  altKey = false,
+  ctrlKey = false,
+  key,
+  metaKey = false,
+  shiftKey = false,
+}: CreateFakeKeyboardEventParams) => {
+  return {
+    altKey,
+    ctrlKey,
+    key,
+    metaKey,
+    shiftKey,
+  };
+};
+
 /*
  * Given a component that uses <LinterProvider>, simulate the content
  * returned by <LinterProvider>
