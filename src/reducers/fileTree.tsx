@@ -177,13 +177,18 @@ export const getRelativePath = ({
     _log.debug(`Cannot find ${currentPath} in pathList: ${pathList}`);
     return undefined;
   }
-  const newIndex =
-    position === 'previous' ? currentIndex - 1 : currentIndex + 1;
-  const validIndex = newIndex >= 0 && pathList.length >= newIndex;
-  if (!validIndex) {
-    _log.debug(`There is not a ${position} file wrt ${currentPath}`);
+  let newIndex = position === 'previous' ? currentIndex - 1 : currentIndex + 1;
+  if (newIndex < 0) {
+    // We are at the first file and the user selected 'previous', so go to the
+    // last file.
+    newIndex = pathList.length - 1;
+  } else if (newIndex >= pathList.length) {
+    // We are at the last file and the user selected 'next', so go to the
+    // first file.
+    newIndex = 0;
   }
-  return validIndex ? pathList[newIndex] : undefined;
+
+  return pathList[newIndex];
 };
 
 type GoToNextFileParams = {
