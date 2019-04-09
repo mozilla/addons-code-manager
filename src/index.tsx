@@ -34,7 +34,9 @@ const render = (AppComponent: typeof App) => {
 
 render(App);
 
+/* istanbul ignore next */
 if (module.hot) {
+  /* istanbul ignore next */
   module.hot.accept('./components/App', () => {
     // eslint-disable-next-line global-require
     const NextApp = require('./components/App').default;

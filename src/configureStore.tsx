@@ -54,7 +54,9 @@ const configureStore = (
   const store = createStore(createRootReducer(), preloadedState, middleware);
 
   if (isDevelopment) {
+    /* istanbul ignore next */
     if (module.hot) {
+      /* istanbul ignore next */
       module.hot.accept('./reducers', () => {
         store.replaceReducer(createRootReducer());
       });
