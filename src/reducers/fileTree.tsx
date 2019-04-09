@@ -229,18 +229,18 @@ export const goToRelativeFile = ({
 };
 
 export type FileTree = {
-  nodes: DirectoryNode | void;
-  pathList: string[] | void;
+  nodes: DirectoryNode;
+  pathList: string[];
 };
 
 export type FileTreeState = {
   forVersionId: void | number;
-  tree: FileTree;
+  tree: void | FileTree;
 };
 
 export const initialState: FileTreeState = {
   forVersionId: undefined,
-  tree: { nodes: undefined, pathList: undefined },
+  tree: undefined,
 };
 
 export const actions = {
