@@ -159,11 +159,16 @@ export const buildFileTree = (version: Version): FileTree => {
   };
 };
 
+export enum RelativePathPosition {
+  next,
+  previous,
+}
+
 type GetRelativePathParams = {
   _log?: typeof log;
   currentPath: string;
   pathList: string[];
-  position: 'previous' | 'next';
+  position: RelativePathPosition;
 };
 
 export const getRelativePath = ({
@@ -177,7 +182,10 @@ export const getRelativePath = ({
     _log.debug(`Cannot find ${currentPath} in pathList: ${pathList}`);
     return undefined;
   }
-  let newIndex = position === 'previous' ? currentIndex - 1 : currentIndex + 1;
+  let newIndex =
+    position === RelativePathPosition.previous
+      ? currentIndex - 1
+      : currentIndex + 1;
   if (newIndex < 0) {
     // We are at the first file and the user selected 'previous', so go to the
     // last file.
@@ -191,42 +199,43 @@ export const getRelativePath = ({
   return pathList[newIndex];
 };
 
-type GoToNextFileParams = {
-  _log: typeof log;
+type GoToRelativeFileParams = {
+  _getRelativePath?: typeof getRelativePath;
+  _log?: typeof log;
   currentPath: string;
+  pathList: string[];
+  position: RelativePathPosition;
+  versionId: number;
 };
 
-export const goToNextFile = ({
+export const goToRelativeFile = ({
+  _getRelativePath = getRelativePath,
   _log = log,
   currentPath,
-}: GoToNextFileParams): ThunkActionCreator => {
-  return async (dispatch, getState) => {
-    const { fileTree: fileTreeState } = getState();
-    const { forVersionId, tree } = fileTreeState;
-    const { pathList } = tree;
-
-    if (!forVersionId || !pathList) {
-      _log.debug('Cannot navigate to next file with no version loaded');
-      return;
-    }
-
-    const nextPath = getRelativePath({
+  pathList,
+  position,
+  versionId,
+}: GoToRelativeFileParams): ThunkActionCreator => {
+  return async (dispatch) => {
+    const nextPath = _getRelativePath({
       _log,
       currentPath,
       pathList,
-      position: 'next',
+      position,
     });
 
     if (!nextPath) {
-      // There is no next file, so do nothing.
-      // TODO: I don't think we need to log in this case.
+      // This will only happen if currentPath is not found in pathList, which
+      // should never happen, so I think we can just ignore this and log a debug
+      // message.
+      _log.debug(`Cannot find ${currentPath} in pathList: ${pathList}`);
       return;
     }
 
     dispatch(
       versionActions.updateSelectedPath({
         selectedPath: nextPath,
-        versionId: forVersionId,
+        versionId,
       }),
     );
   };
