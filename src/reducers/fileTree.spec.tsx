@@ -18,7 +18,6 @@ import {
   createInternalVersionEntry,
 } from './versions';
 import {
-  createFakeLogger,
   createVersionWithEntries,
   fakeVersion,
   fakeVersionEntry,
@@ -514,32 +513,21 @@ describe(__filename, () => {
       ).toEqual(file3);
     });
 
-    it('returns undefined if the currentPath is not found', () => {
-      expect(
+    it('throws an exception if the currentPath is not found', () => {
+      const badFilename = 'bad-file-name.js';
+      expect(() => {
         getRelativePath({
-          currentPath: 'bad-file-name',
+          currentPath: badFilename,
           pathList,
           position: RelativePathPosition.previous,
-        }),
-      ).toEqual(undefined);
-    });
-
-    it('logs a debug message if the currentPath is not found', () => {
-      const _log = createFakeLogger();
-      getRelativePath({
-        _log,
-        currentPath: 'bad-file-name',
-        pathList,
-        position: RelativePathPosition.previous,
-      });
-      expect(_log.debug).toHaveBeenCalled();
+        });
+      }).toThrow(`Cannot find ${badFilename} in pathList: ${pathList}`);
     });
   });
 
   describe('goToRelativeFile', () => {
     const _goToRelativeFile = ({
       _getRelativePath = jest.fn(),
-      _log = createFakeLogger(),
       currentPath = 'file1.js',
       pathList = ['file1.js'],
       position = RelativePathPosition.next,
@@ -547,7 +535,6 @@ describe(__filename, () => {
     } = {}) => {
       return goToRelativeFile({
         _getRelativePath,
-        _log,
         currentPath,
         pathList,
         position,
@@ -557,7 +544,6 @@ describe(__filename, () => {
 
     it('calls getRelativePath', async () => {
       const _getRelativePath = jest.fn();
-      const _log = createFakeLogger();
       const currentPath = 'file1.js';
       const pathList = [currentPath];
       const position = RelativePathPosition.next;
@@ -566,7 +552,6 @@ describe(__filename, () => {
         createThunk: () =>
           _goToRelativeFile({
             _getRelativePath,
-            _log,
             currentPath,
             pathList,
             position,
@@ -576,24 +561,10 @@ describe(__filename, () => {
       await thunk();
 
       expect(_getRelativePath).toHaveBeenCalledWith({
-        _log,
         currentPath,
         pathList,
         position,
       });
-    });
-
-    it('logs a debug message when getRelativePath returns nothing', async () => {
-      const _getRelativePath = jest.fn().mockReturnValue(undefined);
-      const _log = createFakeLogger();
-
-      const { thunk } = thunkTester({
-        createThunk: () => _goToRelativeFile({ _getRelativePath, _log }),
-      });
-
-      await thunk();
-
-      expect(_log.debug).toHaveBeenCalled();
     });
 
     it('dispatches updateSelectedPath', async () => {
@@ -613,18 +584,6 @@ describe(__filename, () => {
           versionId,
         }),
       );
-    });
-
-    it('does not dispatch updateSelectedPath when getRelativePath returns nothing', async () => {
-      const _getRelativePath = jest.fn().mockReturnValue(undefined);
-
-      const { dispatch, thunk } = thunkTester({
-        createThunk: () => _goToRelativeFile({ _getRelativePath }),
-      });
-
-      await thunk();
-
-      expect(dispatch).not.toHaveBeenCalled();
     });
   });
 });

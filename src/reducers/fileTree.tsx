@@ -172,15 +172,13 @@ type GetRelativePathParams = {
 };
 
 export const getRelativePath = ({
-  _log = log,
   currentPath,
   pathList,
   position,
-}: GetRelativePathParams): string | void => {
+}: GetRelativePathParams): string => {
   const currentIndex = pathList.indexOf(currentPath);
   if (currentIndex < 0) {
-    _log.debug(`Cannot find ${currentPath} in pathList: ${pathList}`);
-    return undefined;
+    throw new Error(`Cannot find ${currentPath} in pathList: ${pathList}`);
   }
   let newIndex =
     position === RelativePathPosition.previous
@@ -201,7 +199,6 @@ export const getRelativePath = ({
 
 type GoToRelativeFileParams = {
   _getRelativePath?: typeof getRelativePath;
-  _log?: typeof log;
   currentPath: string;
   pathList: string[];
   position: RelativePathPosition;
@@ -210,7 +207,6 @@ type GoToRelativeFileParams = {
 
 export const goToRelativeFile = ({
   _getRelativePath = getRelativePath,
-  _log = log,
   currentPath,
   pathList,
   position,
@@ -218,19 +214,10 @@ export const goToRelativeFile = ({
 }: GoToRelativeFileParams): ThunkActionCreator => {
   return async (dispatch) => {
     const nextPath = _getRelativePath({
-      _log,
       currentPath,
       pathList,
       position,
     });
-
-    if (!nextPath) {
-      // This will only happen if currentPath is not found in pathList, which
-      // should never happen, so I think we can just ignore this and log a debug
-      // message.
-      _log.debug(`Cannot find ${currentPath} in pathList: ${pathList}`);
-      return;
-    }
 
     dispatch(
       versionActions.updateSelectedPath({
