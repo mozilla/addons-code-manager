@@ -1,7 +1,9 @@
+import log from 'loglevel';
 import { Reducer } from 'redux';
 import { ActionType, createAction, getType } from 'typesafe-actions';
 
-import { Version } from './versions';
+import { Version, actions as versionActions } from './versions';
+import { ThunkActionCreator } from '../configureStore';
 import { getLocalizedString } from '../utils';
 
 type FileNode = {
@@ -154,6 +156,75 @@ export const buildFileTree = (version: Version): FileTree => {
   return {
     nodes,
     pathList: buildTreePathList(nodes),
+  };
+};
+
+export enum RelativePathPosition {
+  next,
+  previous,
+}
+
+type GetRelativePathParams = {
+  _log?: typeof log;
+  currentPath: string;
+  pathList: string[];
+  position: RelativePathPosition;
+};
+
+export const getRelativePath = ({
+  currentPath,
+  pathList,
+  position,
+}: GetRelativePathParams): string => {
+  const currentIndex = pathList.indexOf(currentPath);
+  if (currentIndex < 0) {
+    throw new Error(`Cannot find ${currentPath} in pathList: ${pathList}`);
+  }
+  let newIndex =
+    position === RelativePathPosition.previous
+      ? currentIndex - 1
+      : currentIndex + 1;
+  if (newIndex < 0) {
+    // We are at the first file and the user selected 'previous', so go to the
+    // last file.
+    newIndex = pathList.length - 1;
+  } else if (newIndex >= pathList.length) {
+    // We are at the last file and the user selected 'next', so go to the
+    // first file.
+    newIndex = 0;
+  }
+
+  return pathList[newIndex];
+};
+
+type GoToRelativeFileParams = {
+  _getRelativePath?: typeof getRelativePath;
+  currentPath: string;
+  pathList: string[];
+  position: RelativePathPosition;
+  versionId: number;
+};
+
+export const goToRelativeFile = ({
+  _getRelativePath = getRelativePath,
+  currentPath,
+  pathList,
+  position,
+  versionId,
+}: GoToRelativeFileParams): ThunkActionCreator => {
+  return async (dispatch) => {
+    const nextPath = _getRelativePath({
+      currentPath,
+      pathList,
+      position,
+    });
+
+    dispatch(
+      versionActions.updateSelectedPath({
+        selectedPath: nextPath,
+        versionId,
+      }),
+    );
   };
 };
 

@@ -1,19 +1,27 @@
 /* eslint @typescript-eslint/camelcase: 0 */
 import reducer, {
   DirectoryNode,
+  RelativePathPosition,
   actions,
   buildFileTree,
   buildFileTreeNodes,
   buildTreePathList,
+  getRelativePath,
   getRootPath,
-  initialState,
   getTree,
+  goToRelativeFile,
+  initialState,
 } from './fileTree';
-import { createInternalVersion, createInternalVersionEntry } from './versions';
+import {
+  actions as versionActions,
+  createInternalVersion,
+  createInternalVersionEntry,
+} from './versions';
 import {
   createVersionWithEntries,
   fakeVersion,
   fakeVersionEntry,
+  thunkTester,
 } from '../test-helpers';
 import { getLocalizedString } from '../utils';
 
@@ -456,6 +464,126 @@ describe(__filename, () => {
         `${folder1}/${file2}`,
         file1,
       ]);
+    });
+  });
+
+  describe('getRelativePath', () => {
+    const file1 = 'file1.js';
+    const file2 = 'file2.js';
+    const file3 = 'file3.js';
+    const pathList = [file1, file2, file3];
+
+    it('returns the next file in the list', () => {
+      expect(
+        getRelativePath({
+          currentPath: file2,
+          pathList,
+          position: RelativePathPosition.next,
+        }),
+      ).toEqual(file3);
+    });
+
+    it('returns the previous file in the list', () => {
+      expect(
+        getRelativePath({
+          currentPath: file2,
+          pathList,
+          position: RelativePathPosition.previous,
+        }),
+      ).toEqual(file1);
+    });
+
+    it('wraps around to the first file in the list', () => {
+      expect(
+        getRelativePath({
+          currentPath: file3,
+          pathList,
+          position: RelativePathPosition.next,
+        }),
+      ).toEqual(file1);
+    });
+
+    it('wraps around to the last file in the list', () => {
+      expect(
+        getRelativePath({
+          currentPath: file1,
+          pathList,
+          position: RelativePathPosition.previous,
+        }),
+      ).toEqual(file3);
+    });
+
+    it('throws an exception if the currentPath is not found', () => {
+      const badFilename = 'bad-file-name.js';
+      expect(() => {
+        getRelativePath({
+          currentPath: badFilename,
+          pathList,
+          position: RelativePathPosition.previous,
+        });
+      }).toThrow(`Cannot find ${badFilename} in pathList: ${pathList}`);
+    });
+  });
+
+  describe('goToRelativeFile', () => {
+    const _goToRelativeFile = ({
+      _getRelativePath = jest.fn(),
+      currentPath = 'file1.js',
+      pathList = ['file1.js'],
+      position = RelativePathPosition.next,
+      versionId = 1,
+    } = {}) => {
+      return goToRelativeFile({
+        _getRelativePath,
+        currentPath,
+        pathList,
+        position,
+        versionId,
+      });
+    };
+
+    it('calls getRelativePath', async () => {
+      const _getRelativePath = jest.fn();
+      const currentPath = 'file1.js';
+      const pathList = [currentPath];
+      const position = RelativePathPosition.next;
+
+      const { thunk } = thunkTester({
+        createThunk: () =>
+          _goToRelativeFile({
+            _getRelativePath,
+            currentPath,
+            pathList,
+            position,
+          }),
+      });
+
+      await thunk();
+
+      expect(_getRelativePath).toHaveBeenCalledWith({
+        currentPath,
+        pathList,
+        position,
+      });
+    });
+
+    it('dispatches updateSelectedPath', async () => {
+      const nextPath = 'file2.js';
+      const _getRelativePath = jest.fn().mockReturnValue(nextPath);
+      const versionId = 123;
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () => _goToRelativeFile({ _getRelativePath, versionId }),
+      });
+
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(
+        versionActions.updateSelectedPath({
+          selectedPath: nextPath,
+          versionId,
+        }),
+      );
     });
   });
 });
