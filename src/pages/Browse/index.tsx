@@ -4,7 +4,8 @@ import { connect } from 'react-redux';
 import { Col, Row } from 'react-bootstrap';
 import log from 'loglevel';
 
-import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
+import { ApplicationState } from '../../reducers';
+import { ConnectedReduxProps } from '../../configureStore';
 import { ApiState } from '../../reducers/api';
 import FileTree from '../../components/FileTree';
 import {

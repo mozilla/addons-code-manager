@@ -5,7 +5,8 @@ import { Link } from 'react-router-dom';
 
 import { gettext } from '../../utils';
 import LoginButton from '../LoginButton';
-import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
+import { ApplicationState } from '../../reducers';
+import { ConnectedReduxProps } from '../../configureStore';
 import { User, selectCurrentUser, requestLogOut } from '../../reducers/users';
 import styles from './styles.module.scss';
 

@@ -9,7 +9,8 @@ import FileTreeNode, {
   PublicProps as FileTreeNodeProps,
 } from '../FileTreeNode';
 import Loading from '../Loading';
-import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
+import { ApplicationState } from '../../reducers';
+import { ConnectedReduxProps } from '../../configureStore';
 import {
   FileTree,
   TreeNode,

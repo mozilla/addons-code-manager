@@ -3,7 +3,8 @@ import { Col, Row } from 'react-bootstrap';
 import { RouteComponentProps } from 'react-router-dom';
 import { connect } from 'react-redux';
 
-import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
+import { ApplicationState } from '../../reducers';
+import { ConnectedReduxProps } from '../../configureStore';
 import FileTree from '../../components/FileTree';
 import DiffView from '../../components/DiffView';
 import Loading from '../../components/Loading';

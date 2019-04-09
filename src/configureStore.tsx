@@ -4,7 +4,6 @@ import {
   Middleware,
   Store,
   applyMiddleware,
-  combineReducers,
   createStore,
 } from 'redux';
 import { composeWithDevTools } from 'redux-devtools-extension';
@@ -15,21 +14,7 @@ import thunk, {
   ThunkMiddleware,
 } from 'redux-thunk';
 
-import api, { ApiState } from './reducers/api';
-import errors, { ErrorsState } from './reducers/errors';
-import fileTree, { FileTreeState } from './reducers/fileTree';
-import linter, { LinterState } from './reducers/linter';
-import users, { UsersState } from './reducers/users';
-import versions, { VersionsState } from './reducers/versions';
-
-export type ApplicationState = {
-  api: ApiState;
-  errors: ErrorsState;
-  fileTree: FileTreeState;
-  linter: LinterState;
-  users: UsersState;
-  versions: VersionsState;
-};
+import createRootReducer, { ApplicationState } from './reducers';
 
 export type ThunkActionCreator<PromiseResult = void> = ThunkAction<
   Promise<PromiseResult>,
@@ -48,37 +33,37 @@ export type ConnectedReduxProps<A extends Action = AnyAction> = {
   dispatch: ThunkDispatch<A>;
 };
 
-const createRootReducer = () => {
-  return combineReducers<ApplicationState>({
-    api,
-    errors,
-    fileTree,
-    linter,
-    users,
-    versions,
-  });
-};
-
 const configureStore = (
   preloadedState?: ApplicationState,
 ): Store<ApplicationState> => {
   const allMiddleware: Middleware[] = [
     thunk as ThunkMiddleware<ApplicationState, AnyAction>,
   ];
-  let addDevTools = false;
+  const isDevelopment = process.env.NODE_ENV === 'development';
 
-  if (process.env.NODE_ENV === 'development') {
+  if (isDevelopment) {
     allMiddleware.push(createLogger());
-    addDevTools = true;
   }
 
   let middleware = applyMiddleware(...allMiddleware);
-  if (addDevTools) {
+  if (isDevelopment) {
     const composeEnhancers = composeWithDevTools({});
     middleware = composeEnhancers(middleware);
   }
 
-  return createStore(createRootReducer(), preloadedState, middleware);
+  const store = createStore(createRootReducer(), preloadedState, middleware);
+
+  if (isDevelopment) {
+    /* istanbul ignore next */
+    if (module.hot) {
+      /* istanbul ignore next */
+      module.hot.accept('./reducers', () => {
+        store.replaceReducer(createRootReducer());
+      });
+    }
+  }
+
+  return store;
 };
 
 export default configureStore;
