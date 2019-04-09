@@ -21,11 +21,23 @@ if (authToken === process.env.REACT_APP_AUTH_TOKEN_PLACEHOLDER) {
   );
 }
 
-ReactDOM.render(
-  <Provider store={store}>
-    <BrowserRouter>
-      <App authToken={authToken} />
-    </BrowserRouter>
-  </Provider>,
-  rootElement,
-);
+const render = (AppComponent: typeof App) => {
+  ReactDOM.render(
+    <Provider store={store}>
+      <BrowserRouter>
+        <AppComponent authToken={authToken} />
+      </BrowserRouter>
+    </Provider>,
+    rootElement,
+  );
+};
+
+render(App);
+
+if (module.hot) {
+  module.hot.accept('./components/App', () => {
+    // eslint-disable-next-line global-require
+    const NextApp = require('./components/App').default;
+    render(NextApp);
+  });
+}

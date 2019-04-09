@@ -4,10 +4,8 @@ import { ShallowWrapper, shallow } from 'enzyme';
 import { Store } from 'redux';
 import log from 'loglevel';
 
-import configureStore, {
-  ApplicationState,
-  ThunkActionCreator,
-} from './configureStore';
+import configureStore, { ThunkActionCreator } from './configureStore';
+import { ApplicationState } from './reducers';
 import {
   ExternalLinterResult,
   ExternalLinterMessage,

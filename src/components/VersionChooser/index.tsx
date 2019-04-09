@@ -4,7 +4,8 @@ import { connect } from 'react-redux';
 import { withRouter, RouteComponentProps } from 'react-router-dom';
 
 import Loading from '../Loading';
-import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
+import { ApplicationState } from '../../reducers';
+import { ConnectedReduxProps } from '../../configureStore';
 import VersionSelect from '../VersionSelect';
 import { VersionsMap, fetchVersionsList } from '../../reducers/versions';
 import { gettext } from '../../utils';

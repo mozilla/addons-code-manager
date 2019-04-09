@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
+import { ApplicationState } from '../../reducers';
+import { ConnectedReduxProps } from '../../configureStore';
 import {
   LinterMessageMap,
   LinterMessagesByPath,

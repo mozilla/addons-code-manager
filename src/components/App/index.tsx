@@ -11,7 +11,8 @@ import makeClassName from 'classnames';
 import log from 'loglevel';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import { ApplicationState, ConnectedReduxProps } from '../../configureStore';
+import { ApplicationState } from '../../reducers';
+import { ConnectedReduxProps } from '../../configureStore';
 import styles from './styles.module.scss';
 import { ApiState, actions as apiActions } from '../../reducers/api';
 import {
