@@ -39,7 +39,7 @@ export type DefaultProps = {
 };
 
 type PropsFromState = {
-  treeNodes: FileTree['nodes'] | void;
+  tree: FileTree | void;
   version: Version | void;
 };
 
@@ -67,9 +67,9 @@ export class FileTreeBase extends React.Component<Props> {
   }
 
   _loadData = () => {
-    const { dispatch, treeNodes, version } = this.props;
+    const { dispatch, tree, version } = this.props;
 
-    if (version && !treeNodes) {
+    if (version && !tree) {
       dispatch(fileTreeActions.buildTree({ version }));
     }
   };
@@ -133,9 +133,9 @@ export class FileTreeBase extends React.Component<Props> {
   };
 
   render() {
-    const { treeNodes, version } = this.props;
+    const { tree, version } = this.props;
 
-    if (!version || !treeNodes) {
+    if (!version || !tree) {
       return <Loading message={gettext('Loading version...')} />;
     }
 
@@ -164,7 +164,7 @@ export class FileTreeBase extends React.Component<Props> {
           </Button>
         </div>
         <Treefold
-          nodes={[treeNodes]}
+          nodes={[tree.nodes]}
           render={this.renderNode}
           isNodeExpanded={this.isNodeExpanded}
           onToggleExpand={this.onToggleExpand}
@@ -190,10 +190,9 @@ const mapStateToProps = (
   }
 
   const tree = version ? getTree(state.fileTree, version.id) : undefined;
-  const treeNodes = tree ? tree.nodes : undefined;
 
   return {
-    treeNodes,
+    tree,
     version,
   };
 };
