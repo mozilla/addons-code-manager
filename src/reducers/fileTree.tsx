@@ -231,8 +231,8 @@ export const goToRelativeFile = ({
 export type PathList = string[];
 
 export type FileTree = {
-  nodes: DirectoryNode | void;
-  pathList: PathList | void;
+  nodes: DirectoryNode;
+  pathList: PathList;
 };
 
 export type FileTreeState = {
