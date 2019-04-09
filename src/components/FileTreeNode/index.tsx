@@ -7,7 +7,11 @@ import { gettext } from '../../utils';
 import { TreefoldRenderPropsForFileTree } from '../FileTree';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import { Version } from '../../reducers/versions';
-import { LinterMessage, LinterMessageMap } from '../../reducers/linter';
+import {
+  LinterMessage,
+  LinterMessageMap,
+  findMostSevereType,
+} from '../../reducers/linter';
 import styles from './styles.module.scss';
 
 export type PublicProps = TreefoldRenderPropsForFileTree & {
@@ -20,33 +24,30 @@ type MessageType = LinterMessage['type'];
 export const findMostSevereTypeForPath = (
   linterMessageMap: LinterMessageMap,
   targetPath: string,
+  { _findMostSevereType = findMostSevereType } = {},
 ): MessageType | null => {
-  const allTypes = Object.keys(linterMessageMap).reduce(
-    (types, path: string) => {
+  const allMessages = Object.keys(linterMessageMap).reduce(
+    (messages: LinterMessage[], path: string) => {
       if (!path.startsWith(targetPath)) {
-        return types;
+        return messages;
       }
 
       const map = linterMessageMap[path];
-      types.push(...map.global.map((message) => message.type));
+      messages.push(...map.global);
 
       Object.keys(map.byLine).forEach((key) => {
-        types.push(...map.byLine[parseInt(key, 10)].map((m) => m.type));
+        messages.push(...map.byLine[parseInt(key, 10)]);
       });
 
-      return types;
+      return messages;
     },
-    [] as LinterMessage['type'][],
+    [],
   );
 
-  const orderedTypes: MessageType[] = ['error', 'warning', 'notice'];
-  for (const type of orderedTypes) {
-    if (allTypes.includes(type)) {
-      return type;
-    }
+  if (!allMessages.length) {
+    return null;
   }
-
-  return null;
+  return _findMostSevereType(allMessages);
 };
 
 export const LINTER_KNOWN_LIBRARY_CODE = 'KNOWN_LIBRARY';

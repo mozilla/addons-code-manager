@@ -11,9 +11,11 @@ import {
 import linterReducer, {
   ExternalLinterMessage,
   ExternalLinterResult,
+  LinterMessage,
   actions,
   createInternalMessage,
   fetchLinterMessages,
+  findMostSevereType,
   getMessageMap,
   initialState,
   selectMessageMap,
@@ -498,6 +500,64 @@ describe(__filename, () => {
       expect(dispatch).toHaveBeenCalledWith(
         actions.abortFetchLinterResult({ versionId }),
       );
+    });
+  });
+
+  describe('findMostSevereType', () => {
+    const createMessageWithType = (type: LinterMessage['type']) => {
+      return createInternalMessage({
+        ...fakeExternalLinterMessage,
+        type,
+      });
+    };
+
+    it('finds an error type', () => {
+      expect(
+        findMostSevereType([
+          createMessageWithType('warning'),
+          createMessageWithType('error'),
+          createMessageWithType('notice'),
+        ]),
+      ).toEqual('error');
+    });
+
+    it('finds a warning type', () => {
+      expect(
+        findMostSevereType([
+          createMessageWithType('notice'),
+          createMessageWithType('warning'),
+          createMessageWithType('notice'),
+        ]),
+      ).toEqual('warning');
+    });
+
+    it('finds a notice type', () => {
+      expect(
+        findMostSevereType([
+          createMessageWithType('notice'),
+          createMessageWithType('notice'),
+          createMessageWithType('notice'),
+        ]),
+      ).toEqual('notice');
+    });
+
+    it('handles a single message', () => {
+      expect(findMostSevereType([createMessageWithType('error')])).toEqual(
+        'error',
+      );
+    });
+
+    it('requires a non-empty list of messages', () => {
+      expect(() => findMostSevereType([])).toThrow(/cannot be empty/);
+    });
+
+    it('throws for unexpected message types', () => {
+      expect(() => {
+        findMostSevereType([
+          // @ts-ignore
+          createMessageWithType('__unreal_type__'),
+        ]);
+      }).toThrow(/unknown types/);
     });
   });
 });
