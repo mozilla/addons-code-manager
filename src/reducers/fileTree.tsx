@@ -228,9 +228,11 @@ export const goToRelativeFile = ({
   };
 };
 
+export type PathList = string[];
+
 export type FileTree = {
-  nodes: DirectoryNode;
-  pathList: string[];
+  nodes: DirectoryNode | void;
+  pathList: PathList | void;
 };
 
 export type FileTreeState = {

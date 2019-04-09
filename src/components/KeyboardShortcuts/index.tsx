@@ -1,14 +1,44 @@
 import * as React from 'react';
+import { connect } from 'react-redux';
 
+import { ConnectedReduxProps } from '../../configureStore';
+import {
+  PathList,
+  RelativePathPosition,
+  goToRelativeFile,
+} from '../../reducers/fileTree';
+import { actions as versionsActions } from '../../reducers/versions';
 import styles from './styles.module.scss';
 import { gettext } from '../../utils';
 
-const keys = ['k', 'j', 'e', 'h'];
+const keys = ['k', 'j', 'e', 'c', 'h'];
 
-type Props = {};
+export type PublicProps = {
+  currentPath: string;
+  pathList: PathList;
+  versionId: number;
+};
+
+export type DefaultProps = {
+  _goToRelativeFile: typeof goToRelativeFile;
+};
+
+type Props = PublicProps & DefaultProps & ConnectedReduxProps;
 
 export class KeyboardShortcutsBase extends React.Component<Props> {
+  static defaultProps: DefaultProps = {
+    _goToRelativeFile: goToRelativeFile,
+  };
+
   keydownListener = (event: KeyboardEvent) => {
+    const {
+      _goToRelativeFile,
+      currentPath,
+      dispatch,
+      pathList,
+      versionId,
+    } = this.props;
+
     if (
       !event.altKey &&
       !event.ctrlKey &&
@@ -16,7 +46,43 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
       !event.shiftKey &&
       keys.includes(event.key)
     ) {
-      console.log(event);
+      switch (event.key) {
+        case 'k':
+          dispatch(
+            _goToRelativeFile({
+              currentPath,
+              pathList,
+              position: RelativePathPosition.previous,
+              versionId,
+            }),
+          );
+          break;
+        case 'j':
+          dispatch(
+            _goToRelativeFile({
+              currentPath,
+              pathList,
+              position: RelativePathPosition.next,
+              versionId,
+            }),
+          );
+          break;
+        case 'e':
+          dispatch(
+            versionsActions.expandTree({
+              versionId,
+            }),
+          );
+          break;
+        case 'c':
+          dispatch(
+            versionsActions.collapseTree({
+              versionId,
+            }),
+          );
+          break;
+        default:
+      }
     }
   };
 
@@ -39,7 +105,9 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
           <dt>j</dt>
           <dd>{gettext('Down file')}</dd>
           <dt>e</dt>
-          <dd>{gettext('Expand or collapse all')}</dd>
+          <dd>{gettext('Open all folders')}</dd>
+          <dt>c</dt>
+          <dd>{gettext('Close all folders')}</dd>
           <dt>h</dt>
           <dd>{gettext('Hide or unhide tree')}</dd>
         </dl>
@@ -48,4 +116,4 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
   }
 }
 
-export default KeyboardShortcutsBase;
+export default connect()(KeyboardShortcutsBase);
