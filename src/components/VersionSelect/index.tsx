@@ -4,12 +4,13 @@ import { Col, Form } from 'react-bootstrap';
 import { FormControlProps } from 'react-bootstrap/lib/FormControl';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import { VersionsList } from '../../reducers/versions';
+import { VersionsList, VersionsListItem } from '../../reducers/versions';
 import { gettext } from '../../utils';
 import styles from './styles.module.scss';
 
 export type PublicProps = {
   className?: string;
+  isSelectable: (version: VersionsListItem) => boolean;
   label: string;
   listedVersions: VersionsList;
   onChange: (version: string) => void;
@@ -27,6 +28,20 @@ class VersionSelectBase extends React.Component<PublicProps> {
     const value = event.currentTarget.value as string;
 
     this.props.onChange(value);
+  };
+
+  renderOption = (version: VersionsListItem) => {
+    const { isSelectable } = this.props;
+
+    return (
+      <option
+        disabled={!isSelectable(version)}
+        key={version.id}
+        value={version.id}
+      >
+        {version.version}
+      </option>
+    );
   };
 
   render() {
@@ -55,11 +70,7 @@ class VersionSelectBase extends React.Component<PublicProps> {
                 className={styles.listedGroup}
                 label={gettext('Listed')}
               >
-                {listedVersions.map((version) => (
-                  <option key={version.id} value={version.id}>
-                    {version.version}
-                  </option>
-                ))}
+                {listedVersions.map(this.renderOption)}
               </optgroup>
             )}
             {unlistedVersions.length && (
@@ -67,11 +78,7 @@ class VersionSelectBase extends React.Component<PublicProps> {
                 className={styles.unlistedGroup}
                 label={gettext('Unlisted')}
               >
-                {unlistedVersions.map((version) => (
-                  <option key={version.id} value={version.id}>
-                    {version.version}
-                  </option>
-                ))}
+                {unlistedVersions.map(this.renderOption)}
               </optgroup>
             )}
           </Form.Control>

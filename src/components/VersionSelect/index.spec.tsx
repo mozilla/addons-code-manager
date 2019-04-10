@@ -16,18 +16,26 @@ import styles from './styles.module.scss';
 import VersionSelect, { PublicProps } from '.';
 
 describe(__filename, () => {
+  type RenderParams = Partial<
+    PublicProps & {
+      versions: ExternalVersionsList;
+    }
+  >;
+
   const render = ({
-    className = undefined as PublicProps['className'],
+    className = undefined,
+    isSelectable = jest.fn().mockReturnValue(true),
     label = 'select a version',
     onChange = jest.fn(),
-    value = undefined as PublicProps['value'],
+    value = undefined,
     versions = fakeVersionsList,
     withLeftArrow = false,
-  } = {}) => {
+  }: RenderParams = {}) => {
     const versionsMap = createVersionsMap(versions);
 
     const allProps = {
       className,
+      isSelectable,
       label,
       listedVersions: versionsMap.listed,
       onChange,
@@ -82,6 +90,7 @@ describe(__filename, () => {
     expect(root.find(`.${styles.listedGroup}`)).toHaveProp('label', 'Listed');
     expect(root.find('option').at(0)).toHaveProp('value', listedVersions[0].id);
     expect(root.find('option').at(0)).toIncludeText(listedVersions[0].version);
+    expect(root.find('option').at(0)).toHaveProp('disabled', false);
 
     expect(root.find(`.${styles.unlistedGroup}`)).toHaveProp(
       'label',
@@ -94,6 +103,7 @@ describe(__filename, () => {
     expect(root.find('option').at(1)).toIncludeText(
       unlistedVersions[0].version,
     );
+    expect(root.find('option').at(1)).toHaveProp('disabled', false);
   });
 
   it('passes the value prop to the Form.Control component', () => {
@@ -128,5 +138,30 @@ describe(__filename, () => {
     const root = render({ className });
 
     expect(root.find(`.${className}`)).toHaveLength(1);
+  });
+
+  it('marks versions as disabled when they are not selectable', () => {
+    const versions: ExternalVersionsList = [
+      {
+        ...fakeVersionsListItem,
+        id: 123,
+        channel: 'listed',
+        version: 'v1',
+      },
+      {
+        ...fakeVersionsListItem,
+        id: 456,
+        channel: 'unlisted',
+        version: 'v2',
+      },
+    ];
+
+    const root = render({
+      isSelectable: () => false,
+      versions,
+    });
+
+    expect(root.find('option').at(0)).toHaveProp('disabled', true);
+    expect(root.find('option').at(1)).toHaveProp('disabled', true);
   });
 });

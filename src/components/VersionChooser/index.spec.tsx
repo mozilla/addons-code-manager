@@ -52,6 +52,8 @@ describe(__filename, () => {
 
   const render = ({
     _fetchVersionsList,
+    _higherVersionsThan,
+    _lowerVersionsThan,
     addonId = 123,
     baseVersionId = '1',
     headVersionId = '4',
@@ -76,7 +78,12 @@ describe(__filename, () => {
       },
     };
 
-    const props = { addonId, _fetchVersionsList };
+    const props = {
+      _fetchVersionsList,
+      _higherVersionsThan,
+      _lowerVersionsThan,
+      addonId,
+    };
 
     return shallowUntilTarget(
       <VersionChooser {...props} />,
@@ -119,46 +126,36 @@ describe(__filename, () => {
     expect(root.find(VersionSelect).at(1)).toHaveProp('withLeftArrow', true);
   });
 
-  it('filters the listed/unlisted versions given to each VersionSelect', () => {
+  it('passes a `isSelectable` function to each VersionSelect', () => {
     const addonId = 999;
     const baseVersionId = '3';
     const headVersionId = '5';
+    const _higherVersionsThan = jest
+      .fn()
+      .mockReturnValue('_higherVersionsThan');
+    const _lowerVersionsThan = jest.fn().mockReturnValue('_lowerVersionsThan');
 
-    const listedVersions: ExternalVersionsList = [
-      { ...fakeListedVersion, id: 3 },
-      { ...fakeListedVersion, id: 4 },
-      { ...fakeListedVersion, id: 5 },
-      { ...fakeListedVersion, id: 7 },
-    ];
-    const unlistedVersions: ExternalVersionsList = [
-      { ...fakeUnlistedVersion, id: 2 },
-      { ...fakeUnlistedVersion, id: 6 },
-    ];
+    const versions: ExternalVersionsList = [fakeListedVersion];
 
     const store = configureStore();
-    _loadVersionsList(store, addonId, [...listedVersions, ...unlistedVersions]);
+    _loadVersionsList(store, addonId, versions);
 
-    const root = render({ addonId, baseVersionId, headVersionId, store });
+    const root = render({
+      _higherVersionsThan,
+      _lowerVersionsThan,
+      addonId,
+      baseVersionId,
+      headVersionId,
+      store,
+    });
 
     const oldVersionSelect = root.find(`.${styles.baseVersionSelect}`);
-    expect(oldVersionSelect).toHaveProp(
-      'listedVersions',
-      listedVersions.filter(lowerVersionsThan(headVersionId)),
-    );
-    expect(oldVersionSelect).toHaveProp(
-      'unlistedVersions',
-      unlistedVersions.filter(lowerVersionsThan(headVersionId)),
-    );
+    expect(oldVersionSelect).toHaveProp('isSelectable', _lowerVersionsThan());
+    expect(_lowerVersionsThan).toHaveBeenCalledWith(headVersionId);
 
     const newVersionSelect = root.find(`.${styles.headVersionSelect}`);
-    expect(newVersionSelect).toHaveProp(
-      'listedVersions',
-      listedVersions.filter(higherVersionsThan(baseVersionId)),
-    );
-    expect(newVersionSelect).toHaveProp(
-      'unlistedVersions',
-      unlistedVersions.filter(higherVersionsThan(baseVersionId)),
-    );
+    expect(newVersionSelect).toHaveProp('isSelectable', _higherVersionsThan());
+    expect(_higherVersionsThan).toHaveBeenCalledWith(baseVersionId);
   });
 
   it('splits the list of versions into listed and unlisted lists', () => {
@@ -285,5 +282,67 @@ describe(__filename, () => {
     expect(history.push).toHaveBeenCalledWith(
       `/${lang}/compare/${addonId}/versions/${baseVersionId}...${selectedVersion}/`,
     );
+  });
+
+  describe('higherVersionsThan', () => {
+    const versionId = '2';
+
+    it('returns a function that returns `true` when given version has an ID higher than a pre-configured version ID', () => {
+      const version = {
+        ...fakeVersionsListItem,
+        id: 3,
+      };
+
+      expect(higherVersionsThan(versionId)(version)).toEqual(true);
+    });
+
+    it('returns a function that returns `false` when given version has an ID higher than a pre-configured version ID', () => {
+      const version = {
+        ...fakeVersionsListItem,
+        id: 1,
+      };
+
+      expect(higherVersionsThan(versionId)(version)).toEqual(false);
+    });
+
+    it('returns a function that returns `false` when given version has an ID equals to a pre-configured version ID', () => {
+      const version = {
+        ...fakeVersionsListItem,
+        id: parseInt(versionId, 10),
+      };
+
+      expect(higherVersionsThan(versionId)(version)).toEqual(false);
+    });
+  });
+
+  describe('lowerVersionsThan', () => {
+    const versionId = '2';
+
+    it('returns a function that returns `false` when given version has an ID lower than a pre-configured version ID', () => {
+      const version = {
+        ...fakeVersionsListItem,
+        id: 3,
+      };
+
+      expect(lowerVersionsThan(versionId)(version)).toEqual(false);
+    });
+
+    it('returns a function that returns `true` when given version has an ID lower than a pre-configured version ID', () => {
+      const version = {
+        ...fakeVersionsListItem,
+        id: 1,
+      };
+
+      expect(lowerVersionsThan(versionId)(version)).toEqual(true);
+    });
+
+    it('returns a function that returns `false` when given version has an ID equals to a pre-configured version ID', () => {
+      const version = {
+        ...fakeVersionsListItem,
+        id: parseInt(versionId, 10),
+      };
+
+      expect(lowerVersionsThan(versionId)(version)).toEqual(false);
+    });
   });
 });

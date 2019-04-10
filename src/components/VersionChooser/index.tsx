@@ -15,12 +15,22 @@ import {
 import { gettext } from '../../utils';
 import styles from './styles.module.scss';
 
+export const higherVersionsThan = (versionId: string) => {
+  return (version: VersionsListItem) => version.id > parseInt(versionId, 10);
+};
+
+export const lowerVersionsThan = (versionId: string) => {
+  return (version: VersionsListItem) => version.id < parseInt(versionId, 10);
+};
+
 export type PublicProps = {
   addonId: number;
 };
 
 export type DefaultProps = {
   _fetchVersionsList: typeof fetchVersionsList;
+  _higherVersionsThan: typeof higherVersionsThan;
+  _lowerVersionsThan: typeof lowerVersionsThan;
 };
 
 type PropsFromState = {
@@ -41,17 +51,11 @@ type Props = PublicProps &
   PropsFromState &
   RouterProps;
 
-export const higherVersionsThan = (versionId: string) => {
-  return (version: VersionsListItem) => version.id > parseInt(versionId, 10);
-};
-
-export const lowerVersionsThan = (versionId: string) => {
-  return (version: VersionsListItem) => version.id < parseInt(versionId, 10);
-};
-
 export class VersionChooserBase extends React.Component<Props> {
   static defaultProps: DefaultProps = {
     _fetchVersionsList: fetchVersionsList,
+    _higherVersionsThan: higherVersionsThan,
+    _lowerVersionsThan: lowerVersionsThan,
   };
 
   componentDidMount() {
@@ -88,7 +92,12 @@ export class VersionChooserBase extends React.Component<Props> {
   };
 
   render() {
-    const { match, versionsMap } = this.props;
+    const {
+      _higherVersionsThan,
+      _lowerVersionsThan,
+      match,
+      versionsMap,
+    } = this.props;
     const { baseVersionId, headVersionId } = match.params;
 
     return (
@@ -104,27 +113,21 @@ export class VersionChooserBase extends React.Component<Props> {
             <Form.Row>
               <VersionSelect
                 className={styles.baseVersionSelect}
+                isSelectable={_lowerVersionsThan(headVersionId)}
                 label={gettext('Choose an old version')}
-                listedVersions={versionsMap.listed.filter(
-                  lowerVersionsThan(headVersionId),
-                )}
+                listedVersions={versionsMap.listed}
                 onChange={this.onOldVersionChange}
-                unlistedVersions={versionsMap.unlisted.filter(
-                  lowerVersionsThan(headVersionId),
-                )}
+                unlistedVersions={versionsMap.unlisted}
                 value={baseVersionId}
               />
 
               <VersionSelect
                 className={styles.headVersionSelect}
+                isSelectable={_higherVersionsThan(baseVersionId)}
                 label={gettext('Choose a new version')}
-                listedVersions={versionsMap.listed.filter(
-                  higherVersionsThan(baseVersionId),
-                )}
+                listedVersions={versionsMap.listed}
                 onChange={this.onNewVersionChange}
-                unlistedVersions={versionsMap.unlisted.filter(
-                  higherVersionsThan(baseVersionId),
-                )}
+                unlistedVersions={versionsMap.unlisted}
                 value={headVersionId}
                 withLeftArrow
               />
