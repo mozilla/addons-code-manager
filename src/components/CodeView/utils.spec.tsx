@@ -1,7 +1,13 @@
 import { RefractorNode } from 'refractor';
 import makeClassName from 'classnames';
 
-import { mapWithDepth, mapChild, getLines } from './utils';
+import {
+  getCodeLineAnchor,
+  getCodeLineAnchorID,
+  mapWithDepth,
+  mapChild,
+  getLines,
+} from './utils';
 
 describe(__filename, () => {
   describe('getLines', () => {
@@ -165,6 +171,18 @@ describe(__filename, () => {
 
         expect(_mapChild).toHaveBeenCalledWith(child, index, depth);
       });
+    });
+  });
+
+  describe('getCodeLineAnchorID', () => {
+    it('gets an anchor ID', () => {
+      expect(getCodeLineAnchorID(23)).toEqual('L23');
+    });
+  });
+
+  describe('getCodeLineAnchor', () => {
+    it('gets an anchor', () => {
+      expect(getCodeLineAnchor(23)).toEqual('#L23');
     });
   });
 });

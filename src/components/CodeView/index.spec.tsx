@@ -10,7 +10,7 @@ import LinterMessage from '../LinterMessage';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import { ExternalLinterMessage, getMessageMap } from '../../reducers/linter';
 import { createInternalVersion } from '../../reducers/versions';
-import { mapWithDepth } from './utils';
+import { getCodeLineAnchor, getCodeLineAnchorID, mapWithDepth } from './utils';
 import { getLanguageFromMimeType } from '../../utils';
 import {
   createContextWithFakeRouter,
@@ -187,13 +187,21 @@ describe(__filename, () => {
     const root = renderWithLinterProvider({ content: 'line 1\nline 2' });
 
     expect(root.find(`.${styles.line}`)).toHaveLength(2);
-    expect(root.find(`.${styles.line}`).at(0)).toHaveProp('id', 'L1');
-    expect(root.find(`.${styles.line}`).at(1)).toHaveProp('id', 'L2');
+    expect(root.find(`.${styles.line}`).at(0)).toHaveProp(
+      'id',
+      getCodeLineAnchorID(1),
+    );
+    expect(root.find(`.${styles.line}`).at(1)).toHaveProp(
+      'id',
+      getCodeLineAnchorID(2),
+    );
   });
 
   it('marks a row as selected', () => {
     const selectedLine = 2;
-    const location = createFakeLocation({ hash: `#L${selectedLine}` });
+    const location = createFakeLocation({
+      hash: getCodeLineAnchor(selectedLine),
+    });
 
     const root = renderWithLinterProvider({
       content: 'line 1\nline 2',
@@ -203,7 +211,7 @@ describe(__filename, () => {
     expect(root.find(`.${styles.selectedLine}`)).toHaveLength(1);
     expect(root.find(`.${styles.selectedLine}`)).toHaveProp(
       'id',
-      `L${selectedLine}`,
+      getCodeLineAnchorID(selectedLine),
     );
   });
 
@@ -214,26 +222,28 @@ describe(__filename, () => {
     expect(root.find(`.${styles.lineNumber}`).find(Link)).toHaveLength(1);
     expect(root.find(`.${styles.lineNumber}`).find(Link)).toHaveProp(
       'to',
-      '#L1',
+      getCodeLineAnchor(1),
     );
     // This is an anchor on the table row. This is a bit confusing here because
     // `#` refers to the ID (CSS) selector and not the hash. The ID value is
     // `L1`.
-    expect(root.find('#L1')).toHaveLength(1);
+    expect(root.find(`#${getCodeLineAnchorID(1)}`)).toHaveLength(1);
   });
 
   it('calls _scrollToSelectedLine() when rendering a selected line', () => {
     const selectedLine = 2;
     const lines = ['first', 'second'];
     const content = lines.join('\n');
-    const location = createFakeLocation({ hash: `#L${selectedLine}` });
+    const location = createFakeLocation({
+      hash: getCodeLineAnchor(selectedLine),
+    });
     const _scrollToSelectedLine = jest.fn();
 
     // We need `mount()` because `ref` is only used in a DOM environment.
     const root = renderWithMount({ _scrollToSelectedLine, content, location });
 
     expect(_scrollToSelectedLine).toHaveBeenCalledWith(
-      root.find(`#L${selectedLine}`).getDOMNode(),
+      root.find(`#${getCodeLineAnchorID(selectedLine)}`).getDOMNode(),
     );
   });
 
