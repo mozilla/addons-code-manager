@@ -4,7 +4,12 @@ import makeClassName from 'classnames';
 
 import styles from './styles.module.scss';
 import LinterMessage from '../LinterMessage';
-import { getLines, mapWithDepth } from './utils';
+import {
+  getCodeLineAnchor,
+  getCodeLineAnchorID,
+  getLines,
+  mapWithDepth,
+} from './utils';
 import refractor from '../../refractor';
 import { getLanguageFromMimeType } from '../../utils';
 import { Version } from '../../reducers/versions';
@@ -76,7 +81,7 @@ export class CodeViewBase extends React.Component<Props> {
                 const line = i + 1;
 
                 let rowProps: RowProps = {
-                  id: `L${line}`,
+                  id: getCodeLineAnchorID(line),
                   className: styles.line,
                 };
 
@@ -95,7 +100,7 @@ export class CodeViewBase extends React.Component<Props> {
                   <React.Fragment key={`fragment-${line}`}>
                     <tr {...rowProps}>
                       <td className={styles.lineNumber}>
-                        <Link to={`#L${line}`}>{`${line}`}</Link>
+                        <Link to={getCodeLineAnchor(line)}>{`${line}`}</Link>
                       </td>
 
                       <td className={styles.code}>
