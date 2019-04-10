@@ -2,7 +2,7 @@ import * as React from 'react';
 import { storiesOf } from '@storybook/react';
 
 import configureStore from '../src/configureStore';
-import { ConnectedVersionChooser } from '../src/components/VersionChooser';
+import { VersionChooserWithoutRouter } from '../src/components/VersionChooser';
 import { ExternalVersionsList, actions } from '../src/reducers/versions';
 import { fakeVersionsListItem } from '../src/test-helpers';
 import { renderWithStoreAndRouter } from './utils';
@@ -13,7 +13,17 @@ const render = ({
   store = configureStore(),
 } = {}) => {
   return renderWithStoreAndRouter(
-    <ConnectedVersionChooser addonId={addonId} match={{ params }} />,
+    <VersionChooserWithoutRouter
+      addonId={addonId}
+      match={{
+        params: {
+          baseVersionId: '1',
+          headVersionId: '1',
+          lang: 'fr',
+          ...params,
+        },
+      }}
+    />,
     store,
   );
 };
