@@ -117,6 +117,28 @@ export const getMessageMap = (
   return msgMap;
 };
 
+export const findMostSevereType = (
+  messages: LinterMessage[],
+): LinterMessage['type'] => {
+  if (!messages.length) {
+    throw new Error('"messages" cannot be empty');
+  }
+  const allTypes = messages.map((msg) => msg.type);
+  const orderedTypes: LinterMessage['type'][] = ['error', 'warning', 'notice'];
+
+  for (const type of orderedTypes) {
+    if (allTypes.includes(type)) {
+      return type;
+    }
+  }
+
+  // This is unlikely but it's still possible if, say, the API
+  // was out of sync with our type definitions.
+  throw new Error(
+    `Linter messages all have unknown types: ${allTypes.join(', ')}`,
+  );
+};
+
 export type LinterState = {
   forVersionId: void | number;
   isLoading: boolean;

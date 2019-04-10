@@ -4,7 +4,11 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { TreefoldRenderPropsForFileTree } from '../FileTree';
 import { createInternalVersion } from '../../reducers/versions';
-import { ExternalLinterMessage, getMessageMap } from '../../reducers/linter';
+import {
+  ExternalLinterMessage,
+  createInternalMessage,
+  getMessageMap,
+} from '../../reducers/linter';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import {
   createFakeExternalLinterResult,
@@ -419,27 +423,15 @@ describe(__filename, () => {
 
   describe('findMostSevereTypeForPath', () => {
     it('returns null when the map is empty', () => {
-      const path = 'file.js';
       const map = _getMessageMap([]);
 
-      const type = findMostSevereTypeForPath(map, path);
+      const type = findMostSevereTypeForPath(map, 'file.js');
 
       expect(type).toEqual(null);
     });
 
-    it('returns the type of the message when there is only one message and a path', () => {
-      const path = 'file.js';
-      const message = { ...fakeExternalLinterMessage, file: path };
-      const map = _getMessageMap([message]);
-
-      const type = findMostSevereTypeForPath(map, path);
-
-      expect(type).toEqual(message.type);
-    });
-
     it('returns null when the path is not found', () => {
-      const path = 'file.js';
-      const message = { ...fakeExternalLinterMessage, file: path };
+      const message = { ...fakeExternalLinterMessage, file: 'file.js' };
       const map = _getMessageMap([message]);
 
       const type = findMostSevereTypeForPath(map, 'other-path');
@@ -452,72 +444,77 @@ describe(__filename, () => {
       const message = { ...fakeExternalLinterMessage, file: `${path}/file.js` };
       const map = _getMessageMap([message]);
 
+      // This uses a real implementation of findMostSevereType to make
+      // sure the return value is passed through.
       const type = findMostSevereTypeForPath(map, path);
 
       expect(type).toEqual(message.type);
     });
 
-    it('returns the most severe type given a map of messages and a directory path', () => {
+    it('passes all messages for a directory path to findMostSevereType', () => {
       const path = 'src';
+
       const messages = [
-        {
-          ...fakeExternalLinterMessage,
-          file: `${path}/file-1.js`,
-          type: 'warning',
-        },
-        {
-          ...fakeExternalLinterMessage,
-          file: `${path}/file-2.js`,
-          type: 'error',
-        },
+        { ...fakeExternalLinterMessage, file: `${path}/file-1.js` },
+        { ...fakeExternalLinterMessage, file: `${path}/file-2.js` },
+        { ...fakeExternalLinterMessage, file: 'other/directory/file-3.js' },
       ] as ExternalLinterMessage[];
       const map = _getMessageMap(messages);
 
-      const type = findMostSevereTypeForPath(map, path);
+      const _findMostSevereType = jest.fn();
+      findMostSevereTypeForPath(map, path, { _findMostSevereType });
 
-      expect(type).toEqual(messages[1].type);
+      expect(_findMostSevereType).toHaveBeenCalledWith([
+        createInternalMessage(messages[0]),
+        createInternalMessage(messages[1]),
+      ]);
     });
 
-    it('returns the most severe type given a map of messages for the same exact path', () => {
+    it('passes all messages for an exact path to findMostSevereType', () => {
       const path = 'src/file-1.js';
+
       const messages = [
-        {
-          ...fakeExternalLinterMessage,
-          file: path,
-          type: 'warning',
-        },
-        {
-          ...fakeExternalLinterMessage,
-          file: path,
-          type: 'error',
-        },
+        { ...fakeExternalLinterMessage, file: path },
+        { ...fakeExternalLinterMessage, file: path },
+        { ...fakeExternalLinterMessage, file: 'other-path-to-file.js' },
       ] as ExternalLinterMessage[];
       const map = _getMessageMap(messages);
 
-      const type = findMostSevereTypeForPath(map, path);
+      const _findMostSevereType = jest.fn();
+      findMostSevereTypeForPath(map, path, { _findMostSevereType });
 
-      expect(type).toEqual(messages[1].type);
+      expect(_findMostSevereType).toHaveBeenCalledWith([
+        createInternalMessage(messages[0]),
+        createInternalMessage(messages[1]),
+      ]);
     });
 
-    it('returns the most severe type given a map of messages and a fully qualified file path', () => {
+    it('passes global and line messages to findMostSevereType', () => {
       const path = 'src/file-1.js';
+
       const messages = [
         {
           ...fakeExternalLinterMessage,
           file: path,
-          type: 'warning',
+          // Make this a global message.
+          line: null,
         },
         {
           ...fakeExternalLinterMessage,
-          file: `src/file-2.js`,
-          type: 'error',
+          file: path,
+          // Make this a line message.
+          line: 123,
         },
       ] as ExternalLinterMessage[];
       const map = _getMessageMap(messages);
 
-      const type = findMostSevereTypeForPath(map, path);
+      const _findMostSevereType = jest.fn();
+      findMostSevereTypeForPath(map, path, { _findMostSevereType });
 
-      expect(type).toEqual(messages[0].type);
+      expect(_findMostSevereType).toHaveBeenCalledWith([
+        createInternalMessage(messages[0]),
+        createInternalMessage(messages[1]),
+      ]);
     });
   });
 
