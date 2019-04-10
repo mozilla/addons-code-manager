@@ -49,3 +49,25 @@ export const nl2br = (text: string | null) => {
 export const formatFilesize = (size: number): string => {
   return filesize(size, { standard: 'iec' });
 };
+
+export const splitArrayIntoChunks = <ItemType extends {}>(
+  array: ItemType[],
+  chunkSize: number,
+): ItemType[][] => {
+  if (chunkSize <= 0) {
+    // This would create an infinite loop.
+    throw new Error(`chunkSize must be greater than 0; it was ${chunkSize}`);
+  }
+  if (chunkSize !== Math.round(chunkSize)) {
+    throw new Error(`chunkSize must be an integer; it was ${chunkSize}`);
+  }
+  const chunked = [];
+
+  let index = 0;
+  while (index < array.length) {
+    chunked.push(array.slice(index, index + chunkSize));
+    index += chunkSize;
+  }
+
+  return chunked;
+};

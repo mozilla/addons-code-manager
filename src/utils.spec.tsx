@@ -6,6 +6,7 @@ import {
   getLocalizedString,
   nl2br,
   sanitizeHTML,
+  splitArrayIntoChunks,
 } from './utils';
 
 describe(__filename, () => {
@@ -152,6 +153,43 @@ describe(__filename, () => {
     it('returns a size formatted using the iec standard', () => {
       const size = 12345;
       expect(formatFilesize(size)).toEqual(filesize(size, { standard: 'iec' }));
+    });
+  });
+
+  describe('splitArrayIntoChunks', () => {
+    it('splits an array evenly into chunks', () => {
+      expect(splitArrayIntoChunks<number>([1, 2, 3, 4, 5, 6, 7, 8], 2)).toEqual(
+        [[1, 2], [3, 4], [5, 6], [7, 8]],
+      );
+    });
+
+    it('fits whatever it can into the last chunk', () => {
+      expect(splitArrayIntoChunks<number>([1, 2, 3, 4, 5], 3)).toEqual([
+        [1, 2, 3],
+        [4, 5],
+      ]);
+    });
+
+    it('handles empty arrays', () => {
+      expect(splitArrayIntoChunks<number>([], 1)).toEqual([]);
+    });
+
+    it('does not allow negative chunk sizes', () => {
+      expect(() => splitArrayIntoChunks<number>([1, 2, 3, 4], -1)).toThrow(
+        /chunkSize must be greater than 0/,
+      );
+    });
+
+    it('does not allow a zero chunk size', () => {
+      expect(() => splitArrayIntoChunks<number>([1, 2, 3, 4], 0)).toThrow(
+        /chunkSize must be greater than 0/,
+      );
+    });
+
+    it('does not support fractional chunk sizes', () => {
+      expect(() => splitArrayIntoChunks<number>([1, 2, 3, 4], 1.5)).toThrow(
+        /chunkSize must be an integer/,
+      );
     });
   });
 });
