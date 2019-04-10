@@ -139,6 +139,18 @@ export const findMostSevereType = (
   );
 };
 
+export const getMessagesForPath = (
+  messages: LinterMessagesByPath,
+): LinterMessage[] => {
+  const allMessages = [...messages.global];
+
+  Object.keys(messages.byLine).forEach((key) => {
+    allMessages.push(...messages.byLine[parseInt(key, 10)]);
+  });
+
+  return allMessages;
+};
+
 export type LinterState = {
   forVersionId: void | number;
   isLoading: boolean;

@@ -1,10 +1,10 @@
-import log from 'loglevel';
 import { Reducer } from 'redux';
 import { ActionType, createAction, getType } from 'typesafe-actions';
 
 import { Version, viewVersionFile } from './versions';
 import { ThunkActionCreator } from '../configureStore';
 import { getLocalizedString } from '../utils';
+import { LinterMessage, LinterMessageMap, getMessagesForPath } from './linter';
 
 export const ROOT_PATH = '~root~';
 
@@ -159,7 +159,6 @@ export enum RelativePathPosition {
 }
 
 type GetRelativePathParams = {
-  _log?: typeof log;
   currentPath: string;
   pathList: string[];
   position: RelativePathPosition;
@@ -189,6 +188,100 @@ export const getRelativePath = ({
   }
 
   return pathList[newIndex];
+};
+
+const findRelativeMessageUid = (
+  currentPath: string,
+  messageMap: LinterMessageMap,
+  pathList: string[],
+  position: RelativePathPosition,
+): LinterMessage['uid'] | null => {
+  let path = currentPath;
+  for (let i = 0; i < pathList.length; i++) {
+    const nextPath = getRelativePath({
+      currentPath: path,
+      pathList,
+      position,
+    });
+    const nextMessages = messageMap[nextPath];
+    if (nextMessages) {
+      const nextMessagesForPath = getMessagesForPath(nextMessages);
+      if (position === RelativePathPosition.previous) {
+        const lastMessageIndex = nextMessagesForPath.length - 1;
+        if (lastMessageIndex >= 0) {
+          return nextMessagesForPath[lastMessageIndex].uid;
+        }
+      } else if (nextMessagesForPath.length) {
+        return nextMessagesForPath[0].uid;
+      }
+    }
+    path = nextPath;
+  }
+  // If we got here then we never found another message, which would be odd,
+  // because we should have at the very least gotten back to our original
+  // message.
+  // We should probably log this.
+  return null;
+};
+
+export type GetRelativeMessageUidParams = {
+  currentMessageUid: LinterMessage['uid'] | void;
+  currentPath: string;
+  locateCurrentMessage?: boolean;
+  messageMap: LinterMessageMap;
+  pathList: string[];
+  position: RelativePathPosition;
+};
+
+export const getRelativeMessageUid = ({
+  currentMessageUid,
+  currentPath,
+  messageMap,
+  pathList,
+  position,
+}: GetRelativeMessageUidParams): string | null => {
+  if (!currentMessageUid) {
+    // There is no current message, so get the first one.
+    if (!Object.keys(messageMap).length) {
+      return null;
+    }
+    for (const path of pathList) {
+      const messages = messageMap[path];
+      if (messages) {
+        const messagesForPath = getMessagesForPath(messages);
+        if (messagesForPath.length) {
+          return messagesForPath[0].uid;
+        }
+      }
+    }
+    // No messages found in the map (which shouldn't be possible because of the
+    // length check, so throw an error.
+    throw new Error(
+      'The messageMap is not empty, but we were unable to find any messages',
+    );
+  }
+
+  const messages = messageMap[currentPath];
+  if (!messages) {
+    // No messages exist for the current path, which shouldn't be the case.
+    // If we have a currentMessageUid it should correspond to the current path.
+    throw new Error(`No messages found for current path: ${currentPath}`);
+  }
+
+  const messagesForPath = getMessagesForPath(messages);
+  const currentMessageIndex = messagesForPath.findIndex(
+    (message) => message.uid === currentMessageUid,
+  );
+
+  const newIndex =
+    position === RelativePathPosition.previous
+      ? currentMessageIndex - 1
+      : currentMessageIndex + 1;
+
+  if (newIndex >= 0 && newIndex < messagesForPath.length) {
+    return messagesForPath[newIndex].uid;
+  }
+  return findRelativeMessageUid(currentPath, messageMap, pathList, position);
 };
 
 type GoToRelativeFileParams = {
