@@ -286,16 +286,4 @@ describe(__filename, () => {
       `/${lang}/compare/${addonId}/versions/${baseVersionId}...${selectedVersion}/`,
     );
   });
-
-  describe('higherVersionsThan', () => {
-    it('returns a predicate that is always true when versionId is empty', () => {
-      expect(higherVersionsThan('')).toEqual(Boolean);
-    });
-  });
-
-  describe('lowerVersionsThan', () => {
-    it('returns a predicate that is always true when versionId is empty', () => {
-      expect(lowerVersionsThan('')).toEqual(Boolean);
-    });
-  });
 });

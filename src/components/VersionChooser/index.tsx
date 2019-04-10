@@ -42,18 +42,10 @@ type Props = PublicProps &
   RouterProps;
 
 export const higherVersionsThan = (versionId: string) => {
-  if (!versionId) {
-    return Boolean;
-  }
-
   return (version: VersionsListItem) => version.id > parseInt(versionId, 10);
 };
 
 export const lowerVersionsThan = (versionId: string) => {
-  if (!versionId) {
-    return Boolean;
-  }
-
   return (version: VersionsListItem) => version.id < parseInt(versionId, 10);
 };
 
@@ -160,6 +152,10 @@ const mapStateToProps = (
   };
 };
 
+export const ConnectedVersionChooser = connect(mapStateToProps)(
+  VersionChooserBase,
+);
+
 export default withRouter<PublicProps & Partial<DefaultProps> & RouterProps>(
-  connect(mapStateToProps)(VersionChooserBase),
+  ConnectedVersionChooser,
 );
