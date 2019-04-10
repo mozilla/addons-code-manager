@@ -63,9 +63,9 @@ export class AppBase extends React.Component<Props> {
   };
 
   componentDidMount() {
-    const { authToken, dispatch } = this.props;
+    const { apiState, authToken, dispatch } = this.props;
 
-    if (authToken) {
+    if (authToken && authToken !== apiState.authToken) {
       dispatch(apiActions.setAuthToken({ authToken }));
     }
   }
