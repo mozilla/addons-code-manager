@@ -7,9 +7,21 @@ import Loading from '../Loading';
 import { ApplicationState } from '../../reducers';
 import { ConnectedReduxProps } from '../../configureStore';
 import VersionSelect from '../VersionSelect';
-import { VersionsMap, fetchVersionsList } from '../../reducers/versions';
+import {
+  VersionsListItem,
+  VersionsMap,
+  fetchVersionsList,
+} from '../../reducers/versions';
 import { gettext } from '../../utils';
 import styles from './styles.module.scss';
+
+export const higherVersionsThan = (versionId: string) => {
+  return (version: VersionsListItem) => version.id > parseInt(versionId, 10);
+};
+
+export const lowerVersionsThan = (versionId: string) => {
+  return (version: VersionsListItem) => version.id < parseInt(versionId, 10);
+};
 
 export type PublicProps = {
   addonId: number;
@@ -17,6 +29,8 @@ export type PublicProps = {
 
 export type DefaultProps = {
   _fetchVersionsList: typeof fetchVersionsList;
+  _higherVersionsThan: typeof higherVersionsThan;
+  _lowerVersionsThan: typeof lowerVersionsThan;
 };
 
 type PropsFromState = {
@@ -40,6 +54,8 @@ type Props = PublicProps &
 export class VersionChooserBase extends React.Component<Props> {
   static defaultProps: DefaultProps = {
     _fetchVersionsList: fetchVersionsList,
+    _higherVersionsThan: higherVersionsThan,
+    _lowerVersionsThan: lowerVersionsThan,
   };
 
   componentDidMount() {
@@ -76,7 +92,12 @@ export class VersionChooserBase extends React.Component<Props> {
   };
 
   render() {
-    const { match, versionsMap } = this.props;
+    const {
+      _higherVersionsThan,
+      _lowerVersionsThan,
+      match,
+      versionsMap,
+    } = this.props;
     const { baseVersionId, headVersionId } = match.params;
 
     return (
@@ -92,6 +113,7 @@ export class VersionChooserBase extends React.Component<Props> {
             <Form.Row>
               <VersionSelect
                 className={styles.baseVersionSelect}
+                isSelectable={_lowerVersionsThan(headVersionId)}
                 label={gettext('Choose an old version')}
                 listedVersions={versionsMap.listed}
                 onChange={this.onOldVersionChange}
@@ -101,6 +123,7 @@ export class VersionChooserBase extends React.Component<Props> {
 
               <VersionSelect
                 className={styles.headVersionSelect}
+                isSelectable={_higherVersionsThan(baseVersionId)}
                 label={gettext('Choose a new version')}
                 listedVersions={versionsMap.listed}
                 onChange={this.onNewVersionChange}
@@ -132,6 +155,23 @@ const mapStateToProps = (
   };
 };
 
+const ConnectedVersionChooser = connect(mapStateToProps)(VersionChooserBase);
+
+export const VersionChooserWithoutRouter = ConnectedVersionChooser as React.ComponentType<
+  PublicProps &
+    Partial<
+      DefaultProps & {
+        // We have to add this type to tell Storybook that it's okay to inject
+        // the router props directly. That's because we want to by-pass the
+        // `withRouter()` HOC, which requires a `Router` and a `Route` and we
+        // don't want that in Storybook.
+        match: {
+          params: PropsFromRouter;
+        };
+      }
+    >
+>;
+
 export default withRouter<PublicProps & Partial<DefaultProps> & RouterProps>(
-  connect(mapStateToProps)(VersionChooserBase),
+  ConnectedVersionChooser,
 );

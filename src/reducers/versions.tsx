@@ -181,7 +181,7 @@ export type Version = {
   version: string;
 };
 
-type VersionsListItem = {
+export type VersionsListItem = {
   channel: 'unlisted' | 'listed';
   id: number;
   version: string;
