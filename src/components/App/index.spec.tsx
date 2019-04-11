@@ -88,7 +88,7 @@ describe(__filename, () => {
     expect(dispatch).not.toHaveBeenCalled();
   });
 
-  it('dispatches setAuthToken on mount when authToken is valid', () => {
+  it('dispatches setAuthToken on mount when authToken is valid and not already set', () => {
     const authToken = 'my-token';
     const store = configureStore();
     const dispatch = spyOn(store, 'dispatch');
