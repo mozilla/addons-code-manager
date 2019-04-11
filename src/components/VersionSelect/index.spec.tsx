@@ -140,6 +140,29 @@ describe(__filename, () => {
     expect(root.find(`.${className}`)).toHaveLength(1);
   });
 
+  it('passes each version to `isSelectable`', () => {
+    const versions: ExternalVersionsList = [
+      {
+        ...fakeVersionsListItem,
+        id: 123,
+        channel: 'listed',
+        version: 'v1',
+      },
+      {
+        ...fakeVersionsListItem,
+        id: 456,
+        channel: 'unlisted',
+        version: 'v2',
+      },
+    ];
+    const isSelectable = jest.fn();
+
+    render({ isSelectable, versions });
+
+    expect(isSelectable).toHaveBeenCalledWith(versions[0]);
+    expect(isSelectable).toHaveBeenCalledWith(versions[1]);
+  });
+
   it('marks versions as disabled when they are not selectable', () => {
     const versions: ExternalVersionsList = [
       {
@@ -156,12 +179,35 @@ describe(__filename, () => {
       },
     ];
 
+    const root = render({ isSelectable: () => false, versions });
+
+    expect(root.find('option').at(0)).toHaveProp('disabled', true);
+    expect(root.find('option').at(1)).toHaveProp('disabled', true);
+  });
+
+  it('marks one versions as disabled when not selectable', () => {
+    const versions: ExternalVersionsList = [
+      {
+        ...fakeVersionsListItem,
+        id: 123,
+        channel: 'listed',
+        version: 'v1',
+      },
+      {
+        ...fakeVersionsListItem,
+        id: 456,
+        channel: 'unlisted',
+        version: 'v2',
+      },
+    ];
+
     const root = render({
-      isSelectable: () => false,
+      // Only the second version is selectable.
+      isSelectable: (version) => version.id === versions[1].id,
       versions,
     });
 
     expect(root.find('option').at(0)).toHaveProp('disabled', true);
-    expect(root.find('option').at(1)).toHaveProp('disabled', true);
+    expect(root.find('option').at(1)).toHaveProp('disabled', false);
   });
 });

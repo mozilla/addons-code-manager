@@ -161,6 +161,10 @@ export const VersionChooserWithoutRouter = ConnectedVersionChooser as React.Comp
   PublicProps &
     Partial<
       DefaultProps & {
+        // We have to add this type to tell Storybook that it's okay to inject
+        // the router props directly. That's because we want to by-pass the
+        // `withRouter()` HOC, which requires a `Router` and a `Route` and we
+        // don't want that in Storybook.
         match: {
           params: PropsFromRouter;
         };
