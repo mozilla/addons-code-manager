@@ -77,7 +77,18 @@ describe(__filename, () => {
     expect(root.find(Navbar)).toHaveLength(0);
   });
 
-  it('dispatches setAuthToken on mount when authToken is valid', () => {
+  it('does not dispatch setAuthToken on mount when authToken is already present in the state', () => {
+    const authToken = 'my-token';
+    const store = configureStore();
+    store.dispatch(apiActions.setAuthToken({ authToken }));
+    const dispatch = spyOn(store, 'dispatch');
+
+    render({ authToken, store });
+
+    expect(dispatch).not.toHaveBeenCalled();
+  });
+
+  it('dispatches setAuthToken on mount when authToken is valid and not already set', () => {
     const authToken = 'my-token';
     const store = configureStore();
     const dispatch = spyOn(store, 'dispatch');
