@@ -541,7 +541,7 @@ export const createFakeEvent = (extraProps = {}) => {
   };
 };
 
-type CreateFakeKeyboardEventParams = {
+export type CreateKeydownEventParams = {
   altKey?: boolean;
   ctrlKey?: boolean;
   key: string;
@@ -549,20 +549,20 @@ type CreateFakeKeyboardEventParams = {
   shiftKey?: boolean;
 };
 
-export const createFakeKeyboardEvent = ({
+export const createKeydownEvent = ({
   altKey = false,
   ctrlKey = false,
   key,
   metaKey = false,
   shiftKey = false,
-}: CreateFakeKeyboardEventParams) => {
-  return {
+}: CreateKeydownEventParams) => {
+  return new KeyboardEvent('keydown', {
     altKey,
     ctrlKey,
     key,
     metaKey,
     shiftKey,
-  };
+  });
 };
 
 /*

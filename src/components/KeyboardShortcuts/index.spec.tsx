@@ -5,7 +5,8 @@ import configureStore from '../../configureStore';
 import { RelativePathPosition } from '../../reducers/fileTree';
 import { actions as versionActions } from '../../reducers/versions';
 import {
-  createFakeKeyboardEvent,
+  CreateKeydownEventParams,
+  createKeydownEvent,
   createFakeThunk,
   shallowUntilTarget,
   spyOn,
@@ -47,6 +48,19 @@ describe(__filename, () => {
     );
   };
 
+  const renderAndTriggerKeyEvent = (
+    eventProps: CreateKeydownEventParams = { key: '' },
+    renderProps: Partial<RenderParams>,
+  ) => {
+    const root = render(renderProps);
+
+    const { keydownListener } = root.instance() as KeyboardShortcutsBase;
+
+    const event = createKeydownEvent(eventProps);
+
+    keydownListener(event);
+  };
+
   it('renders a list of keyboard shortcuts', () => {
     const root = render();
 
@@ -54,20 +68,25 @@ describe(__filename, () => {
   });
 
   it('binds and unbinds keydown to the listener', () => {
-    document.addEventListener = jest.fn();
-    document.removeEventListener = jest.fn();
+    const createFakeDocument = (): Partial<Document> => {
+      return {
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+      };
+    };
+    const _document = createFakeDocument() as Document;
 
-    const root = render();
+    const root = render({ _document });
     const { keydownListener } = root.instance() as KeyboardShortcutsBase;
 
-    expect(document.addEventListener).toHaveBeenCalledWith(
+    expect(_document.addEventListener).toHaveBeenCalledWith(
       'keydown',
       keydownListener,
     );
 
     root.unmount();
 
-    expect(document.removeEventListener).toHaveBeenCalledWith(
+    expect(_document.removeEventListener).toHaveBeenCalledWith(
       'keydown',
       keydownListener,
     );
@@ -88,21 +107,16 @@ describe(__filename, () => {
       const fakeThunk = createFakeThunk();
       const _goToRelativeFile = fakeThunk.createThunk;
 
-      const root = render({
-        _goToRelativeFile,
-        currentPath,
-        pathList,
-        store,
-        versionId,
-      });
-
-      const { keydownListener } = root.instance() as KeyboardShortcutsBase;
-
-      // TS cannot seem to figure out that `key` is a string.
-      // @ts-ignore
-      const event = createFakeKeyboardEvent({ key }) as KeyboardEvent;
-
-      keydownListener(event);
+      renderAndTriggerKeyEvent(
+        { key: key as string },
+        {
+          _goToRelativeFile,
+          currentPath,
+          pathList,
+          store,
+          versionId,
+        },
+      );
 
       expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
       expect(_goToRelativeFile).toHaveBeenCalledWith({
@@ -114,22 +128,19 @@ describe(__filename, () => {
     },
   );
 
-  it('dispatches expandTree when "e" is pressed', () => {
+  it.each(['e', 'o'])('dispatches expandTree when "%s" is pressed', (key) => {
     const versionId = 123;
 
     const store = configureStore();
     const dispatch = spyOn(store, 'dispatch');
 
-    const root = render({
-      store,
-      versionId,
-    });
-
-    const { keydownListener } = root.instance() as KeyboardShortcutsBase;
-
-    const event = createFakeKeyboardEvent({ key: 'e' }) as KeyboardEvent;
-
-    keydownListener(event);
+    renderAndTriggerKeyEvent(
+      { key: key as string },
+      {
+        store,
+        versionId,
+      },
+    );
 
     expect(dispatch).toHaveBeenCalledWith(
       versionActions.expandTree({ versionId }),
@@ -142,16 +153,13 @@ describe(__filename, () => {
     const store = configureStore();
     const dispatch = spyOn(store, 'dispatch');
 
-    const root = render({
-      store,
-      versionId,
-    });
-
-    const { keydownListener } = root.instance() as KeyboardShortcutsBase;
-
-    const event = createFakeKeyboardEvent({ key: 'c' }) as KeyboardEvent;
-
-    keydownListener(event);
+    renderAndTriggerKeyEvent(
+      { key: 'c' },
+      {
+        store,
+        versionId,
+      },
+    );
 
     expect(dispatch).toHaveBeenCalledWith(
       versionActions.collapseTree({ versionId }),
@@ -164,16 +172,12 @@ describe(__filename, () => {
       const store = configureStore();
       const dispatch = spyOn(store, 'dispatch');
 
-      const root = render({ store });
-
-      const { keydownListener } = root.instance() as KeyboardShortcutsBase;
-
-      const event = createFakeKeyboardEvent({
-        key: 'k',
-        [modififierKey]: true,
-      }) as KeyboardEvent;
-
-      keydownListener(event);
+      renderAndTriggerKeyEvent(
+        { key: 'k', [modififierKey]: true },
+        {
+          store,
+        },
+      );
 
       expect(dispatch).not.toHaveBeenCalled();
     },

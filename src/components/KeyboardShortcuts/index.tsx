@@ -11,7 +11,7 @@ import { actions as versionsActions } from '../../reducers/versions';
 import styles from './styles.module.scss';
 import { gettext } from '../../utils';
 
-const keys = ['k', 'j', 'e', 'c'];
+const keys = ['k', 'j', 'e', 'o', 'c'];
 
 export type PublicProps = {
   currentPath: string;
@@ -20,6 +20,7 @@ export type PublicProps = {
 };
 
 export type DefaultProps = {
+  _document: typeof document;
   _goToRelativeFile: typeof goToRelativeFile;
 };
 
@@ -27,6 +28,7 @@ type Props = PublicProps & DefaultProps & ConnectedReduxProps;
 
 export class KeyboardShortcutsBase extends React.Component<Props> {
   static defaultProps: DefaultProps = {
+    _document: document,
     _goToRelativeFile: goToRelativeFile,
   };
 
@@ -68,6 +70,7 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
           );
           break;
         case 'e':
+        case 'o':
           dispatch(
             versionsActions.expandTree({
               versionId,
@@ -87,11 +90,15 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
   };
 
   componentDidMount() {
-    document.addEventListener('keydown', this.keydownListener);
+    const { _document } = this.props;
+
+    _document.addEventListener('keydown', this.keydownListener);
   }
 
   componentWillUnmount() {
-    document.removeEventListener('keydown', this.keydownListener);
+    const { _document } = this.props;
+
+    _document.removeEventListener('keydown', this.keydownListener);
   }
 
   render() {
@@ -99,14 +106,22 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
       <div className={styles.KeyboardShortcuts}>
         <h4>{gettext('Keyboard Shortcuts')}</h4>
 
-        <dl>
-          <dt>k</dt>
+        <dl className={styles.definitions}>
+          <dt>
+            <kbd>k</kbd>
+          </dt>
           <dd>{gettext('Up file')}</dd>
-          <dt>j</dt>
+          <dt>
+            <kbd>j</kbd>
+          </dt>
           <dd>{gettext('Down file')}</dd>
-          <dt>e</dt>
+          <dt>
+            <kbd>o</kbd>
+          </dt>
           <dd>{gettext('Open all folders')}</dd>
-          <dt>c</dt>
+          <dt>
+            <kbd>c</kbd>
+          </dt>
           <dd>{gettext('Close all folders')}</dd>
         </dl>
       </div>
@@ -114,4 +129,6 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
   }
 }
 
-export default connect()(KeyboardShortcutsBase);
+export default connect()(KeyboardShortcutsBase) as React.ComponentType<
+  PublicProps & Partial<DefaultProps>
+>;
