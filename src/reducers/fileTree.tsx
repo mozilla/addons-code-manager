@@ -2,7 +2,7 @@ import log from 'loglevel';
 import { Reducer } from 'redux';
 import { ActionType, createAction, getType } from 'typesafe-actions';
 
-import { Version, actions as versionActions } from './versions';
+import { Version, updateSelectedPath } from './versions';
 import { ThunkActionCreator } from '../configureStore';
 import { getLocalizedString } from '../utils';
 
@@ -199,6 +199,7 @@ export const getRelativePath = ({
 
 type GoToRelativeFileParams = {
   _getRelativePath?: typeof getRelativePath;
+  _updateSelectedPath?: typeof updateSelectedPath;
   currentPath: string;
   pathList: string[];
   position: RelativePathPosition;
@@ -207,6 +208,7 @@ type GoToRelativeFileParams = {
 
 export const goToRelativeFile = ({
   _getRelativePath = getRelativePath,
+  _updateSelectedPath = updateSelectedPath,
   currentPath,
   pathList,
   position,
@@ -220,7 +222,7 @@ export const goToRelativeFile = ({
     });
 
     dispatch(
-      versionActions.updateSelectedPath({
+      _updateSelectedPath({
         selectedPath: nextPath,
         versionId,
       }),

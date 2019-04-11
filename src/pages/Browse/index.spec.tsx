@@ -11,7 +11,7 @@ import {
 } from '../../test-helpers';
 import configureStore from '../../configureStore';
 import {
-  actions as versionActions,
+  actions as versionsActions,
   getVersionFile,
 } from '../../reducers/versions';
 import FileTree from '../../components/FileTree';
@@ -45,15 +45,17 @@ describe(__filename, () => {
     _fetchVersion?: BrowseProps['_fetchVersion'];
     _fetchVersionFile?: BrowseProps['_fetchVersionFile'];
     _log?: BrowseProps['_log'];
+    _updateSelectedPath?: BrowseProps['_updateSelectedPath'];
     addonId?: string;
-    versionId?: string;
     store?: Store;
+    versionId?: string;
   };
 
   const render = ({
     _fetchVersion,
     _fetchVersionFile,
     _log,
+    _updateSelectedPath,
     addonId = '999',
     versionId = '123',
     store = configureStore(),
@@ -63,6 +65,7 @@ describe(__filename, () => {
       _fetchVersion,
       _fetchVersionFile,
       _log,
+      _updateSelectedPath,
     };
 
     return shallowUntilTarget(<Browse {...props} />, BrowseBase, {
@@ -76,9 +79,9 @@ describe(__filename, () => {
     store = configureStore(),
     version = fakeVersion,
   }) => {
-    store.dispatch(versionActions.loadVersionInfo({ version }));
+    store.dispatch(versionsActions.loadVersionInfo({ version }));
     store.dispatch(
-      versionActions.loadVersionFile({
+      versionsActions.loadVersionFile({
         path: version.file.selected_file,
         version,
       }),
@@ -216,7 +219,7 @@ describe(__filename, () => {
 
     // The user clicks a different file to view.
     store.dispatch(
-      versionActions.updateSelectedPath({
+      versionsActions.updateSelectedPath({
         selectedPath: 'some/file.js',
         versionId: version.id,
       }),
@@ -236,10 +239,13 @@ describe(__filename, () => {
 
     const store = configureStore();
     _loadVersionAndFile({ store, version });
-
     const dispatch = spyOn(store, 'dispatch');
 
+    const fakeThunk = createFakeThunk();
+    const _updateSelectedPath = fakeThunk.createThunk;
+
     const root = render({
+      _updateSelectedPath,
       store,
       addonId: String(addonId),
       versionId: String(version.id),
@@ -251,25 +257,27 @@ describe(__filename, () => {
     const onSelectFile = fileTree.prop('onSelect');
     onSelectFile(path);
 
-    expect(dispatch).toHaveBeenCalledWith(
-      versionActions.updateSelectedPath({
-        versionId: version.id,
-        selectedPath: path,
-      }),
-    );
+    expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(_updateSelectedPath).toHaveBeenCalledWith({
+      selectedPath: path,
+      versionId: version.id,
+    });
   });
 
-  it('does not dispatch fetchVersionFile on update before a version has loaded', () => {
+  it('only dispatches fetchVersion on update when no version has loaded yet', () => {
     const { renderAndUpdate } = setUpVersionFileUpdate({
       loadVersionAndFile: false,
     });
+    const fakeThunk = createFakeThunk();
+    const _fetchVersion = fakeThunk.createThunk;
 
-    const { dispatchSpy } = renderAndUpdate();
+    const { dispatchSpy } = renderAndUpdate({ _fetchVersion });
 
-    expect(dispatchSpy).not.toHaveBeenCalled();
+    expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(dispatchSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('does not dispatch fetchVersionFile on update when nothing has changed', () => {
+  it('does not dispatch anything on update when nothing has changed', () => {
     const { renderAndUpdate } = setUpVersionFileUpdate();
     const { dispatchSpy } = renderAndUpdate();
 
@@ -289,7 +297,7 @@ describe(__filename, () => {
 
     const selectedPath = 'scripts/background.js';
     store.dispatch(
-      versionActions.updateSelectedPath({
+      versionsActions.updateSelectedPath({
         versionId: version.id,
         selectedPath,
       }),
@@ -312,13 +320,13 @@ describe(__filename, () => {
 
     const selectedPath = 'scripts/background.js';
     store.dispatch(
-      versionActions.updateSelectedPath({
+      versionsActions.updateSelectedPath({
         versionId: version.id,
         selectedPath,
       }),
     );
     store.dispatch(
-      versionActions.beginFetchVersionFile({
+      versionsActions.beginFetchVersionFile({
         versionId: version.id,
         path: selectedPath,
       }),
@@ -341,14 +349,14 @@ describe(__filename, () => {
 
     // Setup a file that was previously loaded.
     store.dispatch(
-      versionActions.loadVersionFile({
+      versionsActions.loadVersionFile({
         path: selectedPath,
         version,
       }),
     );
     // Switch back to this file.
     store.dispatch(
-      versionActions.updateSelectedPath({
+      versionsActions.updateSelectedPath({
         versionId: version.id,
         selectedPath,
       }),
@@ -366,20 +374,20 @@ describe(__filename, () => {
 
     const selectedPath = 'scripts/background.js';
     store.dispatch(
-      versionActions.updateSelectedPath({
+      versionsActions.updateSelectedPath({
         versionId: version.id,
         selectedPath,
       }),
     );
     store.dispatch(
-      versionActions.beginFetchVersionFile({
+      versionsActions.beginFetchVersionFile({
         versionId: version.id,
         path: selectedPath,
       }),
     );
     // Simulate an API error.
     store.dispatch(
-      versionActions.abortFetchVersionFile({
+      versionsActions.abortFetchVersionFile({
         versionId: version.id,
         path: selectedPath,
       }),
@@ -388,5 +396,17 @@ describe(__filename, () => {
     const { dispatchSpy } = renderAndUpdate();
 
     expect(dispatchSpy).not.toHaveBeenCalled();
+  });
+
+  it('does not dispatch anything on mount if a version is already loaded', () => {
+    const version = fakeVersion;
+
+    const store = configureStore();
+    _loadVersionAndFile({ store, version });
+    const dispatch = spyOn(store, 'dispatch');
+
+    render({ store, versionId: String(version.id) });
+
+    expect(dispatch).not.toHaveBeenCalled();
   });
 });

@@ -12,12 +12,9 @@ import reducer, {
   goToRelativeFile,
   initialState,
 } from './fileTree';
+import { createInternalVersion, createInternalVersionEntry } from './versions';
 import {
-  actions as versionActions,
-  createInternalVersion,
-  createInternalVersionEntry,
-} from './versions';
-import {
+  createFakeThunk,
   createVersionWithEntries,
   fakeVersion,
   fakeVersionEntry,
@@ -528,6 +525,7 @@ describe(__filename, () => {
   describe('goToRelativeFile', () => {
     const _goToRelativeFile = ({
       _getRelativePath = jest.fn(),
+      _updateSelectedPath = jest.fn(),
       currentPath = 'file1.js',
       pathList = ['file1.js'],
       position = RelativePathPosition.next,
@@ -535,6 +533,7 @@ describe(__filename, () => {
     } = {}) => {
       return goToRelativeFile({
         _getRelativePath,
+        _updateSelectedPath,
         currentPath,
         pathList,
         position,
@@ -567,23 +566,30 @@ describe(__filename, () => {
       });
     });
 
-    it('dispatches updateSelectedPath', async () => {
+    it('dispatches updateSelectedPath()', async () => {
       const nextPath = 'file2.js';
       const _getRelativePath = jest.fn().mockReturnValue(nextPath);
       const versionId = 123;
 
+      const fakeThunk = createFakeThunk();
+      const _updateSelectedPath = fakeThunk.createThunk;
+
       const { dispatch, thunk } = thunkTester({
-        createThunk: () => _goToRelativeFile({ _getRelativePath, versionId }),
+        createThunk: () =>
+          _goToRelativeFile({
+            _getRelativePath,
+            _updateSelectedPath,
+            versionId,
+          }),
       });
 
       await thunk();
 
-      expect(dispatch).toHaveBeenCalledWith(
-        versionActions.updateSelectedPath({
-          selectedPath: nextPath,
-          versionId,
-        }),
-      );
+      expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+      expect(_updateSelectedPath).toHaveBeenCalledWith({
+        selectedPath: nextPath,
+        versionId,
+      });
     });
   });
 });

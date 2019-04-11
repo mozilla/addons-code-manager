@@ -11,12 +11,12 @@ import FileTree from '../../components/FileTree';
 import {
   Version,
   VersionFile,
-  actions,
   fetchVersion,
   fetchVersionFile,
   getVersionFile,
   getVersionInfo,
   isFileLoading,
+  updateSelectedPath,
 } from '../../reducers/versions';
 import { gettext } from '../../utils';
 import Loading from '../../components/Loading';
@@ -30,6 +30,7 @@ export type DefaultProps = {
   _fetchVersion: typeof fetchVersion;
   _fetchVersionFile: typeof fetchVersionFile;
   _log: typeof log;
+  _updateSelectedPath: typeof updateSelectedPath;
 };
 
 type PropsFromRouter = {
@@ -55,24 +56,20 @@ export class BrowseBase extends React.Component<Props> {
     _fetchVersion: fetchVersion,
     _fetchVersionFile: fetchVersionFile,
     _log: log,
+    _updateSelectedPath: updateSelectedPath,
   };
 
   componentDidMount() {
-    const { _fetchVersion, dispatch, match } = this.props;
-    const { addonId, versionId } = match.params;
-
-    // This also fetches / loads the default version file.
-    // Example: manifest.json
-    dispatch(
-      _fetchVersion({
-        addonId: parseInt(addonId, 10),
-        versionId: parseInt(versionId, 10),
-      }),
-    );
+    this.loadData();
   }
 
   componentDidUpdate() {
+    this.loadData();
+  }
+
+  loadData() {
     const {
+      _fetchVersion,
       _fetchVersionFile,
       dispatch,
       file,
@@ -81,12 +78,19 @@ export class BrowseBase extends React.Component<Props> {
       version,
     } = this.props;
 
-    if (
-      version &&
-      version.selectedPath &&
-      !fileIsLoading &&
-      file === undefined
-    ) {
+    if (!version) {
+      const { addonId, versionId } = match.params;
+
+      dispatch(
+        _fetchVersion({
+          addonId: parseInt(addonId, 10),
+          versionId: parseInt(versionId, 10),
+        }),
+      );
+      return;
+    }
+
+    if (version.selectedPath && !fileIsLoading && file === undefined) {
       dispatch(
         _fetchVersionFile({
           addonId: parseInt(match.params.addonId, 10),
@@ -98,11 +102,11 @@ export class BrowseBase extends React.Component<Props> {
   }
 
   onSelectFile = (path: string) => {
-    const { dispatch, match } = this.props;
+    const { _updateSelectedPath, dispatch, match } = this.props;
     const { versionId } = match.params;
 
     dispatch(
-      actions.updateSelectedPath({
+      _updateSelectedPath({
         versionId: parseInt(versionId, 10),
         selectedPath: path,
       }),

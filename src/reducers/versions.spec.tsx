@@ -1,4 +1,5 @@
 import { getType } from 'typesafe-actions';
+import { push } from 'connected-react-router';
 
 import { actions as errorsActions } from './errors';
 import reducer, {
@@ -21,10 +22,15 @@ import reducer, {
   getVersionInfo,
   initialState,
   isFileLoading,
+  updateSelectedPath,
 } from './versions';
 import { getRootPath } from './fileTree';
+import configureStore from '../configureStore';
 import {
   createFakeEntry,
+  createFakeHistory,
+  createFakeLocation,
+  createFakeLogger,
   fakeExternalDiff,
   fakeVersion,
   fakeVersionAddon,
@@ -33,7 +39,6 @@ import {
   fakeVersionWithDiff,
   fakeVersionsList,
   fakeVersionsListItem,
-  createFakeLogger,
   thunkTester,
 } from '../test-helpers';
 
@@ -1412,6 +1417,34 @@ describe(__filename, () => {
       );
 
       expect(isFileLoading(state, versionId, path)).toEqual(false);
+    });
+  });
+
+  describe('updateSelectedPath', () => {
+    it('dispatches updateSelectedPath and pushes a new URL', async () => {
+      const selectedPath = 'some-path';
+      const versionId = fakeVersion.id;
+
+      const pathname = '/some/path/to/a/page';
+      const location = createFakeLocation({ pathname });
+      const history = createFakeHistory({ location });
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () => updateSelectedPath({ selectedPath, versionId }),
+        store: configureStore({ history }),
+      });
+
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(
+        actions.updateSelectedPath({
+          selectedPath,
+          versionId,
+        }),
+      );
+      expect(dispatch).toHaveBeenCalledWith(
+        push(`${pathname}?path=${selectedPath}`),
+      );
     });
   });
 });

@@ -63,6 +63,7 @@ describe(__filename, () => {
 
   type RenderParams = {
     _fetchDiff?: PublicProps['_fetchDiff'];
+    _updateSelectedPath?: PublicProps['_updateSelectedPath'];
     addonId?: string;
     baseVersionId?: string;
     headVersionId?: string;
@@ -73,6 +74,7 @@ describe(__filename, () => {
 
   const render = ({
     _fetchDiff,
+    _updateSelectedPath,
     addonId = '999',
     baseVersionId = '1',
     headVersionId = '2',
@@ -86,6 +88,7 @@ describe(__filename, () => {
         params: { lang, addonId, baseVersionId, headVersionId },
       }),
       _fetchDiff,
+      _updateSelectedPath,
     };
 
     return shallowUntilTarget(<Compare {...props} />, CompareBase, {
@@ -412,22 +415,27 @@ describe(__filename, () => {
 
     const store = configureStore();
     _loadDiff({ headVersionId, store, version });
-
     const dispatch = spyOn(store, 'dispatch');
 
-    const root = render({ ...getRouteParams({ headVersionId }), store });
+    const fakeThunk = createFakeThunk();
+    const _updateSelectedPath = fakeThunk.createThunk;
+
+    const root = render({
+      _updateSelectedPath,
+      ...getRouteParams({ headVersionId }),
+      store,
+    });
 
     dispatch.mockClear();
 
     const onSelectFile = root.find(FileTree).prop('onSelect');
     onSelectFile(path);
 
-    expect(dispatch).toHaveBeenCalledWith(
-      versionsActions.updateSelectedPath({
-        selectedPath: path,
-        versionId: headVersionId,
-      }),
-    );
+    expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(_updateSelectedPath).toHaveBeenCalledWith({
+      selectedPath: path,
+      versionId: headVersionId,
+    });
   });
 
   it('does not dispatch fetchDiff() when path remains the same', () => {
