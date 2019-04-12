@@ -8,6 +8,7 @@ import { ApplicationState } from '../../reducers';
 import { ConnectedReduxProps } from '../../configureStore';
 import { ApiState } from '../../reducers/api';
 import FileTree from '../../components/FileTree';
+import FixedMetaNav from '../../components/FixedMetaNav';
 import {
   Version,
   VersionFile,
@@ -118,18 +119,20 @@ export class BrowseBase extends React.Component<Props> {
     return (
       <React.Fragment>
         <Col md="3">
-          <Row>
-            <Col>
-              <FileTree onSelect={this.onSelectFile} versionId={version.id} />
-            </Col>
-          </Row>
-          {file && (
+          <FixedMetaNav>
             <Row>
-              <Col className={styles.metadata}>
-                <FileMetadata file={file} />
+              <Col>
+                <FileTree onSelect={this.onSelectFile} versionId={version.id} />
               </Col>
             </Row>
-          )}
+            {file && (
+              <Row>
+                <Col className={styles.metadata}>
+                  <FileMetadata file={file} />
+                </Col>
+              </Row>
+            )}
+          </FixedMetaNav>
         </Col>
         <Col md="9">
           {file ? (

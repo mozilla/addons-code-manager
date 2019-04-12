@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 import { ApplicationState } from '../../reducers';
 import { ConnectedReduxProps } from '../../configureStore';
 import FileTree from '../../components/FileTree';
+import FixedMetaNav from '../../components/FixedMetaNav';
 import DiffView from '../../components/DiffView';
 import Loading from '../../components/Loading';
 import VersionChooser from '../../components/VersionChooser';
@@ -127,11 +128,13 @@ export class CompareBase extends React.Component<Props> {
     return (
       <React.Fragment>
         <Col md="3">
-          {version ? (
-            <FileTree onSelect={this.onSelectFile} versionId={version.id} />
-          ) : (
-            this.renderLoadingMessageOrError(gettext('Loading file tree...'))
-          )}
+          <FixedMetaNav>
+            {version ? (
+              <FileTree onSelect={this.onSelectFile} versionId={version.id} />
+            ) : (
+              this.renderLoadingMessageOrError(gettext('Loading file tree...'))
+            )}
+          </FixedMetaNav>
         </Col>
         <Col md="9">
           <Row>

@@ -1,0 +1,16 @@
+.container {
+  height: 100vh;
+  overflow: hidden;
+  position: sticky;
+  top: 10px;
+  width: 100%;
+}
+
+.content {
+  box-sizing: content-box;
+  height: 100vh;
+  overflow-x: auto;
+  // This is an arbitrary width to hide the scrollbar.
+  padding-right: 50px;
+  width: 100%;
+}

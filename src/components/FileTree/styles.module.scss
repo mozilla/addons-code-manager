@@ -1,9 +1,13 @@
 .controlButtons {
+  background-image: linear-gradient(#fff 90%, rgba(255, 255, 255, 0));
   display: grid;
   grid-column-gap: 10px;
   grid-template-columns: 1fr 1fr;
-  margin-bottom: 10px;
+  padding-bottom: 10px;
+  position: sticky;
+  top: 0;
   width: 100%;
+  z-index: 1;
 }
 
 .button {
