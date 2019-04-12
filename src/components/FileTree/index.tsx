@@ -176,7 +176,7 @@ export class FileTreeBase extends React.Component<Props> {
 
 const mapStateToProps = (
   state: ApplicationState,
-  ownProps: PublicProps & DefaultProps,
+  ownProps: PublicProps,
 ): PropsFromState => {
   const { versionId } = ownProps;
   const version = getVersionInfo(state.versions, versionId);
