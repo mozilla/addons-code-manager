@@ -1,5 +1,6 @@
 import * as React from 'react';
 import makeClassName from 'classnames';
+import chunk from 'lodash.chunk';
 import debounce from 'lodash.debounce';
 
 import { getLines } from '../CodeView/utils';
@@ -23,21 +24,6 @@ type Props = PublicProps;
 type State = {
   // This is the height of the overview div in pixels.
   overviewHeight: number | null;
-};
-
-export const splitArrayIntoChunks = <ItemType extends {}>(
-  array: ItemType[],
-  chunkSize: number,
-): ItemType[][] => {
-  const chunked = [];
-
-  let index = 0;
-  while (index < array.length) {
-    chunked.push(array.slice(index, index + chunkSize));
-    index += chunkSize;
-  }
-
-  return chunked;
 };
 
 export default class CodeOverview extends React.Component<Props, State> {
@@ -117,6 +103,8 @@ export default class CodeOverview extends React.Component<Props, State> {
   }
 
   renderOverview(selectedMessageMap: LinterProviderInfo['selectedMessageMap']) {
+    const { content } = this.props;
+
     if (!this.state.overviewHeight) {
       return null;
     }
@@ -134,7 +122,7 @@ export default class CodeOverview extends React.Component<Props, State> {
       (innerOverviewHeight - linePadding) / lineHeight,
     );
 
-    const allLineShapes = generateLineShapes(getLines(this.props.content));
+    const allLineShapes = generateLineShapes(getLines(content));
 
     let chunkSize = 1;
     if (allLineShapes.length > numberOfRows) {
@@ -142,12 +130,8 @@ export default class CodeOverview extends React.Component<Props, State> {
       chunkSize = Math.ceil(allLineShapes.length / numberOfRows);
     }
 
-    const chunkedLineShapes = splitArrayIntoChunks<LineShapes>(
-      allLineShapes,
-      chunkSize,
-    );
-
-    const content = [];
+    const chunkedLineShapes = chunk(allLineShapes, chunkSize);
+    const overview = [];
 
     for (let rowIndex = 0; rowIndex < numberOfRows; rowIndex++) {
       const shapes = chunkedLineShapes[rowIndex] || undefined;
@@ -155,7 +139,7 @@ export default class CodeOverview extends React.Component<Props, State> {
       const line = shapes ? shapes[0].line : undefined;
 
       // TODO: use a shared function for creating line anchor HREFs.
-      content.push(
+      overview.push(
         <a
           href={`#${line ? `L${line}` : ''}`}
           key={rowIndex}
@@ -171,7 +155,7 @@ export default class CodeOverview extends React.Component<Props, State> {
       );
     }
 
-    return content;
+    return overview;
   }
 
   renderWithLinterInfo = ({ selectedMessageMap }: LinterProviderInfo) => {
