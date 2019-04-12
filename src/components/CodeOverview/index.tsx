@@ -128,9 +128,29 @@ export class CodeOverviewBase extends React.Component<Props, State> {
       return null;
     }
 
-    // TODO: render linter messages here by looking at all shapes
-    // in groupOflineShapes.
-    // See https://github.com/mozilla/addons-code-manager/issues/523
+    const messages = selectedMessageMap
+      ? groupOflineShapes.reduce((matches: LinterMessageType[], shape) => {
+          if (selectedMessageMap.byLine[shape.line]) {
+            return matches.concat(selectedMessageMap.byLine[shape.line]);
+          }
+
+          return matches;
+        }, [])
+      : [];
+
+    if (messages.length) {
+      const type = findMostSevereType(messages);
+      return (
+        <div
+          key={messages.map((m) => m.uid).join(':')}
+          className={makeClassName(styles.linterMessage, {
+            [styles.linterError]: type === 'error',
+            [styles.linterWarning]: type === 'warning',
+            [styles.linterNotice]: type === 'notice',
+          })}
+        />
+      );
+    }
 
     const lineShapes = groupOflineShapes[shapeIndex];
 

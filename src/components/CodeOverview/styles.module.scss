@@ -14,3 +14,20 @@
   line-height: 1;
   width: 100%;
 }
+
+.linterMessage {
+  border-radius: $border-radius;
+  width: 100%;
+}
+
+.linterError {
+  background-color: $red;
+}
+
+.linterNotice {
+  background-color: darken($alert-secondary-bg-color, 40);
+}
+
+.linterWarning {
+  background-color: $orange;
+}
