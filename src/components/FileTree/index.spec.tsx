@@ -280,14 +280,6 @@ describe(__filename, () => {
       expect(isNodeExpanded(node)).toBeFalsy();
     });
 
-    it('logs a warning message when no version is loaded', () => {
-      const _log = createFakeLogger();
-
-      render({ _log });
-
-      expect(_log.warn).toHaveBeenCalled();
-    });
-
     it('renders a Loading component when no version is loaded', () => {
       const root = render();
 

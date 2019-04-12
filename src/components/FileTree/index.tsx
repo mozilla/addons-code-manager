@@ -182,9 +182,9 @@ export class FileTreeBase extends React.Component<Props> {
 
 const mapStateToProps = (
   state: ApplicationState,
-  ownProps: PublicProps & DefaultProps,
+  ownProps: PublicProps,
 ): PropsFromState => {
-  const { _log, versionId } = ownProps;
+  const { versionId } = ownProps;
   const version = getVersionInfo(state.versions, versionId);
 
   if (!version) {
@@ -192,7 +192,7 @@ const mapStateToProps = (
     // parents on this component and only rendering the FileTree if we have a
     // version, but let's log a warning in case we encounter a case where this
     // does happen.
-    _log.warn(`No version was loaded for version: `, versionId);
+    log.warn(`No version was loaded for version: `, versionId);
   }
 
   const tree = version ? getTree(state.fileTree, version.id) : undefined;
