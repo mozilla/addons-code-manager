@@ -15,8 +15,6 @@ import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import CodeLineShapes from '../CodeLineShapes';
 import { LineShapes, generateLineShapes } from '../CodeLineShapes/utils';
 
-type ChunkedLineShapes = LineShapes[][];
-
 export type PublicProps = {
   content: string;
   version: Version;
