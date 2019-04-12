@@ -1,3 +1,41 @@
 body {
   padding: 24px;
 }
+
+.CodeLineShapesStory {
+  display: flex;
+}
+
+.CodeLineShapesStory-panel {
+  border: 1px solid;
+  padding: 10px;
+
+  &:first-child {
+    margin-right: 10px;
+  }
+}
+
+.CodeLineShapesStory-lineShape {
+  display: flex;
+  width: 100%;
+}
+
+.CodeLineShapesStory-actualCode,
+.CodeLineShapesStory-lineShape {
+  height: 1rem;
+  line-height: 1;
+  margin-top: 2px;
+
+  &:first-child {
+    margin-top: 0;
+  }
+}
+
+.CodeLineShapesStory-actualCode {
+  overflow: hidden;
+
+  pre {
+    margin: 0;
+    overflow: hidden;
+  }
+}
