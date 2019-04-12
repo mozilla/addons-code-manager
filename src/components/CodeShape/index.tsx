@@ -11,7 +11,7 @@ export enum Token {
 export type TokenShape = {
   count: number;
   percentOfWidth: number;
-  token: Token.code | Token.whitespace;
+  token: Token;
 };
 
 // This is a collection of shapes for one line of code.
