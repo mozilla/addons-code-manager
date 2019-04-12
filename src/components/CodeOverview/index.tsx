@@ -15,6 +15,8 @@ import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import CodeLineShapes from '../CodeLineShapes';
 import { LineShapes, generateLineShapes } from '../CodeLineShapes/utils';
 
+const OVERVIEW_PADDING = 10;
+
 export type PublicProps = {
   content: string;
   version: Version;
@@ -108,10 +110,9 @@ export default class CodeOverview extends React.Component<Props, State> {
       return null;
     }
 
-    // TODO: somehow synchronize with the $default-padding value? Hmm.
-
-    // Calculate the height of the overview div minus $default-padding.
-    const innerOverviewHeight = (this.state.overviewHeight || 0) - 20;
+    // Calculate the height of the overview div.
+    const innerOverviewHeight =
+      (this.state.overviewHeight || 0) - OVERVIEW_PADDING * 2;
 
     const linePadding = 2;
     const lineHeight = 10;
@@ -158,7 +159,13 @@ export default class CodeOverview extends React.Component<Props, State> {
 
   renderWithLinterInfo = ({ selectedMessageMap }: LinterProviderInfo) => {
     return (
-      <div ref={this.overviewRef} className={styles.CodeOverview}>
+      <div
+        ref={this.overviewRef}
+        className={styles.CodeOverview}
+        style={{
+          padding: `${OVERVIEW_PADDING}px`,
+        }}
+      >
         {this.renderOverview(selectedMessageMap)}
       </div>
     );
