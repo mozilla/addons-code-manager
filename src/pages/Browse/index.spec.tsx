@@ -371,6 +371,12 @@ describe(__filename, () => {
         selectedPath,
       }),
     );
+    store.dispatch(
+      versionActions.beginFetchVersionFile({
+        versionId: version.id,
+        path: selectedPath,
+      }),
+    );
     // Simulate an API error.
     store.dispatch(
       versionActions.abortFetchVersionFile({
