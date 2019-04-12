@@ -8,6 +8,7 @@ import styles from './styles.module.scss';
 import FileTreeNode, {
   PublicProps as FileTreeNodeProps,
 } from '../FileTreeNode';
+import KeyboardShortcuts from '../KeyboardShortcuts';
 import Loading from '../Loading';
 import { ApplicationState } from '../../reducers';
 import { ConnectedReduxProps } from '../../configureStore';
@@ -168,6 +169,11 @@ export class FileTreeBase extends React.Component<Props> {
           render={this.renderNode}
           isNodeExpanded={this.isNodeExpanded}
           onToggleExpand={this.onToggleExpand}
+        />
+        <KeyboardShortcuts
+          currentPath={version.selectedPath}
+          pathList={tree.pathList}
+          versionId={version.id}
         />
       </ListGroup>
     );
