@@ -2,35 +2,14 @@ import * as React from 'react';
 import makeClassName from 'classnames';
 import debounce from 'lodash.debounce';
 
-// TODO: move getLines() to a common location.
 import { getLines } from '../CodeView/utils';
 import { LinterMessage as LinterMessageType } from '../../reducers/linter';
 import styles from './styles.module.scss';
 import { gettext } from '../../utils';
 import { Version } from '../../reducers/versions';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
-
-// This is the line length to cut the shape off at.
-const MAX_LINE_LENGTH = 40;
-const NO_TOKEN = -1;
-const WHITESPACE_TOKEN = 0;
-const CODE_TOKEN = 1;
-
-// This represents one or more code tokens.
-type CodeShape = {
-  // TODO: make this better, maybe.
-  token: number;
-  count: number;
-};
-
-// This is a collection of shapes for one line of code.
-type LineShapes = {
-  line: number;
-  shapes: CodeShape[];
-};
-
-// These are shape collections for all lines of code.
-type AllLineShapes = LineShapes[];
+import CodeLineShapes from '../CodeLineShapes';
+import { LineShapes, generateLineShapes } from '../CodeLineShapes/utils';
 
 type ChunkedLineShapes = LineShapes[][];
 
@@ -95,44 +74,6 @@ export default class CodeOverview extends React.Component<Props, State> {
     trailing: true,
   });
 
-  createAllLineShapes() {
-    const fileLines = getLines(this.props.content);
-
-    const allLineShapes: AllLineShapes = [];
-
-    fileLines.forEach((code, lineIndex) => {
-      const line = lineIndex + 1;
-      const characters = code.split('');
-
-      const lineShapes: LineShapes = {
-        line,
-        shapes: [{ token: NO_TOKEN, count: 0 }],
-      };
-      const getLastShape = () =>
-        lineShapes.shapes[lineShapes.shapes.length - 1];
-
-      for (let i = 0; i < MAX_LINE_LENGTH; i++) {
-        const char = characters[i] || ' ';
-        const token = char === ' ' ? WHITESPACE_TOKEN : CODE_TOKEN;
-
-        if (getLastShape().token !== token) {
-          lineShapes.shapes.push({ token, count: 0 });
-        }
-
-        const shape = getLastShape();
-        shape.count += 1;
-      }
-
-      // Remove the NO_TOKEN item because that was just a
-      // convenient initializer.
-      lineShapes.shapes.shift();
-
-      allLineShapes.push(lineShapes);
-    });
-
-    return allLineShapes;
-  }
-
   renderRow(
     selectedMessageMap: LinterProviderInfo['selectedMessageMap'],
     rowIndex: number,
@@ -172,24 +113,7 @@ export default class CodeOverview extends React.Component<Props, State> {
     // Render the first line in the group.
     const lineShapes = groupOflineShapes[0];
 
-    return lineShapes.shapes.map((shape, shapeIndex) => {
-      const width = (shape.count / MAX_LINE_LENGTH) * 100;
-
-      let className;
-      if (shape.token === WHITESPACE_TOKEN) {
-        className = styles.codeShapeWhitespace;
-      } else {
-        className = styles.codeShape;
-      }
-
-      return (
-        <div
-          key={[shapeIndex.toString(), width.toString(), className].join(':')}
-          className={className}
-          style={{ width: `${width}%` }}
-        />
-      );
-    });
+    return <CodeLineShapes lineShapes={lineShapes} />;
   }
 
   renderOverview(selectedMessageMap: LinterProviderInfo['selectedMessageMap']) {
@@ -210,7 +134,7 @@ export default class CodeOverview extends React.Component<Props, State> {
       (innerOverviewHeight - linePadding) / lineHeight,
     );
 
-    const allLineShapes = this.createAllLineShapes();
+    const allLineShapes = generateLineShapes(getLines(this.props.content));
 
     let chunkSize = 1;
     if (allLineShapes.length > numberOfRows) {
