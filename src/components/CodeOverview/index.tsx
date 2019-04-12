@@ -4,7 +4,10 @@ import chunk from 'lodash.chunk';
 import debounce from 'lodash.debounce';
 
 import { getCodeLineAnchor, getLines } from '../CodeView/utils';
-import { LinterMessage as LinterMessageType } from '../../reducers/linter';
+import {
+  LinterMessage as LinterMessageType,
+  findMostSevereType,
+} from '../../reducers/linter';
 import styles from './styles.module.scss';
 import { gettext } from '../../utils';
 import { Version } from '../../reducers/versions';
@@ -80,9 +83,7 @@ export default class CodeOverview extends React.Component<Props, State> {
       : [];
 
     if (messages.length) {
-      // TODO: refactor findMostSevereTypeForPath from FileTreeNode
-      // and use it.
-      const { type } = messages[0];
+      const type = findMostSevereType(messages);
       return (
         <div
           key={messages.map((m) => m.uid).join(':')}
