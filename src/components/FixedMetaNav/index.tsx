@@ -8,7 +8,7 @@ type PublicProps = {
 
 type Props = PublicProps;
 
-const FixedScrollArea = ({ children }: Props) => {
+const FixedMetaNav = ({ children }: Props) => {
   return (
     <div className={styles.container}>
       <div className={styles.content}>{children}</div>
@@ -16,4 +16,4 @@ const FixedScrollArea = ({ children }: Props) => {
   );
 };
 
-export default FixedScrollArea;
+export default FixedMetaNav;
