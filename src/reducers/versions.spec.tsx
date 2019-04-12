@@ -501,6 +501,22 @@ describe(__filename, () => {
       expect(getVersionFile(state, 1, 'some-file-name.js')).toEqual(undefined);
     });
 
+    it('returns `null` when the file was not retrieved from the API', () => {
+      const version = fakeVersion;
+      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+      state = reducer(
+        state,
+        actions.abortFetchVersionFile({
+          versionId: version.id,
+          path: version.file.selected_file,
+        }),
+      );
+
+      expect(
+        getVersionFile(state, version.id, version.file.selected_file),
+      ).toEqual(null);
+    });
+
     it('returns undefined if there is no file for the path', () => {
       const version = fakeVersion;
       const state = reducer(
@@ -1301,6 +1317,46 @@ describe(__filename, () => {
 
       expect(state.versionFilesLoading[versionId][path1]).toEqual(true);
       expect(state.versionFilesLoading[versionId][path2]).toEqual(false);
+    });
+
+    it('sets the file to `null`', () => {
+      const path = 'scripts/background.js';
+      const versionId = 98765;
+
+      let state;
+      state = reducer(
+        state,
+        actions.beginFetchVersionFile({ path, versionId }),
+      );
+      state = reducer(
+        state,
+        actions.abortFetchVersionFile({ path, versionId }),
+      );
+
+      expect(state.versionFiles[versionId][path]).toEqual(null);
+    });
+
+    it('preserves other version files', () => {
+      const version = fakeVersion;
+      const pathToBackgroundJs = 'scripts/background.js';
+      const pathToManifestJson = 'manifest.json';
+
+      let state = reducer(
+        undefined,
+        actions.loadVersionFile({ path: pathToBackgroundJs, version }),
+      );
+      state = reducer(
+        state,
+        actions.abortFetchVersionFile({
+          path: pathToManifestJson,
+          versionId: version.id,
+        }),
+      );
+
+      expect(state.versionFiles[version.id][pathToBackgroundJs]).toEqual(
+        expect.any(Object),
+      );
+      expect(state.versionFiles[version.id][pathToManifestJson]).toEqual(null);
     });
   });
 

@@ -81,7 +81,12 @@ export class BrowseBase extends React.Component<Props> {
       version,
     } = this.props;
 
-    if (version && version.selectedPath && !fileIsLoading && !file) {
+    if (
+      version &&
+      version.selectedPath &&
+      !fileIsLoading &&
+      file === undefined
+    ) {
       dispatch(
         _fetchVersionFile({
           addonId: parseInt(match.params.addonId, 10),

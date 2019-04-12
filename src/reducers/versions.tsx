@@ -262,7 +262,10 @@ export type VersionsState = {
   };
   versionFiles: {
     [versionId: number]: {
-      [path: string]: InternalVersionFile;
+      [path: string]:
+        | InternalVersionFile // data successfully loaded
+        | null // an error has occured
+        | undefined; // data not fetched yet
     };
   };
   versionFilesLoading: {
@@ -350,12 +353,19 @@ export const getVersionFile = (
   versionId: number,
   path: string,
   { _log = log } = {},
-): VersionFile | void => {
+): VersionFile | void | null => {
   const version = getVersionInfo(versions, versionId);
   const filesForVersion = getVersionFiles(versions, versionId);
 
   if (version && filesForVersion) {
     const file = filesForVersion[path];
+
+    // A file is `null` when it could not be retrieved from the API because of
+    // an error.
+    if (file === null) {
+      return null;
+    }
+
     const entry = versions.versionInfo[versionId].entries.find(
       (e) => e.path === path,
     );
@@ -657,6 +667,13 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
 
       return {
         ...state,
+        versionFiles: {
+          ...state.versionFiles,
+          [versionId]: {
+            ...state.versionFiles[versionId],
+            [path]: null,
+          },
+        },
         versionFilesLoading: {
           ...state.versionFilesLoading,
           [versionId]: {

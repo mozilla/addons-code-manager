@@ -358,4 +358,35 @@ describe(__filename, () => {
 
     expect(dispatchSpy).not.toHaveBeenCalled();
   });
+
+  it('does not dispatch fetchVersionFile when operation has been aborted', () => {
+    const { version, store, renderAndUpdate } = setUpVersionFileUpdate({
+      initialPath: 'scripts/content.js',
+    });
+
+    const selectedPath = 'scripts/background.js';
+    store.dispatch(
+      versionActions.updateSelectedPath({
+        versionId: version.id,
+        selectedPath,
+      }),
+    );
+    store.dispatch(
+      versionActions.beginFetchVersionFile({
+        versionId: version.id,
+        path: selectedPath,
+      }),
+    );
+    // Simulate an API error.
+    store.dispatch(
+      versionActions.abortFetchVersionFile({
+        versionId: version.id,
+        path: selectedPath,
+      }),
+    );
+
+    const { dispatchSpy } = renderAndUpdate();
+
+    expect(dispatchSpy).not.toHaveBeenCalled();
+  });
 });
