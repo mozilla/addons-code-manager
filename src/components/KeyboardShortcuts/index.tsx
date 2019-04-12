@@ -69,6 +69,8 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
             }),
           );
           break;
+        // We are supporting 'e' as it was the shortcut from the old tool, hence
+        // existing reviewers might be used to using it.
         case 'e':
         case 'o':
           dispatch(
