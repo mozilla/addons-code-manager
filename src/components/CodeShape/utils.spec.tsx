@@ -1,12 +1,11 @@
-import { Token, generateLineShapes } from './utils';
+import { ONE_SPACE, Token, generateLineShapes } from './utils';
 
 describe(__filename, () => {
   describe('generateLineShapes', () => {
     it('collects token counts', () => {
       const use = 'use';
-      const space = ' ';
       const strict = 'strict;';
-      const line = `${use}${space}${strict}`;
+      const line = `${use}${ONE_SPACE}${strict}`;
 
       expect(generateLineShapes([line])).toEqual([
         {
@@ -15,7 +14,7 @@ describe(__filename, () => {
             expect.objectContaining({ token: Token.code, count: use.length }),
             expect.objectContaining({
               token: Token.whitespace,
-              count: space.length,
+              count: ONE_SPACE.length,
             }),
             expect.objectContaining({
               token: Token.code,

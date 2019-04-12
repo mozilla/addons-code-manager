@@ -1,3 +1,5 @@
+export const ONE_SPACE = ' ';
+
 export enum Token {
   code = 'code',
   whitespace = 'whitespace',
@@ -30,7 +32,7 @@ export const generateLineShapes = (
 
   fileLines.forEach((code, lineIndex) => {
     const line = lineIndex + 1;
-    const characters = code.replace('\t', ' '.repeat(2)).split('');
+    const characters = code.replace('\t', ONE_SPACE.repeat(2)).split('');
 
     const lineShapes: LineShapes = { line, tokens: [] };
     const getLastShape = () => lineShapes.tokens[lineShapes.tokens.length - 1];
@@ -40,8 +42,8 @@ export const generateLineShapes = (
     };
 
     for (let i = 0; i < maxLineLength; i++) {
-      const char = characters[i] || ' ';
-      const token = char === ' ' ? Token.whitespace : Token.code;
+      const char = characters[i] || ONE_SPACE;
+      const token = char === ONE_SPACE ? Token.whitespace : Token.code;
 
       if (getLastToken() !== token) {
         lineShapes.tokens.push({ token, count: 0, percentOfWidth: 0 });
