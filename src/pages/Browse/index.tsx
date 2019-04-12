@@ -181,8 +181,8 @@ export class BrowseBase extends React.Component<Props> {
         ) : (
           <Col md="9">
             <Loading message={gettext('Loading content...')} />
-          )}
-        </Col>
+          </Col>
+        )}
       </React.Fragment>
     );
   }
