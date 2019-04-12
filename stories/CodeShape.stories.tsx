@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { storiesOf } from '@storybook/react';
 
-import CodeShape, { generateLineShapes } from '../src/components/CodeShape';
+import CodeShape from '../src/components/CodeShape';
+import { generateLineShapes } from '../src/components/CodeShape/utils';
 
 const exampleCode = `\
 browser.runtime.onMessage.addListener(
