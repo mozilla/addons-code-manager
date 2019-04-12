@@ -9,7 +9,7 @@ export type PublicProps = {
 
 type Props = PublicProps;
 
-const CodeShape = ({ lineShapes }: Props) => {
+const CodeLineShapes = ({ lineShapes }: Props) => {
   return (
     <React.Fragment>
       {lineShapes.tokens.map((shape) => {
@@ -36,4 +36,4 @@ const CodeShape = ({ lineShapes }: Props) => {
   );
 };
 
-export default CodeShape;
+export default CodeLineShapes;

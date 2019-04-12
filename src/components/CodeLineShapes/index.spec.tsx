@@ -4,12 +4,12 @@ import { shallow } from 'enzyme';
 import styles from './styles.module.scss';
 import { generateLineShapes } from './utils';
 
-import CodeShape, { PublicProps as CodeShapeProps } from '.';
+import CodeLineShapes, { PublicProps as CodeLineShapesProps } from '.';
 
 describe(__filename, () => {
-  describe('CodeShape', () => {
-    const render = (props: CodeShapeProps) => {
-      return shallow(<CodeShape {...props} />);
+  describe('CodeLineShapes', () => {
+    const render = (props: CodeLineShapesProps) => {
+      return shallow(<CodeLineShapes {...props} />);
     };
 
     it('renders LineShapes', () => {

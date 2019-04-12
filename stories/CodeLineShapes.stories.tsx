@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { storiesOf } from '@storybook/react';
 
-import CodeShape from '../src/components/CodeShape';
-import { generateLineShapes } from '../src/components/CodeShape/utils';
+import CodeLineShapes from '../src/components/CodeLineShapes';
+import { generateLineShapes } from '../src/components/CodeLineShapes/utils';
 
 const exampleCode = `\
 browser.runtime.onMessage.addListener(
@@ -29,13 +29,13 @@ const buildAndRender = ({
 
   fileLines.forEach((line, lineIndex) => {
     codeParts.push(
-      <div key={line} className="CodeShapeStory-actualCode">
+      <div key={line} className="CodeLineShapesStory-actualCode">
         <pre>{line.replace('\n', '')}</pre>
       </div>,
     );
     shapeParts.push(
-      <div key={line} className="CodeShapeStory-lineShape">
-        <CodeShape lineShapes={allLineShapes[lineIndex]} />
+      <div key={line} className="CodeLineShapesStory-lineShape">
+        <CodeLineShapes lineShapes={allLineShapes[lineIndex]} />
       </div>,
     );
   });
@@ -43,18 +43,18 @@ const buildAndRender = ({
   const style = { width: `${maxLineLength * 10}px` };
 
   return (
-    <div className="CodeShapeStory">
-      <div className="CodeShapeStory-panel" style={style}>
+    <div className="CodeLineShapesStory">
+      <div className="CodeLineShapesStory-panel" style={style}>
         {codeParts}
       </div>
-      <div className="CodeShapeStory-panel" style={style}>
+      <div className="CodeLineShapesStory-panel" style={style}>
         {shapeParts}
       </div>
     </div>
   );
 };
 
-storiesOf('CodeShape', module).addWithChapters('all variants', {
+storiesOf('CodeLineShapes', module).addWithChapters('all variants', {
   chapters: [
     {
       sections: [
