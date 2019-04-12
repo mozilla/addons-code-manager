@@ -24,6 +24,10 @@
   background-color: $red;
 }
 
+.linterNotice {
+  background-color: darken($alert-secondary-bg-color, 40);
+}
+
 .linterWarning {
   background-color: $orange;
 }

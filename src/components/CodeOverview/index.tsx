@@ -90,8 +90,7 @@ export default class CodeOverview extends React.Component<Props, State> {
           className={makeClassName(styles.linterMessage, {
             [styles.linterError]: type === 'error',
             [styles.linterWarning]: type === 'warning',
-            // TODO: support notices
-            // [styles.linterNotice]: type === 'notice',
+            [styles.linterNotice]: type === 'notice',
           })}
         />
       );
