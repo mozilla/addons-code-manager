@@ -3,7 +3,7 @@ import makeClassName from 'classnames';
 import chunk from 'lodash.chunk';
 import debounce from 'lodash.debounce';
 
-import { getLines } from '../CodeView/utils';
+import { getCodeLineAnchor, getLines } from '../CodeView/utils';
 import { LinterMessage as LinterMessageType } from '../../reducers/linter';
 import styles from './styles.module.scss';
 import { gettext } from '../../utils';
@@ -138,10 +138,9 @@ export default class CodeOverview extends React.Component<Props, State> {
       // Use the first line in the group.
       const line = shapes ? shapes[0].line : undefined;
 
-      // TODO: use a shared function for creating line anchor HREFs.
       overview.push(
         <a
-          href={`#${line ? `L${line}` : ''}`}
+          href={line ? getCodeLineAnchor(line) : '#'}
           key={rowIndex}
           className={styles.line}
           style={{
