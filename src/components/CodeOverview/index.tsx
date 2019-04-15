@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Link } from 'react-router-dom';
 import makeClassName from 'classnames';
 import chunk from 'lodash.chunk';
 import debounce from 'lodash.debounce';
@@ -138,18 +139,21 @@ export default class CodeOverview extends React.Component<Props, State> {
       const line = shapes ? shapes[0].line : undefined;
 
       overview.push(
-        <a
-          href={line ? getCodeLineAnchor(line) : '#'}
+        <Link
+          to={line ? getCodeLineAnchor(line) : '#'}
           key={rowIndex}
-          className={styles.line}
-          style={{
-            height: `${lineHeight}px`,
-            paddingTop: rowIndex > 0 ? `${linePadding}px` : undefined,
-          }}
           title={line ? gettext(`Jump to line ${line}`) : ''}
         >
-          {this.renderRow(selectedMessageMap, rowIndex, shapes)}
-        </a>,
+          <div
+            className={styles.line}
+            style={{
+              height: `${lineHeight}px`,
+              paddingTop: rowIndex > 0 ? `${linePadding}px` : undefined,
+            }}
+          >
+            {this.renderRow(selectedMessageMap, rowIndex, shapes)}
+          </div>
+        </Link>,
       );
     }
 
