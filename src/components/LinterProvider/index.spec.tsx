@@ -10,6 +10,7 @@ import {
   getMessageMap,
 } from '../../reducers/linter';
 import {
+  createContextWithFakeRouter,
   createFakeExternalLinterResult,
   createFakeThunk,
   fakeVersion,
@@ -47,11 +48,19 @@ describe(__filename, () => {
       ...moreProps,
     };
 
+    const shallowOptions = createContextWithFakeRouter();
+
     return shallowUntilTarget(
       <LinterProvider {...props}>{children}</LinterProvider>,
       LinterProviderBase,
       {
-        shallowOptions: { context: { store } },
+        shallowOptions: {
+          ...shallowOptions,
+          context: {
+            ...shallowOptions.context,
+            store,
+          },
+        },
       },
     );
   };
