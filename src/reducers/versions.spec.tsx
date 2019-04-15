@@ -1421,11 +1421,11 @@ describe(__filename, () => {
   });
 
   describe('viewVersionFile', () => {
-    it('dispatches updateSelectedPath and pushes a new URL', async () => {
-      const selectedPath = 'some-path';
-      const versionId = fakeVersion.id;
+    const selectedPath = 'some-path';
+    const versionId = fakeVersion.id;
+    const pathname = '/some/path/to/a/page';
 
-      const pathname = '/some/path/to/a/page';
+    it('dispatches updateSelectedPath and pushes a new URL', async () => {
       const location = createFakeLocation({ pathname });
       const history = createFakeHistory({ location });
 
@@ -1444,6 +1444,23 @@ describe(__filename, () => {
       );
       expect(dispatch).toHaveBeenCalledWith(
         push(`${pathname}?path=${selectedPath}`),
+      );
+    });
+
+    it('preserves the existing query parameters', async () => {
+      const search = '?a=1&b=2';
+      const location = createFakeLocation({ pathname, search });
+      const history = createFakeHistory({ location });
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () => viewVersionFile({ selectedPath, versionId }),
+        store: configureStore({ history }),
+      });
+
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(
+        push(`${pathname}${search}&path=${selectedPath}`),
       );
     });
   });
