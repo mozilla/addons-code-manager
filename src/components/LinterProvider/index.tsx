@@ -95,6 +95,8 @@ export class LinterProviderBase extends React.Component<Props> {
 
 const mapStateToProps = (
   state: ApplicationState,
+  // Note that ownProps must also be defined here because of how we rely on
+  // ownProps.location via withRouter(). See the comment below for details.
   ownProps: PublicProps & RouteComponentProps,
 ): PropsFromState => {
   const { selectedPath, versionId } = ownProps;
