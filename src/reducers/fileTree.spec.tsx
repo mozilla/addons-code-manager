@@ -67,7 +67,7 @@ describe(__filename, () => {
     const version = createInternalVersion(fakeVersion);
     const addonName = getLocalizedString(version.addon.name);
 
-    expect(getRootPath(version)).toEqual(`root-${addonName}`);
+    expect(getRootPath(version.addon.name)).toEqual(`root-${addonName}`);
   });
 
   describe('buildFileTree', () => {

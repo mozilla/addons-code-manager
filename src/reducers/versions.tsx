@@ -285,6 +285,22 @@ export const initialState: VersionsState = {
   versionInfo: {},
 };
 
+export const getParentFolders = (
+  path: string,
+  versionAddonName: LocalizedStringMap,
+): string[] => {
+  const parents = [getRootPath(versionAddonName)];
+
+  const folders = path.split('/');
+
+  while (folders.length > 1) {
+    folders.pop();
+    parents.push(folders.join('/'));
+  }
+
+  return parents;
+};
+
 export const createInternalVersionFile = (
   file: ExternalVersionFileWithContent,
 ): InternalVersionFile => {
@@ -325,12 +341,13 @@ export const createInternalVersionAddon = (
 export const createInternalVersion = (
   version: ExternalVersionWithContent | ExternalVersionWithDiff,
 ): Version => {
+  const addon = createInternalVersionAddon(version.addon);
   return {
-    addon: createInternalVersionAddon(version.addon),
+    addon,
     entries: Object.keys(version.file.entries).map((nodeName) => {
       return createInternalVersionEntry(version.file.entries[nodeName]);
     }),
-    expandedPaths: [],
+    expandedPaths: getParentFolders(version.file.selected_file, addon.name),
     id: version.id,
     reviewed: version.reviewed,
     selectedPath: version.file.selected_file,
@@ -724,15 +741,7 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
       const version = state.versionInfo[versionId];
       const { expandedPaths } = version;
 
-      // Make sure the root folder is expanded.
-      const parents = [getRootPath(version)];
-
-      const folders = selectedPath.split('/');
-
-      while (folders.length > 1) {
-        folders.pop();
-        parents.push(folders.join('/'));
-      }
+      const parents = getParentFolders(selectedPath, version.addon.name);
 
       return {
         ...state,
@@ -775,7 +784,7 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
       const expandedPaths = entries
         .filter((entry) => entry.type === 'directory')
         .map((entry) => entry.path);
-      expandedPaths.push(getRootPath(version));
+      expandedPaths.push(getRootPath(version.addon.name));
 
       return {
         ...state,
