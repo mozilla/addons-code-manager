@@ -480,8 +480,11 @@ describe(__filename, () => {
     expect(dispatch).not.toHaveBeenCalled();
   });
 
-  it('dispatches viewVersionFile on update if the query string contains a `path` that is different than `version.selectedPath`', () => {
-    const { renderAndUpdate, version } = setUpVersionFileUpdate({
+  // This could happen when a keyboard navigation updates the selected path. We
+  // do not want to update the selected path again, so we apply this logic to
+  // the first render (mount) only.
+  it('does not dispatch viewVersionFile on update if the query string contains a `path` that is different than `version.selectedPath`', () => {
+    const { renderAndUpdate } = setUpVersionFileUpdate({
       loadVersionAndFile: true,
     });
     const path = 'a/different/file.js';
@@ -491,18 +494,9 @@ describe(__filename, () => {
       }),
     });
 
-    const fakeThunk = createFakeThunk();
-    const _viewVersionFile = fakeThunk.createThunk;
+    const { dispatchSpy } = renderAndUpdate({ history });
 
-    const { dispatchSpy } = renderAndUpdate({ _viewVersionFile, history });
-
-    expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
-    expect(dispatchSpy).toHaveBeenCalledTimes(1);
-    expect(_viewVersionFile).toHaveBeenCalledWith({
-      versionId: version.id,
-      selectedPath: path,
-      preserveHash: true,
-    });
+    expect(dispatchSpy).not.toHaveBeenCalled();
   });
 
   it('does not dispatch viewVersionFile on update if the query string does not contain a `path`', () => {

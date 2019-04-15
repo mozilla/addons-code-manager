@@ -1,9 +1,11 @@
 import * as React from 'react';
 import { Store } from 'redux';
 import { History } from 'history';
+import queryString from 'query-string';
 
 import {
   createFakeHistory,
+  createFakeLocation,
   createFakeThunk,
   fakeVersionWithDiff,
   shallowUntilTarget,
@@ -116,6 +118,57 @@ describe(__filename, () => {
     );
   };
 
+  const loadDiffAndRender = ({
+    history = createFakeHistory(),
+    // eslint-disable-next-line @typescript-eslint/camelcase
+    selected_file = fakeVersionWithDiff.file.selected_file,
+    store = configureStore(),
+  } = {}) => {
+    const addonId = 1;
+    const baseVersionId = 2;
+    const headVersionId = 3;
+    const version = {
+      ...fakeVersionWithDiff,
+      id: headVersionId,
+      file: {
+        ...fakeVersionWithDiff.file,
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        selected_file,
+      },
+    };
+    const fakeThunk = createFakeThunk();
+    const _fetchDiff = fakeThunk.createThunk;
+    const _viewVersionFile = fakeThunk.createThunk;
+
+    _loadDiff({ addonId, baseVersionId, headVersionId, store, version });
+
+    const dispatchSpy = spyOn(store, 'dispatch');
+
+    const root = render({
+      _fetchDiff,
+      _viewVersionFile,
+      addonId: String(addonId),
+      baseVersionId: String(baseVersionId),
+      headVersionId: String(headVersionId),
+      history,
+      store,
+    });
+
+    return {
+      _fetchDiff,
+      _viewVersionFile,
+      addonId,
+      baseVersionId,
+      dispatchSpy,
+      fakeThunk,
+      headVersionId,
+      params: getRouteParams({ addonId, baseVersionId, headVersionId }),
+      root,
+      store,
+      version,
+    };
+  };
+
   it('renders loading messages when no version has been loaded', () => {
     const addonId = 123;
     const root = render({ addonId: String(addonId) });
@@ -143,24 +196,7 @@ describe(__filename, () => {
   });
 
   it('renders a FileTree component when a diff has been loaded', () => {
-    const addonId = 9999;
-    const baseVersionId = 1;
-    const version = { ...fakeVersionWithDiff, id: baseVersionId + 1 };
-
-    const store = configureStore();
-    _loadDiff({
-      addonId,
-      baseVersionId,
-      headVersionId: version.id,
-      store,
-      version,
-    });
-
-    const root = render({
-      store,
-      baseVersionId: String(baseVersionId),
-      headVersionId: String(version.id),
-    });
+    const { root, version } = loadDiffAndRender();
 
     expect(root.find(FileTree)).toHaveLength(1);
     expect(root.find(FileTree)).toHaveProp('versionId', version.id);
@@ -278,133 +314,107 @@ describe(__filename, () => {
     expect(dispatch).not.toHaveBeenCalled();
   });
 
-  it('does not dispatch fetchDiff() on update if no parameter has changed', () => {
-    const addonId = 123456;
-    const baseVersionId = 1;
-    const headVersionId = baseVersionId + 1;
-    const params = getRouteParams({ addonId, baseVersionId, headVersionId });
+  it('does not dispatch fetchDiff() on update if no URL parameter has changed', () => {
+    const { dispatchSpy, root, params } = loadDiffAndRender();
 
-    const store = configureStore();
-    const fakeThunk = createFakeThunk();
-    const dispatch = spyOn(store, 'dispatch');
-
-    const root = render({
-      ...params,
-      _fetchDiff: fakeThunk.createThunk,
-      store,
-    });
-
-    dispatch.mockClear();
     root.setProps({ match: { params } });
 
-    expect(dispatch).not.toHaveBeenCalled();
+    expect(dispatchSpy).not.toHaveBeenCalled();
   });
 
   it('dispatches fetchDiff() on update if base version is different', () => {
-    const addonId = 123456;
-    const baseVersionId = 10;
-    const headVersionId = baseVersionId + 1;
-
-    const store = configureStore();
-    const fakeThunk = createFakeThunk();
-    const _fetchDiff = fakeThunk.createThunk;
-    const dispatch = spyOn(store, 'dispatch');
-
-    const root = render({
-      ...getRouteParams({
-        addonId,
-        baseVersionId: baseVersionId - 1,
-        headVersionId,
-      }),
+    const {
       _fetchDiff,
-      store,
-    });
+      addonId,
+      baseVersionId,
+      dispatchSpy,
+      fakeThunk,
+      headVersionId,
+      root,
+      version,
+    } = loadDiffAndRender();
 
-    dispatch.mockClear();
-    _fetchDiff.mockClear();
+    const newBaseVersionId = baseVersionId - 1;
     root.setProps({
       match: {
-        params: getRouteParams({ addonId, baseVersionId, headVersionId }),
+        params: getRouteParams({
+          addonId,
+          baseVersionId: newBaseVersionId,
+          headVersionId,
+        }),
       },
     });
 
-    expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
     expect(_fetchDiff).toHaveBeenCalledWith({
       addonId,
-      baseVersionId,
+      baseVersionId: newBaseVersionId,
       headVersionId,
+      path: version.file.selected_file,
     });
   });
 
   it('dispatches fetchDiff() on update if head version is different', () => {
-    const addonId = 123456;
-    const baseVersionId = 1;
-    const headVersionId = baseVersionId + 1;
-
-    const store = configureStore();
-    const fakeThunk = createFakeThunk();
-    const _fetchDiff = fakeThunk.createThunk;
-    const dispatch = spyOn(store, 'dispatch');
-
-    const root = render({
-      ...getRouteParams({
-        addonId,
-        baseVersionId,
-        headVersionId: headVersionId + 1,
-      }),
+    const {
       _fetchDiff,
-      store,
-    });
+      addonId,
+      baseVersionId,
+      dispatchSpy,
+      fakeThunk,
+      headVersionId,
+      root,
+      version,
+    } = loadDiffAndRender();
 
-    dispatch.mockClear();
-    _fetchDiff.mockClear();
+    const newHeadVersionId = headVersionId + 1;
     root.setProps({
       match: {
-        params: getRouteParams({ addonId, baseVersionId, headVersionId }),
+        params: getRouteParams({
+          addonId,
+          baseVersionId,
+          headVersionId: newHeadVersionId,
+        }),
       },
     });
 
-    expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
     expect(_fetchDiff).toHaveBeenCalledWith({
       addonId,
       baseVersionId,
-      headVersionId,
+      headVersionId: newHeadVersionId,
+      path: version.file.selected_file,
     });
   });
 
   it('dispatches fetchDiff() on update if addon ID is different', () => {
-    const addonId = 123456;
-    const baseVersionId = 1;
-    const headVersionId = baseVersionId + 1;
-
-    const store = configureStore();
-    const fakeThunk = createFakeThunk();
-    const _fetchDiff = fakeThunk.createThunk;
-    const dispatch = spyOn(store, 'dispatch');
-
-    const root = render({
+    const {
       _fetchDiff,
-      ...getRouteParams({
-        addonId: addonId + 10,
-        baseVersionId,
-        headVersionId,
-      }),
-      store,
-    });
+      addonId,
+      baseVersionId,
+      dispatchSpy,
+      fakeThunk,
+      headVersionId,
+      root,
+      version,
+    } = loadDiffAndRender();
 
-    dispatch.mockClear();
-    _fetchDiff.mockClear();
+    const newAddonId = addonId + 1;
     root.setProps({
       match: {
-        params: getRouteParams({ addonId, baseVersionId, headVersionId }),
+        params: getRouteParams({
+          addonId: newAddonId,
+          baseVersionId,
+          headVersionId,
+        }),
       },
     });
 
-    expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
     expect(_fetchDiff).toHaveBeenCalledWith({
-      addonId,
+      addonId: newAddonId,
       baseVersionId,
       headVersionId,
+      path: version.file.selected_file,
     });
   });
 
@@ -435,63 +445,148 @@ describe(__filename, () => {
     expect(_viewVersionFile).toHaveBeenCalledWith({
       selectedPath: path,
       versionId: headVersionId,
+      preserveHash: false,
     });
   });
 
-  it('does not dispatch fetchDiff() when path remains the same', () => {
-    const addonId = 123456;
-    const baseVersionId = 1;
+  it('does not dispatch anything when diff is loaded on mount', () => {
+    const { dispatchSpy } = loadDiffAndRender();
+
+    expect(dispatchSpy).not.toHaveBeenCalled();
+  });
+
+  it('does not dispatch fetchDiff() when path remains the same on update', () => {
     const path = 'manifest.json';
-    const version = {
-      ...fakeVersionWithDiff,
-      file: {
-        ...fakeVersionWithDiff.file,
-        // eslint-disable-next-line @typescript-eslint/camelcase
-        selected_file: path,
-      },
-    };
-    const headVersionId = version.id;
-
-    const store = configureStore();
-    _loadDiff({ addonId, baseVersionId, headVersionId, store, version });
-
-    const fakeThunk = createFakeThunk();
-    const dispatch = spyOn(store, 'dispatch');
-    const params = getRouteParams({ addonId, baseVersionId, headVersionId });
-
-    // The version is already loaded, hence `path` is defined already.
-    const root = render({
-      ...params,
-      _fetchDiff: fakeThunk.createThunk,
-      store,
+    const { dispatchSpy, root } = loadDiffAndRender({
+      // eslint-disable-next-line @typescript-eslint/camelcase
+      selected_file: path,
     });
+
     // We set `path` to the same value again.
     root.setProps({ path });
 
-    expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
-    expect(dispatch).toHaveBeenCalledTimes(1);
+    expect(dispatchSpy).not.toHaveBeenCalled();
   });
 
-  it('does not dispatch fetchDiff() twice for the default file', () => {
-    const addonId = 123456;
-    const baseVersionId = 1;
-    const headVersionId = baseVersionId + 1;
-    const params = getRouteParams({ addonId, baseVersionId, headVersionId });
+  it('does not dispatch fetchDiff() when path is the default file on update', () => {
+    const { dispatchSpy, root, version } = loadDiffAndRender();
 
-    const store = configureStore();
-    const fakeThunk = createFakeThunk();
-    const dispatch = spyOn(store, 'dispatch');
-
-    const root = render({
-      ...params,
-      _fetchDiff: fakeThunk.createThunk,
-      store,
-    });
     // Once the default file is loaded (without `path` defined), there is an
     // update with `path` being set to the default file.
-    root.setProps({ path: fakeVersionWithDiff.file.selected_file });
+    root.setProps({ path: version.file.selected_file });
+
+    expect(dispatchSpy).not.toHaveBeenCalled();
+  });
+
+  it('dispatches viewVersionFile() on mount if the query string contains a `path` that is different than `version.selectedPath`', () => {
+    const path = 'a/different/file.js';
+    const history = createFakeHistory({
+      location: createFakeLocation({
+        search: queryString.stringify({ path }),
+      }),
+    });
+    const {
+      _viewVersionFile,
+      dispatchSpy,
+      fakeThunk,
+      version,
+    } = loadDiffAndRender({ history });
+
+    expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(dispatchSpy).toHaveBeenCalledTimes(1);
+    expect(_viewVersionFile).toHaveBeenCalledWith({
+      versionId: version.id,
+      selectedPath: path,
+      preserveHash: true,
+    });
+  });
+
+  it('does not dispatch viewVersionFile() on mount when `path` is equal to the selected path', () => {
+    const version = fakeVersionWithDiff;
+    const history = createFakeHistory({
+      location: createFakeLocation({
+        search: queryString.stringify({ path: version.file.selected_file }),
+      }),
+    });
+
+    const { dispatchSpy } = loadDiffAndRender({ history });
+
+    expect(dispatchSpy).not.toHaveBeenCalled();
+  });
+
+  it('dispatches fetchDiff() with the path specified in the URL on mount', () => {
+    const addonId = 9999;
+    const baseVersionId = 1;
+    const headVersionId = baseVersionId + 1;
+    const path = 'a/different/file.js';
+    const history = createFakeHistory({
+      location: createFakeLocation({
+        search: queryString.stringify({ path }),
+      }),
+    });
+
+    const store = configureStore();
+    const dispatch = spyOn(store, 'dispatch');
+    const fakeThunk = createFakeThunk();
+    const _fetchDiff = fakeThunk.createThunk;
+
+    render({
+      ...getRouteParams({ addonId, baseVersionId, headVersionId }),
+      _fetchDiff,
+      history,
+      store,
+    });
 
     expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
-    expect(dispatch).toHaveBeenCalledTimes(1);
+    expect(_fetchDiff).toHaveBeenCalledWith({
+      addonId,
+      baseVersionId,
+      headVersionId,
+      path,
+    });
+  });
+
+  // This could happen when a keyboard navigation updates the selected path. We
+  // do not want to update the selected path again, so we apply this logic to
+  // the first render (mount) only.
+  it('does not dispatch viewVersionFile() on update if the query string contains a `path` that is different than `version.selectedPath`', () => {
+    const { dispatchSpy, root } = loadDiffAndRender();
+
+    const path = 'a/different/file.js';
+    const history = createFakeHistory({
+      location: createFakeLocation({
+        search: queryString.stringify({ path }),
+      }),
+    });
+
+    root.setProps({ history });
+
+    expect(dispatchSpy).not.toHaveBeenCalled();
+  });
+
+  it('does not dispatch viewVersionFile() on update when `path` is equal to the selected path', () => {
+    const { dispatchSpy, root, version } = loadDiffAndRender();
+
+    const history = createFakeHistory({
+      location: createFakeLocation({
+        search: queryString.stringify({ path: version.file.selected_file }),
+      }),
+    });
+
+    root.setProps({ history });
+
+    expect(dispatchSpy).not.toHaveBeenCalled();
+  });
+
+  it('does not dispatch viewVersionFile() on update when the query string does not contain a `path`', () => {
+    const { dispatchSpy, root } = loadDiffAndRender();
+
+    const history = createFakeHistory({
+      location: createFakeLocation({ search: '' }),
+    });
+
+    root.setProps({ history });
+
+    expect(dispatchSpy).not.toHaveBeenCalled();
   });
 });
