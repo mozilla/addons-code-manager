@@ -114,6 +114,84 @@ describe(__filename, () => {
       );
     });
 
+    it('expands all parent folders when updateSelectedPath is dispatched', () => {
+      const folder1 = 'folder1';
+      const folder2 = 'folder2';
+      const file1 = 'file1.js';
+      const selectedPath = `${folder1}/${folder2}/${file1}`;
+
+      const version = fakeVersion;
+      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+
+      state = reducer(
+        state,
+        actions.updateSelectedPath({ selectedPath, versionId: version.id }),
+      );
+
+      expect(state).toHaveProperty(`versionInfo.${version.id}.expandedPaths`, [
+        getRootPath(createInternalVersion(version)),
+        `${folder1}/${folder2}`,
+        folder1,
+      ]);
+    });
+
+    it('retains all expanded folders when updateSelectedPath is dispatched', () => {
+      const newFolder = 'newFolder';
+      const file = 'file.js';
+      const selectedPath = `${newFolder}/${file}`;
+
+      const version = fakeVersion;
+      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+
+      const initialPath = 'new/selected/path';
+      state = reducer(
+        state,
+        actions.toggleExpandedPath({
+          path: initialPath,
+          versionId: version.id,
+        }),
+      );
+
+      state = reducer(
+        state,
+        actions.updateSelectedPath({ selectedPath, versionId: version.id }),
+      );
+
+      expect(state).toHaveProperty(`versionInfo.${version.id}.expandedPaths`, [
+        initialPath,
+        getRootPath(createInternalVersion(version)),
+        newFolder,
+      ]);
+    });
+
+    it('does not duplicate paths in expandedPaths when updateSelectedPath is dispatched', () => {
+      const version = fakeVersion;
+      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+
+      const path = 'path1';
+      state = reducer(
+        state,
+        actions.toggleExpandedPath({
+          path,
+          versionId: version.id,
+        }),
+      );
+
+      state = reducer(
+        state,
+        actions.updateSelectedPath({
+          selectedPath: path,
+          versionId: version.id,
+        }),
+      );
+
+      expect(state).toHaveProperty(`versionInfo.${version.id}.expandedPaths`, [
+        path,
+        // updateSelectedPath always adds the root folder.
+        getRootPath(createInternalVersion(version)),
+      ]);
+    });
+
     it('adds a path to expandedPaths', () => {
       const version = fakeVersion;
       let state = reducer(undefined, actions.loadVersionInfo({ version }));
