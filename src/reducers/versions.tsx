@@ -612,7 +612,7 @@ export const fetchDiff = ({
   };
 };
 
-type UpdateSelectedPathParams = {
+type ViewVersionFileParams = {
   versionId: number;
   selectedPath: string;
 };
@@ -620,7 +620,7 @@ type UpdateSelectedPathParams = {
 export const viewVersionFile = ({
   versionId,
   selectedPath,
-}: UpdateSelectedPathParams): ThunkActionCreator => {
+}: ViewVersionFileParams): ThunkActionCreator => {
   return async (dispatch, getState) => {
     const { router } = getState();
     const queryParams = {
