@@ -9,6 +9,7 @@ import {
   createFakeThunk,
   fakeVersion,
   fakeVersionEntry,
+  fakeVersionFile,
   shallowUntilTarget,
   spyOn,
 } from '../../test-helpers';
@@ -19,6 +20,7 @@ import {
 } from '../../reducers/versions';
 import FileTree from '../../components/FileTree';
 import Loading from '../../components/Loading';
+import CodeOverview from '../../components/CodeOverview';
 import CodeView from '../../components/CodeView';
 import FileMetadata from '../../components/FileMetadata';
 
@@ -208,15 +210,38 @@ describe(__filename, () => {
     );
   });
 
-  it('renders the content of the default file when a version has been loaded', () => {
-    const version = fakeVersion;
+  it('renders the content and an overview of the file', () => {
+    const content = 'example code for an extension';
+    const version = {
+      ...fakeVersion,
+      id: 987663,
+      file: { ...fakeVersionFile, content },
+    };
 
     const store = configureStore();
     _loadVersionAndFile({ store, version });
 
     const root = render({ store, versionId: String(version.id) });
 
-    expect(root.find(CodeView)).toHaveLength(1);
+    const code = root.find(CodeView);
+    expect(code).toHaveLength(1);
+    expect(code).toHaveProp(
+      'mimeType',
+      version.file.entries[version.file.selected_file].mimetype,
+    );
+    expect(code).toHaveProp('content', content);
+    expect(code).toHaveProp(
+      'version',
+      expect.objectContaining({ id: version.id }),
+    );
+
+    const overview = root.find(CodeOverview);
+    expect(overview).toHaveLength(1);
+    expect(overview).toHaveProp('content', content);
+    expect(overview).toHaveProp(
+      'version',
+      expect.objectContaining({ id: version.id }),
+    );
   });
 
   it('renders a loading message when we do not have the content of a file yet', () => {
@@ -236,6 +261,7 @@ describe(__filename, () => {
     const root = render({ store, versionId: String(version.id) });
 
     expect(root.find(CodeView)).toHaveLength(0);
+    expect(root.find(CodeOverview)).toHaveLength(0);
     expect(root.find(Loading)).toHaveLength(1);
     expect(root.find(Loading)).toHaveProp('message', 'Loading content...');
   });
