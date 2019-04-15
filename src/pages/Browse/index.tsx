@@ -94,7 +94,7 @@ export class BrowseBase extends React.Component<Props> {
     const path = getPathFromQueryString(history);
 
     if (path && path !== version.selectedPath) {
-      this.onSelectFile(path);
+      this.viewVersionFile(path);
       return;
     }
 
@@ -109,7 +109,7 @@ export class BrowseBase extends React.Component<Props> {
     }
   }
 
-  onSelectFile = (path: string) => {
+  viewVersionFile = (path: string) => {
     const { _viewVersionFile, dispatch, match } = this.props;
     const { versionId } = match.params;
 
@@ -137,7 +137,10 @@ export class BrowseBase extends React.Component<Props> {
         <Col md="3">
           <Row>
             <Col>
-              <FileTree onSelect={this.onSelectFile} versionId={version.id} />
+              <FileTree
+                onSelect={this.viewVersionFile}
+                versionId={version.id}
+              />
             </Col>
           </Row>
           {file && (
