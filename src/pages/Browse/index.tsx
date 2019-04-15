@@ -172,6 +172,4 @@ const mapStateToProps = (
   };
 };
 
-export default connect(mapStateToProps)(BrowseBase) as React.ComponentType<
-  PublicProps & Partial<DefaultProps>
->;
+export default connect(mapStateToProps)(BrowseBase);
