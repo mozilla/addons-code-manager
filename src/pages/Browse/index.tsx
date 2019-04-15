@@ -11,14 +11,14 @@ import FileTree from '../../components/FileTree';
 import {
   Version,
   VersionFile,
-  actions,
   fetchVersion,
   fetchVersionFile,
   getVersionFile,
   getVersionInfo,
   isFileLoading,
+  viewVersionFile,
 } from '../../reducers/versions';
-import { gettext } from '../../utils';
+import { gettext, getPathFromQueryString } from '../../utils';
 import Loading from '../../components/Loading';
 import CodeView from '../../components/CodeView';
 import FileMetadata from '../../components/FileMetadata';
@@ -30,6 +30,7 @@ export type DefaultProps = {
   _fetchVersion: typeof fetchVersion;
   _fetchVersionFile: typeof fetchVersionFile;
   _log: typeof log;
+  _viewVersionFile: typeof viewVersionFile;
 };
 
 type PropsFromRouter = {
@@ -55,38 +56,49 @@ export class BrowseBase extends React.Component<Props> {
     _fetchVersion: fetchVersion,
     _fetchVersionFile: fetchVersionFile,
     _log: log,
+    _viewVersionFile: viewVersionFile,
   };
 
   componentDidMount() {
-    const { _fetchVersion, dispatch, match } = this.props;
-    const { addonId, versionId } = match.params;
-
-    // This also fetches / loads the default version file.
-    // Example: manifest.json
-    dispatch(
-      _fetchVersion({
-        addonId: parseInt(addonId, 10),
-        versionId: parseInt(versionId, 10),
-      }),
-    );
+    this.loadData();
   }
 
   componentDidUpdate() {
+    this.loadData();
+  }
+
+  loadData() {
     const {
+      _fetchVersion,
       _fetchVersionFile,
       dispatch,
       file,
       fileIsLoading,
+      history,
       match,
       version,
     } = this.props;
 
-    if (
-      version &&
-      version.selectedPath &&
-      !fileIsLoading &&
-      file === undefined
-    ) {
+    if (!version) {
+      const { addonId, versionId } = match.params;
+
+      dispatch(
+        _fetchVersion({
+          addonId: parseInt(addonId, 10),
+          versionId: parseInt(versionId, 10),
+        }),
+      );
+      return;
+    }
+
+    const path = getPathFromQueryString(history);
+
+    if (path && path !== version.selectedPath) {
+      this.viewVersionFile(path);
+      return;
+    }
+
+    if (version.selectedPath && !fileIsLoading && file === undefined) {
       dispatch(
         _fetchVersionFile({
           addonId: parseInt(match.params.addonId, 10),
@@ -97,12 +109,12 @@ export class BrowseBase extends React.Component<Props> {
     }
   }
 
-  onSelectFile = (path: string) => {
-    const { dispatch, match } = this.props;
+  viewVersionFile = (path: string) => {
+    const { _viewVersionFile, dispatch, match } = this.props;
     const { versionId } = match.params;
 
     dispatch(
-      actions.updateSelectedPath({
+      _viewVersionFile({
         versionId: parseInt(versionId, 10),
         selectedPath: path,
       }),
@@ -125,7 +137,10 @@ export class BrowseBase extends React.Component<Props> {
         <Col md="3">
           <Row>
             <Col>
-              <FileTree onSelect={this.onSelectFile} versionId={version.id} />
+              <FileTree
+                onSelect={this.viewVersionFile}
+                versionId={version.id}
+              />
             </Col>
           </Row>
           {file && (

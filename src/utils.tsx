@@ -1,5 +1,7 @@
 import filesize from 'filesize';
 import purify from 'dompurify';
+import { History } from 'history';
+import queryString from 'query-string';
 
 export type LocalizedStringMap = {
   [lang: string]: string;
@@ -48,4 +50,10 @@ export const nl2br = (text: string | null) => {
 
 export const formatFilesize = (size: number): string => {
   return filesize(size, { standard: 'iec' });
+};
+
+export const getPathFromQueryString = (history: History) => {
+  const { path } = queryString.parse(history.location.search);
+
+  return typeof path === 'string' && path.length ? path : null;
 };

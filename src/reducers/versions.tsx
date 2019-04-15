@@ -2,6 +2,8 @@ import { Reducer } from 'redux';
 import { ActionType, createAction, getType } from 'typesafe-actions';
 import log from 'loglevel';
 import { DiffInfo, DiffInfoType } from 'react-diff-view';
+import { push } from 'connected-react-router';
+import queryString from 'query-string';
 
 import { ThunkActionCreator } from '../configureStore';
 import { getDiff, getVersion, getVersionsList, isErrorResponse } from '../api';
@@ -607,6 +609,29 @@ export const fetchDiff = ({
         }),
       );
     }
+  };
+};
+
+type ViewVersionFileParams = {
+  versionId: number;
+  selectedPath: string;
+};
+
+export const viewVersionFile = ({
+  versionId,
+  selectedPath,
+}: ViewVersionFileParams): ThunkActionCreator => {
+  return async (dispatch, getState) => {
+    const { router } = getState();
+    const queryParams = {
+      ...queryString.parse(router.location.search),
+      path: selectedPath,
+    };
+
+    dispatch(actions.updateSelectedPath({ versionId, selectedPath }));
+    dispatch(
+      push(`${router.location.pathname}?${queryString.stringify(queryParams)}`),
+    );
   };
 };
 

@@ -1,12 +1,15 @@
 import filesize from 'filesize';
+import queryString from 'query-string';
 
 import {
   formatFilesize,
   getLanguageFromMimeType,
   getLocalizedString,
+  getPathFromQueryString,
   nl2br,
   sanitizeHTML,
 } from './utils';
+import { createFakeHistory, createFakeLocation } from './test-helpers';
 
 describe(__filename, () => {
   describe('getLocalizedString', () => {
@@ -152,6 +155,37 @@ describe(__filename, () => {
     it('returns a size formatted using the iec standard', () => {
       const size = 12345;
       expect(formatFilesize(size)).toEqual(filesize(size, { standard: 'iec' }));
+    });
+  });
+
+  describe('getPathFromQueryString', () => {
+    it('returns the `path` if it exists in the query string', () => {
+      const path = 'some/path/to/file.js';
+      const history = createFakeHistory({
+        location: createFakeLocation({
+          search: queryString.stringify({ path }),
+        }),
+      });
+
+      expect(getPathFromQueryString(history)).toEqual(path);
+    });
+
+    it('returns `null` if there is no `path` in the query string', () => {
+      const history = createFakeHistory({
+        location: createFakeLocation({ search: '' }),
+      });
+
+      expect(getPathFromQueryString(history)).toEqual(null);
+    });
+
+    it('returns `null` if `path` is empty in the query string', () => {
+      const history = createFakeHistory({
+        location: createFakeLocation({
+          search: queryString.stringify({ path: '' }),
+        }),
+      });
+
+      expect(getPathFromQueryString(history)).toEqual(null);
     });
   });
 });

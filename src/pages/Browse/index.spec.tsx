@@ -1,8 +1,11 @@
 import * as React from 'react';
 import { Store } from 'redux';
+import queryString from 'query-string';
+import { History } from 'history';
 
 import {
   createFakeHistory,
+  createFakeLocation,
   createFakeThunk,
   fakeVersion,
   fakeVersionEntry,
@@ -11,7 +14,7 @@ import {
 } from '../../test-helpers';
 import configureStore from '../../configureStore';
 import {
-  actions as versionActions,
+  actions as versionsActions,
   getVersionFile,
 } from '../../reducers/versions';
 import FileTree from '../../components/FileTree';
@@ -45,24 +48,32 @@ describe(__filename, () => {
     _fetchVersion?: BrowseProps['_fetchVersion'];
     _fetchVersionFile?: BrowseProps['_fetchVersionFile'];
     _log?: BrowseProps['_log'];
+    _viewVersionFile?: BrowseProps['_viewVersionFile'];
     addonId?: string;
-    versionId?: string;
+    history?: History;
     store?: Store;
+    versionId?: string;
   };
 
   const render = ({
     _fetchVersion,
     _fetchVersionFile,
     _log,
+    _viewVersionFile,
     addonId = '999',
-    versionId = '123',
+    history = createFakeHistory(),
     store = configureStore(),
+    versionId = '123',
   }: RenderParams = {}) => {
     const props = {
-      ...createFakeRouteComponentProps({ params: { addonId, versionId } }),
+      ...createFakeRouteComponentProps({
+        history,
+        params: { addonId, versionId },
+      }),
       _fetchVersion,
       _fetchVersionFile,
       _log,
+      _viewVersionFile,
     };
 
     return shallowUntilTarget(<Browse {...props} />, BrowseBase, {
@@ -76,9 +87,9 @@ describe(__filename, () => {
     store = configureStore(),
     version = fakeVersion,
   }) => {
-    store.dispatch(versionActions.loadVersionInfo({ version }));
+    store.dispatch(versionsActions.loadVersionInfo({ version }));
     store.dispatch(
-      versionActions.loadVersionFile({
+      versionsActions.loadVersionFile({
         path: version.file.selected_file,
         version,
       }),
@@ -216,7 +227,7 @@ describe(__filename, () => {
 
     // The user clicks a different file to view.
     store.dispatch(
-      versionActions.updateSelectedPath({
+      versionsActions.updateSelectedPath({
         selectedPath: 'some/file.js',
         versionId: version.id,
       }),
@@ -229,17 +240,20 @@ describe(__filename, () => {
     expect(root.find(Loading)).toHaveProp('message', 'Loading content...');
   });
 
-  it('dispatches updateSelectedPath() when a file is selected', () => {
+  it('dispatches viewVersionFile when a file is selected', () => {
     const addonId = 123456;
     const version = { ...fakeVersion, id: 98765 };
     const path = 'some-path';
 
     const store = configureStore();
     _loadVersionAndFile({ store, version });
-
     const dispatch = spyOn(store, 'dispatch');
 
+    const fakeThunk = createFakeThunk();
+    const _viewVersionFile = fakeThunk.createThunk;
+
     const root = render({
+      _viewVersionFile,
       store,
       addonId: String(addonId),
       versionId: String(version.id),
@@ -251,25 +265,27 @@ describe(__filename, () => {
     const onSelectFile = fileTree.prop('onSelect');
     onSelectFile(path);
 
-    expect(dispatch).toHaveBeenCalledWith(
-      versionActions.updateSelectedPath({
-        versionId: version.id,
-        selectedPath: path,
-      }),
-    );
+    expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(_viewVersionFile).toHaveBeenCalledWith({
+      selectedPath: path,
+      versionId: version.id,
+    });
   });
 
-  it('does not dispatch fetchVersionFile on update before a version has loaded', () => {
+  it('only dispatches fetchVersion on update when no version has loaded yet', () => {
     const { renderAndUpdate } = setUpVersionFileUpdate({
       loadVersionAndFile: false,
     });
+    const fakeThunk = createFakeThunk();
+    const _fetchVersion = fakeThunk.createThunk;
 
-    const { dispatchSpy } = renderAndUpdate();
+    const { dispatchSpy } = renderAndUpdate({ _fetchVersion });
 
-    expect(dispatchSpy).not.toHaveBeenCalled();
+    expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(dispatchSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('does not dispatch fetchVersionFile on update when nothing has changed', () => {
+  it('does not dispatch anything on update when nothing has changed', () => {
     const { renderAndUpdate } = setUpVersionFileUpdate();
     const { dispatchSpy } = renderAndUpdate();
 
@@ -289,7 +305,7 @@ describe(__filename, () => {
 
     const selectedPath = 'scripts/background.js';
     store.dispatch(
-      versionActions.updateSelectedPath({
+      versionsActions.updateSelectedPath({
         versionId: version.id,
         selectedPath,
       }),
@@ -312,13 +328,13 @@ describe(__filename, () => {
 
     const selectedPath = 'scripts/background.js';
     store.dispatch(
-      versionActions.updateSelectedPath({
+      versionsActions.updateSelectedPath({
         versionId: version.id,
         selectedPath,
       }),
     );
     store.dispatch(
-      versionActions.beginFetchVersionFile({
+      versionsActions.beginFetchVersionFile({
         versionId: version.id,
         path: selectedPath,
       }),
@@ -341,14 +357,14 @@ describe(__filename, () => {
 
     // Setup a file that was previously loaded.
     store.dispatch(
-      versionActions.loadVersionFile({
+      versionsActions.loadVersionFile({
         path: selectedPath,
         version,
       }),
     );
     // Switch back to this file.
     store.dispatch(
-      versionActions.updateSelectedPath({
+      versionsActions.updateSelectedPath({
         versionId: version.id,
         selectedPath,
       }),
@@ -366,26 +382,150 @@ describe(__filename, () => {
 
     const selectedPath = 'scripts/background.js';
     store.dispatch(
-      versionActions.updateSelectedPath({
+      versionsActions.updateSelectedPath({
         versionId: version.id,
         selectedPath,
       }),
     );
     store.dispatch(
-      versionActions.beginFetchVersionFile({
+      versionsActions.beginFetchVersionFile({
         versionId: version.id,
         path: selectedPath,
       }),
     );
     // Simulate an API error.
     store.dispatch(
-      versionActions.abortFetchVersionFile({
+      versionsActions.abortFetchVersionFile({
         versionId: version.id,
         path: selectedPath,
       }),
     );
 
     const { dispatchSpy } = renderAndUpdate();
+
+    expect(dispatchSpy).not.toHaveBeenCalled();
+  });
+
+  it('does not dispatch anything on mount if a version is already loaded', () => {
+    const version = fakeVersion;
+
+    const store = configureStore();
+    _loadVersionAndFile({ store, version });
+    const dispatch = spyOn(store, 'dispatch');
+
+    render({ store, versionId: String(version.id) });
+
+    expect(dispatch).not.toHaveBeenCalled();
+  });
+
+  it('dispatches viewVersionFile on mount if the query string contains a `path` that is different than `version.selectedPath`', () => {
+    const path = 'a/different/file.js';
+    const version = fakeVersion;
+    const history = createFakeHistory({
+      location: createFakeLocation({
+        search: queryString.stringify({ path }),
+      }),
+    });
+    const store = configureStore();
+    _loadVersionAndFile({ store, version });
+    const dispatch = spyOn(store, 'dispatch');
+
+    const fakeThunk = createFakeThunk();
+    const _viewVersionFile = fakeThunk.createThunk;
+
+    render({
+      _viewVersionFile,
+      history,
+      store,
+      versionId: String(version.id),
+    });
+
+    expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(dispatch).toHaveBeenCalledTimes(1);
+    expect(_viewVersionFile).toHaveBeenCalledWith({
+      versionId: version.id,
+      selectedPath: path,
+    });
+  });
+
+  it('does not dispatch viewVersionFile on mount when the query string does not contain a `path`', () => {
+    const version = fakeVersion;
+    const history = createFakeHistory({
+      location: createFakeLocation({
+        search: queryString.stringify({ path: version.file.selected_file }),
+      }),
+    });
+    const store = configureStore();
+    _loadVersionAndFile({ store, version });
+    const dispatch = spyOn(store, 'dispatch');
+
+    render({ store, versionId: String(version.id), history });
+
+    expect(dispatch).not.toHaveBeenCalled();
+  });
+
+  it('does not dispatch viewVersionFile on mount when `path` is equal to the selected path', () => {
+    const version = fakeVersion;
+    const history = createFakeHistory({
+      location: createFakeLocation({ search: '' }),
+    });
+    const store = configureStore();
+    _loadVersionAndFile({ store, version });
+    const dispatch = spyOn(store, 'dispatch');
+
+    render({ store, versionId: String(version.id), history });
+
+    expect(dispatch).not.toHaveBeenCalled();
+  });
+
+  it('dispatches viewVersionFile on update if the query string contains a `path` that is different than `version.selectedPath`', () => {
+    const { renderAndUpdate, version } = setUpVersionFileUpdate({
+      loadVersionAndFile: true,
+    });
+    const path = 'a/different/file.js';
+    const history = createFakeHistory({
+      location: createFakeLocation({
+        search: queryString.stringify({ path }),
+      }),
+    });
+
+    const fakeThunk = createFakeThunk();
+    const _viewVersionFile = fakeThunk.createThunk;
+
+    const { dispatchSpy } = renderAndUpdate({ _viewVersionFile, history });
+
+    expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(dispatchSpy).toHaveBeenCalledTimes(1);
+    expect(_viewVersionFile).toHaveBeenCalledWith({
+      versionId: version.id,
+      selectedPath: path,
+    });
+  });
+
+  it('does not dispatch viewVersionFile on update if the query string does not contain a `path`', () => {
+    const { renderAndUpdate } = setUpVersionFileUpdate({
+      loadVersionAndFile: true,
+    });
+    const history = createFakeHistory({
+      location: createFakeLocation({ search: '' }),
+    });
+
+    const { dispatchSpy } = renderAndUpdate({ history });
+
+    expect(dispatchSpy).not.toHaveBeenCalled();
+  });
+
+  it('does not dispatch viewVersionFile on update if `path` is equal to the selected path', () => {
+    const { renderAndUpdate, version } = setUpVersionFileUpdate({
+      loadVersionAndFile: true,
+    });
+    const history = createFakeHistory({
+      location: createFakeLocation({
+        search: queryString.stringify({ path: version.file.selected_file }),
+      }),
+    });
+
+    const { dispatchSpy } = renderAndUpdate({ history });
 
     expect(dispatchSpy).not.toHaveBeenCalled();
   });
