@@ -690,20 +690,13 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
       const { expandedPaths } = version;
 
       // Make sure the root folder is expanded.
-      const parents = [];
-      const rootPath = getRootPath(version);
-      if (!expandedPaths.includes(rootPath)) {
-        parents.push(rootPath);
-      }
+      const parents = [getRootPath(version)];
 
       const folders = selectedPath.split('/');
 
       while (folders.length > 1) {
         folders.pop();
-        const newPath = folders.join('/');
-        if (!expandedPaths.includes(newPath)) {
-          parents.push(newPath);
-        }
+        parents.push(folders.join('/'));
       }
 
       return {
@@ -714,8 +707,8 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
             ...state.versionInfo[versionId],
             selectedPath,
             expandedPaths: [
-              ...state.versionInfo[versionId].expandedPaths,
-              ...parents,
+              ...expandedPaths,
+              ...parents.filter((newPath) => !expandedPaths.includes(newPath)),
             ],
           },
         },
