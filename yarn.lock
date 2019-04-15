@@ -12169,10 +12169,10 @@ react-dev-utils@^8.0.0:
     strip-ansi "5.0.0"
     text-table "0.2.0"
 
-react-diff-view@2.0.2:
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/react-diff-view/-/react-diff-view-2.0.2.tgz#d316dc450fa69240961b9e8e3a23b016c1a50200"
-  integrity sha512-4tqMP5xDkvFu0iiYTK/ILmGr3ev8wR8fthISQhcMYhABCTnV0fBwIbMSDP61EXKYusuXIHz94u7brUOFUz5cKw==
+react-diff-view@2.1.2:
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/react-diff-view/-/react-diff-view-2.1.2.tgz#4da5b1a27da704e9be79f436a4bcb1461d3a27d6"
+  integrity sha512-hPpHxOwS3G86ZZ+dcz6eFiIvsup3cbFTbM8Wx7aD9hh2pGFNLQ0cxTKmFRSK/9QukAwapq4ZuVJI+RNB0aEI1A==
   dependencies:
     classnames "^2.2.6"
     diff-match-patch "^1.0.4"
