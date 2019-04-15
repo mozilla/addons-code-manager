@@ -164,6 +164,34 @@ describe(__filename, () => {
       ]);
     });
 
+    it('does not duplicate paths in expandedPaths when updateSelectedPath is dispatched', () => {
+      const version = fakeVersion;
+      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+
+      const path = 'path1';
+      state = reducer(
+        state,
+        actions.toggleExpandedPath({
+          path,
+          versionId: version.id,
+        }),
+      );
+
+      state = reducer(
+        state,
+        actions.updateSelectedPath({
+          selectedPath: path,
+          versionId: version.id,
+        }),
+      );
+
+      expect(state).toHaveProperty(`versionInfo.${version.id}.expandedPaths`, [
+        path,
+        // updateSelectedPath always adds the root folder.
+        getRootPath(createInternalVersion(version)),
+      ]);
+    });
+
     it('adds a path to expandedPaths', () => {
       const version = fakeVersion;
       let state = reducer(undefined, actions.loadVersionInfo({ version }));

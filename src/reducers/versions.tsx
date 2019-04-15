@@ -687,14 +687,23 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
       const { selectedPath, versionId } = action.payload;
 
       const version = state.versionInfo[versionId];
+      const { expandedPaths } = version;
 
       // Make sure the root folder is expanded.
-      const parents = [getRootPath(version)];
+      const parents = [];
+      const rootPath = getRootPath(version);
+      if (!expandedPaths.includes(rootPath)) {
+        parents.push(rootPath);
+      }
+
       const folders = selectedPath.split('/');
 
       while (folders.length > 1) {
         folders.pop();
-        parents.push(folders.join('/'));
+        const newPath = folders.join('/');
+        if (!expandedPaths.includes(newPath)) {
+          parents.push(newPath);
+        }
       }
 
       return {
