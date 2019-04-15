@@ -207,7 +207,9 @@ type GoToRelativeFileParams = {
 };
 
 export const goToRelativeFile = ({
+  /* istanbul ignore next */
   _getRelativePath = getRelativePath,
+  /* istanbul ignore next */
   _updateSelectedPath = updateSelectedPath,
   currentPath,
   pathList,

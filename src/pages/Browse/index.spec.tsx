@@ -1,8 +1,11 @@
 import * as React from 'react';
 import { Store } from 'redux';
+import queryString from 'query-string';
+import { History } from 'history';
 
 import {
   createFakeHistory,
+  createFakeLocation,
   createFakeThunk,
   fakeVersion,
   fakeVersionEntry,
@@ -47,6 +50,7 @@ describe(__filename, () => {
     _log?: BrowseProps['_log'];
     _updateSelectedPath?: BrowseProps['_updateSelectedPath'];
     addonId?: string;
+    history?: History;
     store?: Store;
     versionId?: string;
   };
@@ -57,11 +61,15 @@ describe(__filename, () => {
     _log,
     _updateSelectedPath,
     addonId = '999',
-    versionId = '123',
+    history = createFakeHistory(),
     store = configureStore(),
+    versionId = '123',
   }: RenderParams = {}) => {
     const props = {
-      ...createFakeRouteComponentProps({ params: { addonId, versionId } }),
+      ...createFakeRouteComponentProps({
+        history,
+        params: { addonId, versionId },
+      }),
       _fetchVersion,
       _fetchVersionFile,
       _log,
@@ -408,5 +416,117 @@ describe(__filename, () => {
     render({ store, versionId: String(version.id) });
 
     expect(dispatch).not.toHaveBeenCalled();
+  });
+
+  it('dispatches updateSelectedPath on mount if the query string contains a `path` that is different than `version.selectedPath`', () => {
+    const path = 'a/different/file.js';
+    const version = fakeVersion;
+    const history = createFakeHistory({
+      location: createFakeLocation({
+        search: queryString.stringify({ path }),
+      }),
+    });
+    const store = configureStore();
+    _loadVersionAndFile({ store, version });
+    const dispatch = spyOn(store, 'dispatch');
+
+    const fakeThunk = createFakeThunk();
+    const _updateSelectedPath = fakeThunk.createThunk;
+
+    render({
+      _updateSelectedPath,
+      history,
+      store,
+      versionId: String(version.id),
+    });
+
+    expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(dispatch).toHaveBeenCalledTimes(1);
+    expect(_updateSelectedPath).toHaveBeenCalledWith({
+      versionId: version.id,
+      selectedPath: path,
+    });
+  });
+
+  it('does not dispatch updateSelectedPath on mount when the query string does not contain a `path`', () => {
+    const version = fakeVersion;
+    const history = createFakeHistory({
+      location: createFakeLocation({
+        search: queryString.stringify({ path: version.file.selected_file }),
+      }),
+    });
+    const store = configureStore();
+    _loadVersionAndFile({ store, version });
+    const dispatch = spyOn(store, 'dispatch');
+
+    render({ store, versionId: String(version.id), history });
+
+    expect(dispatch).not.toHaveBeenCalled();
+  });
+
+  it('does not dispatch updateSelectedPath on mount when `path` is equal to the selected path', () => {
+    const version = fakeVersion;
+    const history = createFakeHistory({
+      location: createFakeLocation({ search: '' }),
+    });
+    const store = configureStore();
+    _loadVersionAndFile({ store, version });
+    const dispatch = spyOn(store, 'dispatch');
+
+    render({ store, versionId: String(version.id), history });
+
+    expect(dispatch).not.toHaveBeenCalled();
+  });
+
+  it('dispatches updateSelectedPath on update if the query string contains a `path` that is different than `version.selectedPath`', () => {
+    const { renderAndUpdate, version } = setUpVersionFileUpdate({
+      loadVersionAndFile: true,
+    });
+    const path = 'a/different/file.js';
+    const history = createFakeHistory({
+      location: createFakeLocation({
+        search: queryString.stringify({ path }),
+      }),
+    });
+
+    const fakeThunk = createFakeThunk();
+    const _updateSelectedPath = fakeThunk.createThunk;
+
+    const { dispatchSpy } = renderAndUpdate({ _updateSelectedPath, history });
+
+    expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(dispatchSpy).toHaveBeenCalledTimes(1);
+    expect(_updateSelectedPath).toHaveBeenCalledWith({
+      versionId: version.id,
+      selectedPath: path,
+    });
+  });
+
+  it('does not dispatch updateSelectedPath on update if the query string does not contain a `path`', () => {
+    const { renderAndUpdate } = setUpVersionFileUpdate({
+      loadVersionAndFile: true,
+    });
+    const history = createFakeHistory({
+      location: createFakeLocation({ search: '' }),
+    });
+
+    const { dispatchSpy } = renderAndUpdate({ history });
+
+    expect(dispatchSpy).not.toHaveBeenCalled();
+  });
+
+  it('does not dispatch updateSelectedPath on update if `path` is equal to the selected path', () => {
+    const { renderAndUpdate, version } = setUpVersionFileUpdate({
+      loadVersionAndFile: true,
+    });
+    const history = createFakeHistory({
+      location: createFakeLocation({
+        search: queryString.stringify({ path: version.file.selected_file }),
+      }),
+    });
+
+    const { dispatchSpy } = renderAndUpdate({ history });
+
+    expect(dispatchSpy).not.toHaveBeenCalled();
   });
 });

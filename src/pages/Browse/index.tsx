@@ -18,7 +18,7 @@ import {
   isFileLoading,
   updateSelectedPath,
 } from '../../reducers/versions';
-import { gettext } from '../../utils';
+import { gettext, getPathFromQueryString } from '../../utils';
 import Loading from '../../components/Loading';
 import CodeView from '../../components/CodeView';
 import FileMetadata from '../../components/FileMetadata';
@@ -74,6 +74,7 @@ export class BrowseBase extends React.Component<Props> {
       dispatch,
       file,
       fileIsLoading,
+      history,
       match,
       version,
     } = this.props;
@@ -87,6 +88,13 @@ export class BrowseBase extends React.Component<Props> {
           versionId: parseInt(versionId, 10),
         }),
       );
+      return;
+    }
+
+    const path = getPathFromQueryString(history);
+
+    if (path && path !== version.selectedPath) {
+      this.onSelectFile(path);
       return;
     }
 
