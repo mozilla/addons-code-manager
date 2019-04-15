@@ -63,7 +63,7 @@ describe(__filename, () => {
 
   type RenderParams = {
     _fetchDiff?: PublicProps['_fetchDiff'];
-    _updateSelectedPath?: PublicProps['_updateSelectedPath'];
+    _viewVersionFile?: PublicProps['_viewVersionFile'];
     addonId?: string;
     baseVersionId?: string;
     headVersionId?: string;
@@ -74,7 +74,7 @@ describe(__filename, () => {
 
   const render = ({
     _fetchDiff,
-    _updateSelectedPath,
+    _viewVersionFile,
     addonId = '999',
     baseVersionId = '1',
     headVersionId = '2',
@@ -88,7 +88,7 @@ describe(__filename, () => {
         params: { lang, addonId, baseVersionId, headVersionId },
       }),
       _fetchDiff,
-      _updateSelectedPath,
+      _viewVersionFile,
     };
 
     return shallowUntilTarget(<Compare {...props} />, CompareBase, {
@@ -408,7 +408,7 @@ describe(__filename, () => {
     });
   });
 
-  it('dispatches updateSelectedPath() when a file is selected', () => {
+  it('dispatches viewVersionFile() when a file is selected', () => {
     const version = fakeVersionWithDiff;
     const headVersionId = version.id;
     const path = 'new-path.js';
@@ -418,10 +418,10 @@ describe(__filename, () => {
     const dispatch = spyOn(store, 'dispatch');
 
     const fakeThunk = createFakeThunk();
-    const _updateSelectedPath = fakeThunk.createThunk;
+    const _viewVersionFile = fakeThunk.createThunk;
 
     const root = render({
-      _updateSelectedPath,
+      _viewVersionFile,
       ...getRouteParams({ headVersionId }),
       store,
     });
@@ -432,7 +432,7 @@ describe(__filename, () => {
     onSelectFile(path);
 
     expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
-    expect(_updateSelectedPath).toHaveBeenCalledWith({
+    expect(_viewVersionFile).toHaveBeenCalledWith({
       selectedPath: path,
       versionId: headVersionId,
     });

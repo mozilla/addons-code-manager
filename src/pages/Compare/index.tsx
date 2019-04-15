@@ -14,14 +14,14 @@ import {
   Version,
   fetchDiff,
   getVersionInfo,
-  updateSelectedPath,
+  viewVersionFile,
 } from '../../reducers/versions';
 import { gettext } from '../../utils';
 import styles from './styles.module.scss';
 
 export type PublicProps = {
   _fetchDiff: typeof fetchDiff;
-  _updateSelectedPath: typeof updateSelectedPath;
+  _viewVersionFile: typeof viewVersionFile;
 };
 
 type PropsFromRouter = {
@@ -47,7 +47,7 @@ type Props = RouteComponentProps<PropsFromRouter> &
 export class CompareBase extends React.Component<Props> {
   static defaultProps = {
     _fetchDiff: fetchDiff,
-    _updateSelectedPath: updateSelectedPath,
+    _viewVersionFile: viewVersionFile,
   };
 
   componentDidMount() {
@@ -98,11 +98,11 @@ export class CompareBase extends React.Component<Props> {
   }
 
   onSelectFile = (path: string) => {
-    const { _updateSelectedPath, dispatch, match } = this.props;
+    const { _viewVersionFile, dispatch, match } = this.props;
     const { headVersionId } = match.params;
 
     dispatch(
-      _updateSelectedPath({
+      _viewVersionFile({
         selectedPath: path,
         versionId: parseInt(headVersionId, 10),
       }),

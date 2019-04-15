@@ -22,7 +22,7 @@ import reducer, {
   getVersionInfo,
   initialState,
   isFileLoading,
-  updateSelectedPath,
+  viewVersionFile,
 } from './versions';
 import { getRootPath } from './fileTree';
 import configureStore from '../configureStore';
@@ -1420,7 +1420,7 @@ describe(__filename, () => {
     });
   });
 
-  describe('updateSelectedPath', () => {
+  describe('viewVersionFile', () => {
     it('dispatches updateSelectedPath and pushes a new URL', async () => {
       const selectedPath = 'some-path';
       const versionId = fakeVersion.id;
@@ -1430,7 +1430,7 @@ describe(__filename, () => {
       const history = createFakeHistory({ location });
 
       const { dispatch, thunk } = thunkTester({
-        createThunk: () => updateSelectedPath({ selectedPath, versionId }),
+        createThunk: () => viewVersionFile({ selectedPath, versionId }),
         store: configureStore({ history }),
       });
 

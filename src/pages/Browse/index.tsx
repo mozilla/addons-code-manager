@@ -16,7 +16,7 @@ import {
   getVersionFile,
   getVersionInfo,
   isFileLoading,
-  updateSelectedPath,
+  viewVersionFile,
 } from '../../reducers/versions';
 import { gettext, getPathFromQueryString } from '../../utils';
 import Loading from '../../components/Loading';
@@ -30,7 +30,7 @@ export type DefaultProps = {
   _fetchVersion: typeof fetchVersion;
   _fetchVersionFile: typeof fetchVersionFile;
   _log: typeof log;
-  _updateSelectedPath: typeof updateSelectedPath;
+  _viewVersionFile: typeof viewVersionFile;
 };
 
 type PropsFromRouter = {
@@ -56,7 +56,7 @@ export class BrowseBase extends React.Component<Props> {
     _fetchVersion: fetchVersion,
     _fetchVersionFile: fetchVersionFile,
     _log: log,
-    _updateSelectedPath: updateSelectedPath,
+    _viewVersionFile: viewVersionFile,
   };
 
   componentDidMount() {
@@ -110,11 +110,11 @@ export class BrowseBase extends React.Component<Props> {
   }
 
   onSelectFile = (path: string) => {
-    const { _updateSelectedPath, dispatch, match } = this.props;
+    const { _viewVersionFile, dispatch, match } = this.props;
     const { versionId } = match.params;
 
     dispatch(
-      _updateSelectedPath({
+      _viewVersionFile({
         versionId: parseInt(versionId, 10),
         selectedPath: path,
       }),

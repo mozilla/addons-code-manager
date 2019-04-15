@@ -525,7 +525,7 @@ describe(__filename, () => {
   describe('goToRelativeFile', () => {
     const _goToRelativeFile = ({
       _getRelativePath = jest.fn(),
-      _updateSelectedPath = jest.fn(),
+      _viewVersionFile = jest.fn(),
       currentPath = 'file1.js',
       pathList = ['file1.js'],
       position = RelativePathPosition.next,
@@ -533,7 +533,7 @@ describe(__filename, () => {
     } = {}) => {
       return goToRelativeFile({
         _getRelativePath,
-        _updateSelectedPath,
+        _viewVersionFile,
         currentPath,
         pathList,
         position,
@@ -566,19 +566,19 @@ describe(__filename, () => {
       });
     });
 
-    it('dispatches updateSelectedPath()', async () => {
+    it('dispatches viewVersionFile()', async () => {
       const nextPath = 'file2.js';
       const _getRelativePath = jest.fn().mockReturnValue(nextPath);
       const versionId = 123;
 
       const fakeThunk = createFakeThunk();
-      const _updateSelectedPath = fakeThunk.createThunk;
+      const _viewVersionFile = fakeThunk.createThunk;
 
       const { dispatch, thunk } = thunkTester({
         createThunk: () =>
           _goToRelativeFile({
             _getRelativePath,
-            _updateSelectedPath,
+            _viewVersionFile,
             versionId,
           }),
       });
@@ -586,7 +586,7 @@ describe(__filename, () => {
       await thunk();
 
       expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
-      expect(_updateSelectedPath).toHaveBeenCalledWith({
+      expect(_viewVersionFile).toHaveBeenCalledWith({
         selectedPath: nextPath,
         versionId,
       });

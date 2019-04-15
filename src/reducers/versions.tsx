@@ -616,7 +616,7 @@ type UpdateSelectedPathParams = {
   selectedPath: string;
 };
 
-export const updateSelectedPath = ({
+export const viewVersionFile = ({
   versionId,
   selectedPath,
 }: UpdateSelectedPathParams): ThunkActionCreator => {
