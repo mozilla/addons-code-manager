@@ -28,6 +28,7 @@
     "@types/redux-logger": "3.0.6",
     "bootstrap": "4.3.1",
     "classnames": "2.2.6",
+    "connected-react-router": "5.0.1",
     "dompurify": "1.0.10",
     "express": "4.16.4",
     "filesize": "4.1.2",
