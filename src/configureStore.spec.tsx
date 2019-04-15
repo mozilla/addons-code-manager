@@ -9,6 +9,7 @@ describe(__filename, () => {
       'errors',
       'fileTree',
       'linter',
+      'router',
       'users',
       'versions',
     ]);
