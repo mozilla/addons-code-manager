@@ -140,19 +140,16 @@ export default class CodeOverview extends React.Component<Props, State> {
 
       overview.push(
         <Link
+          className={styles.line}
           to={line ? getCodeLineAnchor(line) : '#'}
           key={rowIndex}
+          style={{
+            height: `${lineHeight}px`,
+            paddingTop: rowIndex > 0 ? `${linePadding}px` : undefined,
+          }}
           title={line ? gettext(`Jump to line ${line}`) : ''}
         >
-          <div
-            className={styles.line}
-            style={{
-              height: `${lineHeight}px`,
-              paddingTop: rowIndex > 0 ? `${linePadding}px` : undefined,
-            }}
-          >
-            {this.renderRow(selectedMessageMap, rowIndex, shapes)}
-          </div>
+          {this.renderRow(selectedMessageMap, rowIndex, shapes)}
         </Link>,
       );
     }
