@@ -16,6 +16,9 @@ const render = ({
     <VersionChooserWithoutRouter
       addonId={addonId}
       match={{
+        isExact: true,
+        path: 'some-path',
+        url: 'some-url',
         params: {
           baseVersionId: '1',
           headVersionId: '1',

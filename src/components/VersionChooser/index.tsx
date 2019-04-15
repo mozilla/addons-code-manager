@@ -157,19 +157,12 @@ const mapStateToProps = (
 
 const ConnectedVersionChooser = connect(mapStateToProps)(VersionChooserBase);
 
+// We have to export this class to tell Storybook that it's okay to inject the
+// router props directly. That's because we want to by-pass the `withRouter()`
+// HOC, which requires a `Router` and a `Route` and we don't want that in
+// Storybook.
 export const VersionChooserWithoutRouter = ConnectedVersionChooser as React.ComponentType<
-  PublicProps &
-    Partial<
-      DefaultProps & {
-        // We have to add this type to tell Storybook that it's okay to inject
-        // the router props directly. That's because we want to by-pass the
-        // `withRouter()` HOC, which requires a `Router` and a `Route` and we
-        // don't want that in Storybook.
-        match: {
-          params: PropsFromRouter;
-        };
-      }
-    >
+  PublicProps & Partial<DefaultProps & RouterProps>
 >;
 
 export default withRouter<PublicProps & Partial<DefaultProps> & RouterProps>(
