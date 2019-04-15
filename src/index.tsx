@@ -1,7 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { BrowserRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
+import { ConnectedRouter } from 'connected-react-router';
+import { createBrowserHistory } from 'history';
 
 import './styles.scss';
 import App from './components/App';
@@ -10,7 +11,8 @@ import configureStore from './configureStore';
 
 configureApplication();
 
-const store = configureStore();
+const history = createBrowserHistory();
+const store = configureStore({ history });
 
 const rootElement = document.getElementById('root') as HTMLElement;
 const authToken = (rootElement && rootElement.dataset.authToken) || null;
@@ -24,9 +26,9 @@ if (authToken === process.env.REACT_APP_AUTH_TOKEN_PLACEHOLDER) {
 const render = (AppComponent: typeof App) => {
   ReactDOM.render(
     <Provider store={store}>
-      <BrowserRouter>
+      <ConnectedRouter history={history}>
         <AppComponent authToken={authToken} />
-      </BrowserRouter>
+      </ConnectedRouter>
     </Provider>,
     rootElement,
   );
