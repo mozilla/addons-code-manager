@@ -23,7 +23,15 @@ export type PublicProps = {
   version: Version;
 };
 
-type Props = PublicProps;
+export type DefaultProps = {
+  _debounce: typeof debounce;
+  _window: {
+    addEventListener: typeof window.addEventListener;
+    removeEventListener: typeof window.removeEventListener;
+  };
+};
+
+type Props = PublicProps & DefaultProps;
 
 type State = {
   // This is the height of the overview div in pixels.
@@ -31,38 +39,46 @@ type State = {
 };
 
 export default class CodeOverview extends React.Component<Props, State> {
+  static defaultProps = { _debounce: debounce, _window: window };
+
   public state = { overviewHeight: null };
 
   private overviewRef = React.createRef<HTMLDivElement>();
 
   componentDidMount() {
+    const { _window } = this.props;
     this.setOverviewHeight();
 
     // When the user begins resizing, first clear the overview contents.
-    window.addEventListener('resize', this.resetOverviewHeight);
+    _window.addEventListener('resize', this.resetOverviewHeight);
     // After a short delay, get the new height and re-render.
-    window.addEventListener('resize', this.waitAndSetNewOverviewHeight);
+    _window.addEventListener('resize', this.waitAndSetNewOverviewHeight);
   }
 
   componentWillUnmount() {
-    window.removeEventListener('resize', this.resetOverviewHeight);
-    window.removeEventListener('resize', this.waitAndSetNewOverviewHeight);
+    const { _window } = this.props;
+    _window.removeEventListener('resize', this.resetOverviewHeight);
+    _window.removeEventListener('resize', this.waitAndSetNewOverviewHeight);
   }
 
   resetOverviewHeight = () => {
     this.setState({ overviewHeight: null });
   };
 
-  setOverviewHeight = () => {
-    if (this.overviewRef && this.overviewRef.current) {
-      this.setState({ overviewHeight: this.overviewRef.current.clientHeight });
+  setOverviewHeight = (ref = this.overviewRef) => {
+    if (ref && ref.current) {
+      this.setState({ overviewHeight: ref.current.clientHeight });
     }
   };
 
-  waitAndSetNewOverviewHeight = debounce(this.setOverviewHeight, 200, {
-    leading: false,
-    trailing: true,
-  });
+  waitAndSetNewOverviewHeight = this.props._debounce(
+    () => this.setOverviewHeight(),
+    200,
+    {
+      leading: false,
+      trailing: true,
+    },
+  );
 
   renderRow(
     selectedMessageMap: LinterProviderInfo['selectedMessageMap'],
@@ -105,22 +121,23 @@ export default class CodeOverview extends React.Component<Props, State> {
 
   renderOverview(selectedMessageMap: LinterProviderInfo['selectedMessageMap']) {
     const { content } = this.props;
+    const { overviewHeight } = this.state;
 
-    if (!this.state.overviewHeight) {
+    if (!overviewHeight) {
       return null;
     }
-
-    // Calculate the height of the overview div.
-    const innerOverviewHeight =
-      (this.state.overviewHeight || 0) - OVERVIEW_PADDING * 2;
 
     const linePadding = 2;
     const lineHeight = 10;
 
-    // The first item won't have padding so factor that in.
-    const numberOfRows = Math.floor(
-      (innerOverviewHeight - linePadding) / lineHeight,
-    );
+    const availableHeight =
+      overviewHeight -
+      // Remove the top and bottom div padding.
+      OVERVIEW_PADDING * 2 -
+      // Adjust for the first item not having padding.
+      linePadding;
+
+    const numberOfRows = Math.floor(availableHeight / lineHeight);
 
     const allLineShapes = generateLineShapes(getLines(content));
 
