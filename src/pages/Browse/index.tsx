@@ -94,7 +94,7 @@ export class BrowseBase extends React.Component<Props> {
     const path = getPathFromQueryString(history);
 
     if (path && path !== version.selectedPath) {
-      this.viewVersionFile(path);
+      this.viewVersionFile(path, { preserveHash: true });
       return;
     }
 
@@ -109,7 +109,7 @@ export class BrowseBase extends React.Component<Props> {
     }
   }
 
-  viewVersionFile = (path: string) => {
+  viewVersionFile = (path: string, { preserveHash = false } = {}) => {
     const { _viewVersionFile, dispatch, match } = this.props;
     const { versionId } = match.params;
 
@@ -117,6 +117,7 @@ export class BrowseBase extends React.Component<Props> {
       _viewVersionFile({
         versionId: parseInt(versionId, 10),
         selectedPath: path,
+        preserveHash,
       }),
     );
   };

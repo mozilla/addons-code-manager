@@ -216,14 +216,15 @@ describe(__filename, () => {
   });
 
   it('renders a link for each line number', () => {
-    const root = renderWithLinterProvider({ content: 'single line' });
+    const location = createFakeLocation();
+    const root = renderWithLinterProvider({ content: 'single line', location });
 
     expect(root.find(`.${styles.lineNumber}`)).toHaveLength(1);
     expect(root.find(`.${styles.lineNumber}`).find(Link)).toHaveLength(1);
-    expect(root.find(`.${styles.lineNumber}`).find(Link)).toHaveProp(
-      'to',
-      getCodeLineAnchor(1),
-    );
+    expect(root.find(`.${styles.lineNumber}`).find(Link)).toHaveProp('to', {
+      ...location,
+      hash: getCodeLineAnchor(1),
+    });
     // This is an anchor on the table row. This is a bit confusing here because
     // `#` refers to the ID (CSS) selector and not the hash. The ID value is
     // `L1`.

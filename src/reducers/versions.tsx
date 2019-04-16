@@ -615,11 +615,13 @@ export const fetchDiff = ({
 type ViewVersionFileParams = {
   versionId: number;
   selectedPath: string;
+  preserveHash?: boolean;
 };
 
 export const viewVersionFile = ({
   versionId,
   selectedPath,
+  preserveHash = false,
 }: ViewVersionFileParams): ThunkActionCreator => {
   return async (dispatch, getState) => {
     const { router } = getState();
@@ -627,11 +629,19 @@ export const viewVersionFile = ({
       ...queryString.parse(router.location.search),
       path: selectedPath,
     };
+    const newLocation = {
+      ...router.location,
+      search: `?${queryString.stringify(queryParams)}`,
+    };
+
+    // We do not want to preserve the hash when we select a new file for
+    // instance, but we want to keep it when we load a file via its path.
+    if (!preserveHash) {
+      delete newLocation.hash;
+    }
 
     dispatch(actions.updateSelectedPath({ versionId, selectedPath }));
-    dispatch(
-      push(`${router.location.pathname}?${queryString.stringify(queryParams)}`),
-    );
+    dispatch(push(newLocation));
   };
 };
 

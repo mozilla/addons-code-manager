@@ -100,7 +100,12 @@ export class CodeViewBase extends React.Component<Props> {
                   <React.Fragment key={`fragment-${line}`}>
                     <tr {...rowProps}>
                       <td className={styles.lineNumber}>
-                        <Link to={getCodeLineAnchor(line)}>{`${line}`}</Link>
+                        <Link
+                          to={{
+                            ...location,
+                            hash: getCodeLineAnchor(line),
+                          }}
+                        >{`${line}`}</Link>
                       </td>
 
                       <td className={styles.code}>
