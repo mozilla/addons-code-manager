@@ -26,7 +26,7 @@ import reducer, {
   isFileLoading,
   viewVersionFile,
 } from './versions';
-import { getRootPath } from './fileTree';
+import { ROOT_PATH } from './fileTree';
 import configureStore from '../configureStore';
 import {
   createFakeEntry,
@@ -127,8 +127,6 @@ describe(__filename, () => {
       const version = fakeVersion;
       let state = reducer(undefined, actions.loadVersionInfo({ version }));
 
-      const { addon } = getVersionInfo(state, version.id) as Version;
-
       state = reducer(
         state,
         actions.updateSelectedPath({ selectedPath, versionId: version.id }),
@@ -136,7 +134,7 @@ describe(__filename, () => {
 
       expect(state).toHaveProperty(
         `versionInfo.${version.id}.expandedPaths`,
-        getParentFolders(selectedPath, addon.name),
+        getParentFolders(selectedPath),
       );
     });
 
@@ -294,7 +292,7 @@ describe(__filename, () => {
       expect(state).toHaveProperty(`versionInfo.${version.id}.expandedPaths`, [
         path1,
         path2,
-        getRootPath(createInternalVersion(version).addon.name),
+        ROOT_PATH,
       ]);
     });
 
@@ -313,7 +311,7 @@ describe(__filename, () => {
 
       expect(state).toHaveProperty(`versionInfo.${version.id}.expandedPaths`, [
         path1,
-        getRootPath(createInternalVersion(version).addon.name),
+        ROOT_PATH,
       ]);
     });
 
@@ -479,11 +477,9 @@ describe(__filename, () => {
       const folder2 = 'folder2';
       const file1 = 'file1.js';
       const path = `${folder1}/${folder2}/${file1}`;
-      const version = createInternalVersion(fakeVersion);
-      const { addon } = version;
 
-      expect(getParentFolders(path, addon.name)).toEqual([
-        getRootPath(addon.name),
+      expect(getParentFolders(path)).toEqual([
+        ROOT_PATH,
         `${folder1}/${folder2}`,
         folder1,
       ]);
@@ -522,13 +518,12 @@ describe(__filename, () => {
   describe('createInternalVersion', () => {
     it('creates a Version', () => {
       const version = fakeVersion;
-      const addon = createInternalVersionAddon(version.addon);
       const entry = version.file.entries[Object.keys(version.file.entries)[0]];
 
       expect(createInternalVersion(version)).toEqual({
-        addon,
+        addon: createInternalVersionAddon(version.addon),
         entries: [createInternalVersionEntry(entry)],
-        expandedPaths: getParentFolders(version.file.selected_file, addon.name),
+        expandedPaths: getParentFolders(version.file.selected_file),
         id: version.id,
         reviewed: version.reviewed,
         version: version.version,

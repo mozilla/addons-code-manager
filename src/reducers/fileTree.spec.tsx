@@ -1,5 +1,6 @@
 /* eslint @typescript-eslint/camelcase: 0 */
 import reducer, {
+  ROOT_PATH,
   DirectoryNode,
   RelativePathPosition,
   actions,
@@ -7,7 +8,6 @@ import reducer, {
   buildFileTreeNodes,
   buildTreePathList,
   getRelativePath,
-  getRootPath,
   getTree,
   goToRelativeFile,
   initialState,
@@ -63,13 +63,6 @@ describe(__filename, () => {
     });
   });
 
-  describe('getRootPath', () => {
-    const version = createInternalVersion(fakeVersion);
-    const addonName = getLocalizedString(version.addon.name);
-
-    expect(getRootPath(version.addon.name)).toEqual(`root-${addonName}`);
-  });
-
   describe('buildFileTree', () => {
     it('creates a root node', () => {
       const version = createVersionWithEntries([]);
@@ -78,7 +71,7 @@ describe(__filename, () => {
       const tree = buildFileTreeNodes(version);
 
       expect(tree).toEqual({
-        id: `root-${addonName}`,
+        id: ROOT_PATH,
         name: addonName,
         children: [],
       });

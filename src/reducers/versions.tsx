@@ -9,7 +9,7 @@ import { ThunkActionCreator } from '../configureStore';
 import { getDiff, getVersion, getVersionsList, isErrorResponse } from '../api';
 import { LocalizedStringMap } from '../utils';
 import { actions as errorsActions } from './errors';
-import { getRootPath } from './fileTree';
+import { ROOT_PATH } from './fileTree';
 
 type VersionCompatibility = {
   [appName: string]: {
@@ -285,11 +285,8 @@ export const initialState: VersionsState = {
   versionInfo: {},
 };
 
-export const getParentFolders = (
-  path: string,
-  versionAddonName: LocalizedStringMap,
-): string[] => {
-  const parents = [getRootPath(versionAddonName)];
+export const getParentFolders = (path: string): string[] => {
+  const parents = [ROOT_PATH];
 
   const folders = path.split('/');
 
@@ -341,13 +338,12 @@ export const createInternalVersionAddon = (
 export const createInternalVersion = (
   version: ExternalVersionWithContent | ExternalVersionWithDiff,
 ): Version => {
-  const addon = createInternalVersionAddon(version.addon);
   return {
-    addon,
+    addon: createInternalVersionAddon(version.addon),
     entries: Object.keys(version.file.entries).map((nodeName) => {
       return createInternalVersionEntry(version.file.entries[nodeName]);
     }),
-    expandedPaths: getParentFolders(version.file.selected_file, addon.name),
+    expandedPaths: getParentFolders(version.file.selected_file),
     id: version.id,
     reviewed: version.reviewed,
     selectedPath: version.file.selected_file,
@@ -741,7 +737,7 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
       const version = state.versionInfo[versionId];
       const { expandedPaths } = version;
 
-      const parents = getParentFolders(selectedPath, version.addon.name);
+      const parents = getParentFolders(selectedPath);
 
       return {
         ...state,
@@ -784,7 +780,7 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
       const expandedPaths = entries
         .filter((entry) => entry.type === 'directory')
         .map((entry) => entry.path);
-      expandedPaths.push(getRootPath(version.addon.name));
+      expandedPaths.push(ROOT_PATH);
 
       return {
         ...state,
