@@ -269,6 +269,7 @@ describe(__filename, () => {
     expect(_viewVersionFile).toHaveBeenCalledWith({
       selectedPath: path,
       versionId: version.id,
+      preserveHash: false,
     });
   });
 
@@ -445,6 +446,7 @@ describe(__filename, () => {
     expect(_viewVersionFile).toHaveBeenCalledWith({
       versionId: version.id,
       selectedPath: path,
+      preserveHash: true,
     });
   });
 
@@ -499,6 +501,7 @@ describe(__filename, () => {
     expect(_viewVersionFile).toHaveBeenCalledWith({
       versionId: version.id,
       selectedPath: path,
+      preserveHash: true,
     });
   });
 

@@ -1521,7 +1521,11 @@ describe(__filename, () => {
         }),
       );
       expect(dispatch).toHaveBeenCalledWith(
-        push(`${pathname}?path=${selectedPath}`),
+        push({
+          ...location,
+          search: `?path=${selectedPath}`,
+          hash: undefined,
+        }),
       );
     });
 
@@ -1538,7 +1542,54 @@ describe(__filename, () => {
       await thunk();
 
       expect(dispatch).toHaveBeenCalledWith(
-        push(`${pathname}${search}&path=${selectedPath}`),
+        push({
+          ...location,
+          search: `${search}&path=${selectedPath}`,
+          hash: undefined,
+        }),
+      );
+    });
+
+    it('does not preserve the location hash by default', async () => {
+      const hash = '#some-hash';
+      const location = createFakeLocation({ pathname, hash });
+      const history = createFakeHistory({ location });
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () => viewVersionFile({ selectedPath, versionId }),
+        store: configureStore({ history }),
+      });
+
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(
+        push({
+          ...location,
+          search: `?path=${selectedPath}`,
+          hash: undefined,
+        }),
+      );
+    });
+
+    it('preserves the location hash when `preserveHash` is `true', async () => {
+      const hash = '#some-hash';
+      const location = createFakeLocation({ pathname, hash });
+      const history = createFakeHistory({ location });
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () =>
+          viewVersionFile({ selectedPath, versionId, preserveHash: true }),
+        store: configureStore({ history }),
+      });
+
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(
+        push({
+          ...location,
+          search: `?path=${selectedPath}`,
+          hash,
+        }),
       );
     });
   });
