@@ -240,7 +240,7 @@ describe(__filename, () => {
     expect(root.find(Loading)).toHaveProp('message', 'Loading content...');
   });
 
-  it('dispatches viewVersionFile when a file is selected', () => {
+  it('dispatches viewVersionFile without preserving the URL hash when a file is selected', () => {
     const addonId = 123456;
     const version = { ...fakeVersion, id: 98765 };
     const path = 'some-path';
