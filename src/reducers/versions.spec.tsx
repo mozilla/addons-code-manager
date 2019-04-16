@@ -5,6 +5,7 @@ import { actions as errorsActions } from './errors';
 import reducer, {
   ExternalVersionWithDiff,
   ExternalVersionsList,
+  Version,
   VersionEntryType,
   actions,
   createInternalDiffs,
@@ -17,6 +18,7 @@ import reducer, {
   fetchVersion,
   fetchVersionFile,
   fetchVersionsList,
+  getParentFolders,
   getVersionFile,
   getVersionFiles,
   getVersionInfo,
@@ -24,7 +26,7 @@ import reducer, {
   isFileLoading,
   viewVersionFile,
 } from './versions';
-import { getRootPath } from './fileTree';
+import { ROOT_PATH } from './fileTree';
 import configureStore from '../configureStore';
 import {
   createFakeEntry,
@@ -120,10 +122,7 @@ describe(__filename, () => {
     });
 
     it('expands all parent folders when updateSelectedPath is dispatched', () => {
-      const folder1 = 'folder1';
-      const folder2 = 'folder2';
-      const file1 = 'file1.js';
-      const selectedPath = `${folder1}/${folder2}/${file1}`;
+      const selectedPath = 'folder1/folder2/file1.js';
 
       const version = fakeVersion;
       let state = reducer(undefined, actions.loadVersionInfo({ version }));
@@ -133,11 +132,10 @@ describe(__filename, () => {
         actions.updateSelectedPath({ selectedPath, versionId: version.id }),
       );
 
-      expect(state).toHaveProperty(`versionInfo.${version.id}.expandedPaths`, [
-        getRootPath(createInternalVersion(version)),
-        `${folder1}/${folder2}`,
-        folder1,
-      ]);
+      expect(state).toHaveProperty(
+        `versionInfo.${version.id}.expandedPaths`,
+        getParentFolders(selectedPath),
+      );
     });
 
     it('retains all expanded folders when updateSelectedPath is dispatched', () => {
@@ -147,6 +145,8 @@ describe(__filename, () => {
 
       const version = fakeVersion;
       let state = reducer(undefined, actions.loadVersionInfo({ version }));
+
+      const { expandedPaths } = getVersionInfo(state, version.id) as Version;
 
       const initialPath = 'new/selected/path';
       state = reducer(
@@ -163,8 +163,8 @@ describe(__filename, () => {
       );
 
       expect(state).toHaveProperty(`versionInfo.${version.id}.expandedPaths`, [
+        ...expandedPaths,
         initialPath,
-        getRootPath(createInternalVersion(version)),
         newFolder,
       ]);
     });
@@ -172,6 +172,8 @@ describe(__filename, () => {
     it('does not duplicate paths in expandedPaths when updateSelectedPath is dispatched', () => {
       const version = fakeVersion;
       let state = reducer(undefined, actions.loadVersionInfo({ version }));
+
+      const { expandedPaths } = getVersionInfo(state, version.id) as Version;
 
       const path = 'path1';
       state = reducer(
@@ -191,15 +193,16 @@ describe(__filename, () => {
       );
 
       expect(state).toHaveProperty(`versionInfo.${version.id}.expandedPaths`, [
+        ...expandedPaths,
         path,
-        // updateSelectedPath always adds the root folder.
-        getRootPath(createInternalVersion(version)),
       ]);
     });
 
     it('adds a path to expandedPaths', () => {
       const version = fakeVersion;
       let state = reducer(undefined, actions.loadVersionInfo({ version }));
+
+      const { expandedPaths } = getVersionInfo(state, version.id) as Version;
 
       const path = 'new/selected/path';
       state = reducer(
@@ -208,6 +211,7 @@ describe(__filename, () => {
       );
 
       expect(state).toHaveProperty(`versionInfo.${version.id}.expandedPaths`, [
+        ...expandedPaths,
         path,
       ]);
     });
@@ -215,6 +219,8 @@ describe(__filename, () => {
     it('removes a path from expandedPaths', () => {
       const version = fakeVersion;
       let state = reducer(undefined, actions.loadVersionInfo({ version }));
+
+      const { expandedPaths } = getVersionInfo(state, version.id) as Version;
 
       const path = 'new/selected/path';
       state = reducer(
@@ -229,13 +235,15 @@ describe(__filename, () => {
 
       expect(state).toHaveProperty(
         `versionInfo.${version.id}.expandedPaths`,
-        [],
+        expandedPaths,
       );
     });
 
     it('maintains other paths when removing a path from expandedPaths', () => {
       const version = fakeVersion;
       let state = reducer(undefined, actions.loadVersionInfo({ version }));
+
+      const { expandedPaths } = getVersionInfo(state, version.id) as Version;
 
       const path1 = 'new/selected/path1';
       const path2 = 'new/selected/path2';
@@ -251,6 +259,7 @@ describe(__filename, () => {
       );
 
       expect(state).toHaveProperty(`versionInfo.${version.id}.expandedPaths`, [
+        ...expandedPaths,
         path1,
         path2,
       ]);
@@ -262,6 +271,7 @@ describe(__filename, () => {
       );
 
       expect(state).toHaveProperty(`versionInfo.${version.id}.expandedPaths`, [
+        ...expandedPaths,
         path2,
       ]);
     });
@@ -282,7 +292,7 @@ describe(__filename, () => {
       expect(state).toHaveProperty(`versionInfo.${version.id}.expandedPaths`, [
         path1,
         path2,
-        getRootPath(createInternalVersion(version)),
+        ROOT_PATH,
       ]);
     });
 
@@ -301,7 +311,7 @@ describe(__filename, () => {
 
       expect(state).toHaveProperty(`versionInfo.${version.id}.expandedPaths`, [
         path1,
-        getRootPath(createInternalVersion(version)),
+        ROOT_PATH,
       ]);
     });
 
@@ -461,6 +471,21 @@ describe(__filename, () => {
     });
   });
 
+  describe('getParentFolders', () => {
+    it('returns all parent folders, including the root, for a path', () => {
+      const folder1 = 'folder1';
+      const folder2 = 'folder2';
+      const file1 = 'file1.js';
+      const path = `${folder1}/${folder2}/${file1}`;
+
+      expect(getParentFolders(path)).toEqual([
+        ROOT_PATH,
+        `${folder1}/${folder2}`,
+        folder1,
+      ]);
+    });
+  });
+
   describe('createInternalVersionAddon', () => {
     it('creates a VersionAddon', () => {
       const addon = fakeVersionAddon;
@@ -498,7 +523,7 @@ describe(__filename, () => {
       expect(createInternalVersion(version)).toEqual({
         addon: createInternalVersionAddon(version.addon),
         entries: [createInternalVersionEntry(entry)],
-        expandedPaths: [],
+        expandedPaths: getParentFolders(version.file.selected_file),
         id: version.id,
         reviewed: version.reviewed,
         version: version.version,

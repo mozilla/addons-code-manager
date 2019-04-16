@@ -9,7 +9,7 @@ import { ThunkActionCreator } from '../configureStore';
 import { getDiff, getVersion, getVersionsList, isErrorResponse } from '../api';
 import { LocalizedStringMap } from '../utils';
 import { actions as errorsActions } from './errors';
-import { getRootPath } from './fileTree';
+import { ROOT_PATH } from './fileTree';
 
 type VersionCompatibility = {
   [appName: string]: {
@@ -285,6 +285,19 @@ export const initialState: VersionsState = {
   versionInfo: {},
 };
 
+export const getParentFolders = (path: string): string[] => {
+  const parents = [ROOT_PATH];
+
+  const folders = path.split('/');
+
+  while (folders.length > 1) {
+    folders.pop();
+    parents.push(folders.join('/'));
+  }
+
+  return parents;
+};
+
 export const createInternalVersionFile = (
   file: ExternalVersionFileWithContent,
 ): InternalVersionFile => {
@@ -330,7 +343,7 @@ export const createInternalVersion = (
     entries: Object.keys(version.file.entries).map((nodeName) => {
       return createInternalVersionEntry(version.file.entries[nodeName]);
     }),
-    expandedPaths: [],
+    expandedPaths: getParentFolders(version.file.selected_file),
     id: version.id,
     reviewed: version.reviewed,
     selectedPath: version.file.selected_file,
@@ -724,15 +737,7 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
       const version = state.versionInfo[versionId];
       const { expandedPaths } = version;
 
-      // Make sure the root folder is expanded.
-      const parents = [getRootPath(version)];
-
-      const folders = selectedPath.split('/');
-
-      while (folders.length > 1) {
-        folders.pop();
-        parents.push(folders.join('/'));
-      }
+      const parents = getParentFolders(selectedPath);
 
       return {
         ...state,
@@ -775,7 +780,7 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
       const expandedPaths = entries
         .filter((entry) => entry.type === 'directory')
         .map((entry) => entry.path);
-      expandedPaths.push(getRootPath(version));
+      expandedPaths.push(ROOT_PATH);
 
       return {
         ...state,

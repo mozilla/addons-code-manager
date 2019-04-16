@@ -6,6 +6,8 @@ import { Version, viewVersionFile } from './versions';
 import { ThunkActionCreator } from '../configureStore';
 import { getLocalizedString } from '../utils';
 
+export const ROOT_PATH = '~root~';
+
 type FileNode = {
   id: string;
   name: string;
@@ -43,19 +45,11 @@ const recursiveSortInPlace = (node: DirectoryNode): void => {
   });
 };
 
-const getVersionName = (version: Version) => {
-  return getLocalizedString(version.addon.name);
-};
-
-export const getRootPath = (version: Version) => {
-  return `root-${getVersionName(version)}`;
-};
-
 export const buildFileTreeNodes = (version: Version): DirectoryNode => {
   const { entries } = version;
   const root: DirectoryNode = {
-    id: getRootPath(version),
-    name: getVersionName(version),
+    id: ROOT_PATH,
+    name: getLocalizedString(version.addon.name),
     children: [],
   };
 
