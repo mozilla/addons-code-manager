@@ -43,19 +43,19 @@ const recursiveSortInPlace = (node: DirectoryNode): void => {
   });
 };
 
-const getVersionName = (versionAddonName: LocalizedStringMap) => {
+const getAddonName = (versionAddonName: LocalizedStringMap) => {
   return getLocalizedString(versionAddonName);
 };
 
 export const getRootPath = (versionAddonName: LocalizedStringMap) => {
-  return `root-${getVersionName(versionAddonName)}`;
+  return `root-${getAddonName(versionAddonName)}`;
 };
 
 export const buildFileTreeNodes = (version: Version): DirectoryNode => {
   const { entries } = version;
   const root: DirectoryNode = {
     id: getRootPath(version.addon.name),
-    name: getVersionName(version.addon.name),
+    name: getAddonName(version.addon.name),
     children: [],
   };
 
