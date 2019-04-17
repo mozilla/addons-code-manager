@@ -23,7 +23,6 @@ export type PublicProps = {
 
 class VersionSelectBase extends React.Component<PublicProps> {
   static defaultProps = {
-    isLoading: false,
     withLeftArrow: false,
   };
 
