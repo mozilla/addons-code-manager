@@ -128,7 +128,7 @@ export class CodeOverviewBase extends React.Component<Props, State> {
     }
 
     const linePadding = 2;
-    const lineHeight = 10;
+    const lineHeight = linePadding + 8;
 
     const availableHeight =
       overviewHeight -
