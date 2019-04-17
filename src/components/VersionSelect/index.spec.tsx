@@ -2,6 +2,7 @@ import * as React from 'react';
 import { shallow } from 'enzyme';
 import { Form } from 'react-bootstrap';
 
+import Skeleton from '../Skeleton';
 import {
   ExternalVersionsList,
   createVersionsMap,
@@ -24,6 +25,7 @@ describe(__filename, () => {
 
   const render = ({
     className = undefined,
+    isLoading = false,
     isSelectable = jest.fn().mockReturnValue(true),
     label = 'select a version',
     onChange = jest.fn(),
@@ -35,6 +37,7 @@ describe(__filename, () => {
 
     const allProps = {
       className,
+      isLoading,
       isSelectable,
       label,
       listedVersions: versionsMap.listed,
@@ -209,5 +212,12 @@ describe(__filename, () => {
 
     expect(root.find('option').at(0)).toHaveProp('disabled', true);
     expect(root.find('option').at(1)).toHaveProp('disabled', false);
+  });
+
+  it('renders a Skeleton when component is in a loading state', () => {
+    const root = render({ isLoading: true });
+
+    expect(root.find('.form-control')).toHaveLength(1);
+    expect(root.find(Skeleton)).toHaveLength(1);
   });
 });

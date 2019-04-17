@@ -3,7 +3,6 @@ import { Col, Form, Row } from 'react-bootstrap';
 import { connect } from 'react-redux';
 import { withRouter, RouteComponentProps } from 'react-router-dom';
 
-import Loading from '../Loading';
 import { ApplicationState } from '../../reducers';
 import { ConnectedReduxProps } from '../../configureStore';
 import VersionSelect from '../VersionSelect';
@@ -100,6 +99,9 @@ export class VersionChooserBase extends React.Component<Props> {
     } = this.props;
     const { baseVersionId, headVersionId } = match.params;
 
+    const listedVersions = versionsMap ? versionsMap.listed : [];
+    const unlistedVersions = versionsMap ? versionsMap.unlisted : [];
+
     return (
       <div className={styles.VersionChooser}>
         <Form>
@@ -109,34 +111,30 @@ export class VersionChooserBase extends React.Component<Props> {
             </Col>
           </Row>
 
-          {versionsMap ? (
-            <Form.Row>
-              <VersionSelect
-                className={styles.baseVersionSelect}
-                isSelectable={_lowerVersionsThan(headVersionId)}
-                label={gettext('Choose an old version')}
-                listedVersions={versionsMap.listed}
-                onChange={this.onOldVersionChange}
-                unlistedVersions={versionsMap.unlisted}
-                value={baseVersionId}
-              />
-
-              <VersionSelect
-                className={styles.headVersionSelect}
-                isSelectable={_higherVersionsThan(baseVersionId)}
-                label={gettext('Choose a new version')}
-                listedVersions={versionsMap.listed}
-                onChange={this.onNewVersionChange}
-                unlistedVersions={versionsMap.unlisted}
-                value={headVersionId}
-                withLeftArrow
-              />
-            </Form.Row>
-          ) : (
-            <Loading
-              message={gettext('Retrieving all the versions of this add-on...')}
+          <Form.Row>
+            <VersionSelect
+              className={styles.baseVersionSelect}
+              isLoading={!versionsMap}
+              isSelectable={_lowerVersionsThan(headVersionId)}
+              label={gettext('Choose an old version')}
+              listedVersions={listedVersions}
+              onChange={this.onOldVersionChange}
+              unlistedVersions={unlistedVersions}
+              value={baseVersionId}
             />
-          )}
+
+            <VersionSelect
+              className={styles.headVersionSelect}
+              isLoading={!versionsMap}
+              isSelectable={_higherVersionsThan(baseVersionId)}
+              label={gettext('Choose a new version')}
+              listedVersions={listedVersions}
+              onChange={this.onNewVersionChange}
+              unlistedVersions={unlistedVersions}
+              value={headVersionId}
+              withLeftArrow
+            />
+          </Form.Row>
         </Form>
       </div>
     );

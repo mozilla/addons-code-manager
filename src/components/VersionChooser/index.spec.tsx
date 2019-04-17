@@ -4,7 +4,6 @@ import { History } from 'history';
 
 import configureStore from '../../configureStore';
 import VersionSelect from '../VersionSelect';
-import Loading from '../Loading';
 import {
   ExternalVersionsList,
   ExternalVersionsListItem,
@@ -100,11 +99,12 @@ describe(__filename, () => {
     store.dispatch(versionActions.loadVersionsList({ addonId, versions }));
   };
 
-  it('renders a loading message when lists of versions are not loaded', () => {
+  it('sets the `isLoading` prop to `true`  when lists of versions are not loaded', () => {
     const root = render();
 
-    expect(root.find(VersionSelect)).toHaveLength(0);
-    expect(root.find(Loading)).toHaveLength(1);
+    expect(root.find(VersionSelect)).toHaveLength(2);
+    expect(root.find(VersionSelect).at(0)).toHaveProp('isLoading', true);
+    expect(root.find(VersionSelect).at(1)).toHaveProp('isLoading', true);
   });
 
   it('renders two VersionSelect components when lists of versions are loaded', () => {
