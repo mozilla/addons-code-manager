@@ -121,18 +121,13 @@ describe(__filename, () => {
       );
     });
 
-    it('logs an error when updateSelectedPath is called for an unknown version', () => {
-      const _log = createFakeLogger();
-      const state = reducer(
-        initialState,
-        actions.updateSelectedPath({ selectedPath: 'pa/th', versionId: 123 }),
-        // TS looks confused about the third optional argument.
-        // @ts-ignore
-        { _log },
-      );
-
-      expect(_log.error).toHaveBeenCalled();
-      expect(state).toEqual(initialState);
+    it('throws an error when updateSelectedPath is called for an unknown version', () => {
+      expect(() => {
+        reducer(
+          undefined,
+          actions.updateSelectedPath({ selectedPath: 'pa/th', versionId: 123 }),
+        );
+      }).toThrow();
     });
 
     it('expands all parent folders when updateSelectedPath is dispatched', () => {
@@ -183,18 +178,13 @@ describe(__filename, () => {
       ]);
     });
 
-    it('logs an error when toggleExpandedPath is called for an unknown version', () => {
-      const _log = createFakeLogger();
-      const state = reducer(
-        initialState,
-        actions.toggleExpandedPath({ path: 'pa/th', versionId: 123 }),
-        // TS looks confused about the third optional argument.
-        // @ts-ignore
-        { _log },
-      );
-
-      expect(_log.error).toHaveBeenCalled();
-      expect(state).toEqual(initialState);
+    it('throws an error when toggleExpandedPath is called for an unknown version', () => {
+      expect(() => {
+        reducer(
+          undefined,
+          actions.toggleExpandedPath({ path: 'pa/th', versionId: 123 }),
+        );
+      }).toThrow();
     });
 
     it('does not duplicate paths in expandedPaths when updateSelectedPath is dispatched', () => {
@@ -324,18 +314,10 @@ describe(__filename, () => {
       ]);
     });
 
-    it('logs an error when expandTree is called for an unknown version', () => {
-      const _log = createFakeLogger();
-      const state = reducer(
-        initialState,
-        actions.expandTree({ versionId: 123 }),
-        // TS looks confused about the third optional argument.
-        // @ts-ignore
-        { _log },
-      );
-
-      expect(_log.error).toHaveBeenCalled();
-      expect(state).toEqual(initialState);
+    it('throws an error when expandTree is called for an unknown version', () => {
+      expect(() => {
+        reducer(undefined, actions.expandTree({ versionId: 123 }));
+      }).toThrow();
     });
 
     it('does not add paths for files to expandedPaths when expandTree is dispatched', () => {
@@ -379,18 +361,10 @@ describe(__filename, () => {
       );
     });
 
-    it('logs an error when collapseTree is called for an unknown version', () => {
-      const _log = createFakeLogger();
-      const state = reducer(
-        initialState,
-        actions.collapseTree({ versionId: 123 }),
-        // TS looks confused about the third optional argument.
-        // @ts-ignore
-        { _log },
-      );
-
-      expect(_log.error).toHaveBeenCalled();
-      expect(state).toEqual(initialState);
+    it('throws an error when collapseTree is called for an unknown version', () => {
+      expect(() => {
+        reducer(initialState, actions.collapseTree({ versionId: 123 }));
+      }).toThrow();
     });
 
     it('stores lists of versions by add-on ID', () => {
@@ -465,11 +439,10 @@ describe(__filename, () => {
       });
     });
 
-    it('logs a debug message when entry is missing on loadDiff()', () => {
+    it('throws an error when entry is missing on loadDiff()', () => {
       const addonId = 1;
       const baseVersionId = 2;
       const path = 'some/other/file.js';
-      const _log = createFakeLogger();
 
       const version = {
         ...fakeVersionWithDiff,
@@ -485,45 +458,37 @@ describe(__filename, () => {
         undefined,
         actions.loadVersionInfo({ version }),
       );
-      const versionsState = reducer(
-        previousState,
-        actions.loadDiff({
-          addonId,
-          baseVersionId,
-          headVersionId,
-          version,
-        }),
-        // TS looks confused about the third optional argument.
-        // @ts-ignore
-        { _log },
-      );
 
-      expect(_log.debug).toHaveBeenCalled();
-      expect(versionsState).toEqual(previousState);
+      expect(() => {
+        reducer(
+          previousState,
+          actions.loadDiff({
+            addonId,
+            baseVersionId,
+            headVersionId,
+            version,
+          }),
+        );
+      }).toThrow();
     });
 
-    it('logs an error message when headVersion is missing on loadDiff()', () => {
+    it('throws an error message when headVersion is missing on loadDiff()', () => {
       const addonId = 1;
       const baseVersionId = 2;
       const version = fakeVersionWithDiff;
       const headVersionId = version.id;
-      const _log = createFakeLogger();
 
-      const versionsState = reducer(
-        undefined,
-        actions.loadDiff({
-          addonId,
-          baseVersionId,
-          headVersionId,
-          version,
-        }),
-        // TS looks confused about the third optional argument.
-        // @ts-ignore
-        { _log },
-      );
-
-      expect(_log.error).toHaveBeenCalled();
-      expect(versionsState).toEqual(initialState);
+      expect(() => {
+        reducer(
+          undefined,
+          actions.loadDiff({
+            addonId,
+            baseVersionId,
+            headVersionId,
+            version,
+          }),
+        );
+      }).toThrow();
     });
   });
 

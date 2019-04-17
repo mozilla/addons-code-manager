@@ -668,7 +668,6 @@ export const viewVersionFile = ({
 const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
   state = initialState,
   action,
-  { _log = log } = {},
 ): VersionsState => {
   switch (action.type) {
     case getType(actions.beginFetchVersion): {
@@ -766,8 +765,7 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
       const version = state.versionInfo[versionId];
 
       if (!version) {
-        _log.error(`Version missing for versionId: ${versionId}`);
-        return state;
+        throw new Error(`Version missing for versionId: ${versionId}`);
       }
 
       const { expandedPaths } = version;
@@ -795,8 +793,7 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
       const version = state.versionInfo[versionId];
 
       if (!version) {
-        _log.error(`Version missing for versionId: ${versionId}`);
-        return state;
+        throw new Error(`Version missing for versionId: ${versionId}`);
       }
 
       const { expandedPaths } = version;
@@ -820,8 +817,7 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
       const version = state.versionInfo[versionId];
 
       if (!version) {
-        _log.error(`Version missing for versionId: ${versionId}`);
-        return state;
+        throw new Error(`Version missing for versionId: ${versionId}`);
       }
 
       const expandedPaths = version.entries
@@ -846,8 +842,7 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
       const version = state.versionInfo[versionId];
 
       if (!version) {
-        _log.error(`Version missing for versionId: ${versionId}`);
-        return state;
+        throw new Error(`Version missing for versionId: ${versionId}`);
       }
 
       return {
@@ -889,16 +884,14 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
 
       const headVersion = getVersionInfo(state, headVersionId);
       if (!headVersion) {
-        _log.error(`Version missing for headVersionId: ${headVersionId}`);
-        return state;
+        throw new Error(`Version missing for headVersionId: ${headVersionId}`);
       }
 
       const { entries, selectedPath } = headVersion;
       const entry = entries.find((e) => e.path === selectedPath);
 
       if (!entry) {
-        _log.debug(`Entry missing for headVersionId: ${headVersionId}`);
-        return state;
+        throw new Error(`Entry missing for headVersionId: ${headVersionId}`);
       }
 
       return {
