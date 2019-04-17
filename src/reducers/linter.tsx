@@ -177,7 +177,12 @@ export const fetchLinterMessages = ({
   url: string;
   versionId: number;
 }): ThunkActionCreator => {
-  return async (dispatch) => {
+  return async (dispatch, getState) => {
+    // See: https://github.com/mozilla/addons-code-manager/issues/591
+    if (getState().linter.isLoading) {
+      return;
+    }
+
     dispatch(actions.beginFetchLinterResult({ versionId }));
 
     // This is a special URL and returns a non-standard JSON response.

@@ -22,6 +22,7 @@ import linterReducer, {
 } from './linter';
 import { actions as errorsActions } from './errors';
 import { makeApiURL } from '../api';
+import configureStore from '../configureStore';
 
 describe(__filename, () => {
   const createExternalLinterResult = (
@@ -500,6 +501,22 @@ describe(__filename, () => {
       expect(dispatch).toHaveBeenCalledWith(
         actions.abortFetchLinterResult({ versionId }),
       );
+    });
+
+    it('early returns and does not do anything when linter messages are already being fetched', async () => {
+      const url = '/some/url';
+      const versionId = 123;
+      const store = configureStore();
+      store.dispatch(actions.beginFetchLinterResult({ versionId }));
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () => fetchLinterMessages({ url, versionId }),
+        store,
+      });
+
+      await thunk();
+
+      expect(dispatch).not.toHaveBeenCalled();
     });
   });
 
