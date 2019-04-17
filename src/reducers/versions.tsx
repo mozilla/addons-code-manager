@@ -249,6 +249,12 @@ export const actions = {
       path?: string;
     }) => resolve(payload);
   }),
+  beginFetchVersion: createAction('BEGIN_FETCH_VERSION', (resolve) => {
+    return (payload: { versionId: number }) => resolve(payload);
+  }),
+  abortFetchVersion: createAction('ABORT_FETCH_VERSION', (resolve) => {
+    return (payload: { versionId: number }) => resolve(payload);
+  }),
 };
 
 export type VersionsState = {
@@ -260,7 +266,10 @@ export type VersionsState = {
     | null // an error has occured
     | undefined; // data not fetched yet
   versionInfo: {
-    [versionId: number]: Version;
+    [versionId: number]:
+      | Version // data successfully loaded
+      | null // an error has occured
+      | undefined; // data not fetched yet
   };
   versionFiles: {
     [versionId: number]: {
@@ -356,10 +365,7 @@ export const getVersionFiles = (versions: VersionsState, versionId: number) => {
   return versions.versionFiles[versionId];
 };
 
-export const getVersionInfo = (
-  versions: VersionsState,
-  versionId: number,
-): Version | void => {
+export const getVersionInfo = (versions: VersionsState, versionId: number) => {
   return versions.versionInfo[versionId];
 };
 
@@ -381,9 +387,7 @@ export const getVersionFile = (
       return null;
     }
 
-    const entry = versions.versionInfo[versionId].entries.find(
-      (e) => e.path === path,
-    );
+    const entry = version.entries.find((e) => e.path === path);
 
     if (!entry) {
       _log.debug(`Entry missing for path: ${path}, versionId: ${versionId}`);
@@ -433,6 +437,8 @@ export const fetchVersion = ({
   return async (dispatch, getState) => {
     const { api: apiState } = getState();
 
+    dispatch(actions.beginFetchVersion({ versionId }));
+
     const response = await _getVersion({
       addonId,
       apiState,
@@ -440,6 +446,7 @@ export const fetchVersion = ({
     });
 
     if (isErrorResponse(response)) {
+      dispatch(actions.abortFetchVersion({ versionId }));
       dispatch(errorsActions.addError({ error: response.error }));
     } else {
       dispatch(actions.loadVersionInfo({ version: response }));
@@ -664,6 +671,17 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
   { _log = log } = {},
 ): VersionsState => {
   switch (action.type) {
+    case getType(actions.beginFetchVersion): {
+      const { versionId } = action.payload;
+
+      return {
+        ...state,
+        versionInfo: {
+          ...state.versionInfo,
+          [versionId]: undefined,
+        },
+      };
+    }
     case getType(actions.loadVersionInfo): {
       const { version } = action.payload;
 
@@ -672,6 +690,17 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
         versionInfo: {
           ...state.versionInfo,
           [version.id]: createInternalVersion(version),
+        },
+      };
+    }
+    case getType(actions.abortFetchVersion): {
+      const { versionId } = action.payload;
+
+      return {
+        ...state,
+        versionInfo: {
+          ...state.versionInfo,
+          [versionId]: null,
         },
       };
     }
@@ -735,6 +764,12 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
       const { selectedPath, versionId } = action.payload;
 
       const version = state.versionInfo[versionId];
+
+      if (!version) {
+        _log.error(`Version missing for versionId: ${versionId}`);
+        return state;
+      }
+
       const { expandedPaths } = version;
 
       const parents = getParentFolders(selectedPath);
@@ -744,7 +779,7 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
         versionInfo: {
           ...state.versionInfo,
           [versionId]: {
-            ...state.versionInfo[versionId],
+            ...version,
             selectedPath,
             expandedPaths: [
               ...expandedPaths,
@@ -757,12 +792,19 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
     case getType(actions.toggleExpandedPath): {
       const { path, versionId } = action.payload;
 
-      const { expandedPaths } = state.versionInfo[versionId];
+      const version = state.versionInfo[versionId];
+
+      if (!version) {
+        _log.error(`Version missing for versionId: ${versionId}`);
+        return state;
+      }
+
+      const { expandedPaths } = version;
 
       return {
         ...state,
         versionInfo: {
-          ...state.versionInfo,
+          ...version,
           [versionId]: {
             ...state.versionInfo[versionId],
             expandedPaths: expandedPaths.includes(path)
@@ -776,8 +818,13 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
       const { versionId } = action.payload;
 
       const version = state.versionInfo[versionId];
-      const { entries } = version;
-      const expandedPaths = entries
+
+      if (!version) {
+        _log.error(`Version missing for versionId: ${versionId}`);
+        return state;
+      }
+
+      const expandedPaths = version.entries
         .filter((entry) => entry.type === 'directory')
         .map((entry) => entry.path);
       expandedPaths.push(ROOT_PATH);
@@ -787,7 +834,7 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
         versionInfo: {
           ...state.versionInfo,
           [versionId]: {
-            ...state.versionInfo[versionId],
+            ...version,
             expandedPaths,
           },
         },
@@ -796,12 +843,19 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
     case getType(actions.collapseTree): {
       const { versionId } = action.payload;
 
+      const version = state.versionInfo[versionId];
+
+      if (!version) {
+        _log.error(`Version missing for versionId: ${versionId}`);
+        return state;
+      }
+
       return {
         ...state,
         versionInfo: {
           ...state.versionInfo,
           [versionId]: {
-            ...state.versionInfo[versionId],
+            ...version,
             expandedPaths: [],
           },
         },

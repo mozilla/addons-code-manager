@@ -524,4 +524,31 @@ describe(__filename, () => {
 
     expect(dispatchSpy).not.toHaveBeenCalled();
   });
+
+  it('does not dispatch anything on mount when an API error has occured', () => {
+    const versionId = 4321;
+    const store = configureStore();
+    store.dispatch(versionsActions.beginFetchVersion({ versionId }));
+    // Simulate an API error.
+    store.dispatch(versionsActions.abortFetchVersion({ versionId }));
+    const dispatch = spyOn(store, 'dispatch');
+
+    render({ store, versionId: String(versionId) });
+
+    expect(dispatch).not.toHaveBeenCalled();
+  });
+
+  it('does not dispatch anything on update when an API error has occured', () => {
+    const version = fakeVersion;
+    const store = configureStore();
+    _loadVersionAndFile({ store, version });
+
+    const root = render({ store, versionId: String(version.id) });
+
+    const dispatch = spyOn(store, 'dispatch');
+    // An API error will lead to `version` being set to `null`.
+    root.setProps({ version: null });
+
+    expect(dispatch).not.toHaveBeenCalled();
+  });
 });

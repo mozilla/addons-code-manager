@@ -121,6 +121,20 @@ describe(__filename, () => {
       );
     });
 
+    it('logs an error when updateSelectedPath is called for an unknown version', () => {
+      const _log = createFakeLogger();
+      const state = reducer(
+        initialState,
+        actions.updateSelectedPath({ selectedPath: 'pa/th', versionId: 123 }),
+        // TS looks confused about the third optional argument.
+        // @ts-ignore
+        { _log },
+      );
+
+      expect(_log.error).toHaveBeenCalled();
+      expect(state).toEqual(initialState);
+    });
+
     it('expands all parent folders when updateSelectedPath is dispatched', () => {
       const selectedPath = 'folder1/folder2/file1.js';
 
@@ -167,6 +181,20 @@ describe(__filename, () => {
         initialPath,
         newFolder,
       ]);
+    });
+
+    it('logs an error when toggleExpandedPath is called for an unknown version', () => {
+      const _log = createFakeLogger();
+      const state = reducer(
+        initialState,
+        actions.toggleExpandedPath({ path: 'pa/th', versionId: 123 }),
+        // TS looks confused about the third optional argument.
+        // @ts-ignore
+        { _log },
+      );
+
+      expect(_log.error).toHaveBeenCalled();
+      expect(state).toEqual(initialState);
     });
 
     it('does not duplicate paths in expandedPaths when updateSelectedPath is dispatched', () => {
@@ -296,6 +324,20 @@ describe(__filename, () => {
       ]);
     });
 
+    it('logs an error when expandTree is called for an unknown version', () => {
+      const _log = createFakeLogger();
+      const state = reducer(
+        initialState,
+        actions.expandTree({ versionId: 123 }),
+        // TS looks confused about the third optional argument.
+        // @ts-ignore
+        { _log },
+      );
+
+      expect(_log.error).toHaveBeenCalled();
+      expect(state).toEqual(initialState);
+    });
+
     it('does not add paths for files to expandedPaths when expandTree is dispatched', () => {
       const path1 = 'scripts/';
       const path2 = 'scripts/background.js';
@@ -335,6 +377,20 @@ describe(__filename, () => {
         `versionInfo.${version.id}.expandedPaths`,
         [],
       );
+    });
+
+    it('logs an error when collapseTree is called for an unknown version', () => {
+      const _log = createFakeLogger();
+      const state = reducer(
+        initialState,
+        actions.collapseTree({ versionId: 123 }),
+        // TS looks confused about the third optional argument.
+        // @ts-ignore
+        { _log },
+      );
+
+      expect(_log.error).toHaveBeenCalled();
+      expect(state).toEqual(initialState);
     });
 
     it('stores lists of versions by add-on ID', () => {
@@ -648,7 +704,7 @@ describe(__filename, () => {
       // We have to manually remove the entry to test this. This is because the
       // condition that checks for a file will return undefined before we reach
       // this test under normal circumstances.
-      state.versionInfo[version.id].entries = [];
+      (state.versionInfo[version.id] as Version).entries = [];
       expect(
         getVersionFile(state, version.id, version.file.selected_file),
       ).toEqual(undefined);
@@ -667,7 +723,7 @@ describe(__filename, () => {
       // We have to manually remove the entry to test this. This is because the
       // condition that checks for a file will return undefined before we reach
       // this test under normal circumstances.
-      state.versionInfo[version.id].entries = [];
+      (state.versionInfo[version.id] as Version).entries = [];
       getVersionFile(state, version.id, version.file.selected_file, { _log });
 
       expect(_log.debug).toHaveBeenCalled();
@@ -716,6 +772,28 @@ describe(__filename, () => {
   });
 
   describe('fetchVersion', () => {
+    it('dispatches beginFetchVersionFile', async () => {
+      const version = fakeVersion;
+      const _getVersion = jest.fn().mockReturnValue(Promise.resolve(version));
+      const addonId = 123;
+      const versionId = version.id;
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () =>
+          fetchVersion({
+            _getVersion,
+            addonId,
+            versionId,
+          }),
+      });
+
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(
+        actions.beginFetchVersion({ versionId }),
+      );
+    });
+
     it('calls getVersion', async () => {
       const version = fakeVersion;
       const _getVersion = jest.fn().mockReturnValue(Promise.resolve(version));
@@ -784,6 +862,29 @@ describe(__filename, () => {
           path: version.file.selected_file,
           version,
         }),
+      );
+    });
+
+    it('dispatches abortFetchVersion when API response is not successful', async () => {
+      const error = new Error('Bad Request');
+      const _getVersion = jest.fn().mockReturnValue(Promise.resolve({ error }));
+
+      const addonId = 123;
+      const versionId = 456;
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () =>
+          fetchVersion({
+            _getVersion,
+            addonId,
+            versionId,
+          }),
+      });
+
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(
+        actions.abortFetchVersion({ versionId }),
       );
     });
 
@@ -1616,6 +1717,96 @@ describe(__filename, () => {
           hash,
         }),
       );
+    });
+  });
+
+  describe('abortFetchVersion', () => {
+    it('sets the version info to `null` on abortFetchVersion()', () => {
+      const versionId = 123;
+      const state = reducer(
+        undefined,
+        actions.abortFetchVersion({ versionId }),
+      );
+
+      expect(state.versionInfo[versionId]).toEqual(null);
+    });
+
+    it('preserves other version info', () => {
+      const version = fakeVersion;
+      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+
+      const abortFetchVersionId = version.id + 123;
+      state = reducer(
+        state,
+        actions.abortFetchVersion({ versionId: abortFetchVersionId }),
+      );
+
+      expect(state.versionInfo[version.id]).toEqual(expect.any(Object));
+      expect(state.versionInfo[abortFetchVersionId]).toEqual(null);
+    });
+
+    it('preserves other loading states', () => {
+      const beginFetchVersionId = 123;
+      const abortFetchVersionId = 456;
+
+      let state = reducer(
+        undefined,
+        actions.beginFetchVersion({ versionId: beginFetchVersionId }),
+      );
+      state = reducer(
+        state,
+        actions.abortFetchVersion({ versionId: abortFetchVersionId }),
+      );
+
+      expect(state.versionInfo[beginFetchVersionId]).toEqual(undefined);
+      expect(state.versionInfo[abortFetchVersionId]).toEqual(null);
+    });
+  });
+
+  describe('beginFetchVersion', () => {
+    it('resets the version info on beginFetchVersion()', () => {
+      const versionId = 123;
+      let versionsState = reducer(
+        undefined,
+        actions.abortFetchVersion({ versionId }),
+      );
+      versionsState = reducer(
+        versionsState,
+        actions.beginFetchVersion({ versionId }),
+      );
+
+      expect(versionsState.versionInfo[versionId]).toEqual(undefined);
+    });
+
+    it('preserves other version info', () => {
+      const version = fakeVersion;
+      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+
+      const beginFetchVersionId = version.id + 123;
+      state = reducer(
+        state,
+        actions.beginFetchVersion({ versionId: beginFetchVersionId }),
+      );
+
+      expect(state.versionInfo[version.id]).toEqual(expect.any(Object));
+      expect(state.versionInfo[beginFetchVersionId]).toEqual(undefined);
+    });
+
+    it('preservers other loading states', () => {
+      const beginFetchVersionId = 123;
+      const abortFetchVersionId = 456;
+
+      let state = reducer(
+        undefined,
+        actions.abortFetchVersion({ versionId: abortFetchVersionId }),
+      );
+      state = reducer(
+        state,
+        actions.beginFetchVersion({ versionId: beginFetchVersionId }),
+      );
+
+      expect(state.versionInfo[abortFetchVersionId]).toEqual(null);
+      expect(state.versionInfo[beginFetchVersionId]).toEqual(undefined);
     });
   });
 });
