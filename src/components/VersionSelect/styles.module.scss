@@ -2,3 +2,11 @@
   margin: auto;
   padding-top: 14px;
 }
+
+.option {
+  font-weight: 600;
+
+  &:disabled {
+    font-weight: 300;
+  }
+}
