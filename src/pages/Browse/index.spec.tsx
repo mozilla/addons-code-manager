@@ -450,7 +450,7 @@ describe(__filename, () => {
     });
   });
 
-  it('does not dispatch viewVersionFile on mount when the query string does not contain a `path`', () => {
+  it('does not dispatch viewVersionFile on mount when `path` is equal to the selected path', () => {
     const version = fakeVersion;
     const history = createFakeHistory({
       location: createFakeLocation({
@@ -466,7 +466,7 @@ describe(__filename, () => {
     expect(dispatch).not.toHaveBeenCalled();
   });
 
-  it('does not dispatch viewVersionFile on mount when `path` is equal to the selected path', () => {
+  it('does not dispatch viewVersionFile on mount when the query string does not contain a `path`', () => {
     const version = fakeVersion;
     const history = createFakeHistory({
       location: createFakeLocation({ search: '' }),
