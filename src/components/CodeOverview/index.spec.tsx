@@ -1,8 +1,14 @@
 import * as React from 'react';
+import { Location } from 'history';
+import { Link } from 'react-router-dom';
+import { ShallowWrapper } from 'enzyme';
 import debounce from 'lodash.debounce';
 
 import { ExternalLinterMessage, getMessageMap } from '../../reducers/linter';
 import { createInternalVersion } from '../../reducers/versions';
+import { getCodeLineAnchor } from '../CodeView/utils';
+import CodeLineShapes from '../CodeLineShapes';
+import { generateLineShapes } from '../CodeLineShapes/utils';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import {
   createContextWithFakeRouter,
@@ -23,7 +29,9 @@ describe(__filename, () => {
     };
   };
 
-  type RenderParams = Partial<CodeOverviewProps>;
+  type RenderParams = Partial<CodeOverviewProps> & {
+    location?: Location<{}>;
+  };
 
   const getProps = ({
     // This is stub replacement for debounce that behaves the same but
@@ -40,14 +48,23 @@ describe(__filename, () => {
     };
   };
 
-  const render = (otherProps: RenderParams = {}) => {
+  const render = ({
+    location = createFakeLocation(),
+    ...otherProps
+  }: RenderParams = {}) => {
     const props = getProps(otherProps);
 
     return shallowUntilTarget(<CodeOverview {...props} />, CodeOverviewBase, {
-      shallowOptions: createContextWithFakeRouter({
-        location: createFakeLocation(),
-      }),
+      shallowOptions: createContextWithFakeRouter({ location }),
     });
+  };
+
+  const renderWithInstance = (props = {}) => {
+    const root = render(props);
+    return {
+      root,
+      instance: root.instance() as CodeOverviewBase,
+    };
   };
 
   type RenderWithLinterProviderParams = Partial<LinterProviderInfo> &
@@ -57,11 +74,15 @@ describe(__filename, () => {
     messageMap = undefined,
     messagesAreLoading = false,
     selectedMessageMap = undefined,
+    root = undefined,
     ...renderParams
-  }: RenderWithLinterProviderParams = {}) => {
-    const root = render(renderParams);
+  }: RenderWithLinterProviderParams & { root?: ShallowWrapper } = {}) => {
+    let lazyRoot = root;
+    if (!lazyRoot) {
+      lazyRoot = render(renderParams);
+    }
 
-    return simulateLinterProvider(root, {
+    return simulateLinterProvider(lazyRoot, {
       messageMap,
       messagesAreLoading,
       selectedMessageMap,
@@ -115,11 +136,8 @@ describe(__filename, () => {
   it('adds and removes event listeners', () => {
     const _window = createFakeWindow();
 
-    const root = render({ _window });
-    const {
-      resetOverviewHeight,
-      waitAndSetNewOverviewHeight,
-    } = root.instance() as CodeOverviewBase;
+    const { root, instance } = renderWithInstance({ _window });
+    const { resetOverviewHeight, waitAndSetNewOverviewHeight } = instance;
 
     expect(_window.addEventListener).toHaveBeenCalledWith(
       'resize',
@@ -143,8 +161,7 @@ describe(__filename, () => {
   });
 
   it('can set the overview height', () => {
-    const root = render();
-    const instance = root.instance() as CodeOverviewBase;
+    const { root, instance } = renderWithInstance();
 
     // Set a height that will be overwritten.
     root.setState({ overviewHeight: 200 });
@@ -160,9 +177,8 @@ describe(__filename, () => {
     expect(root.state('overviewHeight')).toEqual(fakeRef.current.clientHeight);
   });
 
-  it('only sets overview height for active refs', () => {
-    const root = render();
-    const instance = root.instance() as CodeOverviewBase;
+  it('only sets the overview height for defined refs', () => {
+    const { root, instance } = renderWithInstance();
 
     const overviewHeight = 200;
     root.setState({ overviewHeight });
@@ -173,9 +189,21 @@ describe(__filename, () => {
     expect(root.state('overviewHeight')).toEqual(overviewHeight);
   });
 
+  it('only sets the overview height for active refs', () => {
+    const { root, instance } = renderWithInstance();
+
+    const overviewHeight = 200;
+    root.setState({ overviewHeight });
+
+    // Set an inactive ref.
+    instance.setOverviewHeight(React.createRef());
+
+    // Make sure no new height was set.
+    expect(root.state('overviewHeight')).toEqual(overviewHeight);
+  });
+
   it('can reset the overview height', () => {
-    const root = render();
-    const instance = root.instance() as CodeOverviewBase;
+    const { root, instance } = renderWithInstance();
 
     // Set a height that will be reset.
     root.setState({ overviewHeight: 200 });
@@ -183,5 +211,135 @@ describe(__filename, () => {
     instance.resetOverviewHeight();
 
     expect(root.state('overviewHeight')).toEqual(null);
+  });
+
+  it('does not render content until the overview height is set', () => {
+    const root = render({ content: '// pretend this is code' });
+    root.setState({ overviewHeight: null });
+
+    const innerRoot = renderWithLinterProvider({ root });
+    expect(innerRoot.find(CodeLineShapes)).toHaveLength(0);
+  });
+
+  it('renders links for a code line', () => {
+    const contentLines = [
+      'function logMessage(message) {',
+      '  console.log(message);',
+      '}',
+    ];
+
+    const location = createFakeLocation();
+    const root = render({ content: contentLines.join('\n'), location });
+    root.setState({ overviewHeight: 400 });
+
+    const innerRoot = renderWithLinterProvider({ root });
+
+    const line = 3;
+    const link = innerRoot.find(Link).at(line - 1);
+
+    expect(link).toHaveProp('to', {
+      ...location,
+      hash: getCodeLineAnchor(line),
+    });
+
+    expect(link).toHaveProp('title', `Jump to line ${line}`);
+  });
+
+  it('renders links for an empty line', () => {
+    const contentLines = ['// Example code comment'];
+
+    const location = createFakeLocation();
+    const root = render({ content: contentLines.join('\n'), location });
+    root.setState({ overviewHeight: 400 });
+
+    const innerRoot = renderWithLinterProvider({ root });
+
+    // Check the first empty line.
+    const link = innerRoot.find(Link).at(1);
+
+    expect(link).toHaveProp('to', {
+      ...location,
+      hash: '#',
+    });
+
+    expect(link).toHaveProp('title', '');
+  });
+
+  it('handles empty content', () => {
+    const content = '';
+    const allLineShapes = generateLineShapes([content]);
+
+    const root = render({ content });
+    root.setState({ overviewHeight: 400 });
+
+    const innerRoot = renderWithLinterProvider({ root });
+
+    const lineShapes = innerRoot.find(CodeLineShapes);
+    expect(lineShapes.at(0)).toHaveProp('lineShapes', allLineShapes[0]);
+    expect(lineShapes).toHaveLength(1);
+  });
+
+  it('renders CodeLineShapes for all lines', () => {
+    const contentLines = [
+      'function logMessage(message) {',
+      '  console.log(message);',
+      '}',
+    ];
+    const allLineShapes = generateLineShapes(contentLines);
+
+    const root = render({ content: contentLines.join('\n') });
+    root.setState({ overviewHeight: 400 });
+
+    const innerRoot = renderWithLinterProvider({ root });
+
+    const lineShapes = innerRoot.find(CodeLineShapes);
+
+    expect(lineShapes.at(0)).toHaveProp('lineShapes', allLineShapes[0]);
+    expect(lineShapes.at(1)).toHaveProp('lineShapes', allLineShapes[1]);
+    expect(lineShapes.at(2)).toHaveProp('lineShapes', allLineShapes[2]);
+
+    expect(lineShapes).toHaveLength(3);
+  });
+
+  it('renders CodeLineShapes for groups of lines that fit', () => {
+    // Create a 200 line file.
+    const contentLines = new Array(200)
+      .fill('')
+      .map((i) => `// This is line ${i + 1} of the code`);
+    const allLineShapes = generateLineShapes(contentLines);
+
+    const root = render({ content: contentLines.join('\n') });
+    root.setState({ overviewHeight: 100 });
+
+    const innerRoot = renderWithLinterProvider({ root });
+
+    const lineShapes = innerRoot.find(CodeLineShapes);
+
+    // Expect the lines to be distributed via lodash.chunk()
+
+    expect(lineShapes.at(0)).toHaveProp(
+      'lineShapes',
+      expect.objectContaining({ line: 1 }),
+    );
+
+    // Expect the second row to start at line 30.
+    expect(lineShapes.at(1)).toHaveProp(
+      'lineShapes',
+      expect.objectContaining({ line: 30 }),
+    );
+
+    // Expect the third row to start at line 59.
+    expect(lineShapes.at(2)).toHaveProp(
+      'lineShapes',
+      expect.objectContaining({ line: 59 }),
+    );
+
+    // Expect the last row to start at line 175.
+    expect(lineShapes.at(6)).toHaveProp(
+      'lineShapes',
+      expect.objectContaining({ line: 175 }),
+    );
+
+    expect(lineShapes).toHaveLength(7);
   });
 });
