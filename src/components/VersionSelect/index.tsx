@@ -35,6 +35,7 @@ class VersionSelectBase extends React.Component<PublicProps> {
 
     return (
       <option
+        className={styles.option}
         disabled={!isSelectable(version)}
         key={version.id}
         value={version.id}
