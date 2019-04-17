@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Link } from 'react-router-dom';
+import { withRouter, Link, RouteComponentProps } from 'react-router-dom';
 import makeClassName from 'classnames';
 import chunk from 'lodash.chunk';
 import debounce from 'lodash.debounce';
@@ -31,14 +31,14 @@ export type DefaultProps = {
   };
 };
 
-type Props = PublicProps & DefaultProps;
+export type Props = PublicProps & DefaultProps & RouteComponentProps;
 
 type State = {
   // This is the height of the overview div in pixels.
   overviewHeight: number | null;
 };
 
-export default class CodeOverview extends React.Component<Props, State> {
+export class CodeOverviewBase extends React.Component<Props, State> {
   static defaultProps = { _debounce: debounce, _window: window };
 
   public state = { overviewHeight: null };
@@ -120,7 +120,7 @@ export default class CodeOverview extends React.Component<Props, State> {
   }
 
   renderOverview(selectedMessageMap: LinterProviderInfo['selectedMessageMap']) {
-    const { content } = this.props;
+    const { content, location } = this.props;
     const { overviewHeight } = this.state;
 
     if (!overviewHeight) {
@@ -158,7 +158,10 @@ export default class CodeOverview extends React.Component<Props, State> {
       overview.push(
         <Link
           className={styles.line}
-          to={line ? getCodeLineAnchor(line) : '#'}
+          to={{
+            ...location,
+            hash: line ? getCodeLineAnchor(line) : '#',
+          }}
           key={rowIndex}
           style={{
             height: `${lineHeight}px`,
@@ -204,3 +207,7 @@ export default class CodeOverview extends React.Component<Props, State> {
     );
   }
 }
+
+export default withRouter(CodeOverviewBase) as React.ComponentType<
+  PublicProps & Partial<DefaultProps>
+>;

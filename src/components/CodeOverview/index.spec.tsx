@@ -1,17 +1,19 @@
 import * as React from 'react';
 import debounce from 'lodash.debounce';
-import { shallow } from 'enzyme';
 
 import { ExternalLinterMessage, getMessageMap } from '../../reducers/linter';
 import { createInternalVersion } from '../../reducers/versions';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import {
+  createContextWithFakeRouter,
   createFakeExternalLinterResult,
+  createFakeLocation,
   fakeVersion,
+  shallowUntilTarget,
   simulateLinterProvider,
 } from '../../test-helpers';
 
-import CodeOverview, { DefaultProps, PublicProps } from '.';
+import CodeOverview, { CodeOverviewBase, Props as CodeOverviewProps } from '.';
 
 describe(__filename, () => {
   const createFakeWindow = () => {
@@ -21,22 +23,31 @@ describe(__filename, () => {
     };
   };
 
-  type RenderParams = Partial<PublicProps & DefaultProps>;
+  type RenderParams = Partial<CodeOverviewProps>;
 
-  const render = ({
+  const getProps = ({
     // This is stub replacement for debounce that behaves the same but
     // without any debouncing.
     _debounce = (func) => debounce(func, 0, { leading: true }),
     ...otherProps
   }: RenderParams = {}) => {
-    const props = {
+    return {
       _debounce,
       _window: createFakeWindow(),
       content: 'example code content',
       version: createInternalVersion(fakeVersion),
       ...otherProps,
     };
-    return shallow(<CodeOverview {...props} />);
+  };
+
+  const render = (otherProps: RenderParams = {}) => {
+    const props = getProps(otherProps);
+
+    return shallowUntilTarget(<CodeOverview {...props} />, CodeOverviewBase, {
+      shallowOptions: createContextWithFakeRouter({
+        location: createFakeLocation(),
+      }),
+    });
   };
 
   type RenderWithLinterProviderParams = Partial<LinterProviderInfo> &
@@ -108,7 +119,7 @@ describe(__filename, () => {
     const {
       resetOverviewHeight,
       waitAndSetNewOverviewHeight,
-    } = root.instance() as CodeOverview;
+    } = root.instance() as CodeOverviewBase;
 
     expect(_window.addEventListener).toHaveBeenCalledWith(
       'resize',
@@ -133,9 +144,9 @@ describe(__filename, () => {
 
   it('can set the overview height', () => {
     const root = render();
-    const instance = root.instance() as CodeOverview;
+    const instance = root.instance() as CodeOverviewBase;
 
-    // Simulate setting an arbitrary height;
+    // Set a height that will be overwritten.
     root.setState({ overviewHeight: 200 });
 
     const fakeRef = {
@@ -151,9 +162,8 @@ describe(__filename, () => {
 
   it('only sets overview height for active refs', () => {
     const root = render();
-    const instance = root.instance() as CodeOverview;
+    const instance = root.instance() as CodeOverviewBase;
 
-    // Simulate setting an arbitrary height;
     const overviewHeight = 200;
     root.setState({ overviewHeight });
 
@@ -165,9 +175,9 @@ describe(__filename, () => {
 
   it('can reset the overview height', () => {
     const root = render();
-    const instance = root.instance() as CodeOverview;
+    const instance = root.instance() as CodeOverviewBase;
 
-    // Simulate setting an arbitrary height;
+    // Set a height that will be reset.
     root.setState({ overviewHeight: 200 });
 
     instance.resetOverviewHeight();
