@@ -1,4 +1,4 @@
-import { configure, setAddon } from '@storybook/react';
+import { addParameters, configure, setAddon } from '@storybook/react';
 // For some reasons, the CRA build step fails because TypeScript cannot find a
 // valid declaration file for this module. Yet, there is a valid declaration
 // file and it works in all other contexts.
@@ -16,6 +16,12 @@ configureApplication();
 
 // Automatically import all files ending in *.stories.tsx
 const req = require.context('../', true, /.stories.tsx$/);
+
+addParameters({
+  options: {
+    showPanel: false,
+  },
+});
 
 setDefaults({
   sectionOptions: {
