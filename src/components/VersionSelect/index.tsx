@@ -4,12 +4,14 @@ import { Col, Form } from 'react-bootstrap';
 import { FormControlProps } from 'react-bootstrap/lib/FormControl';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
+import Skeleton from '../Skeleton';
 import { VersionsList, VersionsListItem } from '../../reducers/versions';
 import { gettext } from '../../utils';
 import styles from './styles.module.scss';
 
 export type PublicProps = {
   className?: string;
+  isLoading: boolean;
   isSelectable: (version: VersionsListItem) => boolean;
   label: string;
   listedVersions: VersionsList;
@@ -48,6 +50,7 @@ class VersionSelectBase extends React.Component<PublicProps> {
   render() {
     const {
       className,
+      isLoading,
       label,
       listedVersions,
       unlistedVersions,
@@ -65,24 +68,31 @@ class VersionSelectBase extends React.Component<PublicProps> {
 
         <Form.Group as={Col} className={className}>
           <Form.Label>{label}</Form.Label>
-          <Form.Control as="select" value={value} onChange={this.onChange}>
-            {listedVersions.length && (
-              <optgroup
-                className={styles.listedGroup}
-                label={gettext('Listed')}
-              >
-                {listedVersions.map(this.renderOption)}
-              </optgroup>
-            )}
-            {unlistedVersions.length && (
-              <optgroup
-                className={styles.unlistedGroup}
-                label={gettext('Unlisted')}
-              >
-                {unlistedVersions.map(this.renderOption)}
-              </optgroup>
-            )}
-          </Form.Control>
+
+          {isLoading ? (
+            <div className="form-control">
+              <Skeleton />
+            </div>
+          ) : (
+            <Form.Control as="select" value={value} onChange={this.onChange}>
+              {listedVersions.length && (
+                <optgroup
+                  className={styles.listedGroup}
+                  label={gettext('Listed')}
+                >
+                  {listedVersions.map(this.renderOption)}
+                </optgroup>
+              )}
+              {unlistedVersions.length && (
+                <optgroup
+                  className={styles.unlistedGroup}
+                  label={gettext('Unlisted')}
+                >
+                  {unlistedVersions.map(this.renderOption)}
+                </optgroup>
+              )}
+            </Form.Control>
+          )}
         </Form.Group>
       </React.Fragment>
     );
