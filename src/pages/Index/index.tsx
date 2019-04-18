@@ -1,27 +1,44 @@
 import * as React from 'react';
-import { Link } from 'react-router-dom';
 import { Col } from 'react-bootstrap';
 
-type PublicProps = {};
+import { gettext } from '../../utils';
 
-export class IndexBase extends React.Component<PublicProps> {
+type Props = {
+  apiHost: string;
+  repoUrl: string;
+};
+
+export class IndexBase extends React.Component<Props> {
+  static defaultProps = {
+    apiHost: process.env.REACT_APP_API_HOST,
+    repoUrl: 'https://github.com/mozilla/addons-code-manager',
+  };
+
   render() {
+    const { apiHost, repoUrl } = this.props;
+
     return (
       <Col>
         <p>
-          There is nothing you can do here, but try{' '}
-          <Link to="/en-US/browse/494431/versions/1532144/">
-            browsing this add-on version
-          </Link>
-          {', '}
-          <Link to="/en-US/compare/502955/versions/1541794...1541798/">
-            look at this compare view
-          </Link>{' '}
-          or go to this{' '}
-          <Link to="/en-US/browse/502955/versions/1000000/">
-            page that will generate an error.
-          </Link>
+          {gettext(`🚧 This project is under active development. If you find a
+            bug, please`)}{' '}
+          <a href={`${repoUrl}/issues/new`}>{gettext('file an issue')}</a>.
         </p>
+        <p>{gettext('Other useful links:')}</p>
+        <ul>
+          <li>
+            <a href={apiHost}>{gettext('AMO (frontend)')}</a>
+          </li>
+          <li>
+            <a href={`${apiHost}/reviewers/`}>{gettext('Reviewers Tools')}</a>
+          </li>
+          <li>
+            <a href={`${apiHost}/developers/`}>{gettext('Developer Hub')}</a>
+          </li>
+          <li>
+            <a href={repoUrl}>{gettext('GitHub repository')}</a>
+          </li>
+        </ul>
       </Col>
     );
   }
