@@ -14,7 +14,7 @@ import linterReducer, {
   LinterMessage,
   actions,
   createInternalMessage,
-  fetchLinterMessages,
+  fetchLinterMessagesIfNeeded,
   findMostSevereType,
   getMessageMap,
   initialState,
@@ -406,8 +406,8 @@ describe(__filename, () => {
     });
   });
 
-  describe('fetchLinterMessages', () => {
-    const _fetchLinterMessages = ({
+  describe('fetchLinterMessagesIfNeeded', () => {
+    const _fetchLinterMessagesIfNeeded = ({
       versionId = 123,
       url = '/validation/1234/validation.json',
       result = createExternalLinterResult(),
@@ -423,14 +423,14 @@ describe(__filename, () => {
       }
 
       return thunkTester({
-        createThunk: () => fetchLinterMessages({ url, versionId }),
+        createThunk: () => fetchLinterMessagesIfNeeded({ url, versionId }),
       });
     };
 
     it('fetches the URL', async () => {
       const url = 'validation/3215/validation.json';
 
-      const { thunk } = _fetchLinterMessages({ url });
+      const { thunk } = _fetchLinterMessagesIfNeeded({ url });
       await thunk();
 
       expect(fetchMock).toHaveBeenCalledWith(makeApiURL({ url }), {
@@ -441,7 +441,7 @@ describe(__filename, () => {
     it('dispatches beginFetchLinterResult', async () => {
       const versionId = 124;
 
-      const { dispatch, thunk } = _fetchLinterMessages({ versionId });
+      const { dispatch, thunk } = _fetchLinterMessagesIfNeeded({ versionId });
       await thunk();
 
       expect(dispatch).toHaveBeenCalledWith(
@@ -453,7 +453,7 @@ describe(__filename, () => {
       const result = createExternalLinterResult();
       const versionId = 124;
 
-      const { dispatch, thunk } = _fetchLinterMessages({
+      const { dispatch, thunk } = _fetchLinterMessagesIfNeeded({
         versionId,
         result: createExternalLinterResult(),
       });
@@ -469,7 +469,7 @@ describe(__filename, () => {
       fetchMock.mockResponse('', { status: 400 });
       const versionId = 124;
 
-      const { dispatch, thunk } = _fetchLinterMessages({
+      const { dispatch, thunk } = _fetchLinterMessagesIfNeeded({
         versionId,
         respondWithResult: false,
       });
@@ -488,7 +488,7 @@ describe(__filename, () => {
       fetchMock.mockResponse('_this is not ^& valid JSON');
       const versionId = 124;
 
-      const { dispatch, thunk } = _fetchLinterMessages({
+      const { dispatch, thunk } = _fetchLinterMessagesIfNeeded({
         versionId,
         respondWithResult: false,
       });
@@ -510,7 +510,7 @@ describe(__filename, () => {
       store.dispatch(actions.beginFetchLinterResult({ versionId }));
 
       const { dispatch, thunk } = thunkTester({
-        createThunk: () => fetchLinterMessages({ url, versionId }),
+        createThunk: () => fetchLinterMessagesIfNeeded({ url, versionId }),
         store,
       });
 

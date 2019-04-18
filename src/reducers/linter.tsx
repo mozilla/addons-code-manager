@@ -170,7 +170,7 @@ export const actions = {
   }),
 };
 
-export const fetchLinterMessages = ({
+export const fetchLinterMessagesIfNeeded = ({
   url,
   versionId,
 }: {
