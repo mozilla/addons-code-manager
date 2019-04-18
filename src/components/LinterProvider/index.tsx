@@ -66,13 +66,12 @@ export class LinterProviderBase extends React.Component<Props> {
     const {
       _fetchLinterMessagesIfNeeded,
       dispatch,
+      messageMap,
       validationURL,
       versionId,
-      messageMap,
-      messagesAreLoading,
     } = this.props;
 
-    if (messageMap === undefined && !messagesAreLoading) {
+    if (messageMap === undefined) {
       dispatch(
         _fetchLinterMessagesIfNeeded({
           versionId,

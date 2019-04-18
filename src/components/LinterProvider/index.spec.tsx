@@ -156,18 +156,6 @@ describe(__filename, () => {
     });
   });
 
-  it('does not dispatch fetchLinterMessagesIfNeeded while loading', () => {
-    const store = configureStore();
-    const version = createInternalVersion({ ...fakeVersion });
-    store.dispatch(
-      linterActions.beginFetchLinterResult({ versionId: version.id }),
-    );
-
-    const { dispatch } = renderWithFakeThunk({ store, version });
-
-    expect(dispatch).not.toHaveBeenCalled();
-  });
-
   it('does not dispatch fetchLinterMessagesIfNeeded after they have loaded', () => {
     const store = configureStore();
     const { version } = _loadLinterResult({
