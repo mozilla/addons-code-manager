@@ -1,14 +1,9 @@
 import * as React from 'react';
 import { withRouter, Link, RouteComponentProps } from 'react-router-dom';
-import makeClassName from 'classnames';
 import chunk from 'lodash.chunk';
 import debounce from 'lodash.debounce';
 
 import { getCodeLineAnchor, getLines } from '../CodeView/utils';
-import {
-  LinterMessage as LinterMessageType,
-  findMostSevereType,
-} from '../../reducers/linter';
 import styles from './styles.module.scss';
 import { gettext } from '../../utils';
 import { Version } from '../../reducers/versions';
@@ -89,29 +84,8 @@ export class CodeOverviewBase extends React.Component<Props, State> {
       return null;
     }
 
-    const messages = selectedMessageMap
-      ? groupOflineShapes.reduce((matches: LinterMessageType[], shape) => {
-          if (selectedMessageMap.byLine[shape.line]) {
-            return matches.concat(selectedMessageMap.byLine[shape.line]);
-          }
-
-          return matches;
-        }, [])
-      : [];
-
-    if (messages.length) {
-      const type = findMostSevereType(messages);
-      return (
-        <div
-          key={messages.map((m) => m.uid).join(':')}
-          className={makeClassName(styles.linterMessage, {
-            [styles.linterError]: type === 'error',
-            [styles.linterWarning]: type === 'warning',
-            [styles.linterNotice]: type === 'notice',
-          })}
-        />
-      );
-    }
+    // TODO: render linter messages here.
+    // See https://github.com/mozilla/addons-code-manager/issues/523
 
     // Render the first line in the group.
     const lineShapes = groupOflineShapes[0];

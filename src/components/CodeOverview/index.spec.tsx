@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 import { ShallowWrapper } from 'enzyme';
 import debounce from 'lodash.debounce';
 
-import { ExternalLinterMessage, getMessageMap } from '../../reducers/linter';
 import { createInternalVersion } from '../../reducers/versions';
 import { getCodeLineAnchor } from '../CodeView/utils';
 import CodeLineShapes from '../CodeLineShapes';
@@ -12,7 +11,6 @@ import { generateLineShapes } from '../CodeLineShapes/utils';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import {
   createContextWithFakeRouter,
-  createFakeExternalLinterResult,
   createFakeLocation,
   fakeVersion,
   shallowUntilTarget,
@@ -87,40 +85,6 @@ describe(__filename, () => {
       messagesAreLoading,
       selectedMessageMap,
     });
-  };
-
-  const renderWithMessages = ({
-    messages,
-    ...props
-  }: {
-    messages: Partial<ExternalLinterMessage>[];
-    props?: RenderParams;
-  }) => {
-    const file = 'scripts/content.js';
-    const map = getMessageMap(
-      createFakeExternalLinterResult({
-        messages: messages.map((msg) => {
-          return { ...msg, file };
-        }),
-      }),
-    );
-
-    const contentLines = [
-      'function getName() {',
-      '  document.querySelector("#name")',
-      '}',
-    ];
-
-    const selectedMessageMap = map[file];
-
-    const root = renderWithLinterProvider({
-      messageMap: map,
-      selectedMessageMap,
-      content: contentLines.join('\n'),
-      ...props,
-    });
-
-    return { root, selectedMessageMap };
   };
 
   it('configures LinterProvider', () => {
@@ -306,7 +270,6 @@ describe(__filename, () => {
     const contentLines = new Array(200)
       .fill('')
       .map((i) => `// This is line ${i + 1} of the code`);
-    const allLineShapes = generateLineShapes(contentLines);
 
     const root = render({ content: contentLines.join('\n') });
     root.setState({ overviewHeight: 100 });
