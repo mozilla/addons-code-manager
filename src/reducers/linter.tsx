@@ -178,8 +178,10 @@ export const fetchLinterMessagesIfNeeded = ({
   versionId: number;
 }): ThunkActionCreator => {
   return async (dispatch, getState) => {
+    const { linter } = getState();
     // See: https://github.com/mozilla/addons-code-manager/issues/591
-    if (getState().linter.isLoading) {
+    if (linter.isLoading && linter.forVersionId === versionId) {
+      log.debug('Aborting because linter messages are already being fetched');
       return;
     }
 

@@ -518,6 +518,28 @@ describe(__filename, () => {
 
       expect(dispatch).not.toHaveBeenCalled();
     });
+
+    it('does not abort if linter messages are being fetched for a different version ID', async () => {
+      const url = '/some/url';
+      const versionId = 123;
+      const anotherVersionId = versionId + 246;
+      const store = configureStore();
+      store.dispatch(actions.beginFetchLinterResult({ versionId }));
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () =>
+          fetchLinterMessagesIfNeeded({ url, versionId: anotherVersionId }),
+        store,
+      });
+
+      await thunk();
+
+      // Other actions will be dispatched but we're only interested in making
+      // sure actions are dispatched for `anotherVersionId` here.
+      expect(dispatch).toHaveBeenCalledWith(
+        actions.beginFetchLinterResult({ versionId: anotherVersionId }),
+      );
+    });
   });
 
   describe('findMostSevereType', () => {
