@@ -10,3 +10,13 @@
     font-weight: 300;
   }
 }
+
+.simulatedFormControl {
+  align-items: center;
+  display: flex;
+
+  div {
+    height: auto;
+    width: 60px;
+  }
+}

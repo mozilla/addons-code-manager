@@ -1,4 +1,5 @@
 import * as React from 'react';
+import makeClassName from 'classnames';
 import { Col, Form } from 'react-bootstrap';
 // eslint-disable-next-line import/no-unresolved
 import { FormControlProps } from 'react-bootstrap/lib/FormControl';
@@ -68,9 +69,15 @@ class VersionSelectBase extends React.Component<PublicProps> {
 
         <Form.Group as={Col} className={className}>
           <Form.Label>{label}</Form.Label>
-
           {isLoading ? (
-            <div className="form-control">
+            <div
+              className={makeClassName(
+                // `.form-control` is a Bootstrap CSS class used by the
+                // `Form.Control` React component.
+                'form-control',
+                styles.simulatedFormControl,
+              )}
+            >
               <Skeleton />
             </div>
           ) : (
