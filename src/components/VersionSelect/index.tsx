@@ -78,7 +78,7 @@ class VersionSelectBase extends React.Component<PublicProps> {
                 styles.simulatedFormControl,
               )}
             >
-              <Skeleton />
+              <Skeleton className={styles.simulatedFormControlSkeleton} />
             </div>
           ) : (
             <Form.Control as="select" value={value} onChange={this.onChange}>
