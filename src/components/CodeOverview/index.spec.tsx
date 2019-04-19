@@ -16,6 +16,7 @@ import {
   shallowUntilTarget,
   simulateLinterProvider,
 } from '../../test-helpers';
+import styles from './styles.module.scss';
 
 import CodeOverview, { CodeOverviewBase, Props as CodeOverviewProps } from '.';
 
@@ -240,6 +241,22 @@ describe(__filename, () => {
 
     expect(link3).toHaveStyle('height', `${rowHeight}px`);
     expect(link3).toHaveStyle('paddingTop', `${rowTopPadding}px`);
+  });
+
+  it('sets overview styles', () => {
+    const overviewPadding = 7;
+
+    const root = render({
+      overviewPadding,
+      content: generateFileLines({ count: 3 }).join('\n'),
+    });
+
+    const innerRoot = renderWithLinterProvider({ root });
+
+    expect(innerRoot.find(`.${styles.CodeOverview}`)).toHaveStyle(
+      'padding',
+      `${overviewPadding}px`,
+    );
   });
 
   it('renders links for an empty line', () => {
