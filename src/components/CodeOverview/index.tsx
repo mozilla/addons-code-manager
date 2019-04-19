@@ -9,9 +9,11 @@ import { gettext } from '../../utils';
 import { Version } from '../../reducers/versions';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import CodeLineShapes from '../CodeLineShapes';
-import { LineShapes, generateLineShapes } from '../CodeLineShapes/utils';
-
-const OVERVIEW_PADDING = 10;
+import {
+  AllLineShapes,
+  LineShapes,
+  generateLineShapes,
+} from '../CodeLineShapes/utils';
 
 export type PublicProps = {
   content: string;
@@ -24,6 +26,9 @@ export type DefaultProps = {
     addEventListener: typeof window.addEventListener;
     removeEventListener: typeof window.removeEventListener;
   };
+  overviewPadding: number;
+  rowTopPadding: number;
+  rowHeight: number;
 };
 
 export type Props = PublicProps & DefaultProps & RouteComponentProps;
@@ -34,7 +39,15 @@ type State = {
 };
 
 export class CodeOverviewBase extends React.Component<Props, State> {
-  static defaultProps = { _debounce: debounce, _window: window };
+  static defaultProps = {
+    _debounce: debounce,
+    _window: window,
+    // This is the padding of the overview container.
+    overviewPadding: 10,
+    rowTopPadding: 2,
+    // This is the height of the row, including rowTopPadding.
+    rowHeight: 10,
+  };
 
   public state = { overviewHeight: null };
 
@@ -75,6 +88,37 @@ export class CodeOverviewBase extends React.Component<Props, State> {
     },
   );
 
+  fitLineShapesIntoOverview(allLineShapes: AllLineShapes) {
+    const { overviewPadding, rowHeight, rowTopPadding } = this.props;
+    const { overviewHeight } = this.state;
+
+    if (!overviewHeight) {
+      throw new Error(
+        'overviewHeight must be set when calling fitLineShapesIntoOverview()',
+      );
+    }
+
+    const availableHeight =
+      overviewHeight -
+      // Remove the top and bottom div padding.
+      overviewPadding * 2 -
+      // Adjust for the first row not having padding.
+      rowTopPadding;
+
+    const numberOfRows = Math.floor(availableHeight / rowHeight);
+
+    let chunkSize = 1;
+    if (allLineShapes.length > numberOfRows) {
+      // Split file lines evenly between all rows.
+      chunkSize = Math.ceil(allLineShapes.length / numberOfRows);
+    }
+
+    return {
+      numberOfRows,
+      chunkedLineShapes: chunk(allLineShapes, chunkSize),
+    };
+  }
+
   renderRow(
     selectedMessageMap: LinterProviderInfo['selectedMessageMap'],
     rowIndex: number,
@@ -94,34 +138,17 @@ export class CodeOverviewBase extends React.Component<Props, State> {
   }
 
   renderOverview(selectedMessageMap: LinterProviderInfo['selectedMessageMap']) {
-    const { content, location } = this.props;
+    const { content, location, rowHeight, rowTopPadding } = this.props;
     const { overviewHeight } = this.state;
 
     if (!overviewHeight) {
       return null;
     }
 
-    const linePadding = 2;
-    const lineHeight = linePadding + 8;
-
-    const availableHeight =
-      overviewHeight -
-      // Remove the top and bottom div padding.
-      OVERVIEW_PADDING * 2 -
-      // Adjust for the first item not having padding.
-      linePadding;
-
-    const numberOfRows = Math.floor(availableHeight / lineHeight);
-
     const allLineShapes = generateLineShapes(getLines(content));
-
-    let chunkSize = 1;
-    if (allLineShapes.length > numberOfRows) {
-      // Split file lines evenly between all rows.
-      chunkSize = Math.ceil(allLineShapes.length / numberOfRows);
-    }
-
-    const chunkedLineShapes = chunk(allLineShapes, chunkSize);
+    const { numberOfRows, chunkedLineShapes } = this.fitLineShapesIntoOverview(
+      allLineShapes,
+    );
     const overview = [];
 
     for (let rowIndex = 0; rowIndex < numberOfRows; rowIndex++) {
@@ -138,8 +165,8 @@ export class CodeOverviewBase extends React.Component<Props, State> {
           }}
           key={rowIndex}
           style={{
-            height: `${lineHeight}px`,
-            paddingTop: rowIndex > 0 ? `${linePadding}px` : undefined,
+            height: `${rowHeight}px`,
+            paddingTop: rowIndex > 0 ? `${rowTopPadding}px` : undefined,
           }}
           title={line ? gettext(`Jump to line ${line}`) : ''}
         >
@@ -157,7 +184,7 @@ export class CodeOverviewBase extends React.Component<Props, State> {
         ref={this.overviewRef}
         className={styles.CodeOverview}
         style={{
-          padding: `${OVERVIEW_PADDING}px`,
+          padding: `${this.props.overviewPadding}px`,
         }}
       >
         {this.renderOverview(selectedMessageMap)}
