@@ -122,17 +122,18 @@ export class CodeOverviewBase extends React.Component<Props, State> {
   renderRow(
     selectedMessageMap: LinterProviderInfo['selectedMessageMap'],
     rowIndex: number,
+    shapeIndex: number,
     groupOflineShapes: LineShapes[] | void,
   ) {
     if (!groupOflineShapes) {
       return null;
     }
 
-    // TODO: render linter messages here.
+    // TODO: render linter messages here by looking at all shapes
+    // in groupOflineShapes.
     // See https://github.com/mozilla/addons-code-manager/issues/523
 
-    // Render the first line in the group.
-    const lineShapes = groupOflineShapes[0];
+    const lineShapes = groupOflineShapes[shapeIndex];
 
     return <CodeLineShapes lineShapes={lineShapes} />;
   }
@@ -154,7 +155,9 @@ export class CodeOverviewBase extends React.Component<Props, State> {
     for (let rowIndex = 0; rowIndex < numberOfRows; rowIndex++) {
       const shapes = chunkedLineShapes[rowIndex] || undefined;
       // Use the first line in the group.
-      const line = shapes ? shapes[0].line : undefined;
+      const shapeIndex = 0;
+      const line =
+        shapes && shapes.length ? shapes[shapeIndex].line : undefined;
 
       overview.push(
         <Link
@@ -170,7 +173,7 @@ export class CodeOverviewBase extends React.Component<Props, State> {
           }}
           title={line ? gettext(`Jump to line ${line}`) : ''}
         >
-          {this.renderRow(selectedMessageMap, rowIndex, shapes)}
+          {this.renderRow(selectedMessageMap, rowIndex, shapeIndex, shapes)}
         </Link>,
       );
     }

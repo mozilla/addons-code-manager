@@ -321,8 +321,8 @@ describe(__filename, () => {
 
     const lineShapes = innerRoot.find(CodeLineShapes);
 
-    // Expect the lines to be distributed via lodash.chunk().
-    // This is a sanity check for the integration of fitLineShapesIntoOverview().
+    // This is a quick sanity check for the integration of
+    // fitLineShapesIntoOverview(), which has more extensive tests.
 
     expect(lineShapes.at(0)).toHaveProp(
       'lineShapes',
