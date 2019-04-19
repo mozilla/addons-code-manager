@@ -7,7 +7,7 @@ import { ConnectedReduxProps } from '../../configureStore';
 import {
   LinterMessageMap,
   LinterMessagesByPath,
-  fetchLinterMessages,
+  fetchLinterMessagesIfNeeded,
   selectMessageMap,
 } from '../../reducers/linter';
 
@@ -30,7 +30,7 @@ export type PublicProps = {
 };
 
 export type DefaultProps = {
-  _fetchLinterMessages: typeof fetchLinterMessages;
+  _fetchLinterMessagesIfNeeded: typeof fetchLinterMessagesIfNeeded;
 };
 
 type PropsFromState = LinterProviderInfo;
@@ -45,7 +45,7 @@ export class LinterProviderBase extends React.Component<Props> {
   loadData: LoadData;
 
   static defaultProps: DefaultProps = {
-    _fetchLinterMessages: fetchLinterMessages,
+    _fetchLinterMessagesIfNeeded: fetchLinterMessagesIfNeeded,
   };
 
   constructor(props: Props) {
@@ -64,17 +64,16 @@ export class LinterProviderBase extends React.Component<Props> {
 
   _loadData = () => {
     const {
-      _fetchLinterMessages,
+      _fetchLinterMessagesIfNeeded,
       dispatch,
+      messageMap,
       validationURL,
       versionId,
-      messageMap,
-      messagesAreLoading,
     } = this.props;
 
-    if (messageMap === undefined && !messagesAreLoading) {
+    if (messageMap === undefined) {
       dispatch(
-        _fetchLinterMessages({
+        _fetchLinterMessagesIfNeeded({
           versionId,
           url: validationURL,
         }),

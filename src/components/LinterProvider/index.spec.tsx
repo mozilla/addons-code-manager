@@ -72,11 +72,11 @@ describe(__filename, () => {
     const dispatch = spyOn(store, 'dispatch');
 
     const fakeThunk = createFakeThunk();
-    const _fetchLinterMessages = fakeThunk.createThunk;
+    const _fetchLinterMessagesIfNeeded = fakeThunk.createThunk;
 
-    const root = render({ _fetchLinterMessages, store, ...moreProps });
+    const root = render({ _fetchLinterMessagesIfNeeded, store, ...moreProps });
 
-    return { _fetchLinterMessages, dispatch, root, fakeThunk };
+    return { _fetchLinterMessagesIfNeeded, dispatch, root, fakeThunk };
   };
 
   const _loadLinterResult = ({
@@ -133,7 +133,7 @@ describe(__filename, () => {
     expect(_loadData).toHaveBeenCalledWith();
   });
 
-  it('dispatches fetchLinterMessages when linterMessages is undefined', () => {
+  it('dispatches fetchLinterMessagesIfNeeded when linterMessages is undefined', () => {
     const url = '/path/to/validation.json';
     const version = createInternalVersion({
       ...fakeVersion,
@@ -141,30 +141,22 @@ describe(__filename, () => {
       validation_url_json: url,
     });
 
-    const { _fetchLinterMessages, dispatch, fakeThunk } = renderWithFakeThunk({
+    const {
+      _fetchLinterMessagesIfNeeded,
+      dispatch,
+      fakeThunk,
+    } = renderWithFakeThunk({
       version,
     });
 
     expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
-    expect(_fetchLinterMessages).toHaveBeenCalledWith({
+    expect(_fetchLinterMessagesIfNeeded).toHaveBeenCalledWith({
       versionId: version.id,
       url,
     });
   });
 
-  it('does not dispatch fetchLinterMessages while loading', () => {
-    const store = configureStore();
-    const version = createInternalVersion({ ...fakeVersion });
-    store.dispatch(
-      linterActions.beginFetchLinterResult({ versionId: version.id }),
-    );
-
-    const { dispatch } = renderWithFakeThunk({ store, version });
-
-    expect(dispatch).not.toHaveBeenCalled();
-  });
-
-  it('does not dispatch fetchLinterMessages after they have loaded', () => {
+  it('does not dispatch fetchLinterMessagesIfNeeded after they have loaded', () => {
     const store = configureStore();
     const { version } = _loadLinterResult({
       store,
@@ -176,7 +168,7 @@ describe(__filename, () => {
     expect(dispatch).not.toHaveBeenCalled();
   });
 
-  it('does not dispatch fetchLinterMessages if they have loaded but for another path', () => {
+  it('does not dispatch fetchLinterMessagesIfNeeded if they have loaded but for another path', () => {
     const store = configureStore();
 
     const manifestPath = 'manifest.json';
