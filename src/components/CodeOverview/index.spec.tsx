@@ -7,7 +7,7 @@ import debounce from 'lodash.debounce';
 import { createInternalVersion } from '../../reducers/versions';
 import { getCodeLineAnchor } from '../CodeView/utils';
 import CodeLineShapes from '../CodeLineShapes';
-import { generateLineShapes } from '../CodeLineShapes/utils';
+import { AllLineShapes, generateLineShapes } from '../CodeLineShapes/utils';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import {
   createContextWithFakeRouter,
@@ -85,6 +85,12 @@ describe(__filename, () => {
       messagesAreLoading,
       selectedMessageMap,
     });
+  };
+
+  const generateFileLines = ({ count }: { count: number }) => {
+    return new Array(count)
+      .fill('')
+      .map((i) => `// This is line ${i + 1} of the code`);
   };
 
   it('configures LinterProvider', () => {
@@ -186,14 +192,11 @@ describe(__filename, () => {
   });
 
   it('renders links for a code line', () => {
-    const contentLines = [
-      'function logMessage(message) {',
-      '  console.log(message);',
-      '}',
-    ];
-
     const location = createFakeLocation();
-    const root = render({ content: contentLines.join('\n'), location });
+    const root = render({
+      content: generateFileLines({ count: 3 }).join('\n'),
+      location,
+    });
     root.setState({ overviewHeight: 400 });
 
     const innerRoot = renderWithLinterProvider({ root });
@@ -209,6 +212,36 @@ describe(__filename, () => {
     expect(link).toHaveProp('title', `Jump to line ${line}`);
   });
 
+  it('sets link styles', () => {
+    const rowHeight = 10;
+    const rowTopPadding = 2;
+
+    const root = render({
+      rowHeight,
+      rowTopPadding,
+      content: generateFileLines({ count: 3 }).join('\n'),
+    });
+    root.setState({ overviewHeight: 400 });
+
+    const innerRoot = renderWithLinterProvider({ root });
+
+    const link1 = innerRoot.find(Link).at(0);
+
+    expect(link1).toHaveStyle('height', `${rowHeight}px`);
+    // The first line should not have top padding.
+    expect(link1).toHaveStyle('paddingTop', undefined);
+
+    const link2 = innerRoot.find(Link).at(1);
+
+    expect(link2).toHaveStyle('height', `${rowHeight}px`);
+    expect(link2).toHaveStyle('paddingTop', `${rowTopPadding}px`);
+
+    const link3 = innerRoot.find(Link).at(2);
+
+    expect(link3).toHaveStyle('height', `${rowHeight}px`);
+    expect(link3).toHaveStyle('paddingTop', `${rowTopPadding}px`);
+  });
+
   it('renders links for an empty line', () => {
     const contentLines = ['// Example code comment'];
 
@@ -218,7 +251,7 @@ describe(__filename, () => {
 
     const innerRoot = renderWithLinterProvider({ root });
 
-    // Check the first empty line.
+    // Lines 2 and beyond will be empty. Check the first empty line.
     const link = innerRoot.find(Link).at(1);
 
     expect(link).toHaveProp('to', {
@@ -244,11 +277,7 @@ describe(__filename, () => {
   });
 
   it('renders CodeLineShapes for all lines', () => {
-    const contentLines = [
-      'function logMessage(message) {',
-      '  console.log(message);',
-      '}',
-    ];
+    const contentLines = generateFileLines({ count: 3 });
     const allLineShapes = generateLineShapes(contentLines);
 
     const root = render({ content: contentLines.join('\n') });
@@ -266,10 +295,7 @@ describe(__filename, () => {
   });
 
   it('renders CodeLineShapes for groups of lines that fit', () => {
-    // Create a 200 line file.
-    const contentLines = new Array(200)
-      .fill('')
-      .map((i) => `// This is line ${i + 1} of the code`);
+    const contentLines = generateFileLines({ count: 200 });
 
     const root = render({ content: contentLines.join('\n') });
     root.setState({ overviewHeight: 100 });
@@ -278,7 +304,8 @@ describe(__filename, () => {
 
     const lineShapes = innerRoot.find(CodeLineShapes);
 
-    // Expect the lines to be distributed via lodash.chunk()
+    // Expect the lines to be distributed via lodash.chunk().
+    // This is a sanity check for the integration of fitLineShapesIntoOverview().
 
     expect(lineShapes.at(0)).toHaveProp(
       'lineShapes',
@@ -304,5 +331,105 @@ describe(__filename, () => {
     );
 
     expect(lineShapes).toHaveLength(7);
+  });
+
+  describe('fitLineShapesIntoOverview', () => {
+    const justLines = (shapes: AllLineShapes) => shapes.map((s) => s.line);
+
+    it('requires overviewHeight', () => {
+      const { instance } = renderWithInstance();
+
+      expect(() =>
+        instance.fitLineShapesIntoOverview(
+          generateLineShapes(generateFileLines({ count: 2 })),
+        ),
+      ).toThrow(/overviewHeight must be set/);
+    });
+
+    it('does not split line shapes if they already fit', () => {
+      const { instance, root } = renderWithInstance({
+        overviewPadding: 0,
+        rowHeight: 10,
+        rowTopPadding: 0,
+      });
+      root.setState({ overviewHeight: 100 });
+
+      const allLineShapes = generateLineShapes(
+        generateFileLines({ count: 10 }),
+      );
+      const result = instance.fitLineShapesIntoOverview(allLineShapes);
+
+      expect(result.numberOfRows).toEqual(10);
+      expect(result.chunkedLineShapes.length).toEqual(allLineShapes.length);
+    });
+
+    it('splits line shapes to fit', () => {
+      const { instance, root } = renderWithInstance({
+        overviewPadding: 0,
+        rowHeight: 1,
+        rowTopPadding: 0,
+      });
+      root.setState({ overviewHeight: 3 });
+
+      const allLineShapes = generateLineShapes(generateFileLines({ count: 6 }));
+      const result = instance.fitLineShapesIntoOverview(allLineShapes);
+
+      expect(result.numberOfRows).toEqual(3);
+      expect(result.chunkedLineShapes.length).toEqual(3);
+
+      expect(justLines(result.chunkedLineShapes[0])).toEqual([1, 2]);
+      expect(justLines(result.chunkedLineShapes[1])).toEqual([3, 4]);
+      expect(justLines(result.chunkedLineShapes[2])).toEqual([5, 6]);
+    });
+
+    it('leaves a remainder of line shapes when splitting', () => {
+      const { instance, root } = renderWithInstance({
+        overviewPadding: 0,
+        rowHeight: 1,
+        rowTopPadding: 0,
+      });
+      root.setState({ overviewHeight: 3 });
+
+      const allLineShapes = generateLineShapes(generateFileLines({ count: 5 }));
+      const result = instance.fitLineShapesIntoOverview(allLineShapes);
+
+      expect(result.numberOfRows).toEqual(3);
+      expect(result.chunkedLineShapes.length).toEqual(3);
+
+      // Expect these lines to be split into pairs.
+      expect(justLines(result.chunkedLineShapes[0])).toEqual([1, 2]);
+      expect(justLines(result.chunkedLineShapes[1])).toEqual([3, 4]);
+
+      // Expect the last line to have one remaining item.
+      expect(justLines(result.chunkedLineShapes[2])).toEqual([5]);
+    });
+
+    it('accounts for overviewPadding', () => {
+      const { instance, root } = renderWithInstance({
+        overviewPadding: 1,
+        rowHeight: 2,
+        rowTopPadding: 0,
+      });
+      root.setState({ overviewHeight: 10 });
+
+      const result = instance.fitLineShapesIntoOverview(
+        generateLineShapes(generateFileLines({ count: 4 })),
+      );
+      expect(result.numberOfRows).toEqual(4);
+    });
+
+    it('accounts for rowTopPadding', () => {
+      const { instance, root } = renderWithInstance({
+        overviewPadding: 0,
+        rowHeight: 2,
+        rowTopPadding: 2,
+      });
+      root.setState({ overviewHeight: 10 });
+
+      const result = instance.fitLineShapesIntoOverview(
+        generateLineShapes(generateFileLines({ count: 4 })),
+      );
+      expect(result.numberOfRows).toEqual(4);
+    });
   });
 });
