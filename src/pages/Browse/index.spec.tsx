@@ -480,9 +480,7 @@ describe(__filename, () => {
     expect(dispatch).not.toHaveBeenCalled();
   });
 
-  // This could happen when a keyboard navigation updates the selected path. We
-  // do not want to update the selected path again, so we apply this logic to
-  // the first render (mount) only.
+  // This could happen when a keyboard navigation updates the selected path.
   it('does not dispatch viewVersionFile on update if the query string contains a `path` that is different than `version.selectedPath`', () => {
     const { renderAndUpdate } = setUpVersionFileUpdate({
       loadVersionAndFile: true,

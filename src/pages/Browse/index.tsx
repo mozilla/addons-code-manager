@@ -93,9 +93,12 @@ export class BrowseBase extends React.Component<Props> {
 
     const path = getPathFromQueryString(history);
 
+    // We do not want to update the selected path again (e.g., when a keyboard
+    // navigation updates the selected path), so we apply this logic to the
+    // first render (mount) only.
     if (!prevProps && path && path !== version.selectedPath) {
       // We preserve the hash in the URL (if any) when we load the file from an
-      // URL that has likely be shared.
+      // URL that has likely been shared.
       this.viewVersionFile(path, { preserveHash: true });
       return;
     }

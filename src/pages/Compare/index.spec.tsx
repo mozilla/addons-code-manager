@@ -546,9 +546,7 @@ describe(__filename, () => {
     });
   });
 
-  // This could happen when a keyboard navigation updates the selected path. We
-  // do not want to update the selected path again, so we apply this logic to
-  // the first render (mount) only.
+  // This could happen when a keyboard navigation updates the selected path.
   it('does not dispatch viewVersionFile() on update if the query string contains a `path` that is different than `version.selectedPath`', () => {
     const { dispatchSpy, root } = loadDiffAndRender();
 
