@@ -3,22 +3,21 @@ import { Col } from 'react-bootstrap';
 
 import { gettext } from '../../utils';
 
-type Props = {
-  apiHost: string;
-  repoUrl: string;
-};
+type Props = {};
 
 export class IndexBase extends React.Component<Props> {
-  static defaultProps = {
-    apiHost: process.env.REACT_APP_API_HOST,
-    repoUrl: 'https://github.com/mozilla/addons-code-manager',
-  };
-
   render() {
-    const { apiHost, repoUrl } = this.props;
+    const apiHost = process.env.REACT_APP_API_HOST;
+    const repoUrl = 'https://github.com/mozilla/addons-code-manager';
 
     return (
       <Col>
+        <p>
+          {gettext(
+            'This is a tool for managing add-on source code that is used with the',
+          )}{' '}
+          <a href={`${apiHost}/reviewers/`}>{gettext('Reviewers Tools')}</a>.
+        </p>
         <p>
           {gettext(`🚧 This project is under active development. If you find a
             bug, please`)}{' '}
@@ -28,9 +27,6 @@ export class IndexBase extends React.Component<Props> {
         <ul>
           <li>
             <a href={apiHost}>{gettext('AMO (frontend)')}</a>
-          </li>
-          <li>
-            <a href={`${apiHost}/reviewers/`}>{gettext('Reviewers Tools')}</a>
           </li>
           <li>
             <a href={`${apiHost}/developers/`}>{gettext('Developer Hub')}</a>
