@@ -63,11 +63,11 @@ export class BrowseBase extends React.Component<Props> {
     this.loadData();
   }
 
-  componentDidUpdate() {
-    this.loadData();
+  componentDidUpdate(prevProps: Props) {
+    this.loadData(prevProps);
   }
 
-  loadData() {
+  loadData(prevProps?: Props) {
     const {
       _fetchVersion,
       _fetchVersionFile,
@@ -93,7 +93,12 @@ export class BrowseBase extends React.Component<Props> {
 
     const path = getPathFromQueryString(history);
 
-    if (path && path !== version.selectedPath) {
+    // We do not want to update the selected path again (e.g., when a keyboard
+    // navigation updates the selected path), so we apply this logic to the
+    // first render (mount) only.
+    if (!prevProps && path && path !== version.selectedPath) {
+      // We preserve the hash in the URL (if any) when we load the file from an
+      // URL that has likely been shared.
       this.viewVersionFile(path, { preserveHash: true });
       return;
     }
@@ -109,6 +114,8 @@ export class BrowseBase extends React.Component<Props> {
     }
   }
 
+  // When selecting a new file to view, we do not want to preserve the hash in
+  // the URL (this hash highlights a specific line of code).
   viewVersionFile = (path: string, { preserveHash = false } = {}) => {
     const { _viewVersionFile, dispatch, match } = this.props;
     const { versionId } = match.params;
