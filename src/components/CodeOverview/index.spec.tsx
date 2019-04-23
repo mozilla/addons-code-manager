@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { ShallowWrapper } from 'enzyme';
 import debounce from 'lodash.debounce';
 
+import { ExternalLinterMessage, getMessageMap } from '../../reducers/linter';
 import { createInternalVersion } from '../../reducers/versions';
 import { getCodeLineAnchor } from '../CodeView/utils';
 import CodeLineShapes from '../CodeLineShapes';
@@ -11,6 +12,7 @@ import { AllLineShapes, generateLineShapes } from '../CodeLineShapes/utils';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import {
   createContextWithFakeRouter,
+  createFakeExternalLinterResult,
   createFakeLocation,
   fakeVersion,
   shallowUntilTarget,
@@ -101,6 +103,39 @@ describe(__filename, () => {
         ...overrides,
       },
     };
+  };
+
+  const renderWithMessages = ({
+    contentLines = generateFileLines({ count: 10 }),
+    messages,
+    overviewHeight = 400,
+    ...props
+  }: {
+    contentLines?: string[];
+    messages: Partial<ExternalLinterMessage>[];
+    overviewHeight?: number;
+  } & RenderParams) => {
+    const file = 'scripts/content.js';
+    const map = getMessageMap(
+      createFakeExternalLinterResult({
+        messages: messages.map((msg) => {
+          return { ...msg, file };
+        }),
+      }),
+    );
+
+    const selectedMessageMap = map[file];
+
+    const root = render({ ...props, content: contentLines.join('\n') });
+    root.setState({ overviewHeight });
+
+    const innerRoot = renderWithLinterProvider({
+      messageMap: map,
+      selectedMessageMap,
+      root,
+    });
+
+    return { innerRoot, root, selectedMessageMap };
   };
 
   it('configures LinterProvider', () => {
@@ -375,6 +410,105 @@ describe(__filename, () => {
     );
 
     expect(lineShapes).toHaveLength(7);
+  });
+
+  it('renders an inline linter message', () => {
+    const { innerRoot } = renderWithMessages({
+      messages: [
+        {
+          description: 'eval() is unsafe',
+          line: 1,
+        },
+      ],
+    });
+
+    expect(innerRoot.find(`.${styles.linterMessage}`)).toHaveLength(1);
+  });
+
+  it('does not render global linter messages', () => {
+    const { innerRoot } = renderWithMessages({
+      messages: [
+        {
+          description: 'This third party library is banned',
+          line: null,
+        },
+      ],
+    });
+
+    expect(innerRoot.find(`.${styles.linterMessage}`)).toHaveLength(0);
+  });
+
+  it('replaces CodeLineShapes with linter messages', () => {
+    const lineCount = 5;
+    const messages = [{ line: 2 }, { line: 3 }];
+    const { innerRoot } = renderWithMessages({
+      contentLines: generateFileLines({ count: lineCount }),
+      messages,
+    });
+
+    expect(innerRoot.find(CodeLineShapes)).toHaveLength(
+      lineCount - messages.length,
+    );
+    expect(innerRoot.find(`.${styles.linterMessage}`)).toHaveLength(
+      messages.length,
+    );
+  });
+
+  it('replaces a group of line shapes with a linter message', () => {
+    const { innerRoot } = renderWithMessages({
+      // Fit 8 lines of code into a 1 x 2 grid.
+      contentLines: generateFileLines({ count: 8 }),
+      // Put a linter message on line 7 so that it replaces the second group
+      // of line shapes.
+      messages: [{ line: 7 }],
+      // Reset all parameters to create a 1 x 2 grid.
+      rowHeight: 1,
+      overviewHeight: 2,
+      overviewPadding: 0,
+      rowTopPadding: 0,
+    });
+
+    const links = innerRoot.find(Link);
+
+    expect(links.at(0).childAt(0)).not.toHaveClassName(styles.linterMessage);
+    expect(links.at(0).find(CodeLineShapes)).toHaveLength(1);
+
+    expect(links.at(1).childAt(0)).toHaveClassName(styles.linterMessage);
+    expect(links.at(1).find(CodeLineShapes)).toHaveLength(0);
+  });
+
+  it('uses the most severe linter type', () => {
+    const line = 1;
+    const { innerRoot } = renderWithMessages({
+      messages: [
+        { type: 'notice', line },
+        { type: 'error', line },
+        { type: 'warning', line },
+      ],
+    });
+
+    const message = innerRoot.find(`.${styles.linterMessage}`);
+
+    expect(message).toHaveLength(1);
+    expect(message).toHaveClassName(styles.linterError);
+    expect(message).not.toHaveClassName(styles.linterNotice);
+    expect(message).not.toHaveClassName(styles.linterWarning);
+  });
+
+  it.each([
+    ['error', styles.linterError],
+    ['warning', styles.linterWarning],
+    ['notice', styles.linterNotice],
+  ])('converts linter type "%s" to class "%s"', (linterType, expectedClass) => {
+    const { innerRoot } = renderWithMessages({
+      messages: [
+        { type: linterType as ExternalLinterMessage['type'], line: 1 },
+      ],
+    });
+
+    expect(innerRoot.find(`.${styles.linterMessage}`)).toHaveClassName(
+      expectedClass,
+    );
   });
 
   describe('fitLineShapesIntoOverview', () => {

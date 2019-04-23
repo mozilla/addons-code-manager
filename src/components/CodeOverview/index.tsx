@@ -1,9 +1,14 @@
 import * as React from 'react';
 import { withRouter, Link, RouteComponentProps } from 'react-router-dom';
+import makeClassName from 'classnames';
 import chunk from 'lodash.chunk';
 import debounce from 'lodash.debounce';
 
 import { getCodeLineAnchor, getLines } from '../CodeView/utils';
+import {
+  LinterMessage as LinterMessageType,
+  findMostSevereType,
+} from '../../reducers/linter';
 import styles from './styles.module.scss';
 import { gettext } from '../../utils';
 import { Version } from '../../reducers/versions';
