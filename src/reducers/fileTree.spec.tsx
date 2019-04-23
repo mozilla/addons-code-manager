@@ -662,6 +662,31 @@ describe(__filename, () => {
       }).toThrow(`No messages found for current path: ${currentPath}`);
     });
 
+    it('throws an error with an empty pathList', () => {
+      const externalMessages1 = [
+        { line: null, uid: global1 },
+        { line: line1, uid: line1FirstUid },
+      ];
+      const externalMessages2 = [{ line: null, uid: global2 }];
+
+      const messageMap = createMessageMap([
+        { path: file1, messages: externalMessages1 },
+        { path: file3, messages: externalMessages2 },
+      ]);
+
+      expect(() => {
+        _getRelativeMessageUid({
+          currentMessageUid: global2,
+          currentPath: file3,
+          messageMap,
+          pathList: [],
+          position: RelativePathPosition.next,
+        });
+      }).toThrow(
+        `findRelativeMessageUid was unable to find a message using currentPath: ${file3}`,
+      );
+    });
+
     it('returns the first global message if no currentMessageUid exists', () => {
       const externalMessages = [
         { line: null, uid: global1 },
@@ -676,6 +701,27 @@ describe(__filename, () => {
         _getRelativeMessageUid({
           currentMessageUid: '',
           messageMap,
+        }),
+      ).toEqual(global1);
+    });
+
+    it('returns the first global message from a path with messages if no currentMessageUid exists', () => {
+      const externalMessages = [
+        { line: null, uid: global1 },
+        { line: line1, uid: line1FirstUid },
+      ];
+      const pathList = [file1, file2];
+
+      const messageMap = createMessageMap([
+        { path: file2, messages: externalMessages },
+      ]);
+
+      expect(
+        _getRelativeMessageUid({
+          currentMessageUid: '',
+          currentPath: file2,
+          messageMap,
+          pathList,
         }),
       ).toEqual(global1);
     });

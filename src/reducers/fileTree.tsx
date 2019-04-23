@@ -197,7 +197,8 @@ const findRelativeMessageUid = (
   position: RelativePathPosition,
 ): LinterMessage['uid'] | null => {
   let path = currentPath;
-  for (let i = 0; i < pathList.length; i++) {
+  const maxAttempts = pathList.length;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     const nextPath = getRelativePath({
       currentPath: path,
       pathList,
@@ -205,14 +206,12 @@ const findRelativeMessageUid = (
     });
     const nextMessages = messageMap[nextPath];
     if (nextMessages) {
-      const nextMessagesForPath = getMessagesForPath(nextMessages);
-      if (position === RelativePathPosition.previous) {
-        const lastMessageIndex = nextMessagesForPath.length - 1;
-        if (lastMessageIndex >= 0) {
-          return nextMessagesForPath[lastMessageIndex].uid;
-        }
-      } else if (nextMessagesForPath.length) {
-        return nextMessagesForPath[0].uid;
+      const nextForPath = getMessagesForPath(nextMessages);
+      const nextIndex =
+        position === RelativePathPosition.previous ? nextForPath.length - 1 : 0;
+
+      if (nextForPath[nextIndex]) {
+        return nextForPath[nextIndex].uid;
       }
     }
     path = nextPath;
@@ -220,14 +219,14 @@ const findRelativeMessageUid = (
   // If we got here then we never found another message, which would be odd,
   // because we should have at the very least gotten back to our original
   // message.
-  // We should probably log this.
-  return null;
+  throw new Error(
+    `findRelativeMessageUid was unable to find a message using currentPath: ${currentPath}`,
+  );
 };
 
 export type GetRelativeMessageUidParams = {
   currentMessageUid: LinterMessage['uid'] | void;
   currentPath: string;
-  locateCurrentMessage?: boolean;
   messageMap: LinterMessageMap;
   pathList: string[];
   position: RelativePathPosition;
@@ -240,25 +239,9 @@ export const getRelativeMessageUid = ({
   pathList,
   position,
 }: GetRelativeMessageUidParams): string | null => {
-  if (!currentMessageUid) {
-    // There is no current message, so get the first one.
-    if (!Object.keys(messageMap).length) {
-      return null;
-    }
-    for (const path of pathList) {
-      const messages = messageMap[path];
-      if (messages) {
-        const messagesForPath = getMessagesForPath(messages);
-        if (messagesForPath.length) {
-          return messagesForPath[0].uid;
-        }
-      }
-    }
-    // No messages found in the map (which shouldn't be possible because of the
-    // length check, so throw an error.
-    throw new Error(
-      'The messageMap is not empty, but we were unable to find any messages',
-    );
+  if (!Object.keys(messageMap).length) {
+    // There are no messages at all.
+    return null;
   }
 
   const messages = messageMap[currentPath];
@@ -267,16 +250,23 @@ export const getRelativeMessageUid = ({
     // If we have a currentMessageUid it should correspond to the current path.
     throw new Error(`No messages found for current path: ${currentPath}`);
   }
-
   const messagesForPath = getMessagesForPath(messages);
-  const currentMessageIndex = messagesForPath.findIndex(
-    (message) => message.uid === currentMessageUid,
-  );
 
-  const newIndex =
-    position === RelativePathPosition.previous
-      ? currentMessageIndex - 1
-      : currentMessageIndex + 1;
+  let newIndex;
+  if (!currentMessageUid) {
+    // Since we aren't looking for a message relative to an existing one,
+    // just get the first message.
+    newIndex = 0;
+  } else {
+    const currentMessageIndex = messagesForPath.findIndex(
+      (message) => message.uid === currentMessageUid,
+    );
+
+    newIndex =
+      position === RelativePathPosition.previous
+        ? currentMessageIndex - 1
+        : currentMessageIndex + 1;
+  }
 
   if (newIndex >= 0 && newIndex < messagesForPath.length) {
     return messagesForPath[newIndex].uid;

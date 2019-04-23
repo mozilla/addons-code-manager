@@ -11,6 +11,7 @@ import {
   LinterMessage,
   LinterMessageMap,
   findMostSevereType,
+  getMessagesForPath,
 } from '../../reducers/linter';
 import styles from './styles.module.scss';
 
@@ -55,23 +56,18 @@ export const LINTER_KNOWN_LIBRARY_CODE = 'KNOWN_LIBRARY';
 export const isKnownLibrary = (
   linterMessageMap: LinterMessageMap,
   path: string,
+  _getMessagesForPath: typeof getMessagesForPath = getMessagesForPath,
 ): boolean => {
-  if (!linterMessageMap[path]) {
+  const m = linterMessageMap[path];
+
+  if (!m) {
     return false;
   }
 
-  const m = linterMessageMap[path];
-
-  // This is useful to make sure we do not miss linter messages if
-  // `LinterMessageMap` is updated with new maps of messages.
-  const allowedKeys = ['global', 'byLine'];
-  Object.keys(m).forEach((key) => {
-    if (!allowedKeys.includes(key)) {
-      throw new Error(`Unexpected key "${key}" found.`);
-    }
-  });
-
-  if (m.global.length > 1 || Object.keys(m.byLine).length > 0) {
+  // The call to getMessagesForPath checks that the messages do not have any
+  // unexpected keys.
+  const messages = _getMessagesForPath(m);
+  if (messages.length > 1 || messages[0].line !== null) {
     return false;
   }
 

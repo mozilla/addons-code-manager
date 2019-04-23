@@ -139,9 +139,24 @@ export const findMostSevereType = (
   );
 };
 
+export const checkMessageKeys = (messages: LinterMessagesByPath): void => {
+  // This is useful to make sure we do not miss linter messages if
+  // `LinterMessageMap` is updated with new maps of messages.
+  const allowedKeys = ['global', 'byLine'];
+  Object.keys(messages).forEach((key) => {
+    if (!allowedKeys.includes(key)) {
+      throw new Error(`Unexpected key "${key}" found.`);
+    }
+  });
+};
+
 export const getMessagesForPath = (
   messages: LinterMessagesByPath,
+  _checkMessageKeys: typeof checkMessageKeys = checkMessageKeys,
 ): LinterMessage[] => {
+  // Make sure the messages do not have any unexpected keys.
+  _checkMessageKeys(messages);
+
   const allMessages = [...messages.global];
 
   Object.keys(messages.byLine).forEach((key) => {
