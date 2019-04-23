@@ -27,3 +27,30 @@ export const newLinterMessageUID = () => {
   _uid++;
   return `msg-${_uid}`;
 };
+
+export const rootAttributeParams = ({ fullscreenByDefault = false } = {}) => {
+  type Attribute = {
+    name: string;
+    value: string | null;
+  };
+
+  const fullscreen: Attribute = { name: 'Fullscreen', value: 'fullscreen' };
+  const normal: Attribute = { name: 'Normal', value: null };
+
+  let defaultState = { ...normal, name: 'Normal (Default)' };
+
+  if (fullscreenByDefault) {
+    // The storybook-addon-root-attribute module requires unique
+    // defaultState values for some odd reason.
+    defaultState = { ...fullscreen, name: 'Fullscreen (Default)' };
+  }
+
+  return {
+    rootAttribute: {
+      root: 'body',
+      attribute: 'class',
+      defaultState,
+      states: [fullscreen, normal],
+    },
+  };
+};
