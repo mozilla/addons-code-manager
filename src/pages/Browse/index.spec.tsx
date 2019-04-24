@@ -419,112 +419,6 @@ describe(__filename, () => {
     expect(dispatch).not.toHaveBeenCalled();
   });
 
-  it('dispatches viewVersionFile on mount if the query string contains a `path` that is different than `version.selectedPath`', () => {
-    const path = 'a/different/file.js';
-    const version = fakeVersion;
-    const history = createFakeHistory({
-      location: createFakeLocation({
-        search: queryString.stringify({ path }),
-      }),
-    });
-    const store = configureStore();
-    _loadVersionAndFile({ store, version });
-    const dispatch = spyOn(store, 'dispatch');
-
-    const fakeThunk = createFakeThunk();
-    const _viewVersionFile = fakeThunk.createThunk;
-
-    render({
-      _viewVersionFile,
-      history,
-      store,
-      versionId: String(version.id),
-    });
-
-    expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
-    expect(dispatch).toHaveBeenCalledTimes(1);
-    expect(_viewVersionFile).toHaveBeenCalledWith({
-      versionId: version.id,
-      selectedPath: path,
-      preserveHash: true,
-    });
-  });
-
-  it('does not dispatch viewVersionFile on mount when `path` is equal to the selected path', () => {
-    const version = fakeVersion;
-    const history = createFakeHistory({
-      location: createFakeLocation({
-        search: queryString.stringify({ path: version.file.selected_file }),
-      }),
-    });
-    const store = configureStore();
-    _loadVersionAndFile({ store, version });
-    const dispatch = spyOn(store, 'dispatch');
-
-    render({ store, versionId: String(version.id), history });
-
-    expect(dispatch).not.toHaveBeenCalled();
-  });
-
-  it('does not dispatch viewVersionFile on mount when the query string does not contain a `path`', () => {
-    const version = fakeVersion;
-    const history = createFakeHistory({
-      location: createFakeLocation({ search: '' }),
-    });
-    const store = configureStore();
-    _loadVersionAndFile({ store, version });
-    const dispatch = spyOn(store, 'dispatch');
-
-    render({ store, versionId: String(version.id), history });
-
-    expect(dispatch).not.toHaveBeenCalled();
-  });
-
-  // This could happen when a keyboard navigation updates the selected path.
-  it('does not dispatch viewVersionFile on update if the query string contains a `path` that is different than `version.selectedPath`', () => {
-    const { renderAndUpdate } = setUpVersionFileUpdate({
-      loadVersionAndFile: true,
-    });
-    const path = 'a/different/file.js';
-    const history = createFakeHistory({
-      location: createFakeLocation({
-        search: queryString.stringify({ path }),
-      }),
-    });
-
-    const { dispatchSpy } = renderAndUpdate({ history });
-
-    expect(dispatchSpy).not.toHaveBeenCalled();
-  });
-
-  it('does not dispatch viewVersionFile on update if the query string does not contain a `path`', () => {
-    const { renderAndUpdate } = setUpVersionFileUpdate({
-      loadVersionAndFile: true,
-    });
-    const history = createFakeHistory({
-      location: createFakeLocation({ search: '' }),
-    });
-
-    const { dispatchSpy } = renderAndUpdate({ history });
-
-    expect(dispatchSpy).not.toHaveBeenCalled();
-  });
-
-  it('does not dispatch viewVersionFile on update if `path` is equal to the selected path', () => {
-    const { renderAndUpdate, version } = setUpVersionFileUpdate({
-      loadVersionAndFile: true,
-    });
-    const history = createFakeHistory({
-      location: createFakeLocation({
-        search: queryString.stringify({ path: version.file.selected_file }),
-      }),
-    });
-
-    const { dispatchSpy } = renderAndUpdate({ history });
-
-    expect(dispatchSpy).not.toHaveBeenCalled();
-  });
-
   it('does not dispatch anything on mount when an API error has occured', () => {
     const versionId = 4321;
     const store = configureStore();
@@ -550,5 +444,31 @@ describe(__filename, () => {
     root.setProps({ version: null });
 
     expect(dispatch).not.toHaveBeenCalled();
+  });
+
+  it('passes the path contained in the URL to fetchVersion()', () => {
+    const addonId = 9876;
+    const versionId = 4321;
+    const path = 'background.js';
+    const history = createFakeHistory({
+      location: createFakeLocation({ search: queryString.stringify({ path }) }),
+    });
+
+    const store = configureStore();
+    const dispatch = spyOn(store, 'dispatch');
+
+    const fakeThunk = createFakeThunk();
+    const _fetchVersion = fakeThunk.createThunk;
+
+    render({
+      _fetchVersion,
+      addonId: String(addonId),
+      history,
+      store,
+      versionId: String(versionId),
+    });
+
+    expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(_fetchVersion).toHaveBeenCalledWith({ addonId, versionId, path });
   });
 });

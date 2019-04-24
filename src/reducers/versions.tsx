@@ -427,12 +427,14 @@ type FetchVersionParams = {
   _getVersion?: typeof getVersion;
   addonId: number;
   versionId: number;
+  path?: string;
 };
 
 export const fetchVersion = ({
   _getVersion = getVersion,
   addonId,
   versionId,
+  path,
 }: FetchVersionParams): ThunkActionCreator => {
   return async (dispatch, getState) => {
     const { api: apiState } = getState();
@@ -442,6 +444,7 @@ export const fetchVersion = ({
     const response = await _getVersion({
       addonId,
       apiState,
+      path,
       versionId,
     });
 
