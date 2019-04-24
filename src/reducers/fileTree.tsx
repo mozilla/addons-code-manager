@@ -204,14 +204,14 @@ const findRelativeMessageUid = (
       pathList,
       position,
     });
-    const nextMessages = messageMap[nextPath];
-    if (nextMessages) {
-      const nextForPath = getMessagesForPath(nextMessages);
-      const nextIndex =
-        position === RelativePathPosition.previous ? nextForPath.length - 1 : 0;
+    const messages = messageMap[nextPath];
+    if (messages) {
+      const msgArray = getMessagesForPath(messages);
+      const msgIndex =
+        position === RelativePathPosition.previous ? msgArray.length - 1 : 0;
 
-      if (nextForPath[nextIndex]) {
-        return nextForPath[nextIndex].uid;
+      if (msgArray[msgIndex]) {
+        return msgArray[msgIndex].uid;
       }
     }
     path = nextPath;

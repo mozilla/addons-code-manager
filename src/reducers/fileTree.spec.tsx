@@ -15,9 +15,9 @@ import reducer, {
   initialState,
 } from './fileTree';
 import { createInternalVersion, createInternalVersionEntry } from './versions';
-import { ExternalLinterMessage, LinterMessageMap } from './linter';
+import { getMessageMap } from './linter';
 import {
-  createFakeLinterMessagesByPath,
+  createFakeExternalLinterResult,
   createFakeThunk,
   createVersionWithEntries,
   fakeVersion,
@@ -604,26 +604,12 @@ describe(__filename, () => {
     const global1 = 'global-uid-1';
     const global2 = 'global-uid-2';
 
-    const createMessageMap = (
-      messagesByPath: {
-        path: string;
-        messages: Partial<ExternalLinterMessage>[];
-      }[],
-    ) => {
-      const messageMap: LinterMessageMap = {};
-      for (const { messages, path } of messagesByPath) {
-        messageMap[path] = createFakeLinterMessagesByPath({
-          messages,
-          path,
-        });
-      }
-      return messageMap;
-    };
-
     const _getRelativeMessageUid = ({
       currentMessageUid = 'uid1',
       currentPath = file1,
-      messageMap = createMessageMap([{ path: file1, messages: [] }]),
+      messageMap = getMessageMap(
+        createFakeExternalLinterResult({ messages: [] }),
+      ),
       pathList = [file1],
       position = RelativePathPosition.next,
     }: Partial<GetRelativeMessageUidParams>) => {
@@ -640,7 +626,9 @@ describe(__filename, () => {
       expect(
         _getRelativeMessageUid({
           currentMessageUid: '',
-          messageMap: createMessageMap([]),
+          messageMap: getMessageMap(
+            createFakeExternalLinterResult({ messages: [] }),
+          ),
         }),
       ).toEqual(null);
     });
@@ -649,9 +637,11 @@ describe(__filename, () => {
       const currentPath = 'currentPath.js';
       const messagePath = 'notTheCurrentPath.js';
 
-      const messageMap = createMessageMap([
-        { path: messagePath, messages: [{ line: line1, uid: 'line1' }] },
-      ]);
+      const messageMap = getMessageMap(
+        createFakeExternalLinterResult({
+          messages: [{ file: messagePath, line: line1, uid: 'line1' }],
+        }),
+      );
 
       expect(() => {
         _getRelativeMessageUid({
@@ -663,16 +653,15 @@ describe(__filename, () => {
     });
 
     it('throws an error with an empty pathList', () => {
-      const externalMessages1 = [
-        { line: null, uid: global1 },
-        { line: line1, uid: line1FirstUid },
-      ];
-      const externalMessages2 = [{ line: null, uid: global2 }];
-
-      const messageMap = createMessageMap([
-        { path: file1, messages: externalMessages1 },
-        { path: file3, messages: externalMessages2 },
-      ]);
+      const messageMap = getMessageMap(
+        createFakeExternalLinterResult({
+          messages: [
+            { file: file1, line: null, uid: global1 },
+            { file: file1, line: line1, uid: line1FirstUid },
+            { file: file3, line: null, uid: global2 },
+          ],
+        }),
+      );
 
       expect(() => {
         _getRelativeMessageUid({
@@ -688,14 +677,14 @@ describe(__filename, () => {
     });
 
     it('returns the first global message if no currentMessageUid exists', () => {
-      const externalMessages = [
-        { line: null, uid: global1 },
-        { line: line1, uid: line1FirstUid },
-      ];
-
-      const messageMap = createMessageMap([
-        { path: file1, messages: externalMessages },
-      ]);
+      const messageMap = getMessageMap(
+        createFakeExternalLinterResult({
+          messages: [
+            { file: file1, line: null, uid: global1 },
+            { file: file1, line: line1, uid: line1FirstUid },
+          ],
+        }),
+      );
 
       expect(
         _getRelativeMessageUid({
@@ -706,15 +695,16 @@ describe(__filename, () => {
     });
 
     it('returns the first global message from a path with messages if no currentMessageUid exists', () => {
-      const externalMessages = [
-        { line: null, uid: global1 },
-        { line: line1, uid: line1FirstUid },
-      ];
       const pathList = [file1, file2];
 
-      const messageMap = createMessageMap([
-        { path: file2, messages: externalMessages },
-      ]);
+      const messageMap = getMessageMap(
+        createFakeExternalLinterResult({
+          messages: [
+            { file: file2, line: null, uid: global1 },
+            { file: file2, line: line1, uid: line1FirstUid },
+          ],
+        }),
+      );
 
       expect(
         _getRelativeMessageUid({
@@ -727,11 +717,11 @@ describe(__filename, () => {
     });
 
     it('returns the first byLine message if no currentMessageUid exists and no global messages exist', () => {
-      const externalMessages = [{ line: line1, uid: line1FirstUid }];
-
-      const messageMap = createMessageMap([
-        { path: file1, messages: externalMessages },
-      ]);
+      const messageMap = getMessageMap(
+        createFakeExternalLinterResult({
+          messages: [{ file: file1, line: line1, uid: line1FirstUid }],
+        }),
+      );
 
       expect(
         _getRelativeMessageUid({
@@ -742,18 +732,18 @@ describe(__filename, () => {
     });
 
     describe('messages within a file', () => {
-      const externalMessages = [
-        { line: null, uid: global1 },
-        { line: null, uid: global2 },
-        { line: line1, uid: line1FirstUid },
-        { line: line1, uid: line1SecondUid },
-        { line: line2, uid: line2Uid },
-        { line: line3, uid: line3Uid },
-      ];
-
-      const messageMap = createMessageMap([
-        { path: file1, messages: externalMessages },
-      ]);
+      const messageMap = getMessageMap(
+        createFakeExternalLinterResult({
+          messages: [
+            { file: file1, line: null, uid: global1 },
+            { file: file1, line: null, uid: global2 },
+            { file: file1, line: line1, uid: line1FirstUid },
+            { file: file1, line: line1, uid: line1SecondUid },
+            { file: file1, line: line2, uid: line2Uid },
+            { file: file1, line: line3, uid: line3Uid },
+          ],
+        }),
+      );
 
       it('returns the next global message in the file', () => {
         expect(
@@ -867,16 +857,15 @@ describe(__filename, () => {
       const pathList = [file1, file2, file3];
 
       it('returns the first global message in the next file', () => {
-        const externalMessages1 = [{ line: null, uid: global11 }];
-        const externalMessages2 = [
-          { line: null, uid: global12 },
-          { line: line1, uid: line1Uid2 },
-        ];
-
-        const messageMap = createMessageMap([
-          { path: file1, messages: externalMessages1 },
-          { path: file3, messages: externalMessages2 },
-        ]);
+        const messageMap = getMessageMap(
+          createFakeExternalLinterResult({
+            messages: [
+              { file: file1, line: null, uid: global11 },
+              { file: file3, line: null, uid: global12 },
+              { file: file3, line: line1, uid: line1Uid2 },
+            ],
+          }),
+        );
         expect(
           _getRelativeMessageUid({
             currentMessageUid: global11,
@@ -889,13 +878,38 @@ describe(__filename, () => {
       });
 
       it('returns the first byLine message in the next file', () => {
-        const externalMessages1 = [{ line: null, uid: global11 }];
-        const externalMessages2 = [{ line: line1, uid: line1Uid2 }];
+        const messageMap = getMessageMap(
+          createFakeExternalLinterResult({
+            messages: [
+              { file: file1, line: null, uid: global11 },
+              { file: file3, line: line1, uid: line1Uid2 },
+            ],
+          }),
+        );
 
-        const messageMap = createMessageMap([
-          { path: file1, messages: externalMessages1 },
-          { path: file3, messages: externalMessages2 },
-        ]);
+        expect(
+          _getRelativeMessageUid({
+            currentMessageUid: global11,
+            currentPath: file1,
+            messageMap,
+            pathList,
+            position: RelativePathPosition.next,
+          }),
+        ).toEqual(line1Uid2);
+      });
+
+      it('skips files with empty messages', () => {
+        const messageMap = getMessageMap(
+          createFakeExternalLinterResult({
+            messages: [
+              { file: file1, line: null, uid: global11 },
+              { file: file3, line: line1, uid: line1Uid2 },
+            ],
+          }),
+        );
+
+        // Map a file without any messages. This file should be skipped.
+        messageMap[file2] = { global: [], byLine: [] };
 
         expect(
           _getRelativeMessageUid({
@@ -909,17 +923,16 @@ describe(__filename, () => {
       });
 
       it('returns the last byLine message in the previous file', () => {
-        const externalMessages1 = [
-          { line: null, uid: global11 },
-          { line: line1, uid: line1Uid1 },
-          { line: line2, uid: line2Uid1 },
-        ];
-        const externalMessages2 = [{ line: null, uid: global12 }];
-
-        const messageMap = createMessageMap([
-          { path: file1, messages: externalMessages1 },
-          { path: file3, messages: externalMessages2 },
-        ]);
+        const messageMap = getMessageMap(
+          createFakeExternalLinterResult({
+            messages: [
+              { file: file1, line: null, uid: global11 },
+              { file: file1, line: line1, uid: line1Uid1 },
+              { file: file1, line: line2, uid: line2Uid1 },
+              { file: file3, line: null, uid: global12 },
+            ],
+          }),
+        );
 
         expect(
           _getRelativeMessageUid({
@@ -933,16 +946,15 @@ describe(__filename, () => {
       });
 
       it('returns the last global message in the previous file', () => {
-        const externalMessages1 = [
-          { line: null, uid: global11 },
-          { line: null, uid: global21 },
-        ];
-        const externalMessages2 = [{ line: null, uid: global12 }];
-
-        const messageMap = createMessageMap([
-          { path: file1, messages: externalMessages1 },
-          { path: file3, messages: externalMessages2 },
-        ]);
+        const messageMap = getMessageMap(
+          createFakeExternalLinterResult({
+            messages: [
+              { file: file1, line: null, uid: global11 },
+              { file: file1, line: null, uid: global21 },
+              { file: file3, line: null, uid: global12 },
+            ],
+          }),
+        );
 
         expect(
           _getRelativeMessageUid({
@@ -956,16 +968,15 @@ describe(__filename, () => {
       });
 
       it('wraps around from the last message in the last file to the first message in the first file', () => {
-        const externalMessages1 = [
-          { line: null, uid: global11 },
-          { line: null, uid: global21 },
-        ];
-        const externalMessages2 = [{ line: null, uid: global12 }];
-
-        const messageMap = createMessageMap([
-          { path: file1, messages: externalMessages1 },
-          { path: file3, messages: externalMessages2 },
-        ]);
+        const messageMap = getMessageMap(
+          createFakeExternalLinterResult({
+            messages: [
+              { file: file1, line: null, uid: global11 },
+              { file: file1, line: null, uid: global21 },
+              { file: file3, line: null, uid: global12 },
+            ],
+          }),
+        );
 
         expect(
           _getRelativeMessageUid({
@@ -979,16 +990,15 @@ describe(__filename, () => {
       });
 
       it('wraps around from the first message in the first file to the last message in the last file', () => {
-        const externalMessages1 = [
-          { line: null, uid: global11 },
-          { line: null, uid: global21 },
-        ];
-        const externalMessages2 = [{ line: null, uid: global12 }];
-
-        const messageMap = createMessageMap([
-          { path: file1, messages: externalMessages1 },
-          { path: file3, messages: externalMessages2 },
-        ]);
+        const messageMap = getMessageMap(
+          createFakeExternalLinterResult({
+            messages: [
+              { file: file1, line: null, uid: global11 },
+              { file: file1, line: null, uid: global21 },
+              { file: file3, line: null, uid: global12 },
+            ],
+          }),
+        );
 
         expect(
           _getRelativeMessageUid({

@@ -68,6 +68,9 @@ export const isKnownLibrary = (
   // unexpected keys.
   const messages = _getMessagesForPath(m);
   if (messages.length > 1 || messages[0].line !== null) {
+    // Even though this file could be a known library, return false so that the
+    // UI does not hide the file. The file should not be hidden when there are
+    // multiple linter messages.
     return false;
   }
 

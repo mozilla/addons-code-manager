@@ -14,7 +14,6 @@ import linterReducer, {
   ExternalLinterResult,
   LinterMessage,
   actions,
-  checkMessageKeys,
   createInternalMessage,
   fetchLinterMessagesIfNeeded,
   findMostSevereType,
@@ -615,15 +614,19 @@ describe(__filename, () => {
     const message4 = { line: 1, uid: uid4 };
     const message5 = { line: 2, uid: uid5 };
 
-    it('calls checkMessageKeys to validate the messages for unexpected keys', () => {
-      const _checkMessageKeys = jest.fn();
-      const externalMessages = [message1, message2];
+    it('throws an error if an extra key is found in the linter message map', () => {
       const messages = createFakeLinterMessagesByPath({
-        messages: externalMessages,
+        messages: [{ line: null, uid: '123' }],
       });
 
-      getMessagesForPath(messages, _checkMessageKeys);
-      expect(_checkMessageKeys).toHaveBeenCalledWith(messages);
+      const unexpectedKey = 'future';
+      // Artifically inject a new key in the message map.
+      // @ts-ignore
+      messages[unexpectedKey] = {};
+
+      expect(() => {
+        getMessagesForPath(messages);
+      }).toThrow(new RegExp(`Unexpected key "${unexpectedKey}" found`));
     });
 
     it('aggregates global and byLine messages', () => {
@@ -670,23 +673,6 @@ describe(__filename, () => {
       expect(messagesForPath[0]).toHaveProperty('uid', uid3);
       expect(messagesForPath[1]).toHaveProperty('uid', uid4);
       expect(messagesForPath[2]).toHaveProperty('uid', uid5);
-    });
-  });
-
-  describe('checkMessageKeys', () => {
-    it('throws an error if an extra key is found in the linter message map', () => {
-      const messages = createFakeLinterMessagesByPath({
-        messages: [{ line: null, uid: '123' }],
-      });
-
-      const unexpectedKey = 'future';
-      // Artifically inject a new key in the message map.
-      // @ts-ignore
-      messages[unexpectedKey] = {};
-
-      expect(() => {
-        checkMessageKeys(messages);
-      }).toThrow(new RegExp(`Unexpected key "${unexpectedKey}" found`));
     });
   });
 });

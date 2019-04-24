@@ -139,7 +139,9 @@ export const findMostSevereType = (
   );
 };
 
-export const checkMessageKeys = (messages: LinterMessagesByPath): void => {
+export const getMessagesForPath = (
+  messages: LinterMessagesByPath,
+): LinterMessage[] => {
   // This is useful to make sure we do not miss linter messages if
   // `LinterMessageMap` is updated with new maps of messages.
   const allowedKeys = ['global', 'byLine'];
@@ -148,14 +150,6 @@ export const checkMessageKeys = (messages: LinterMessagesByPath): void => {
       throw new Error(`Unexpected key "${key}" found.`);
     }
   });
-};
-
-export const getMessagesForPath = (
-  messages: LinterMessagesByPath,
-  _checkMessageKeys: typeof checkMessageKeys = checkMessageKeys,
-): LinterMessage[] => {
-  // Make sure the messages do not have any unexpected keys.
-  _checkMessageKeys(messages);
 
   const allMessages = [...messages.global];
 
