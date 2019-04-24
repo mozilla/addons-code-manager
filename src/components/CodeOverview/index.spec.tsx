@@ -33,7 +33,7 @@ describe(__filename, () => {
   };
 
   const getProps = ({
-    // This is stub replacement for debounce that behaves the same but
+    // This is a stub replacement for debounce that behaves the same but
     // without any debouncing.
     _debounce = (func) => debounce(func, 0, { leading: true }),
     ...otherProps
@@ -143,6 +143,20 @@ describe(__filename, () => {
   it('sets the overview height on mount', () => {
     const fakeRef = createFakeRef({ clientHeight: 100 });
     const root = render({ initialOverviewRef: fakeRef });
+
+    expect(root.state('overviewHeight')).toEqual(fakeRef.current.clientHeight);
+  });
+
+  it('sets the overview height in waitAndSetNewOverviewHeight', () => {
+    const fakeRef = createFakeRef({ clientHeight: 100 });
+    const { root, instance } = renderWithInstance({
+      initialOverviewRef: fakeRef,
+    });
+
+    // Reset the overviewHeight so it will be calculated again.
+    root.setState({ overviewHeight: null });
+
+    instance.waitAndSetNewOverviewHeight();
 
     expect(root.state('overviewHeight')).toEqual(fakeRef.current.clientHeight);
   });
