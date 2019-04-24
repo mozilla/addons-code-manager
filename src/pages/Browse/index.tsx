@@ -42,7 +42,7 @@ type PropsFromState = {
   apiState: ApiState;
   file: VersionFile | null | void;
   fileIsLoading: boolean;
-  version: Version | void;
+  version: Version | void | null;
 };
 
 export type Props = RouteComponentProps<PropsFromRouter> &
@@ -79,7 +79,12 @@ export class BrowseBase extends React.Component<Props> {
       version,
     } = this.props;
 
-    if (!version) {
+    if (version === null) {
+      // An error has occured when fetching the version.
+      return;
+    }
+
+    if (version === undefined) {
       const { addonId, versionId } = match.params;
 
       dispatch(

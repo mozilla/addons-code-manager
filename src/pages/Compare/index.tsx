@@ -35,7 +35,7 @@ type PropsFromState = {
   addonId: number;
   compareInfo: CompareInfo | null | void;
   isLoading: boolean;
-  version: Version | void;
+  version: Version | void | null;
 };
 
 type Props = RouteComponentProps<PropsFromRouter> &
