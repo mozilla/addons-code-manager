@@ -30,6 +30,10 @@ index b7ee4f8..08a29b0 100644
 +
 +  render() {
      const { diff, viewType } = this.props;
+// Here's an unchanged line in the middle of a hunk.
+-  // This comment was deleted.
++  // This comment was added.
+// Here's another unchanged line.
 @@ -29,3 +47,5 @@ class DiffView extends React.Component<Props> {
              viewType={viewType}
 -          />

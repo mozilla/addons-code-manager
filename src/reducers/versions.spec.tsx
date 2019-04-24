@@ -1,5 +1,6 @@
-import { getType } from 'typesafe-actions';
 import { push } from 'connected-react-router';
+import { parseDiff } from 'react-diff-view';
+import { getType } from 'typesafe-actions';
 
 import { actions as errorsActions } from './errors';
 import reducer, {
@@ -18,7 +19,9 @@ import reducer, {
   fetchVersion,
   fetchVersionFile,
   fetchVersionsList,
+  getDiffAnchors,
   getParentFolders,
+  getRelativeDiffAnchor,
   getVersionFile,
   getVersionFiles,
   getVersionInfo,
@@ -26,8 +29,9 @@ import reducer, {
   isFileLoading,
   viewVersionFile,
 } from './versions';
-import { ROOT_PATH } from './fileTree';
+import { ROOT_PATH, RelativePathPosition } from './fileTree';
 import configureStore from '../configureStore';
+import diffWithDeletions from '../components/DiffView/fixtures/diffWithDeletions';
 import {
   createFakeEntry,
   createFakeHistory,
@@ -1806,6 +1810,82 @@ describe(__filename, () => {
 
       expect(state.versionInfo[abortFetchVersionId]).toEqual(null);
       expect(state.versionInfo[beginFetchVersionId]).toEqual(undefined);
+    });
+  });
+
+  describe('getDiffAnchors', () => {
+    it('returns the first anchor for each diff in a file', () => {
+      const diff = parseDiff(diffWithDeletions)[0];
+      expect(getDiffAnchors(diff)).toEqual(['D2', 'D16', 'D18', 'D30', 'D34']);
+    });
+  });
+
+  describe('getRelativeDiffAnchor', () => {
+    it('returns the first anchor with no current anchor', () => {
+      const diff = parseDiff(diffWithDeletions)[0];
+      expect(
+        getRelativeDiffAnchor({
+          currentAnchor: '',
+          diff,
+          position: RelativePathPosition.next,
+        }),
+      ).toEqual('D2');
+    });
+
+    it('throws an error if the currentAnchor cannot be found', () => {
+      const diff = parseDiff(diffWithDeletions)[0];
+      const currentAnchor = 'D99';
+      expect(() => {
+        getRelativeDiffAnchor({
+          currentAnchor,
+          diff,
+          position: RelativePathPosition.next,
+        });
+      }).toThrow(`Could not locate anchor: ${currentAnchor} in the diff.`);
+    });
+
+    it('returns the first next anchor in the diff', () => {
+      const diff = parseDiff(diffWithDeletions)[0];
+      expect(
+        getRelativeDiffAnchor({
+          currentAnchor: 'D16',
+          diff,
+          position: RelativePathPosition.next,
+        }),
+      ).toEqual('D18');
+    });
+
+    it('returns the first previous anchor in the diff', () => {
+      const diff = parseDiff(diffWithDeletions)[0];
+      expect(
+        getRelativeDiffAnchor({
+          currentAnchor: 'D30',
+          diff,
+          position: RelativePathPosition.previous,
+        }),
+      ).toEqual('D18');
+    });
+
+    it('returns null if there is no next anchor in the diff', () => {
+      const diff = parseDiff(diffWithDeletions)[0];
+      expect(
+        getRelativeDiffAnchor({
+          currentAnchor: 'D34',
+          diff,
+          position: RelativePathPosition.next,
+        }),
+      ).toEqual(null);
+    });
+
+    it('returns null if there is no next previous in the diff', () => {
+      const diff = parseDiff(diffWithDeletions)[0];
+      expect(
+        getRelativeDiffAnchor({
+          currentAnchor: 'D2',
+          diff,
+          position: RelativePathPosition.previous,
+        }),
+      ).toEqual(null);
     });
   });
 });

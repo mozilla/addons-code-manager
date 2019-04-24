@@ -1,7 +1,7 @@
 import { Reducer } from 'redux';
 import { ActionType, createAction, getType } from 'typesafe-actions';
 import log from 'loglevel';
-import { DiffInfo, DiffInfoType } from 'react-diff-view';
+import { DiffInfo, DiffInfoType, getChangeKey } from 'react-diff-view';
 import { push } from 'connected-react-router';
 import queryString from 'query-string';
 
@@ -9,7 +9,7 @@ import { ThunkActionCreator } from '../configureStore';
 import { getDiff, getVersion, getVersionsList, isErrorResponse } from '../api';
 import { LocalizedStringMap } from '../utils';
 import { actions as errorsActions } from './errors';
-import { ROOT_PATH } from './fileTree';
+import { ROOT_PATH, RelativePathPosition } from './fileTree';
 
 type VersionCompatibility = {
   [appName: string]: {
@@ -425,6 +425,68 @@ export const isFileLoading = (
   }
 
   return false;
+};
+
+export const getDiffAnchors = (diff: DiffInfo): string[] => {
+  const anchors: string[] = [];
+
+  for (const hunk of diff.hunks) {
+    let seekingChange = true;
+    for (const change of hunk.changes) {
+      if (change.type === 'normal') {
+        seekingChange = true;
+      } else if (seekingChange) {
+        // This is the first change in a block.
+        anchors.push(getChangeKey(change));
+        seekingChange = false;
+      }
+    }
+  }
+  return anchors;
+};
+
+export type GetRelativeDiffAnchorParams = {
+  currentAnchor: string | void;
+  diff: DiffInfo;
+  position: RelativePathPosition;
+};
+
+export const getRelativeDiffAnchor = ({
+  currentAnchor,
+  diff,
+  position,
+}: GetRelativeDiffAnchorParams): string | null => {
+  const anchors = getDiffAnchors(diff);
+  if (!anchors.length) {
+    // There are no changes in the diff.
+    // This can happen if a file is saved but not changed internally.
+    return null;
+  }
+
+  let newIndex;
+  if (!currentAnchor) {
+    // Since we aren't looking for an anchor relative to an existing one,
+    // just get the first anchor.
+    newIndex = 0;
+  } else {
+    const currentIndex = anchors.indexOf(currentAnchor);
+    if (currentIndex < 0) {
+      throw new Error(`Could not locate anchor: ${currentAnchor} in the diff.`);
+    }
+
+    newIndex =
+      position === RelativePathPosition.previous
+        ? currentIndex - 1
+        : currentIndex + 1;
+  }
+
+  if (newIndex >= 0 && newIndex < anchors.length) {
+    return anchors[newIndex];
+  }
+  // There is no next/previous anchor in the file.
+  // In the future we will go to the next/previous file, but for now we
+  // return null.
+  return null;
 };
 
 type FetchVersionParams = {
