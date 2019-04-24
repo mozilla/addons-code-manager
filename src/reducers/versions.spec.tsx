@@ -127,7 +127,7 @@ describe(__filename, () => {
           undefined,
           actions.updateSelectedPath({ selectedPath: 'pa/th', versionId: 123 }),
         );
-      }).toThrow();
+      }).toThrow(/Version missing/);
     });
 
     it('expands all parent folders when updateSelectedPath is dispatched', () => {
@@ -184,7 +184,7 @@ describe(__filename, () => {
           undefined,
           actions.toggleExpandedPath({ path: 'pa/th', versionId: 123 }),
         );
-      }).toThrow();
+      }).toThrow(/Version missing/);
     });
 
     it('does not duplicate paths in expandedPaths when updateSelectedPath is dispatched', () => {
@@ -317,7 +317,7 @@ describe(__filename, () => {
     it('throws an error when expandTree is called for an unknown version', () => {
       expect(() => {
         reducer(undefined, actions.expandTree({ versionId: 123 }));
-      }).toThrow();
+      }).toThrow(/Version missing/);
     });
 
     it('does not add paths for files to expandedPaths when expandTree is dispatched', () => {
@@ -364,7 +364,7 @@ describe(__filename, () => {
     it('throws an error when collapseTree is called for an unknown version', () => {
       expect(() => {
         reducer(initialState, actions.collapseTree({ versionId: 123 }));
-      }).toThrow();
+      }).toThrow(/Version missing/);
     });
 
     it('stores lists of versions by add-on ID', () => {
@@ -469,7 +469,7 @@ describe(__filename, () => {
             version,
           }),
         );
-      }).toThrow();
+      }).toThrow(/Entry missing for headVersionId/);
     });
 
     it('throws an error message when headVersion is missing on loadDiff()', () => {
@@ -488,7 +488,7 @@ describe(__filename, () => {
             version,
           }),
         );
-      }).toThrow();
+      }).toThrow(/Version missing for headVersionId/);
     });
   });
 
