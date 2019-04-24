@@ -82,10 +82,6 @@ export class CodeOverviewBase extends React.Component<Props, State> {
   waitAndSetNewOverviewHeight = this.props._debounce(
     () => this.setOverviewHeight(),
     200,
-    {
-      leading: false,
-      trailing: true,
-    },
   );
 
   fitLineShapesIntoOverview(allLineShapes: AllLineShapes) {
@@ -153,9 +149,11 @@ export class CodeOverviewBase extends React.Component<Props, State> {
     const overview = [];
 
     for (let rowIndex = 0; rowIndex < numberOfRows; rowIndex++) {
-      const shapes = chunkedLineShapes[rowIndex] || undefined;
+      const shapes = chunkedLineShapes[rowIndex];
       // Use the first line in the group.
       const shapeIndex = 0;
+      // The line might be undefined when we've run out of code to display
+      // but still need to pad the overview grid with content.
       const line =
         shapes && shapes.length ? shapes[shapeIndex].line : undefined;
 
