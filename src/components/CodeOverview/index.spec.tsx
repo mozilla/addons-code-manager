@@ -200,7 +200,6 @@ describe(__filename, () => {
 
   it('does not render content until the overview height is set', () => {
     const root = render({ content: '// pretend this is code' });
-    root.setState({ overviewHeight: null });
 
     const innerRoot = renderWithLinterProvider({ root });
     expect(innerRoot.find(CodeLineShapes)).toHaveLength(0);
