@@ -684,8 +684,8 @@ export const fetchDiff = ({
     });
 
     if (isErrorResponse(response)) {
-      dispatch(errorsActions.addError({ error: response.error }));
       dispatch(actions.abortFetchDiff());
+      dispatch(errorsActions.addError({ error: response.error }));
     } else {
       if (!getVersionInfo(versionsState, response.id)) {
         dispatch(actions.loadVersionInfo({ version: response }));

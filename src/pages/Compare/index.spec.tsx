@@ -516,45 +516,22 @@ describe(__filename, () => {
     });
   });
 
-  // This could happen when a keyboard navigation updates the selected path.
-  it('does not dispatch viewVersionFile() on update if the query string contains a `path` that is different than `version.selectedPath`', () => {
-    const { dispatchSpy, root } = loadDiffAndRender();
+  it('does not dispatch anything on mount when an API error has occured', () => {
+    const addonId = 9999;
+    const baseVersionId = 1;
+    const headVersionId = baseVersionId + 1;
 
-    const path = 'a/different/file.js';
-    const history = createFakeHistory({
-      location: createFakeLocation({
-        search: queryString.stringify({ path }),
-      }),
+    const store = configureStore();
+    store.dispatch(versionsActions.beginFetchDiff());
+    // Simulate an API error.
+    store.dispatch(versionsActions.abortFetchDiff());
+    const dispatch = spyOn(store, 'dispatch');
+
+    render({
+      ...getRouteParams({ addonId, baseVersionId, headVersionId }),
+      store,
     });
 
-    root.setProps({ history });
-
-    expect(dispatchSpy).not.toHaveBeenCalled();
-  });
-
-  it('does not dispatch viewVersionFile() on update when `path` is equal to the selected path', () => {
-    const { dispatchSpy, root, version } = loadDiffAndRender();
-
-    const history = createFakeHistory({
-      location: createFakeLocation({
-        search: queryString.stringify({ path: version.file.selected_file }),
-      }),
-    });
-
-    root.setProps({ history });
-
-    expect(dispatchSpy).not.toHaveBeenCalled();
-  });
-
-  it('does not dispatch viewVersionFile() on update when the query string does not contain a `path`', () => {
-    const { dispatchSpy, root } = loadDiffAndRender();
-
-    const history = createFakeHistory({
-      location: createFakeLocation({ search: '' }),
-    });
-
-    root.setProps({ history });
-
-    expect(dispatchSpy).not.toHaveBeenCalled();
+    expect(dispatch).not.toHaveBeenCalled();
   });
 });
