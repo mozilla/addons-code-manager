@@ -1,8 +1,10 @@
 @import '../../scss/variables';
 
+$grid-gap: 10px;
+
 .FullscreenGrid {
   display: grid;
-  grid-gap: 10px;
+  grid-gap: $grid-gap;
   grid-template-areas:
     'FGHeader FGHeader FGHeader'
     'FGNavPanel FGContentPanel FGAltPanel'
@@ -18,12 +20,12 @@
 
 .NavPanel {
   grid-area: FGNavPanel;
-  margin-left: 10px;
+  margin-left: $grid-gap;
 }
 
 .AltPanel {
   grid-area: FGAltPanel;
-  margin-right: 10px;
+  margin-right: $grid-gap;
 }
 
 .ContentPanel {
