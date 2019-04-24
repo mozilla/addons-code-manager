@@ -338,7 +338,7 @@ describe(__filename, () => {
     expect(lineShapes).toHaveLength(3);
   });
 
-  it('renders CodeLineShapes for groups of lines that fit', () => {
+  it('renders CodeLineShapes for groups of lines that fit into the grid', () => {
     const contentLines = generateFileLines({ count: 200 });
 
     const root = render({ content: contentLines.join('\n') });
