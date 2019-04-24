@@ -75,7 +75,12 @@ export class CompareBase extends React.Component<Props> {
 
     const path = getPathFromQueryString(history);
 
-    if (!version) {
+    if (version === null) {
+      // An error has occured when fetching the version.
+      return;
+    }
+
+    if (version === undefined) {
       dispatch(
         _fetchDiff({
           addonId: parseInt(addonId, 10),
@@ -87,18 +92,14 @@ export class CompareBase extends React.Component<Props> {
       return;
     }
 
-    // We do not want to update the selected path again (e.g., when a keyboard
-    // navigation updates the selected path), so we apply this logic to the
-    // first render (mount) only.
     if (!prevProps) {
-      if (path && path !== version.selectedPath) {
-        // We preserve the hash in the URL (if any) when we load the file from
-        // an URL that has likely be shared.
-        this.viewVersionFile(path, { preserveHash: true });
-      }
-    } else if (
-      (prevProps.version &&
-        version.selectedPath !== prevProps.version.selectedPath) ||
+      return;
+    }
+
+    if (
+      (prevProps &&
+        (prevProps.version &&
+          version.selectedPath !== prevProps.version.selectedPath)) ||
       addonId !== prevProps.match.params.addonId ||
       baseVersionId !== prevProps.match.params.baseVersionId ||
       headVersionId !== prevProps.match.params.headVersionId

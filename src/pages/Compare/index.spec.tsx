@@ -484,42 +484,6 @@ describe(__filename, () => {
     expect(dispatchSpy).not.toHaveBeenCalled();
   });
 
-  it('dispatches viewVersionFile() on mount if the query string contains a `path` that is different than `version.selectedPath`', () => {
-    const path = 'a/different/file.js';
-    const history = createFakeHistory({
-      location: createFakeLocation({
-        search: queryString.stringify({ path }),
-      }),
-    });
-    const {
-      _viewVersionFile,
-      dispatchSpy,
-      fakeThunk,
-      version,
-    } = loadDiffAndRender({ history });
-
-    expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
-    expect(dispatchSpy).toHaveBeenCalledTimes(1);
-    expect(_viewVersionFile).toHaveBeenCalledWith({
-      versionId: version.id,
-      selectedPath: path,
-      preserveHash: true,
-    });
-  });
-
-  it('does not dispatch viewVersionFile() on mount when `path` is equal to the selected path', () => {
-    const version = fakeVersionWithDiff;
-    const history = createFakeHistory({
-      location: createFakeLocation({
-        search: queryString.stringify({ path: version.file.selected_file }),
-      }),
-    });
-
-    const { dispatchSpy } = loadDiffAndRender({ history });
-
-    expect(dispatchSpy).not.toHaveBeenCalled();
-  });
-
   it('dispatches fetchDiff() with the path specified in the URL on mount', () => {
     const addonId = 9999;
     const baseVersionId = 1;
