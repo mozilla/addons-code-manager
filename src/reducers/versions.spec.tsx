@@ -19,6 +19,8 @@ import reducer, {
   fetchVersion,
   fetchVersionFile,
   fetchVersionsList,
+  getCompareInfo,
+  getCompareInfoKey,
   getDiffAnchors,
   getParentFolders,
   getRelativeDiffAnchor,
@@ -384,16 +386,41 @@ describe(__filename, () => {
     });
 
     it('sets the compare info to `null` on abortFetchDiff()', () => {
-      const versionsState = reducer(undefined, actions.abortFetchDiff());
+      const addonId = 1;
+      const baseVersionId = 2;
+      const headVersionId = 2;
 
-      expect(versionsState.compareInfo).toEqual(null);
+      const versionsState = reducer(
+        undefined,
+        actions.abortFetchDiff({
+          addonId,
+          baseVersionId,
+          headVersionId,
+        }),
+      );
+
+      expect(
+        getCompareInfo(versionsState, addonId, baseVersionId, headVersionId),
+      ).toEqual(null);
     });
 
     it('resets the compare info on beginFetchDiff()', () => {
-      let versionsState = reducer(undefined, actions.abortFetchDiff());
-      versionsState = reducer(versionsState, actions.beginFetchDiff());
+      const addonId = 1;
+      const baseVersionId = 2;
+      const headVersionId = 2;
 
-      expect(versionsState.compareInfo).toEqual(undefined);
+      let versionsState = reducer(
+        undefined,
+        actions.abortFetchDiff({ addonId, baseVersionId, headVersionId }),
+      );
+      versionsState = reducer(
+        versionsState,
+        actions.beginFetchDiff({ addonId, baseVersionId, headVersionId }),
+      );
+
+      expect(
+        getCompareInfo(versionsState, addonId, baseVersionId, headVersionId),
+      ).toEqual(undefined);
     });
 
     it('loads compare info', () => {
@@ -433,7 +460,9 @@ describe(__filename, () => {
         }),
       );
 
-      expect(versionsState.compareInfo).toEqual({
+      expect(
+        getCompareInfo(versionsState, addonId, baseVersionId, headVersionId),
+      ).toEqual({
         diffs: createInternalDiffs({
           baseVersionId,
           headVersionId,
@@ -1389,10 +1418,20 @@ describe(__filename, () => {
     };
 
     it('dispatches beginFetchDiff()', async () => {
+      const addonId = 1;
+      const baseVersionId = 2;
+      const headVersionId = 3;
+
       const { dispatch, thunk } = _fetchDiff();
       await thunk();
 
-      expect(dispatch).toHaveBeenCalledWith(actions.beginFetchDiff());
+      expect(dispatch).toHaveBeenCalledWith(
+        actions.beginFetchDiff({
+          addonId,
+          baseVersionId,
+          headVersionId,
+        }),
+      );
     });
 
     it('calls getDiff()', async () => {
@@ -1463,16 +1502,30 @@ describe(__filename, () => {
     });
 
     it('dispatches abortFetchDiff() when API call has failed', async () => {
+      const addonId = 1;
+      const baseVersionId = 2;
+      const headVersionId = 2;
       const _getDiff = jest.fn().mockReturnValue(
         Promise.resolve({
           error: new Error('Bad Request'),
         }),
       );
 
-      const { dispatch, thunk } = _fetchDiff({ _getDiff });
+      const { dispatch, thunk } = _fetchDiff({
+        _getDiff,
+        addonId,
+        baseVersionId,
+        headVersionId,
+      });
       await thunk();
 
-      expect(dispatch).toHaveBeenCalledWith(actions.abortFetchDiff());
+      expect(dispatch).toHaveBeenCalledWith(
+        actions.abortFetchDiff({
+          addonId,
+          baseVersionId,
+          headVersionId,
+        }),
+      );
     });
   });
 
@@ -2032,6 +2085,29 @@ describe(__filename, () => {
           position: RelativePathPosition.previous,
         }),
       ).toEqual(null);
+    });
+  });
+
+  describe('getCompareInfoKey', () => {
+    it('computes a key given an addonId, baseVersionId and headVersionId', () => {
+      const addonId = 123;
+      const baseVersionId = 1;
+      const headVersionId = 2;
+
+      expect(
+        getCompareInfoKey({ addonId, baseVersionId, headVersionId }),
+      ).toEqual(`${addonId}/${baseVersionId}/${headVersionId}/`);
+    });
+
+    it('computes a key given an addonId, baseVersionId, headVersionId and path', () => {
+      const addonId = 123;
+      const baseVersionId = 1;
+      const headVersionId = 2;
+      const path = 'path';
+
+      expect(
+        getCompareInfoKey({ addonId, baseVersionId, headVersionId, path }),
+      ).toEqual(`${addonId}/${baseVersionId}/${headVersionId}/${path}`);
     });
   });
 });
