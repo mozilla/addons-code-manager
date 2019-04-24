@@ -13,6 +13,7 @@ import {
   CompareInfo,
   Version,
   fetchDiff,
+  getCompareInfo,
   getVersionInfo,
   viewVersionFile,
 } from '../../reducers/versions';
@@ -34,6 +35,7 @@ type PropsFromRouter = {
 type PropsFromState = {
   addonId: number;
   compareInfo: CompareInfo | null | void;
+  path: string | undefined;
   version: Version | void | null;
 };
 
@@ -52,18 +54,18 @@ export class CompareBase extends React.Component<Props> {
     this.loadData();
   }
 
-  componentDidUpdate(prevProps: Props) {
-    this.loadData(prevProps);
+  componentDidUpdate() {
+    this.loadData();
   }
 
-  loadData(prevProps?: Props) {
+  loadData() {
     const {
       _fetchDiff,
       compareInfo,
       dispatch,
       history,
       match,
-      version,
+      path,
     } = this.props;
     const { addonId, baseVersionId, headVersionId, lang } = match.params;
 
@@ -79,10 +81,8 @@ export class CompareBase extends React.Component<Props> {
       return;
     }
 
-    const path = getPathFromQueryString(history);
-
     if (compareInfo === null) {
-      // An error has occured when fetching the version.
+      // An error has occured when fetching the compare info.
       return;
     }
 
@@ -93,29 +93,6 @@ export class CompareBase extends React.Component<Props> {
           baseVersionId: oldVersionId,
           headVersionId: newVersionId,
           path: path || undefined,
-        }),
-      );
-      return;
-    }
-
-    if (!prevProps) {
-      return;
-    }
-
-    if (
-      version &&
-      ((prevProps.version &&
-        version.selectedPath !== prevProps.version.selectedPath) ||
-        addonId !== prevProps.match.params.addonId ||
-        baseVersionId !== prevProps.match.params.baseVersionId ||
-        headVersionId !== prevProps.match.params.headVersionId)
-    ) {
-      dispatch(
-        _fetchDiff({
-          addonId: parseInt(addonId, 10),
-          baseVersionId: oldVersionId,
-          headVersionId: newVersionId,
-          path: version.selectedPath,
         }),
       );
     }
@@ -182,11 +159,19 @@ const mapStateToProps = (
   state: ApplicationState,
   ownProps: RouteComponentProps<PropsFromRouter>,
 ): PropsFromState => {
-  const { match } = ownProps;
+  const { history, match } = ownProps;
   const addonId = parseInt(match.params.addonId, 10);
+  const baseVersionId = parseInt(match.params.baseVersionId, 10);
   const headVersionId = parseInt(match.params.headVersionId, 10);
+  const path = getPathFromQueryString(history) || undefined;
 
-  const { compareInfo } = state.versions;
+  const compareInfo = getCompareInfo(
+    state.versions,
+    addonId,
+    baseVersionId,
+    headVersionId,
+    path,
+  );
 
   // The Compare API returns the version info of the head/newest version.
   const version = getVersionInfo(state.versions, headVersionId);
@@ -194,6 +179,7 @@ const mapStateToProps = (
   return {
     addonId,
     compareInfo,
+    path,
     version,
   };
 };

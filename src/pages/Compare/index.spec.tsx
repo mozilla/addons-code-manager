@@ -256,10 +256,34 @@ describe(__filename, () => {
   });
 
   it('renders an error when fetching a diff has failed', () => {
-    const store = configureStore();
-    store.dispatch(versionsActions.abortFetchDiff());
+    const addonId = 9999;
+    const baseVersionId = 1;
+    const headVersionId = baseVersionId + 1;
 
-    const root = render({ store });
+    const store = configureStore();
+    store.dispatch(
+      versionsActions.beginFetchDiff({
+        addonId,
+        baseVersionId,
+        headVersionId,
+      }),
+    );
+    store.dispatch(
+      versionsActions.abortFetchDiff({
+        addonId,
+        baseVersionId,
+        headVersionId,
+      }),
+    );
+
+    const root = render({
+      ...getRouteParams({
+        addonId,
+        baseVersionId,
+        headVersionId,
+      }),
+      store,
+    });
 
     expect(
       getContentShellPanel(root, 'mainSidePanel').find(`.${styles.error}`),
@@ -318,15 +342,15 @@ describe(__filename, () => {
     expect(dispatch).not.toHaveBeenCalled();
   });
 
-  it('does not dispatch fetchDiff() on update if no URL parameter has changed', () => {
-    const { dispatchSpy, root, params } = loadDiffAndRender();
+  it('does not dispatch anything on update if nothing has changed', () => {
+    const { dispatchSpy, root } = loadDiffAndRender();
 
-    root.setProps({ match: { params } });
+    root.setProps({});
 
     expect(dispatchSpy).not.toHaveBeenCalled();
   });
 
-  it('dispatches fetchDiff() on update if base version is different', () => {
+  it('dispatches fetchDiff() on update if compareInfo is undefined', () => {
     const {
       _fetchDiff,
       addonId,
@@ -335,90 +359,15 @@ describe(__filename, () => {
       fakeThunk,
       headVersionId,
       root,
-      version,
     } = loadDiffAndRender();
 
-    const newBaseVersionId = baseVersionId - 1;
-    root.setProps({
-      match: {
-        params: getRouteParams({
-          addonId,
-          baseVersionId: newBaseVersionId,
-          headVersionId,
-        }),
-      },
-    });
-
-    expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
-    expect(_fetchDiff).toHaveBeenCalledWith({
-      addonId,
-      baseVersionId: newBaseVersionId,
-      headVersionId,
-      path: version.file.selected_file,
-    });
-  });
-
-  it('dispatches fetchDiff() on update if head version is different', () => {
-    const {
-      _fetchDiff,
-      addonId,
-      baseVersionId,
-      dispatchSpy,
-      fakeThunk,
-      headVersionId,
-      root,
-      version,
-    } = loadDiffAndRender();
-
-    const newHeadVersionId = headVersionId + 1;
-    root.setProps({
-      match: {
-        params: getRouteParams({
-          addonId,
-          baseVersionId,
-          headVersionId: newHeadVersionId,
-        }),
-      },
-    });
+    root.setProps({ compareInfo: undefined });
 
     expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
     expect(_fetchDiff).toHaveBeenCalledWith({
       addonId,
       baseVersionId,
-      headVersionId: newHeadVersionId,
-      path: version.file.selected_file,
-    });
-  });
-
-  it('dispatches fetchDiff() on update if addon ID is different', () => {
-    const {
-      _fetchDiff,
-      addonId,
-      baseVersionId,
-      dispatchSpy,
-      fakeThunk,
       headVersionId,
-      root,
-      version,
-    } = loadDiffAndRender();
-
-    const newAddonId = addonId + 1;
-    root.setProps({
-      match: {
-        params: getRouteParams({
-          addonId: newAddonId,
-          baseVersionId,
-          headVersionId,
-        }),
-      },
-    });
-
-    expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
-    expect(_fetchDiff).toHaveBeenCalledWith({
-      addonId: newAddonId,
-      baseVersionId,
-      headVersionId,
-      path: version.file.selected_file,
     });
   });
 
@@ -522,9 +471,21 @@ describe(__filename, () => {
     const headVersionId = baseVersionId + 1;
 
     const store = configureStore();
-    store.dispatch(versionsActions.beginFetchDiff());
+    store.dispatch(
+      versionsActions.beginFetchDiff({
+        addonId,
+        baseVersionId,
+        headVersionId,
+      }),
+    );
     // Simulate an API error.
-    store.dispatch(versionsActions.abortFetchDiff());
+    store.dispatch(
+      versionsActions.abortFetchDiff({
+        addonId,
+        baseVersionId,
+        headVersionId,
+      }),
+    );
     const dispatch = spyOn(store, 'dispatch');
 
     render({
