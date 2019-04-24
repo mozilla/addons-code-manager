@@ -26,6 +26,7 @@ export type DefaultProps = {
     addEventListener: typeof window.addEventListener;
     removeEventListener: typeof window.removeEventListener;
   };
+  initialOverviewRef: React.RefObject<HTMLDivElement>;
   overviewPadding: number;
   rowTopPadding: number;
   rowHeight: number;
@@ -42,6 +43,7 @@ export class CodeOverviewBase extends React.Component<Props, State> {
   static defaultProps = {
     _debounce: debounce,
     _window: window,
+    initialOverviewRef: React.createRef<HTMLDivElement>(),
     // This is the padding of the overview container.
     overviewPadding: 10,
     rowTopPadding: 2,
@@ -51,7 +53,7 @@ export class CodeOverviewBase extends React.Component<Props, State> {
 
   public state = { overviewHeight: null };
 
-  private overviewRef = React.createRef<HTMLDivElement>();
+  private overviewRef = this.props.initialOverviewRef;
 
   componentDidMount() {
     const { _window } = this.props;
@@ -73,7 +75,8 @@ export class CodeOverviewBase extends React.Component<Props, State> {
     this.setState({ overviewHeight: null });
   };
 
-  setOverviewHeight = (ref = this.overviewRef) => {
+  setOverviewHeight = () => {
+    const ref = this.overviewRef;
     if (ref && ref.current) {
       this.setState({ overviewHeight: ref.current.clientHeight });
     }

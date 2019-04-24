@@ -94,6 +94,15 @@ describe(__filename, () => {
       .map((i) => `// This is line ${i + 1} of the code`);
   };
 
+  const createFakeRef = (overrides = {}) => {
+    return {
+      current: {
+        ...document.createElement('div'),
+        ...overrides,
+      },
+    };
+  };
+
   it('configures LinterProvider', () => {
     const version = createInternalVersion(fakeVersion);
     const root = render({ version });
@@ -131,43 +140,48 @@ describe(__filename, () => {
     );
   });
 
-  it('can set the overview height', () => {
-    const { root, instance } = renderWithInstance();
+  it('sets the overview height on mount', () => {
+    const fakeRef = createFakeRef({ clientHeight: 100 });
+    const root = render({ initialOverviewRef: fakeRef });
+
+    expect(root.state('overviewHeight')).toEqual(fakeRef.current.clientHeight);
+  });
+
+  it('can set the overview height explicitly', () => {
+    const fakeRef = createFakeRef({ clientHeight: 400 });
+    const { root, instance } = renderWithInstance({
+      initialOverviewRef: fakeRef,
+    });
 
     // Set a height that will be overwritten.
     root.setState({ overviewHeight: 200 });
-
-    const fakeRef = {
-      current: {
-        ...document.createElement('div'),
-        clientHeight: 400,
-      },
-    };
-    instance.setOverviewHeight(fakeRef);
+    instance.setOverviewHeight();
 
     expect(root.state('overviewHeight')).toEqual(fakeRef.current.clientHeight);
   });
 
   it('only sets the overview height for defined refs', () => {
-    const { root, instance } = renderWithInstance();
+    const { root, instance } = renderWithInstance({ initialOverviewRef: null });
 
     const overviewHeight = 200;
     root.setState({ overviewHeight });
 
-    instance.setOverviewHeight(undefined);
+    instance.setOverviewHeight();
 
     // Make sure no new height was set.
     expect(root.state('overviewHeight')).toEqual(overviewHeight);
   });
 
   it('only sets the overview height for active refs', () => {
-    const { root, instance } = renderWithInstance();
+    const { root, instance } = renderWithInstance({
+      // Set an inactive ref.
+      initialOverviewRef: React.createRef(),
+    });
 
     const overviewHeight = 200;
     root.setState({ overviewHeight });
 
-    // Set an inactive ref.
-    instance.setOverviewHeight(React.createRef());
+    instance.setOverviewHeight();
 
     // Make sure no new height was set.
     expect(root.state('overviewHeight')).toEqual(overviewHeight);
