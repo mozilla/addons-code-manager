@@ -18,7 +18,7 @@ cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat
 non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 `;
 
-const getParams = () => rootAttributeParams({ fullscreenByDefault: true });
+const getParams = () => rootAttributeParams({ fullscreen: true });
 
 storiesOf('FullscreenGrid', module)
   .add(
