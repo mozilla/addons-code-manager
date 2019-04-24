@@ -74,7 +74,6 @@
     "@typescript-eslint/eslint-plugin": "^1.2.0",
     "@typescript-eslint/parser": "^1.2.0",
     "babel-loader": "8.0.5",
-    "babel-preset-react-app": "7.0.0",
     "chalk": "^2.4.2",
     "codecov": "^3.1.0",
     "content-security-policy-parser": "^0.1.1",
@@ -145,8 +144,5 @@
       "!src/jest-reporters/eslint-check.js",
       "!src/index.tsx"
     ]
-  },
-  "resolutions": {
-    "babel-preset-react-app": "7.0.0"
   }
 }
