@@ -1,0 +1,16 @@
+@import '../../scss/variables';
+
+.CodeOverview {
+  border-radius: $border-radius;
+  border: 1px solid $light-gray;
+  height: 100vh;
+  padding: 0;
+  position: sticky;
+  top: 0;
+}
+
+.line {
+  display: flex;
+  line-height: 1;
+  width: 100%;
+}

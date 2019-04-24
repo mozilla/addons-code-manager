@@ -12,7 +12,7 @@ type Props = PublicProps;
 const CodeLineShapes = ({ lineShapes }: Props) => {
   return (
     <React.Fragment>
-      {lineShapes.tokens.map((shape) => {
+      {lineShapes.tokens.map((shape, shapeIndex) => {
         let className;
         if (shape.token === Token.whitespace) {
           className = styles.whitespace;
@@ -24,6 +24,7 @@ const CodeLineShapes = ({ lineShapes }: Props) => {
           <div
             key={[
               String(lineShapes.line),
+              String(shapeIndex),
               String(shape.percentOfWidth),
               className,
             ].join(':')}

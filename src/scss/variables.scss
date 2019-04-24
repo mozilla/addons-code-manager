@@ -6,6 +6,10 @@ $default-padding: 10px;
 $light-gray: $gray-200;
 $gray: $gray-500;
 
+// This is the final color of secondary alerts after bootstrap
+// runs $gray-600 through its custom filters.
+$alert-secondary-bg-color: #e2e3e5;
+
 // Shared style for the CodeView and DiffView components.
 $code-font-family: Consolas, Courier, monospace;
 $code-font-size: 16px;
