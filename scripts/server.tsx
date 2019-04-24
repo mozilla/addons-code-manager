@@ -1,3 +1,4 @@
+/* eslint no-console: 0 */
 import path from 'path';
 
 import chalk from 'chalk';
@@ -5,12 +6,12 @@ import chalk from 'chalk';
 import { ServerEnvVars, createServer } from '../src/server';
 
 // Load environment configuration.
-process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 require('react-scripts/config/env');
 
 const app = createServer({
   // This is risky but also expected because `process.env` is only defined at
   // runtime.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   env: (process.env as any) as ServerEnvVars,
   rootPath: path.join(__dirname, '..'),
 });
