@@ -8,14 +8,6 @@ storiesOf('Skeleton', module).addWithChapters('all variants', {
     {
       sections: [
         {
-          title: 'in a 100 x 50px div',
-          sectionFn: () => (
-            <div style={{ width: '100px', height: '50px' }}>
-              <Skeleton />
-            </div>
-          ),
-        },
-        {
           title: 'in a paragraph',
           sectionFn: () => (
             <p>

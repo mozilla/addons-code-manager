@@ -1,9 +1,14 @@
 import * as React from 'react';
+import makeClassName from 'classnames';
 
 import styles from './styles.module.scss';
 
-const SkeletonBase = () => {
-  return <div className={styles.skeleton} />;
+type PublicProps = {
+  className?: string;
+};
+
+const SkeletonBase = ({ className }: PublicProps) => {
+  return <div className={makeClassName(styles.skeleton, className)} />;
 };
 
 export default SkeletonBase;
