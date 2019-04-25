@@ -43,6 +43,7 @@ export const fakeVersionEntry: ExternalVersionEntry = Object.freeze({
   // subdirectories like scripts/background.js
   path: 'manifest.json',
   sha256: 'some-sha',
+  status: 'M',
   size: 123,
 });
 

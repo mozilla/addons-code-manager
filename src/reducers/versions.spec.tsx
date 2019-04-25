@@ -531,6 +531,7 @@ describe(__filename, () => {
         modified: entry.modified,
         path: entry.path,
         sha256: entry.sha256,
+        status: entry.status,
         type: entry.mime_category,
       });
     });
