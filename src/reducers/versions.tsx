@@ -284,6 +284,9 @@ export type VersionsState = {
       | null // an error has occured
       | undefined; // data not fetched yet
   };
+  compareInfoIsLoading: {
+    [compareInfoKey: string]: boolean;
+  };
   versionInfo: {
     [versionId: number]:
       | Version // data successfully loaded
@@ -308,6 +311,7 @@ export type VersionsState = {
 export const initialState: VersionsState = {
   byAddonId: {},
   compareInfo: {},
+  compareInfoIsLoading: {},
   versionFiles: {},
   versionFilesLoading: {},
   versionInfo: {},
@@ -695,6 +699,40 @@ export const getCompareInfoKey = ({
   return [addonId, baseVersionId, headVersionId, path].join('/');
 };
 
+export const getCompareInfo = (
+  versions: VersionsState,
+  addonId: number,
+  baseVersionId: number,
+  headVersionId: number,
+  path?: string,
+) => {
+  const compareInfoKey = getCompareInfoKey({
+    addonId,
+    baseVersionId,
+    headVersionId,
+    path,
+  });
+
+  return versions.compareInfo[compareInfoKey];
+};
+
+export const isCompareInfoLoading = (
+  versions: VersionsState,
+  addonId: number,
+  baseVersionId: number,
+  headVersionId: number,
+  path?: string,
+) => {
+  const compareInfoKey = getCompareInfoKey({
+    addonId,
+    baseVersionId,
+    headVersionId,
+    path,
+  });
+
+  return versions.compareInfoIsLoading[compareInfoKey] || false;
+};
+
 export const fetchDiff = ({
   _getDiff = getDiff,
   addonId,
@@ -704,6 +742,18 @@ export const fetchDiff = ({
 }: FetchDiffParams): ThunkActionCreator => {
   return async (dispatch, getState) => {
     const { api: apiState, versions: versionsState } = getState();
+    if (
+      isCompareInfoLoading(
+        versionsState,
+        addonId,
+        baseVersionId,
+        headVersionId,
+        path,
+      )
+    ) {
+      log.debug('Aborting because diff is already being fetched');
+      return;
+    }
 
     dispatch(
       actions.beginFetchDiff({ addonId, baseVersionId, headVersionId, path }),
@@ -737,23 +787,6 @@ export const fetchDiff = ({
       );
     }
   };
-};
-
-export const getCompareInfo = (
-  versions: VersionsState,
-  addonId: number,
-  baseVersionId: number,
-  headVersionId: number,
-  path?: string,
-) => {
-  const compareInfoKey = getCompareInfoKey({
-    addonId,
-    baseVersionId,
-    headVersionId,
-    path,
-  });
-
-  return versions.compareInfo[compareInfoKey];
 };
 
 type ViewVersionFileParams = {
@@ -992,20 +1025,32 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
       };
     }
     case getType(actions.beginFetchDiff): {
+      const key = getCompareInfoKey(action.payload);
+
       return {
         ...state,
         compareInfo: {
           ...state.compareInfo,
-          [getCompareInfoKey(action.payload)]: undefined,
+          [key]: undefined,
+        },
+        compareInfoIsLoading: {
+          ...state.compareInfoIsLoading,
+          [key]: true,
         },
       };
     }
     case getType(actions.abortFetchDiff): {
+      const key = getCompareInfoKey(action.payload);
+
       return {
         ...state,
         compareInfo: {
           ...state.compareInfo,
-          [getCompareInfoKey(action.payload)]: null,
+          [key]: null,
+        },
+        compareInfoIsLoading: {
+          ...state.compareInfoIsLoading,
+          [key]: false,
         },
       };
     }
@@ -1049,6 +1094,10 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
             }),
             mimeType: entry.mimeType,
           },
+        },
+        compareInfoIsLoading: {
+          ...state.compareInfoIsLoading,
+          [compareInfoKey]: false,
         },
       };
     }

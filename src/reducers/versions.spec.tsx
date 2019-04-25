@@ -28,6 +28,7 @@ import reducer, {
   getVersionFiles,
   getVersionInfo,
   initialState,
+  isCompareInfoLoading,
   isFileLoading,
   viewVersionFile,
 } from './versions';
@@ -385,7 +386,7 @@ describe(__filename, () => {
       expect(state.byAddonId[addonId]).toEqual(createVersionsMap(versions));
     });
 
-    it('sets the compare info to `null` on abortFetchDiff()', () => {
+    it('sets the compare info to `null` nd the loading flag to `false` on abortFetchDiff()', () => {
       const addonId = 1;
       const baseVersionId = 2;
       const headVersionId = 2;
@@ -402,9 +403,17 @@ describe(__filename, () => {
       expect(
         getCompareInfo(versionsState, addonId, baseVersionId, headVersionId),
       ).toEqual(null);
+      expect(
+        isCompareInfoLoading(
+          versionsState,
+          addonId,
+          baseVersionId,
+          headVersionId,
+        ),
+      ).toEqual(false);
     });
 
-    it('resets the compare info on beginFetchDiff()', () => {
+    it('resets the compare info and sets the loading flag to `true` on beginFetchDiff()', () => {
       const addonId = 1;
       const baseVersionId = 2;
       const headVersionId = 2;
@@ -421,6 +430,14 @@ describe(__filename, () => {
       expect(
         getCompareInfo(versionsState, addonId, baseVersionId, headVersionId),
       ).toEqual(undefined);
+      expect(
+        isCompareInfoLoading(
+          versionsState,
+          addonId,
+          baseVersionId,
+          headVersionId,
+        ),
+      ).toEqual(true);
     });
 
     it('loads compare info', () => {
@@ -470,6 +487,14 @@ describe(__filename, () => {
         }),
         mimeType,
       });
+      expect(
+        isCompareInfoLoading(
+          versionsState,
+          addonId,
+          baseVersionId,
+          headVersionId,
+        ),
+      ).toEqual(false);
     });
 
     it('throws an error when entry is missing on loadDiff()', () => {
@@ -1527,6 +1552,22 @@ describe(__filename, () => {
         }),
       );
     });
+
+    it('prevents itself to execute more than once for the same diff', async () => {
+      const addonId = 1;
+      const baseVersionId = 2;
+      const headVersionId = 3;
+
+      const { dispatch, thunk, store } = _fetchDiff();
+      // This simulates another previous call to `fetchDiff()`.
+      store.dispatch(
+        actions.beginFetchDiff({ addonId, baseVersionId, headVersionId }),
+      );
+
+      await thunk();
+
+      expect(dispatch).not.toHaveBeenCalled();
+    });
   });
 
   describe('beginFetchVersionFile', () => {
@@ -2108,6 +2149,24 @@ describe(__filename, () => {
       expect(
         getCompareInfoKey({ addonId, baseVersionId, headVersionId, path }),
       ).toEqual(`${addonId}/${baseVersionId}/${headVersionId}/${path}`);
+    });
+  });
+
+  describe('isCompareInfoLoading', () => {
+    it('returns false by default', () => {
+      const addonId = 123;
+      const baseVersionId = 1;
+      const headVersionId = 2;
+
+      expect(
+        isCompareInfoLoading(
+          // Nothing has been loaded in this state.
+          initialState,
+          addonId,
+          baseVersionId,
+          headVersionId,
+        ),
+      ).toEqual(false);
     });
   });
 });
