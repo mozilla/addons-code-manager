@@ -1354,7 +1354,7 @@
     react-lifecycles-compat "^3.0.4"
     util-deprecate "^1.0.2"
 
-"@storybook/addons@5.0.10":
+"@storybook/addons@5.0.10", "@storybook/addons@^5.0.6":
   version "5.0.10"
   resolved "https://registry.yarnpkg.com/@storybook/addons/-/addons-5.0.10.tgz#8911e6e7797185327f0117035a4bc451a57e62d7"
   integrity sha512-plpLh17dt8KWhs8dRQlleClc7sibE1Plq7QQWyAsZjblRHfpNnv82Ax9ArmMeGFx2TRTTbCOcw9PiaKkt5/E7Q==
@@ -1441,7 +1441,7 @@
     recompose "^0.30.0"
     render-fragment "^0.1.1"
 
-"@storybook/core-events@5.0.10":
+"@storybook/core-events@5.0.10", "@storybook/core-events@^5.0.6":
   version "5.0.10"
   resolved "https://registry.yarnpkg.com/@storybook/core-events/-/core-events-5.0.10.tgz#6437f8b6a6c3c902fa2fbad8de992c5104115332"
   integrity sha512-Hp8PleSXAbVNr/yi58JIQb/tjZVpRcjEe8ztIp4JT5qhpz+xHTiVnS7mo8gCdyMw5cr38ANgdlZGnLshJY29lQ==
@@ -1582,7 +1582,7 @@
     shelljs "^0.8.1"
     yargs "^11.0.0"
 
-"@storybook/theming@5.0.10":
+"@storybook/theming@5.0.10", "@storybook/theming@^5.0.6":
   version "5.0.10"
   resolved "https://registry.yarnpkg.com/@storybook/theming/-/theming-5.0.10.tgz#6e2b00f879678419e2297ed8a31c357ae7976801"
   integrity sha512-4IUtWglyAQCPHKMqPZkTWc/8FbfGHwtRSbaNxbv5S6PEcfWPIiMVWWRYMBNyETvYoYbCOHORH1w7iwJs75sRmA==
@@ -13257,6 +13257,15 @@ stmux@^1.6.1:
     strip-ansi "5.0.0"
     which "1.3.1"
     yargs "12.0.5"
+
+storybook-addon-root-attribute@^0.1.3:
+  version "0.1.3"
+  resolved "https://registry.yarnpkg.com/storybook-addon-root-attribute/-/storybook-addon-root-attribute-0.1.3.tgz#7780202e25f1d890a99f66beef5c22f6ab3e5a84"
+  integrity sha512-96OPeI9RTUrogcSDdAtF4Tv75NWmhtLbFzArP97RapnFXKPf0bydLlgGu84QmXdBnzuTFMQY3ZQ7q7RzZInvVA==
+  dependencies:
+    "@storybook/addons" "^5.0.6"
+    "@storybook/core-events" "^5.0.6"
+    "@storybook/theming" "^5.0.6"
 
 stream-browserify@^2.0.1:
   version "2.0.2"

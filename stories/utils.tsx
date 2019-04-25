@@ -27,3 +27,35 @@ export const newLinterMessageUID = () => {
   _uid++;
   return `msg-${_uid}`;
 };
+
+/*
+ * Returns storybook parameters to configure the storybook-addon-root-attribute add-on
+ *
+ * The only reason we're using this add-on is to toggle the class
+ * of the body element. We're currently not using it to toggle between
+ * different states.
+ */
+export const rootAttributeParams = ({ fullscreen = false } = {}) => {
+  type Attribute = {
+    name: string;
+    value: string | null;
+  };
+
+  let defaultState: Attribute = {
+    name: 'Body is not set to fullscreen',
+    value: null,
+  };
+
+  if (fullscreen) {
+    defaultState = { name: 'Body is set to fullscreen', value: 'fullscreen' };
+  }
+
+  return {
+    rootAttribute: {
+      root: 'body',
+      attribute: 'class',
+      defaultState,
+      states: [],
+    },
+  };
+};

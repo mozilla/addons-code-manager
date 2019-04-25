@@ -1,0 +1,43 @@
+@import '../../scss/variables';
+
+$grid-gap: 10px;
+
+.FullscreenGrid {
+  display: grid;
+  grid-gap: $grid-gap;
+  grid-template-areas:
+    'FGHeader FGHeader FGHeader'
+    'FGNavPanel FGContentPanel FGAltPanel'
+    '. . .';
+  grid-template-columns: 1fr 4fr 1fr;
+  grid-template-rows: min-content 1fr 0px;
+  height: 100vh;
+}
+
+.Header {
+  grid-area: FGHeader;
+}
+
+.NavPanel {
+  grid-area: FGNavPanel;
+  margin-left: $grid-gap;
+}
+
+.AltPanel {
+  grid-area: FGAltPanel;
+  margin-right: $grid-gap;
+}
+
+.ContentPanel {
+  grid-area: FGContentPanel;
+}
+
+.NavPanel,
+.AltPanel,
+.ContentPanel {
+  border-radius: $border-radius;
+  border: 1px solid $light-gray;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: $default-padding;
+}

@@ -2,6 +2,12 @@ body {
   padding: 24px;
 }
 
+// The rootAttribute option (via storybook-addon-root-attribute)
+// toggles this on and off.
+body.fullscreen {
+  padding: 0;
+}
+
 .CodeLineShapesStory {
   display: flex;
 }
@@ -38,4 +44,30 @@ body {
     margin: 0;
     overflow: hidden;
   }
+}
+
+.FullscreenGridStory-Header,
+.FullscreenGridStory-NavPanel,
+.FullscreenGridStory-ContentPanel,
+.FullscreenGridStory-AltPanel {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+}
+
+.FullscreenGridStory-Header {
+  background-color: lighten(red, 43);
+  padding: 20px;
+}
+
+.FullscreenGridStory-NavPanel {
+  background-color: lighten(orange, 44);
+}
+
+.FullscreenGridStory-ContentPanel {
+  background-color: lighten(yellow, 47);
+}
+
+.FullscreenGridStory-AltPanel {
+  background-color: lighten(green, 68);
 }

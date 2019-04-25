@@ -15,9 +15,11 @@
     "import/no-extraneous-dependencies": ["error", {
         "devDependencies": [
             "**/*.spec.*",
+            "src/@types/**/*",
             "src/setupTests.tsx",
             "src/test-helpers.tsx",
-            "**/*.stories.tsx"
+            "**/*.stories.tsx",
+            "stories/**/*.tsx"
         ]
       }
     ],
