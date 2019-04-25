@@ -190,6 +190,51 @@ export const getRelativePath = ({
   return pathList[newIndex];
 };
 
+export type FindRelativePathWithDiffParams = {
+  currentPath: string;
+  pathList: string[];
+  position: RelativePathPosition;
+  version: Version;
+};
+
+export const findRelativePathWithDiff = ({
+  currentPath,
+  pathList,
+  position,
+  version,
+}: FindRelativePathWithDiffParams): string => {
+  let path = currentPath;
+  const maxAttempts = pathList.length;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const nextPath = getRelativePath({
+      currentPath: path,
+      pathList,
+      position,
+    });
+
+    // Does this path contain differences?
+    // Locate the entry for this path.
+    const entry = version.entries.find((e) => e.path === nextPath);
+    if (!entry) {
+      throw new Error(
+        `Entry missing for path: ${nextPath}, versionId: ${version.id}`,
+      );
+    }
+
+    if (entry.status !== '') {
+      // There is a difference.
+      return nextPath;
+    }
+    path = nextPath;
+  }
+  // If we got here then we never found another path with a diff, which would
+  // be odd, because we should have at the very least gotten back to our
+  // original path.
+  throw new Error(
+    `findRelativePathWithDiff was unable to find a path with a diff using currentPath: ${currentPath}`,
+  );
+};
+
 type MessagePathAndUid = {
   path: string;
   uid: LinterMessage['uid'];

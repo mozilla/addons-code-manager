@@ -8,6 +8,7 @@ import reducer, {
   buildFileTree,
   buildFileTreeNodes,
   buildTreePathList,
+  findRelativePathWithDiff,
   getRelativeMessage,
   getRelativePath,
   getTree,
@@ -1010,6 +1011,127 @@ describe(__filename, () => {
           }),
         ).toEqual({ path: file3, uid: global12 });
       });
+    });
+  });
+
+  describe('findRelativePathWithDiff', () => {
+    const file1 = 'file1.js';
+    const file2 = 'file2.js';
+    const file3 = 'file3.js';
+
+    const entries = [
+      createInternalVersionEntry({
+        ...fakeVersionEntry,
+        filename: file1,
+        mime_category: 'text',
+        path: file1,
+        status: 'M',
+      }),
+      // Note that file2 does not contain any changes.
+      createInternalVersionEntry({
+        ...fakeVersionEntry,
+        filename: file2,
+        mime_category: 'text',
+        path: file2,
+        status: '',
+      }),
+      createInternalVersionEntry({
+        ...fakeVersionEntry,
+        filename: file3,
+        mime_category: 'text',
+        path: file3,
+        status: 'M',
+      }),
+    ];
+    const version = createVersionWithEntries(entries);
+
+    it('gets the next path which has a diff', () => {
+      expect(
+        findRelativePathWithDiff({
+          currentPath: file1,
+          pathList: [file1, file2, file3],
+          position: RelativePathPosition.next,
+          version,
+        }),
+      ).toEqual(file3);
+    });
+
+    it('gets the previous path which has a diff', () => {
+      expect(
+        findRelativePathWithDiff({
+          currentPath: file3,
+          pathList: [file1, file2, file3],
+          position: RelativePathPosition.previous,
+          version,
+        }),
+      ).toEqual(file1);
+    });
+
+    it('wraps around to the first path on next', () => {
+      expect(
+        findRelativePathWithDiff({
+          currentPath: file3,
+          pathList: [file1, file2, file3],
+          position: RelativePathPosition.next,
+          version,
+        }),
+      ).toEqual(file1);
+    });
+
+    it('wraps around to the last path on previous', () => {
+      expect(
+        findRelativePathWithDiff({
+          currentPath: file1,
+          pathList: [file1, file2, file3],
+          position: RelativePathPosition.previous,
+          version,
+        }),
+      ).toEqual(file3);
+    });
+
+    it('returns the current path if there are no other paths with changes', () => {
+      expect(
+        findRelativePathWithDiff({
+          currentPath: file1,
+          pathList: [file1, file2],
+          position: RelativePathPosition.next,
+          version,
+        }),
+      ).toEqual(file1);
+    });
+
+    it('throws an error if no entry is found for the next path', () => {
+      const testVersion = createVersionWithEntries([
+        createInternalVersionEntry({
+          ...fakeVersionEntry,
+          filename: file1,
+          mime_category: 'text',
+          path: file1,
+          status: 'M',
+        }),
+      ]);
+
+      expect(() => {
+        findRelativePathWithDiff({
+          currentPath: file1,
+          pathList: [file1, file2],
+          position: RelativePathPosition.next,
+          version: testVersion,
+        });
+      }).toThrow(`Entry missing for path: ${file2}, versionId: ${version.id}`);
+    });
+
+    it('throws an error if no paths with diffs were found at all', () => {
+      expect(() => {
+        findRelativePathWithDiff({
+          currentPath: file1,
+          pathList: [],
+          position: RelativePathPosition.next,
+          version,
+        });
+      }).toThrow(
+        `findRelativePathWithDiff was unable to find a path with a diff using currentPath: ${file1}`,
+      );
     });
   });
 });
