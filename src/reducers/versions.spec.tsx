@@ -1893,6 +1893,17 @@ describe(__filename, () => {
   });
 
   describe('getRelativeDiffAnchor', () => {
+    it('returns null if there are no changes in the diff', () => {
+      const diff = createDiff([[{ lineNumber: 1, type: 'normal' }]]);
+      expect(
+        getRelativeDiffAnchor({
+          currentAnchor: '',
+          diff,
+          position: RelativePathPosition.next,
+        }),
+      ).toEqual(null);
+    });
+
     it.each([
       ['next', RelativePathPosition.next],
       ['previous', RelativePathPosition.previous],
