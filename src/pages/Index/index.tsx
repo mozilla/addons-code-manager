@@ -1,12 +1,21 @@
 import * as React from 'react';
 import { Col } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 
 import { gettext } from '../../utils';
 
-type Props = {};
+type Props = {
+  showLocalDevLinks: boolean;
+};
 
 export class IndexBase extends React.Component<Props> {
+  static defaultProps = {
+    showLocalDevLinks: process.env.REACT_APP_IS_LOCAL_DEV === 'true',
+  };
+
   render() {
+    const { showLocalDevLinks } = this.props;
+
     const apiHost = process.env.REACT_APP_API_HOST;
     const repoUrl = 'https://github.com/mozilla/addons-code-manager';
 
@@ -35,6 +44,29 @@ export class IndexBase extends React.Component<Props> {
             <a href={repoUrl}>{gettext('GitHub repository')}</a>
           </li>
         </ul>
+        {showLocalDevLinks && (
+          <React.Fragment>
+            <hr />
+            <p>{gettext('Dev links (only shown in local dev):')}</p>
+            <ul>
+              <li>
+                <Link to="/en-US/browse/494431/versions/1532144/">
+                  a browse page
+                </Link>
+              </li>
+              <li>
+                <Link to="/en-US/compare/502955/versions/1541794...1541798/">
+                  a compare page
+                </Link>
+              </li>
+              <li>
+                <Link to="/en-US/browse/502955/versions/1000000/">
+                  a browse page that will generate an error
+                </Link>
+              </li>
+            </ul>
+          </React.Fragment>
+        )}
       </Col>
     );
   }
