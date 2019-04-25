@@ -3,6 +3,7 @@ import log from 'loglevel';
 
 import {
   createFakeExternalLinterResult,
+  createFakeLinterMessagesByPath,
   fakeExternalLinterResult,
   fakeExternalLinterMessage,
   createFakeLogger,
@@ -17,6 +18,7 @@ import linterReducer, {
   fetchLinterMessagesIfNeeded,
   findMostSevereType,
   getMessageMap,
+  getMessagesForPath,
   initialState,
   selectMessageMap,
 } from './linter';
@@ -597,6 +599,82 @@ describe(__filename, () => {
           createMessageWithType('__unreal_type__'),
         ]);
       }).toThrow(/unknown types/);
+    });
+  });
+
+  describe('getMessagesForPath', () => {
+    const uid1 = 'global1';
+    const uid2 = 'global2';
+    const uid3 = 'line1-1';
+    const uid4 = 'line1-2';
+    const uid5 = 'line2';
+
+    it('throws an error if an extra key is found in the linter message map', () => {
+      const messages = createFakeLinterMessagesByPath({
+        messages: [{ line: null, uid: '123' }],
+      });
+
+      const unexpectedKey = 'future';
+      // Artifically inject a new key in the message map.
+      // @ts-ignore
+      messages[unexpectedKey] = {};
+
+      expect(() => {
+        getMessagesForPath(messages);
+      }).toThrow(new RegExp(`Unexpected key "${unexpectedKey}" found`));
+    });
+
+    it('aggregates global and byLine messages', () => {
+      const externalMessages = [
+        { line: null, uid: uid1 },
+        { line: null, uid: uid2 },
+        { line: 1, uid: uid3 },
+        { line: 1, uid: uid4 },
+        { line: 2, uid: uid5 },
+      ];
+      const messages = createFakeLinterMessagesByPath({
+        messages: externalMessages,
+      });
+
+      const messagesForPath = getMessagesForPath(messages);
+      expect(messagesForPath.length).toEqual(5);
+      expect(messagesForPath[0]).toHaveProperty('uid', uid1);
+      expect(messagesForPath[1]).toHaveProperty('uid', uid2);
+      expect(messagesForPath[2]).toHaveProperty('uid', uid3);
+      expect(messagesForPath[3]).toHaveProperty('uid', uid4);
+      expect(messagesForPath[4]).toHaveProperty('uid', uid5);
+    });
+
+    it('returns with only global messages', () => {
+      const externalMessages = [
+        { line: null, uid: uid1 },
+        { line: null, uid: uid2 },
+      ];
+      const messages = createFakeLinterMessagesByPath({
+        messages: externalMessages,
+      });
+
+      const messagesForPath = getMessagesForPath(messages);
+      expect(messagesForPath.length).toEqual(2);
+      expect(messagesForPath[0]).toHaveProperty('uid', uid1);
+      expect(messagesForPath[1]).toHaveProperty('uid', uid2);
+    });
+
+    it('returns with only byLine messages', () => {
+      const externalMessages = [
+        { line: 1, uid: uid3 },
+        { line: 1, uid: uid4 },
+        { line: 2, uid: uid5 },
+      ];
+      const messages = createFakeLinterMessagesByPath({
+        messages: externalMessages,
+      });
+
+      const messagesForPath = getMessagesForPath(messages);
+      expect(messagesForPath.length).toEqual(3);
+      expect(messagesForPath[0]).toHaveProperty('uid', uid3);
+      expect(messagesForPath[1]).toHaveProperty('uid', uid4);
+      expect(messagesForPath[2]).toHaveProperty('uid', uid5);
     });
   });
 });

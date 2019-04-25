@@ -644,27 +644,21 @@ describe(__filename, () => {
       expect(isKnownLibrary(map, path)).toEqual(true);
     });
 
-    it('throws an error if an extra key is found in the linter message map', () => {
+    it('calls getMessagesForPath to validate the messages for unexpected keys', () => {
       const path = 'jquery.js';
       const messages = [
         {
           ...fakeExternalLinterMessage,
           file: path,
-          id: [LINTER_KNOWN_LIBRARY_CODE],
-          line: null,
+          line: 123,
           type: 'notice',
         },
       ] as ExternalLinterMessage[];
       const map = _getMessageMap(messages);
+      const _getMessagesForPath = jest.fn().mockReturnValue([map[path]]);
 
-      const unexpectedKey = 'future';
-      // Artifically inject a new key in the message map.
-      // @ts-ignore
-      map[path][unexpectedKey] = {};
-
-      expect(() => {
-        isKnownLibrary(map, path);
-      }).toThrow(new RegExp(`Unexpected key "${unexpectedKey}" found`));
+      isKnownLibrary(map, path, _getMessagesForPath);
+      expect(_getMessagesForPath).toHaveBeenCalledWith(map[path]);
     });
   });
 });

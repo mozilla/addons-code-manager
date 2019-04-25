@@ -2,18 +2,22 @@
 import reducer, {
   ROOT_PATH,
   DirectoryNode,
+  GetRelativeMessageUidParams,
   RelativePathPosition,
   actions,
   buildFileTree,
   buildFileTreeNodes,
   buildTreePathList,
+  getRelativeMessageUid,
   getRelativePath,
   getTree,
   goToRelativeFile,
   initialState,
 } from './fileTree';
 import { createInternalVersion, createInternalVersionEntry } from './versions';
+import { getMessageMap } from './linter';
 import {
+  createFakeExternalLinterResult,
   createFakeThunk,
   createVersionWithEntries,
   fakeVersion,
@@ -582,6 +586,429 @@ describe(__filename, () => {
       expect(_viewVersionFile).toHaveBeenCalledWith({
         selectedPath: nextPath,
         versionId,
+      });
+    });
+  });
+
+  describe('getRelativeMessageUid', () => {
+    const file1 = 'file1.js';
+    const file2 = 'file2.js';
+    const file3 = 'file3.js';
+    const line1 = 1;
+    const line2 = 2;
+    const line3 = 3;
+    const line1FirstUid = 'line1-uid-1';
+    const line1SecondUid = 'line1-uid-2';
+    const line2Uid = 'line2-uid';
+    const line3Uid = 'line3-uid';
+    const global1 = 'global-uid-1';
+    const global2 = 'global-uid-2';
+
+    const _getRelativeMessageUid = ({
+      currentMessageUid = 'uid1',
+      currentPath = file1,
+      messageMap = getMessageMap(
+        createFakeExternalLinterResult({ messages: [] }),
+      ),
+      pathList = [file1],
+      position = RelativePathPosition.next,
+    }: Partial<GetRelativeMessageUidParams>) => {
+      return getRelativeMessageUid({
+        currentMessageUid,
+        currentPath,
+        messageMap,
+        pathList,
+        position,
+      });
+    };
+
+    it('returns null if there are no messages in the map', () => {
+      expect(
+        _getRelativeMessageUid({
+          currentMessageUid: '',
+          messageMap: getMessageMap(
+            createFakeExternalLinterResult({ messages: [] }),
+          ),
+        }),
+      ).toEqual(null);
+    });
+
+    it('throws an error if there is a current message, but no messages for the current path', () => {
+      const currentPath = 'currentPath.js';
+      const messagePath = 'notTheCurrentPath.js';
+
+      const messageMap = getMessageMap(
+        createFakeExternalLinterResult({
+          messages: [{ file: messagePath, line: line1, uid: 'line1' }],
+        }),
+      );
+
+      expect(() => {
+        _getRelativeMessageUid({
+          currentMessageUid: 'some-uid',
+          currentPath,
+          messageMap,
+        });
+      }).toThrow(`No messages found for current path: ${currentPath}`);
+    });
+
+    it('throws an error with an empty pathList', () => {
+      const messageMap = getMessageMap(
+        createFakeExternalLinterResult({
+          messages: [
+            { file: file1, line: null, uid: global1 },
+            { file: file1, line: line1, uid: line1FirstUid },
+            { file: file3, line: null, uid: global2 },
+          ],
+        }),
+      );
+
+      expect(() => {
+        _getRelativeMessageUid({
+          currentMessageUid: global2,
+          currentPath: file3,
+          messageMap,
+          pathList: [],
+          position: RelativePathPosition.next,
+        });
+      }).toThrow(
+        `findRelativeMessageUid was unable to find a message using currentPath: ${file3}`,
+      );
+    });
+
+    it('returns the first global message if no currentMessageUid exists', () => {
+      const messageMap = getMessageMap(
+        createFakeExternalLinterResult({
+          messages: [
+            { file: file1, line: null, uid: global1 },
+            { file: file1, line: line1, uid: line1FirstUid },
+          ],
+        }),
+      );
+
+      expect(
+        _getRelativeMessageUid({
+          currentMessageUid: '',
+          messageMap,
+        }),
+      ).toEqual(global1);
+    });
+
+    it('returns the first global message from a path with messages if no currentMessageUid exists', () => {
+      const pathList = [file1, file2];
+
+      const messageMap = getMessageMap(
+        createFakeExternalLinterResult({
+          messages: [
+            { file: file2, line: null, uid: global1 },
+            { file: file2, line: line1, uid: line1FirstUid },
+          ],
+        }),
+      );
+
+      expect(
+        _getRelativeMessageUid({
+          currentMessageUid: '',
+          currentPath: file2,
+          messageMap,
+          pathList,
+        }),
+      ).toEqual(global1);
+    });
+
+    it('returns the first byLine message if no currentMessageUid exists and no global messages exist', () => {
+      const messageMap = getMessageMap(
+        createFakeExternalLinterResult({
+          messages: [{ file: file1, line: line1, uid: line1FirstUid }],
+        }),
+      );
+
+      expect(
+        _getRelativeMessageUid({
+          currentMessageUid: '',
+          messageMap,
+        }),
+      ).toEqual(line1FirstUid);
+    });
+
+    describe('messages within a file', () => {
+      const messageMap = getMessageMap(
+        createFakeExternalLinterResult({
+          messages: [
+            { file: file1, line: null, uid: global1 },
+            { file: file1, line: null, uid: global2 },
+            { file: file1, line: line1, uid: line1FirstUid },
+            { file: file1, line: line1, uid: line1SecondUid },
+            { file: file1, line: line2, uid: line2Uid },
+            { file: file1, line: line3, uid: line3Uid },
+          ],
+        }),
+      );
+
+      it('returns the next global message in the file', () => {
+        expect(
+          _getRelativeMessageUid({
+            currentMessageUid: global1,
+            messageMap,
+            position: RelativePathPosition.next,
+          }),
+        ).toEqual(global2);
+      });
+
+      it('returns the previous global message in the file', () => {
+        expect(
+          _getRelativeMessageUid({
+            currentMessageUid: global2,
+            messageMap,
+            position: RelativePathPosition.previous,
+          }),
+        ).toEqual(global1);
+      });
+
+      it('returns the first byLine message when at the last global message for the file', () => {
+        expect(
+          _getRelativeMessageUid({
+            currentMessageUid: global2,
+            messageMap,
+            position: RelativePathPosition.next,
+          }),
+        ).toEqual(line1FirstUid);
+      });
+
+      it('returns the last global message when at the first byLine message for the file', () => {
+        expect(
+          _getRelativeMessageUid({
+            currentMessageUid: line1FirstUid,
+            messageMap,
+            position: RelativePathPosition.previous,
+          }),
+        ).toEqual(global2);
+      });
+
+      it('returns the next byLine message for the line', () => {
+        expect(
+          _getRelativeMessageUid({
+            currentMessageUid: line1FirstUid,
+            messageMap,
+            position: RelativePathPosition.next,
+          }),
+        ).toEqual(line1SecondUid);
+      });
+
+      it('returns the previous byLine message for the line', () => {
+        expect(
+          _getRelativeMessageUid({
+            currentMessageUid: line1SecondUid,
+            messageMap,
+            position: RelativePathPosition.previous,
+          }),
+        ).toEqual(line1FirstUid);
+      });
+
+      it('returns the next byLine message for the file', () => {
+        expect(
+          _getRelativeMessageUid({
+            currentMessageUid: line1SecondUid,
+            messageMap,
+            position: RelativePathPosition.next,
+          }),
+        ).toEqual(line2Uid);
+      });
+
+      it('returns the previous byLine message for the file', () => {
+        expect(
+          _getRelativeMessageUid({
+            currentMessageUid: line2Uid,
+            messageMap,
+            position: RelativePathPosition.previous,
+          }),
+        ).toEqual(line1SecondUid);
+      });
+
+      it('returns the next byLine message for the file when no more messages for a line', () => {
+        expect(
+          _getRelativeMessageUid({
+            currentMessageUid: line1SecondUid,
+            messageMap,
+            position: RelativePathPosition.next,
+          }),
+        ).toEqual(line2Uid);
+      });
+
+      it('returns the previous byLine message for the file when no more messages for the line', () => {
+        expect(
+          _getRelativeMessageUid({
+            currentMessageUid: line2Uid,
+            messageMap,
+            position: RelativePathPosition.previous,
+          }),
+        ).toEqual(line1SecondUid);
+      });
+    });
+
+    describe('messages for multiple files', () => {
+      const line1Uid1 = 'line1-uid-1';
+      const line2Uid1 = 'line2-uid-1';
+      const global11 = 'global-uid-1-1';
+      const global21 = 'global-uid-2-1';
+      const line1Uid2 = 'line1-uid-2';
+      const global12 = 'global-uid-1-2';
+
+      const pathList = [file1, file2, file3];
+
+      it('returns the first global message in the next file', () => {
+        const messageMap = getMessageMap(
+          createFakeExternalLinterResult({
+            messages: [
+              { file: file1, line: null, uid: global11 },
+              { file: file3, line: null, uid: global12 },
+              { file: file3, line: line1, uid: line1Uid2 },
+            ],
+          }),
+        );
+        expect(
+          _getRelativeMessageUid({
+            currentMessageUid: global11,
+            currentPath: file1,
+            messageMap,
+            pathList,
+            position: RelativePathPosition.next,
+          }),
+        ).toEqual(global12);
+      });
+
+      it('returns the first byLine message in the next file', () => {
+        const messageMap = getMessageMap(
+          createFakeExternalLinterResult({
+            messages: [
+              { file: file1, line: null, uid: global11 },
+              { file: file3, line: line1, uid: line1Uid2 },
+            ],
+          }),
+        );
+
+        expect(
+          _getRelativeMessageUid({
+            currentMessageUid: global11,
+            currentPath: file1,
+            messageMap,
+            pathList,
+            position: RelativePathPosition.next,
+          }),
+        ).toEqual(line1Uid2);
+      });
+
+      it('skips files with empty messages', () => {
+        const messageMap = getMessageMap(
+          createFakeExternalLinterResult({
+            messages: [
+              { file: file1, line: null, uid: global11 },
+              { file: file3, line: line1, uid: line1Uid2 },
+            ],
+          }),
+        );
+
+        // Map a file without any messages. This file should be skipped.
+        messageMap[file2] = { global: [], byLine: [] };
+
+        expect(
+          _getRelativeMessageUid({
+            currentMessageUid: global11,
+            currentPath: file1,
+            messageMap,
+            pathList,
+            position: RelativePathPosition.next,
+          }),
+        ).toEqual(line1Uid2);
+      });
+
+      it('returns the last byLine message in the previous file', () => {
+        const messageMap = getMessageMap(
+          createFakeExternalLinterResult({
+            messages: [
+              { file: file1, line: null, uid: global11 },
+              { file: file1, line: line1, uid: line1Uid1 },
+              { file: file1, line: line2, uid: line2Uid1 },
+              { file: file3, line: null, uid: global12 },
+            ],
+          }),
+        );
+
+        expect(
+          _getRelativeMessageUid({
+            currentMessageUid: global12,
+            currentPath: file3,
+            messageMap,
+            pathList,
+            position: RelativePathPosition.previous,
+          }),
+        ).toEqual(line2Uid1);
+      });
+
+      it('returns the last global message in the previous file', () => {
+        const messageMap = getMessageMap(
+          createFakeExternalLinterResult({
+            messages: [
+              { file: file1, line: null, uid: global11 },
+              { file: file1, line: null, uid: global21 },
+              { file: file3, line: null, uid: global12 },
+            ],
+          }),
+        );
+
+        expect(
+          _getRelativeMessageUid({
+            currentMessageUid: global12,
+            currentPath: file3,
+            messageMap,
+            pathList,
+            position: RelativePathPosition.previous,
+          }),
+        ).toEqual(global21);
+      });
+
+      it('wraps around from the last message in the last file to the first message in the first file', () => {
+        const messageMap = getMessageMap(
+          createFakeExternalLinterResult({
+            messages: [
+              { file: file1, line: null, uid: global11 },
+              { file: file1, line: null, uid: global21 },
+              { file: file3, line: null, uid: global12 },
+            ],
+          }),
+        );
+
+        expect(
+          _getRelativeMessageUid({
+            currentMessageUid: global12,
+            currentPath: file3,
+            messageMap,
+            pathList,
+            position: RelativePathPosition.next,
+          }),
+        ).toEqual(global11);
+      });
+
+      it('wraps around from the first message in the first file to the last message in the last file', () => {
+        const messageMap = getMessageMap(
+          createFakeExternalLinterResult({
+            messages: [
+              { file: file1, line: null, uid: global11 },
+              { file: file1, line: null, uid: global21 },
+              { file: file3, line: null, uid: global12 },
+            ],
+          }),
+        );
+
+        expect(
+          _getRelativeMessageUid({
+            currentMessageUid: global11,
+            currentPath: file1,
+            messageMap,
+            pathList,
+            position: RelativePathPosition.previous,
+          }),
+        ).toEqual(global12);
       });
     });
   });
