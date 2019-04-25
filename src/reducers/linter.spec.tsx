@@ -608,11 +608,6 @@ describe(__filename, () => {
     const uid3 = 'line1-1';
     const uid4 = 'line1-2';
     const uid5 = 'line2';
-    const message1 = { line: null, uid: uid1 };
-    const message2 = { line: null, uid: uid2 };
-    const message3 = { line: 1, uid: uid3 };
-    const message4 = { line: 1, uid: uid4 };
-    const message5 = { line: 2, uid: uid5 };
 
     it('throws an error if an extra key is found in the linter message map', () => {
       const messages = createFakeLinterMessagesByPath({
@@ -631,11 +626,11 @@ describe(__filename, () => {
 
     it('aggregates global and byLine messages', () => {
       const externalMessages = [
-        message1,
-        message2,
-        message3,
-        message4,
-        message5,
+        { line: null, uid: uid1 },
+        { line: null, uid: uid2 },
+        { line: 1, uid: uid3 },
+        { line: 1, uid: uid4 },
+        { line: 2, uid: uid5 },
       ];
       const messages = createFakeLinterMessagesByPath({
         messages: externalMessages,
@@ -651,7 +646,10 @@ describe(__filename, () => {
     });
 
     it('returns with only global messages', () => {
-      const externalMessages = [message1, message2];
+      const externalMessages = [
+        { line: null, uid: uid1 },
+        { line: null, uid: uid2 },
+      ];
       const messages = createFakeLinterMessagesByPath({
         messages: externalMessages,
       });
@@ -663,7 +661,11 @@ describe(__filename, () => {
     });
 
     it('returns with only byLine messages', () => {
-      const externalMessages = [message3, message4, message5];
+      const externalMessages = [
+        { line: 1, uid: uid3 },
+        { line: 1, uid: uid4 },
+        { line: 2, uid: uid5 },
+      ];
       const messages = createFakeLinterMessagesByPath({
         messages: externalMessages,
       });
