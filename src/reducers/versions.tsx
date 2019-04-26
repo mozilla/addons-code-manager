@@ -26,6 +26,7 @@ type VersionLicense = {
   url: string;
 };
 
+export type VersionEntryStatus = '' | 'M' | 'A' | 'D' | 'R' | 'C';
 export type VersionEntryType = 'image' | 'directory' | 'text' | 'binary';
 
 export type ExternalVersionEntry = {
@@ -37,6 +38,7 @@ export type ExternalVersionEntry = {
   path: string;
   sha256: string;
   size: number | null;
+  status?: VersionEntryStatus;
 };
 
 type PartialExternalVersionFile = {
@@ -162,6 +164,7 @@ type VersionEntry = {
   modified: string;
   path: string;
   sha256: string;
+  status?: VersionEntryStatus;
   type: VersionEntryType;
 };
 
@@ -329,6 +332,7 @@ export const createInternalVersionEntry = (
     modified: entry.modified,
     path: entry.path,
     sha256: entry.sha256,
+    status: entry.status,
     type: entry.mime_category,
   };
 };
