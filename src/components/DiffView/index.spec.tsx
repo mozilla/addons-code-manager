@@ -164,7 +164,7 @@ describe(__filename, () => {
 
     expect(root.find(`.${styles.header}`)).toHaveLength(1);
     expect(root.find(`.${styles.stats}`)).toHaveLength(1);
-    expect(root.find(`.${styles.stats}`)).toIncludeText('+++ 25--- 5');
+    expect(root.find(`.${styles.stats}`)).toIncludeText('+++ 24--- 4');
   });
 
   it('renders hunks with separators', () => {
