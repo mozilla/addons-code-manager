@@ -64,11 +64,11 @@ export class BrowseBase extends React.Component<Props> {
     this.loadData();
   }
 
-  componentDidUpdate(prevProps: Props) {
-    this.loadData(prevProps);
+  componentDidUpdate() {
+    this.loadData();
   }
 
-  loadData(prevProps?: Props) {
+  loadData() {
     const {
       _fetchVersion,
       _fetchVersionFile,
@@ -79,6 +79,8 @@ export class BrowseBase extends React.Component<Props> {
       match,
       version,
     } = this.props;
+
+    const path = getPathFromQueryString(history);
 
     if (version === null) {
       // An error has occured when fetching the version.
@@ -92,20 +94,9 @@ export class BrowseBase extends React.Component<Props> {
         _fetchVersion({
           addonId: parseInt(addonId, 10),
           versionId: parseInt(versionId, 10),
+          path: path || undefined,
         }),
       );
-      return;
-    }
-
-    const path = getPathFromQueryString(history);
-
-    // We do not want to update the selected path again (e.g., when a keyboard
-    // navigation updates the selected path), so we apply this logic to the
-    // first render (mount) only.
-    if (!prevProps && path && path !== version.selectedPath) {
-      // We preserve the hash in the URL (if any) when we load the file from an
-      // URL that has likely been shared.
-      this.viewVersionFile(path, { preserveHash: true });
       return;
     }
 
@@ -120,9 +111,7 @@ export class BrowseBase extends React.Component<Props> {
     }
   }
 
-  // When selecting a new file to view, we do not want to preserve the hash in
-  // the URL (this hash highlights a specific line of code).
-  viewVersionFile = (path: string, { preserveHash = false } = {}) => {
+  viewVersionFile = (path: string) => {
     const { _viewVersionFile, dispatch, match } = this.props;
     const { versionId } = match.params;
 
@@ -130,7 +119,9 @@ export class BrowseBase extends React.Component<Props> {
       _viewVersionFile({
         versionId: parseInt(versionId, 10),
         selectedPath: path,
-        preserveHash,
+        // When selecting a new file to view, we do not want to preserve the
+        // hash in the URL (this hash highlights a specific line of code).
+        preserveHash: false,
       }),
     );
   };

@@ -737,6 +737,20 @@ describe(__filename, () => {
   });
 
   describe('fetchVersion', () => {
+    const _fetchVersion = ({
+      addonId = 123,
+      version = fakeVersion,
+      _getVersion = jest.fn().mockReturnValue(Promise.resolve(version)),
+      path = undefined as string | undefined,
+    } = {}) => {
+      return fetchVersion({
+        _getVersion,
+        addonId,
+        path,
+        versionId: version.id,
+      });
+    };
+
     it('dispatches beginFetchVersionFile', async () => {
       const version = fakeVersion;
       const _getVersion = jest.fn().mockReturnValue(Promise.resolve(version));
@@ -777,6 +791,25 @@ describe(__filename, () => {
         apiState: store.getState().api,
         versionId,
       });
+    });
+
+    it('calls getVersion with a given path', async () => {
+      const _getVersion = jest
+        .fn()
+        .mockReturnValue(Promise.resolve(fakeVersion));
+      const path = 'some/file.js';
+
+      const { thunk } = thunkTester({
+        createThunk: () => _fetchVersion({ _getVersion, path }),
+      });
+
+      await thunk();
+
+      expect(_getVersion).toHaveBeenCalledWith(
+        expect.objectContaining({
+          path,
+        }),
+      );
     });
 
     it('dispatches loadVersionInfo() when API response is successful', async () => {
