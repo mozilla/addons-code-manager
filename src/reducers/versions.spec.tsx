@@ -1,5 +1,5 @@
 import { push } from 'connected-react-router';
-import { ChangeType, parseDiff } from 'react-diff-view';
+import { ChangeInfo, DiffInfo, parseDiff } from 'react-diff-view';
 import { getType } from 'typesafe-actions';
 
 import { actions as errorsActions } from './errors';
@@ -1814,15 +1814,17 @@ describe(__filename, () => {
   });
 
   type TestHunkChange = {
-    lineNumber: number;
-    type: string;
+    lineNumber: ChangeInfo['lineNumber'];
+    type: ChangeInfo['type'];
   };
-
-  type TestHunk = TestHunkChange[];
 
   // This helper accepts an array of arrays, each of which is a list of changes
   // which will be contained in a hunk.
-  const createDiff = (testHunks: TestHunk[]): DiffInfo => {
+  const createFakeDiffWithChanges = (
+    testHunks: TestHunkChange[][],
+  ): DiffInfo => {
+    // The fixture is only used to initialize some fields. All of the
+    // hunks/changes will be overwritten.
     const diffSample = parseDiff(diffWithDeletions)[0];
 
     const hunks = testHunks.map((hunk) => {
@@ -1836,7 +1838,7 @@ describe(__filename, () => {
             lineNumber: change.lineNumber,
             oldLineNumber:
               change.type === 'normal' ? change.lineNumber : undefined,
-            type: change.type as ChangeType,
+            type: change.type,
           };
         }),
         content: 'the content of hunks is irrelevant to the tests',
@@ -1856,7 +1858,7 @@ describe(__filename, () => {
 
   describe('getDiffAnchors', () => {
     it('returns the first anchor for each diff in a file', () => {
-      const diff = createDiff([
+      const diff = createFakeDiffWithChanges([
         // First hunk
         [
           { lineNumber: 1, type: 'insert' },
@@ -1894,7 +1896,9 @@ describe(__filename, () => {
 
   describe('getRelativeDiffAnchor', () => {
     it('returns null if there are no changes in the diff', () => {
-      const diff = createDiff([[{ lineNumber: 1, type: 'normal' }]]);
+      const diff = createFakeDiffWithChanges([
+        [{ lineNumber: 1, type: 'normal' }],
+      ]);
       expect(
         getRelativeDiffAnchor({
           currentAnchor: '',
@@ -1909,8 +1913,8 @@ describe(__filename, () => {
       ['previous', RelativePathPosition.previous],
     ])(
       'returns the first anchor with no current anchor for %s',
-      (desc, position) => {
-        const diff = createDiff([
+      (desc, pos) => {
+        const diff = createFakeDiffWithChanges([
           [
             { lineNumber: 1, type: 'normal' },
             { lineNumber: 2, type: 'delete' },
@@ -1919,6 +1923,8 @@ describe(__filename, () => {
             { lineNumber: 5, type: 'insert' },
           ],
         ]);
+        // This is needed because TS only sees arguments from `each` as strings.
+        const position = pos as RelativePathPosition;
         expect(
           getRelativeDiffAnchor({
             currentAnchor: '',
@@ -1930,7 +1936,9 @@ describe(__filename, () => {
     );
 
     it('throws an error if the currentAnchor cannot be found', () => {
-      const diff = createDiff([[{ lineNumber: 1, type: 'insert' }]]);
+      const diff = createFakeDiffWithChanges([
+        [{ lineNumber: 1, type: 'insert' }],
+      ]);
       const currentAnchor = 'D99';
       expect(() => {
         getRelativeDiffAnchor({
@@ -1942,7 +1950,7 @@ describe(__filename, () => {
     });
 
     it('returns the next anchor in the diff', () => {
-      const diff = createDiff([
+      const diff = createFakeDiffWithChanges([
         [
           { lineNumber: 1, type: 'delete' },
           { lineNumber: 2, type: 'insert' },
@@ -1960,7 +1968,7 @@ describe(__filename, () => {
     });
 
     it('returns the previous anchor in the diff', () => {
-      const diff = createDiff([
+      const diff = createFakeDiffWithChanges([
         [
           { lineNumber: 1, type: 'delete' },
           { lineNumber: 2, type: 'insert' },
@@ -1978,7 +1986,7 @@ describe(__filename, () => {
     });
 
     it('returns null if there is no next anchor in the diff', () => {
-      const diff = createDiff([
+      const diff = createFakeDiffWithChanges([
         [
           { lineNumber: 1, type: 'delete' },
           { lineNumber: 2, type: 'insert' },
@@ -1995,7 +2003,7 @@ describe(__filename, () => {
     });
 
     it('returns null if there is no previous anchor in the diff', () => {
-      const diff = createDiff([
+      const diff = createFakeDiffWithChanges([
         [
           { lineNumber: 1, type: 'normal' },
           { lineNumber: 2, type: 'delete' },

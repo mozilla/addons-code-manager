@@ -3,7 +3,7 @@
 declare module 'react-diff-view' {
   type ChangeType = 'delete' | 'insert' | 'normal';
 
-  type ChangeInfo = {
+  export type ChangeInfo = {
     content: string;
     isDelete?: boolean;
     isInsert?: boolean;
