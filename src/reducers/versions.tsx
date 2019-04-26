@@ -26,7 +26,7 @@ type VersionLicense = {
   url: string;
 };
 
-export type VersionEntryStatus = '' | 'M' | 'A' | 'D' | 'R' | 'C' | 'U';
+export type VersionEntryStatus = '' | 'M' | 'A' | 'D' | 'R' | 'C';
 export type VersionEntryType = 'image' | 'directory' | 'text' | 'binary';
 
 export type ExternalVersionEntry = {
