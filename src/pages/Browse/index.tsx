@@ -24,6 +24,7 @@ import { gettext, getPathFromQueryString } from '../../utils';
 import Loading from '../../components/Loading';
 import CodeView from '../../components/CodeView';
 import FileMetadata from '../../components/FileMetadata';
+import ImageView from '../../components/ImageView';
 import styles from './styles.module.scss';
 
 export type PublicProps = {};
@@ -138,6 +139,22 @@ export class BrowseBase extends React.Component<Props> {
       );
     }
 
+    const getContent = () => {
+      if (!file) {
+        return <Loading message={gettext('Loading content...')} />;
+      }
+      if (file.type === 'image') {
+        return <ImageView content={file.content} mimeType={file.mimeType} />;
+      }
+      return (
+        <CodeView
+          mimeType={file.mimeType}
+          content={file.content}
+          version={version}
+        />
+      );
+    };
+
     return (
       <ContentShell
         mainSidePanel={
@@ -158,15 +175,7 @@ export class BrowseBase extends React.Component<Props> {
           ) : null
         }
       >
-        {file ? (
-          <CodeView
-            mimeType={file.mimeType}
-            content={file.content}
-            version={version}
-          />
-        ) : (
-          <Loading message={gettext('Loading content...')} />
-        )}
+        {getContent()}
       </ContentShell>
     );
   }

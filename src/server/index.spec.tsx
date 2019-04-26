@@ -156,6 +156,7 @@ describe(__filename, () => {
         expect(policy['font-src']).toEqual(["'none'"]);
         expect(policy['img-src']).toEqual([
           `${fakeEnv.PUBLIC_URL}${STATIC_PATH}`,
+          'data:',
         ]);
         expect(policy['manifest-src']).toEqual(["'none'"]);
         expect(policy['media-src']).toEqual(["'none'"]);
@@ -616,7 +617,7 @@ describe(__filename, () => {
         expect(response.header).toHaveProperty('content-security-policy');
 
         const policy = cspParser(response.header['content-security-policy']);
-        expect(policy['img-src']).toEqual(["'self'"]);
+        expect(policy['img-src']).toEqual(["'self'", 'data:']);
       });
 
       it('relaxes script-src for local dev', async () => {
