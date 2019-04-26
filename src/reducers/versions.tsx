@@ -751,7 +751,7 @@ export const fetchDiff = ({
         path,
       )
     ) {
-      log.debug('Aborting because diff is already being fetched');
+      log.debug('Aborting because the diff is already being fetched');
       return;
     }
 

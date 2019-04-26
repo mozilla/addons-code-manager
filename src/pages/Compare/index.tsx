@@ -155,7 +155,7 @@ export class CompareBase extends React.Component<Props> {
   }
 }
 
-const mapStateToProps = (
+export const mapStateToProps = (
   state: ApplicationState,
   ownProps: RouteComponentProps<PropsFromRouter>,
 ): PropsFromState => {

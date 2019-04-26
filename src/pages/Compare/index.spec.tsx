@@ -24,7 +24,7 @@ import Loading from '../../components/Loading';
 import VersionChooser from '../../components/VersionChooser';
 import styles from './styles.module.scss';
 
-import Compare, { CompareBase, PublicProps } from '.';
+import Compare, { CompareBase, PublicProps, mapStateToProps } from '.';
 
 describe(__filename, () => {
   type GetRouteParamsParams = {
@@ -350,7 +350,7 @@ describe(__filename, () => {
     expect(dispatchSpy).not.toHaveBeenCalled();
   });
 
-  it('dispatches fetchDiff() on update if compareInfo is undefined', () => {
+  it('dispatches fetchDiff() on update when baseVersionId changes', () => {
     const {
       _fetchDiff,
       addonId,
@@ -359,16 +359,147 @@ describe(__filename, () => {
       fakeThunk,
       headVersionId,
       root,
+      store,
     } = loadDiffAndRender();
 
-    root.setProps({ compareInfo: undefined });
+    const newBaseVersionId = baseVersionId + 1;
+    const routerProps = {
+      ...createFakeRouteComponentProps({
+        params: getRouteParams({
+          addonId,
+          baseVersionId: newBaseVersionId,
+          headVersionId,
+        }),
+      }),
+    };
+
+    root.setProps({
+      ...routerProps,
+      ...mapStateToProps(store.getState(), {
+        ...root.instance().props,
+        ...routerProps,
+      }),
+    });
 
     expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
-    expect(_fetchDiff).toHaveBeenCalledWith({
+    expect(_fetchDiff).toHaveBeenCalledWith(
+      expect.objectContaining({ baseVersionId: newBaseVersionId }),
+    );
+  });
+
+  it('dispatches fetchDiff() on update when headVersionId changes', () => {
+    const {
+      _fetchDiff,
       addonId,
       baseVersionId,
+      dispatchSpy,
+      fakeThunk,
       headVersionId,
+      root,
+      store,
+    } = loadDiffAndRender();
+
+    const newHeadVersionId = headVersionId + 1;
+    const routerProps = {
+      ...createFakeRouteComponentProps({
+        params: getRouteParams({
+          addonId,
+          baseVersionId,
+          headVersionId: newHeadVersionId,
+        }),
+      }),
+    };
+
+    root.setProps({
+      ...routerProps,
+      ...mapStateToProps(store.getState(), {
+        ...root.instance().props,
+        ...routerProps,
+      }),
     });
+
+    expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(_fetchDiff).toHaveBeenCalledWith(
+      expect.objectContaining({ headVersionId: newHeadVersionId }),
+    );
+  });
+
+  it('dispatches fetchDiff() on update when addonId changes', () => {
+    const {
+      _fetchDiff,
+      addonId,
+      baseVersionId,
+      dispatchSpy,
+      fakeThunk,
+      headVersionId,
+      root,
+      store,
+    } = loadDiffAndRender();
+
+    const newAddonId = addonId + 1;
+    const routerProps = {
+      ...createFakeRouteComponentProps({
+        params: getRouteParams({
+          addonId: newAddonId,
+          baseVersionId,
+          headVersionId,
+        }),
+      }),
+    };
+
+    root.setProps({
+      ...routerProps,
+      ...mapStateToProps(store.getState(), {
+        ...root.instance().props,
+        ...routerProps,
+      }),
+    });
+
+    expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(_fetchDiff).toHaveBeenCalledWith(
+      expect.objectContaining({ addonId: newAddonId }),
+    );
+  });
+
+  it('dispatches fetchDiff() on update when path changes', () => {
+    const {
+      _fetchDiff,
+      addonId,
+      baseVersionId,
+      dispatchSpy,
+      fakeThunk,
+      headVersionId,
+      root,
+      store,
+    } = loadDiffAndRender();
+
+    const path = 'some-new-path';
+    const history = createFakeHistory({
+      location: createFakeLocation({
+        search: queryString.stringify({ path }),
+      }),
+    });
+    const routerProps = {
+      ...createFakeRouteComponentProps({
+        history,
+        params: getRouteParams({
+          addonId,
+          baseVersionId,
+          headVersionId,
+        }),
+      }),
+    };
+
+    root.setProps({
+      ...routerProps,
+      ...mapStateToProps(store.getState(), {
+        ...root.instance().props,
+        ...routerProps,
+      }),
+    });
+
+    expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(_fetchDiff).toHaveBeenCalledWith(expect.objectContaining({ path }));
   });
 
   it('dispatches viewVersionFile() when a file is selected', () => {
