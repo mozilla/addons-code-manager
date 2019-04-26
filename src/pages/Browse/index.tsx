@@ -118,6 +118,8 @@ export class BrowseBase extends React.Component<Props> {
       _viewVersionFile({
         versionId: parseInt(versionId, 10),
         selectedPath: path,
+        // When selecting a new file to view, we do not want to preserve the
+        // hash in the URL (this hash highlights a specific line of code).
         preserveHash: false,
       }),
     );
