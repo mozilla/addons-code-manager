@@ -8,6 +8,7 @@ import { ApplicationState } from '../../reducers';
 import { ConnectedReduxProps } from '../../configureStore';
 import { ApiState } from '../../reducers/api';
 import CodeOverview from '../../components/CodeOverview';
+import { ContentShell } from '../../components/FullscreenGrid';
 import FileTree from '../../components/FileTree';
 import {
   Version,
@@ -131,50 +132,42 @@ export class BrowseBase extends React.Component<Props> {
 
     if (!version) {
       return (
-        <Col>
+        <ContentShell>
           <Loading message={gettext('Loading version...')} />
-        </Col>
+        </ContentShell>
       );
     }
 
     return (
-      <React.Fragment>
-        <Col md="3">
-          <Row>
-            <Col>
-              <FileTree
-                onSelect={this.viewVersionFile}
-                versionId={version.id}
-              />
-            </Col>
-          </Row>
-          {file && (
-            <Row>
-              <Col className={styles.metadata}>
-                <FileMetadata file={file} />
-              </Col>
-            </Row>
-          )}
-        </Col>
-        {file ? (
+      <ContentShell
+        mainSidePanel={
           <React.Fragment>
-            <Col md="8">
-              <CodeView
-                mimeType={file.mimeType}
-                content={file.content}
-                version={version}
-              />
-            </Col>
-            <Col md="1">
-              <CodeOverview content={file.content} version={version} />
-            </Col>
+            <FileTree onSelect={this.viewVersionFile} versionId={version.id} />
+            {file && (
+              <Row>
+                <Col className={styles.metadata}>
+                  <FileMetadata file={file} />
+                </Col>
+              </Row>
+            )}
           </React.Fragment>
+        }
+        altSidePanel={
+          file ? (
+            <CodeOverview content={file.content} version={version} />
+          ) : null
+        }
+      >
+        {file ? (
+          <CodeView
+            mimeType={file.mimeType}
+            content={file.content}
+            version={version}
+          />
         ) : (
-          <Col md="9">
-            <Loading message={gettext('Loading content...')} />
-          </Col>
+          <Loading message={gettext('Loading content...')} />
         )}
-      </React.Fragment>
+      </ContentShell>
     );
   }
 }

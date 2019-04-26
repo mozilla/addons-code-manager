@@ -1,13 +1,12 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { Alert, Container, Col, Row } from 'react-bootstrap';
+import { Alert } from 'react-bootstrap';
 import {
   Route,
   RouteComponentProps,
   Switch,
   withRouter,
 } from 'react-router-dom';
-import makeClassName from 'classnames';
 import log from 'loglevel';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -25,6 +24,7 @@ import {
   fetchCurrentUser,
   selectCurrentUser,
 } from '../../reducers/users';
+import FullscreenGrid, { ContentShell, Header } from '../FullscreenGrid';
 import Navbar from '../Navbar';
 import Browse from '../../pages/Browse';
 import Compare from '../../pages/Compare';
@@ -80,32 +80,23 @@ export class AppBase extends React.Component<Props> {
     }
   }
 
-  renderRow(content: JSX.Element, { className = '' } = {}) {
-    return (
-      <Row className={makeClassName(styles.content, className)}>{content}</Row>
-    );
-  }
-
   renderContent() {
     const { loading, user } = this.props;
 
     if (loading) {
-      return this.renderRow(
-        <React.Fragment>
+      return (
+        <ContentShell className={styles.isLoading}>
           <p>
             <FontAwesomeIcon icon="spinner" size="3x" spin />
           </p>
           <p>{gettext('Getting your workspace ready')}</p>
           <p>{gettext("Don't turn off your computer")}</p>
-        </React.Fragment>,
-        {
-          className: styles.isLoading,
-        },
+        </ContentShell>
       );
     }
 
     if (user) {
-      return this.renderRow(
+      return (
         <Switch>
           <Route exact path="/" component={Index} />
           <Route
@@ -119,13 +110,15 @@ export class AppBase extends React.Component<Props> {
             path="/:lang/compare/:addonId/versions/:baseVersionId...:headVersionId/"
           />
           <Route component={NotFound} />
-        </Switch>,
+        </Switch>
       );
     }
 
-    return this.renderRow(<p>{gettext('Please log in to continue.')}</p>, {
-      className: styles.loginMessage,
-    });
+    return (
+      <ContentShell className={styles.loginMessage}>
+        <p>{gettext('Please log in to continue.')}</p>
+      </ContentShell>
+    );
   }
 
   dismissError = (errorId: number) => {
@@ -141,10 +134,11 @@ export class AppBase extends React.Component<Props> {
       return null;
     }
 
-    return this.renderRow(
-      <Col>
+    return (
+      <div className={styles.errors}>
         {errors.map((error) => (
           <Alert
+            className={styles.errorAlert}
             dismissible
             key={error.id}
             onClose={() => this.dismissError(error.id)}
@@ -153,10 +147,7 @@ export class AppBase extends React.Component<Props> {
             {error.message}
           </Alert>
         ))}
-      </Col>,
-      {
-        className: styles.errors,
-      },
+      </div>
     );
   }
 
@@ -164,13 +155,13 @@ export class AppBase extends React.Component<Props> {
     const { loading } = this.props;
 
     return (
-      <React.Fragment>
-        {!loading && <Navbar />}
-        <Container className={styles.container} fluid>
+      <FullscreenGrid>
+        <Header>
+          {!loading && <Navbar />}
           {this.renderErrors()}
-          {this.renderContent()}
-        </Container>
-      </React.Fragment>
+        </Header>
+        {this.renderContent()}
+      </FullscreenGrid>
     );
   }
 }

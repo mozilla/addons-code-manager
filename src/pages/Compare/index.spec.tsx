@@ -8,6 +8,7 @@ import {
   createFakeLocation,
   createFakeThunk,
   fakeVersionWithDiff,
+  getContentShellPanel,
   shallowUntilTarget,
   spyOn,
 } from '../../test-helpers';
@@ -173,12 +174,11 @@ describe(__filename, () => {
     const addonId = 123;
     const root = render({ addonId: String(addonId) });
 
-    expect(root.find(Loading)).toHaveLength(2);
-    expect(root.find(Loading).at(0)).toHaveProp(
-      'message',
-      'Loading file tree...',
-    );
-    expect(root.find(Loading).at(1)).toHaveProp('message', 'Loading diff...');
+    expect(
+      getContentShellPanel(root, 'mainSidePanel').find(Loading),
+    ).toHaveProp('message', 'Loading file tree...');
+    expect(root.find(Loading)).toHaveProp('message', 'Loading diff...');
+
     // This component is always displayed.
     expect(root.find(VersionChooser)).toHaveLength(1);
     expect(root.find(VersionChooser)).toHaveProp('addonId', addonId);
@@ -198,8 +198,9 @@ describe(__filename, () => {
   it('renders a FileTree component when a diff has been loaded', () => {
     const { root, version } = loadDiffAndRender();
 
-    expect(root.find(FileTree)).toHaveLength(1);
-    expect(root.find(FileTree)).toHaveProp('versionId', version.id);
+    const tree = getContentShellPanel(root, 'mainSidePanel').find(FileTree);
+    expect(tree).toHaveLength(1);
+    expect(tree).toHaveProp('versionId', version.id);
   });
 
   it('renders a DiffView', () => {
@@ -260,7 +261,10 @@ describe(__filename, () => {
 
     const root = render({ store });
 
-    expect(root.find(`.${styles.error}`)).toHaveLength(2);
+    expect(
+      getContentShellPanel(root, 'mainSidePanel').find(`.${styles.error}`),
+    ).toHaveLength(1);
+    expect(root.find(`.${styles.error}`)).toHaveLength(1);
   });
 
   it('dispatches fetchDiff() on mount', () => {
@@ -438,7 +442,9 @@ describe(__filename, () => {
 
     dispatch.mockClear();
 
-    const onSelectFile = root.find(FileTree).prop('onSelect');
+    const onSelectFile = getContentShellPanel(root, 'mainSidePanel')
+      .find(FileTree)
+      .prop('onSelect');
     onSelectFile(path);
 
     expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);

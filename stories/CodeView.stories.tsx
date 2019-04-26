@@ -56,7 +56,12 @@ const render = ({
     version: createInternalVersion(fakeVersion),
     ...moreProps,
   };
-  return renderWithStoreAndRouter(<CodeView {...props} />, store);
+  return renderWithStoreAndRouter(
+    <div className="CodeView-panel">
+      <CodeView {...props} />
+    </div>,
+    store,
+  );
 };
 
 const renderJSWithMessages = (

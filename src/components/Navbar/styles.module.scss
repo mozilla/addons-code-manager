@@ -1,12 +1,31 @@
+@import '../../scss/variables';
+
 .Navbar {
   display: flex;
   justify-content: space-between;
+  padding: $default-padding;
+  width: 100%;
+}
+
+.brand,
+.text {
+  margin: 0;
+  padding: 0;
 }
 
 .brand a {
   color: #fff;
 }
 
+.brand a,
+.text,
+.Navbar {
+  align-items: center;
+  display: flex;
+  flex-align: center;
+  font-size: 0.9rem;
+}
+
 .username {
-  margin-right: 10px;
+  margin-right: $default-padding;
 }

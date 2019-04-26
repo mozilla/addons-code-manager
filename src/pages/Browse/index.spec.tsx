@@ -10,6 +10,7 @@ import {
   fakeVersion,
   fakeVersionEntry,
   fakeVersionFile,
+  getContentShellPanel,
   shallowUntilTarget,
   spyOn,
 } from '../../test-helpers';
@@ -187,8 +188,9 @@ describe(__filename, () => {
 
     const root = render({ store, versionId: String(version.id) });
 
-    expect(root.find(FileTree)).toHaveLength(1);
-    expect(root.find(FileTree)).toHaveProp('versionId', version.id);
+    const tree = getContentShellPanel(root, 'mainSidePanel').find(FileTree);
+    expect(tree).toHaveLength(1);
+    expect(tree).toHaveProp('versionId', version.id);
   });
 
   it('renders a FileMetadata component when a version file has loaded', () => {
@@ -199,8 +201,11 @@ describe(__filename, () => {
 
     const root = render({ store, versionId: String(version.id) });
 
-    expect(root.find(FileMetadata)).toHaveLength(1);
-    expect(root.find(FileMetadata)).toHaveProp(
+    const metadata = getContentShellPanel(root, 'mainSidePanel').find(
+      FileMetadata,
+    );
+    expect(metadata).toHaveLength(1);
+    expect(metadata).toHaveProp(
       'file',
       getVersionFile(
         store.getState().versions,
@@ -235,7 +240,9 @@ describe(__filename, () => {
       expect.objectContaining({ id: version.id }),
     );
 
-    const overview = root.find(CodeOverview);
+    const overview = getContentShellPanel(root, 'altSidePanel').find(
+      CodeOverview,
+    );
     expect(overview).toHaveLength(1);
     expect(overview).toHaveProp('content', content);
     expect(overview).toHaveProp(
@@ -285,7 +292,7 @@ describe(__filename, () => {
       versionId: String(version.id),
     });
 
-    const fileTree = root.find(FileTree);
+    const fileTree = getContentShellPanel(root, 'mainSidePanel').find(FileTree);
     expect(fileTree).toHaveProp('onSelect');
 
     const onSelectFile = fileTree.prop('onSelect');

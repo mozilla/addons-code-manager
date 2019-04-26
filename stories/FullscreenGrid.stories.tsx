@@ -3,9 +3,7 @@ import { storiesOf } from '@storybook/react';
 
 import FullscreenGrid, {
   Header,
-  NavPanel,
-  AltPanel,
-  ContentPanel,
+  ContentShell,
 } from '../src/components/FullscreenGrid';
 import { rootAttributeParams } from './utils';
 
@@ -27,11 +25,15 @@ storiesOf('FullscreenGrid', module)
       return (
         <FullscreenGrid>
           <Header className="FullscreenGridStory-Header">Header</Header>
-          <NavPanel className="FullscreenGridStory-NavPanel">NavPanel</NavPanel>
-          <ContentPanel className="FullscreenGridStory-ContentPanel">
-            ContentPanel
-          </ContentPanel>
-          <AltPanel className="FullscreenGridStory-AltPanel">AltPanel</AltPanel>
+          <ContentShell
+            altSidePanel="altSidePanel"
+            altSidePanelClass="FullscreenGridStory-altSidePanel"
+            className="FullscreenGridStory-content"
+            mainSidePanel="mainSidePanel"
+            mainSidePanelClass="FullscreenGridStory-mainSidePanel"
+          >
+            Content
+          </ContentShell>
         </FullscreenGrid>
       );
     },
@@ -48,9 +50,9 @@ storiesOf('FullscreenGrid', module)
       return (
         <FullscreenGrid>
           <Header className="FullscreenGridStory-Header">Header</Header>
-          <NavPanel>{someText}</NavPanel>
-          <ContentPanel>{someText}</ContentPanel>
-          <AltPanel>{someText}</AltPanel>
+          <ContentShell altSidePanel={someText} mainSidePanel={someText}>
+            {someText}
+          </ContentShell>
         </FullscreenGrid>
       );
     },

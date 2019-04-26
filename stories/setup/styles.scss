@@ -1,3 +1,5 @@
+@import '../../src/scss/variables';
+
 body {
   padding: 24px;
 }
@@ -46,10 +48,16 @@ body.fullscreen {
   }
 }
 
+.CodeView-panel {
+  border-radius: $border-radius;
+  border: 1px solid $light-gray;
+  padding: $default-padding;
+}
+
 .FullscreenGridStory-Header,
-.FullscreenGridStory-NavPanel,
-.FullscreenGridStory-ContentPanel,
-.FullscreenGridStory-AltPanel {
+.FullscreenGridStory-mainSidePanel,
+.FullscreenGridStory-content,
+.FullscreenGridStory-altSidePanel {
   align-items: center;
   display: flex;
   justify-content: center;
@@ -60,15 +68,15 @@ body.fullscreen {
   padding: 20px;
 }
 
-.FullscreenGridStory-NavPanel {
+.FullscreenGridStory-mainSidePanel {
   background-color: lighten(orange, 44);
 }
 
-.FullscreenGridStory-ContentPanel {
+.FullscreenGridStory-content {
   background-color: lighten(yellow, 47);
 }
 
-.FullscreenGridStory-AltPanel {
+.FullscreenGridStory-altSidePanel {
   background-color: lighten(green, 68);
 }
 

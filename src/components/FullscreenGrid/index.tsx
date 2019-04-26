@@ -3,38 +3,63 @@ import makeClassName from 'classnames';
 
 import styles from './styles.module.scss';
 
-type PanelProps = {
-  children: React.ReactNode | React.ReactNode[];
+type AnyReactNode = React.ReactNode | React.ReactNode[];
+
+export const Header = ({
+  children,
+  className,
+}: {
+  children?: AnyReactNode;
   className?: string;
-};
-
-export const Header = ({ children, className }: PanelProps) => {
+}) => {
   return (
-    <div className={makeClassName(styles.Header, className)}>{children}</div>
-  );
-};
-
-export const NavPanel = ({ children, className }: PanelProps) => {
-  return (
-    <div className={makeClassName(styles.NavPanel, className)}>{children}</div>
-  );
-};
-
-export const AltPanel = ({ children, className }: PanelProps) => {
-  return (
-    <div className={makeClassName(styles.AltPanel, className)}>{children}</div>
-  );
-};
-
-export const ContentPanel = ({ children, className }: PanelProps) => {
-  return (
-    <div className={makeClassName(styles.ContentPanel, className)}>
+    <header className={makeClassName(styles.Header, className)}>
       {children}
-    </div>
+    </header>
   );
 };
 
-const FullscreenGrid = ({ children, className }: PanelProps) => {
+type ContentShellProps = {
+  altSidePanel?: AnyReactNode;
+  altSidePanelClass?: string;
+  children?: AnyReactNode;
+  className?: string;
+  mainSidePanel?: AnyReactNode;
+  mainSidePanelClass?: string;
+};
+
+export const ContentShell = ({
+  altSidePanel,
+  altSidePanelClass,
+  children,
+  className,
+  mainSidePanel,
+  mainSidePanelClass,
+}: ContentShellProps) => {
+  return (
+    <React.Fragment>
+      <aside
+        className={makeClassName(styles.mainSidePanel, mainSidePanelClass)}
+      >
+        {mainSidePanel}
+      </aside>
+      <main className={makeClassName(styles.content, className)}>
+        {children}
+      </main>
+      <aside className={makeClassName(styles.altSidePanel, altSidePanelClass)}>
+        {altSidePanel}
+      </aside>
+    </React.Fragment>
+  );
+};
+
+const FullscreenGrid = ({
+  children,
+  className,
+}: {
+  children?: AnyReactNode;
+  className?: string;
+}) => {
   return (
     <div className={makeClassName(styles.FullscreenGrid, className)}>
       {children}

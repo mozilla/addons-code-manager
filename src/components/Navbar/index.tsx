@@ -39,10 +39,10 @@ export class NavbarBase extends React.Component<Props> {
         <Navbar.Brand className={styles.brand}>
           <Link to="/">addons-code-manager</Link>
         </Navbar.Brand>
-        <Navbar.Text>
+        <Navbar.Text className={styles.text}>
           {user ? <span className={styles.username}>{user.name}</span> : null}
           {user ? (
-            <Button className={styles.logOut} onClick={this.logOut}>
+            <Button size="sm" className={styles.logOut} onClick={this.logOut}>
               {gettext('Log out')}
             </Button>
           ) : (

@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { Col } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 
+import { ContentShell } from '../../components/FullscreenGrid';
 import { gettext } from '../../utils';
 
 type Props = {
@@ -20,7 +20,7 @@ export class IndexBase extends React.Component<Props> {
     const repoUrl = 'https://github.com/mozilla/addons-code-manager';
 
     return (
-      <Col>
+      <ContentShell>
         <p>
           {gettext(
             'This is a tool for managing add-on source code that is used with the',
@@ -67,7 +67,7 @@ export class IndexBase extends React.Component<Props> {
             </ul>
           </React.Fragment>
         )}
-      </Col>
+      </ContentShell>
     );
   }
 }
