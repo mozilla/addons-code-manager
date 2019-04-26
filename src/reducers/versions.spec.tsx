@@ -1,5 +1,6 @@
-import { getType } from 'typesafe-actions';
 import { push } from 'connected-react-router';
+import { ChangeInfo, DiffInfo, parseDiff } from 'react-diff-view';
+import { getType } from 'typesafe-actions';
 
 import { actions as errorsActions } from './errors';
 import reducer, {
@@ -18,7 +19,9 @@ import reducer, {
   fetchVersion,
   fetchVersionFile,
   fetchVersionsList,
+  getDiffAnchors,
   getParentFolders,
+  getRelativeDiffAnchor,
   getVersionFile,
   getVersionFiles,
   getVersionInfo,
@@ -26,8 +29,9 @@ import reducer, {
   isFileLoading,
   viewVersionFile,
 } from './versions';
-import { ROOT_PATH } from './fileTree';
+import { ROOT_PATH, RelativePathPosition } from './fileTree';
 import configureStore from '../configureStore';
+import diffWithDeletions from '../components/DiffView/fixtures/diffWithDeletions';
 import {
   createFakeEntry,
   createFakeHistory,
@@ -1806,6 +1810,213 @@ describe(__filename, () => {
 
       expect(state.versionInfo[abortFetchVersionId]).toEqual(null);
       expect(state.versionInfo[beginFetchVersionId]).toEqual(undefined);
+    });
+  });
+
+  type TestHunkChange = {
+    lineNumber: ChangeInfo['lineNumber'];
+    type: ChangeInfo['type'];
+  };
+
+  // This helper accepts an array of arrays, each of which is a list of changes
+  // which will be contained in a hunk.
+  const createFakeDiffWithChanges = (
+    testHunks: TestHunkChange[][],
+  ): DiffInfo => {
+    // The fixture is only used to initialize some fields. All of the
+    // hunks/changes will be overwritten.
+    const diffSample = parseDiff(diffWithDeletions)[0];
+
+    const hunks = testHunks.map((hunk) => {
+      return {
+        changes: hunk.map((change) => {
+          return {
+            content: 'the content of the change is irrelevant to the tests',
+            isDelete: change.type === 'delete',
+            isInsert: change.type === 'insert',
+            isNormal: change.type === 'normal',
+            lineNumber: change.lineNumber,
+            oldLineNumber:
+              change.type === 'normal' ? change.lineNumber : undefined,
+            type: change.type,
+          };
+        }),
+        content: 'the content of hunks is irrelevant to the tests',
+        isPlain: true,
+        newLines: 1,
+        newStart: 1,
+        oldLines: 1,
+        oldStart: 1,
+      };
+    });
+
+    return {
+      ...diffSample,
+      hunks,
+    };
+  };
+
+  describe('getDiffAnchors', () => {
+    it('returns the first anchor for each diff in a file', () => {
+      const diff = createFakeDiffWithChanges([
+        // First hunk
+        [
+          { lineNumber: 1, type: 'insert' },
+          { lineNumber: 2, type: 'normal' },
+          { lineNumber: 3, type: 'delete' },
+          { lineNumber: 4, type: 'insert' },
+          { lineNumber: 5, type: 'normal' },
+          { lineNumber: 6, type: 'insert' },
+        ],
+        // Second hunk
+        [
+          { lineNumber: 11, type: 'insert' },
+          { lineNumber: 12, type: 'normal' },
+          { lineNumber: 13, type: 'delete' },
+          { lineNumber: 14, type: 'insert' },
+          { lineNumber: 15, type: 'normal' },
+        ],
+        // Third hunk
+        [
+          { lineNumber: 21, type: 'normal' },
+          { lineNumber: 22, type: 'delete' },
+          { lineNumber: 23, type: 'insert' },
+        ],
+      ]);
+      expect(getDiffAnchors(diff)).toEqual([
+        'I1',
+        'D3',
+        'I6',
+        'I11',
+        'D13',
+        'D22',
+      ]);
+    });
+  });
+
+  describe('getRelativeDiffAnchor', () => {
+    it('returns null if there are no changes in the diff', () => {
+      const diff = createFakeDiffWithChanges([
+        [{ lineNumber: 1, type: 'normal' }],
+      ]);
+      expect(
+        getRelativeDiffAnchor({
+          currentAnchor: '',
+          diff,
+          position: RelativePathPosition.next,
+        }),
+      ).toEqual(null);
+    });
+
+    it.each([
+      ['next', RelativePathPosition.next],
+      ['previous', RelativePathPosition.previous],
+    ])(
+      'returns the first anchor with no current anchor for %s',
+      (desc, pos) => {
+        const diff = createFakeDiffWithChanges([
+          [
+            { lineNumber: 1, type: 'normal' },
+            { lineNumber: 2, type: 'delete' },
+            { lineNumber: 3, type: 'insert' },
+            { lineNumber: 4, type: 'normal' },
+            { lineNumber: 5, type: 'insert' },
+          ],
+        ]);
+        // This is needed because TS only sees arguments from `each` as strings.
+        const position = pos as RelativePathPosition;
+        expect(
+          getRelativeDiffAnchor({
+            currentAnchor: '',
+            diff,
+            position,
+          }),
+        ).toEqual('D2');
+      },
+    );
+
+    it('throws an error if the currentAnchor cannot be found', () => {
+      const diff = createFakeDiffWithChanges([
+        [{ lineNumber: 1, type: 'insert' }],
+      ]);
+      const currentAnchor = 'D99';
+      expect(() => {
+        getRelativeDiffAnchor({
+          currentAnchor,
+          diff,
+          position: RelativePathPosition.next,
+        });
+      }).toThrow(`Could not locate anchor: ${currentAnchor} in the diff.`);
+    });
+
+    it('returns the next anchor in the diff', () => {
+      const diff = createFakeDiffWithChanges([
+        [
+          { lineNumber: 1, type: 'delete' },
+          { lineNumber: 2, type: 'insert' },
+          { lineNumber: 3, type: 'normal' },
+          { lineNumber: 4, type: 'insert' },
+        ],
+      ]);
+      expect(
+        getRelativeDiffAnchor({
+          currentAnchor: 'D1',
+          diff,
+          position: RelativePathPosition.next,
+        }),
+      ).toEqual('I4');
+    });
+
+    it('returns the previous anchor in the diff', () => {
+      const diff = createFakeDiffWithChanges([
+        [
+          { lineNumber: 1, type: 'delete' },
+          { lineNumber: 2, type: 'insert' },
+          { lineNumber: 3, type: 'normal' },
+          { lineNumber: 4, type: 'insert' },
+        ],
+      ]);
+      expect(
+        getRelativeDiffAnchor({
+          currentAnchor: 'I4',
+          diff,
+          position: RelativePathPosition.previous,
+        }),
+      ).toEqual('D1');
+    });
+
+    it('returns null if there is no next anchor in the diff', () => {
+      const diff = createFakeDiffWithChanges([
+        [
+          { lineNumber: 1, type: 'delete' },
+          { lineNumber: 2, type: 'insert' },
+          { lineNumber: 3, type: 'normal' },
+        ],
+      ]);
+      expect(
+        getRelativeDiffAnchor({
+          currentAnchor: 'D1',
+          diff,
+          position: RelativePathPosition.next,
+        }),
+      ).toEqual(null);
+    });
+
+    it('returns null if there is no previous anchor in the diff', () => {
+      const diff = createFakeDiffWithChanges([
+        [
+          { lineNumber: 1, type: 'normal' },
+          { lineNumber: 2, type: 'delete' },
+          { lineNumber: 3, type: 'insert' },
+        ],
+      ]);
+      expect(
+        getRelativeDiffAnchor({
+          currentAnchor: 'D2',
+          diff,
+          position: RelativePathPosition.previous,
+        }),
+      ).toEqual(null);
     });
   });
 });
