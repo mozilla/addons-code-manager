@@ -2,13 +2,13 @@
 import reducer, {
   ROOT_PATH,
   DirectoryNode,
-  GetRelativeMessageUidParams,
+  GetRelativeMessageParams,
   RelativePathPosition,
   actions,
   buildFileTree,
   buildFileTreeNodes,
   buildTreePathList,
-  getRelativeMessageUid,
+  getRelativeMessage,
   getRelativePath,
   getTree,
   goToRelativeFile,
@@ -590,7 +590,7 @@ describe(__filename, () => {
     });
   });
 
-  describe('getRelativeMessageUid', () => {
+  describe('getRelativeMessage', () => {
     const file1 = 'file1.js';
     const file2 = 'file2.js';
     const file3 = 'file3.js';
@@ -604,7 +604,7 @@ describe(__filename, () => {
     const global1 = 'global-uid-1';
     const global2 = 'global-uid-2';
 
-    const _getRelativeMessageUid = ({
+    const _getRelativeMessage = ({
       currentMessageUid = 'uid1',
       currentPath = file1,
       messageMap = getMessageMap(
@@ -612,8 +612,8 @@ describe(__filename, () => {
       ),
       pathList = [file1],
       position = RelativePathPosition.next,
-    }: Partial<GetRelativeMessageUidParams>) => {
-      return getRelativeMessageUid({
+    }: Partial<GetRelativeMessageParams>) => {
+      return getRelativeMessage({
         currentMessageUid,
         currentPath,
         messageMap,
@@ -624,7 +624,7 @@ describe(__filename, () => {
 
     it('returns null if there are no messages in the map', () => {
       expect(
-        _getRelativeMessageUid({
+        _getRelativeMessage({
           currentMessageUid: '',
           messageMap: getMessageMap(
             createFakeExternalLinterResult({ messages: [] }),
@@ -644,7 +644,7 @@ describe(__filename, () => {
       );
 
       expect(() => {
-        _getRelativeMessageUid({
+        _getRelativeMessage({
           currentMessageUid: 'some-uid',
           currentPath,
           messageMap,
@@ -664,7 +664,7 @@ describe(__filename, () => {
       );
 
       expect(() => {
-        _getRelativeMessageUid({
+        _getRelativeMessage({
           currentMessageUid: global2,
           currentPath: file3,
           messageMap,
@@ -672,7 +672,7 @@ describe(__filename, () => {
           position: RelativePathPosition.next,
         });
       }).toThrow(
-        `findRelativeMessageUid was unable to find a message using currentPath: ${file3}`,
+        `findRelativeMessage was unable to find a message using currentPath: ${file3}`,
       );
     });
 
@@ -687,11 +687,11 @@ describe(__filename, () => {
       );
 
       expect(
-        _getRelativeMessageUid({
+        _getRelativeMessage({
           currentMessageUid: '',
           messageMap,
         }),
-      ).toEqual(global1);
+      ).toEqual({ path: file1, uid: global1 });
     });
 
     it('returns the first global message from a path with messages if no currentMessageUid exists', () => {
@@ -707,13 +707,13 @@ describe(__filename, () => {
       );
 
       expect(
-        _getRelativeMessageUid({
+        _getRelativeMessage({
           currentMessageUid: '',
           currentPath: file2,
           messageMap,
           pathList,
         }),
-      ).toEqual(global1);
+      ).toEqual({ path: file2, uid: global1 });
     });
 
     it('returns the first byLine message if no currentMessageUid exists and no global messages exist', () => {
@@ -724,11 +724,11 @@ describe(__filename, () => {
       );
 
       expect(
-        _getRelativeMessageUid({
+        _getRelativeMessage({
           currentMessageUid: '',
           messageMap,
         }),
-      ).toEqual(line1FirstUid);
+      ).toEqual({ path: file1, uid: line1FirstUid });
     });
 
     describe('messages within a file', () => {
@@ -747,102 +747,102 @@ describe(__filename, () => {
 
       it('returns the next global message in the file', () => {
         expect(
-          _getRelativeMessageUid({
+          _getRelativeMessage({
             currentMessageUid: global1,
             messageMap,
             position: RelativePathPosition.next,
           }),
-        ).toEqual(global2);
+        ).toEqual({ path: file1, uid: global2 });
       });
 
       it('returns the previous global message in the file', () => {
         expect(
-          _getRelativeMessageUid({
+          _getRelativeMessage({
             currentMessageUid: global2,
             messageMap,
             position: RelativePathPosition.previous,
           }),
-        ).toEqual(global1);
+        ).toEqual({ path: file1, uid: global1 });
       });
 
       it('returns the first byLine message when at the last global message for the file', () => {
         expect(
-          _getRelativeMessageUid({
+          _getRelativeMessage({
             currentMessageUid: global2,
             messageMap,
             position: RelativePathPosition.next,
           }),
-        ).toEqual(line1FirstUid);
+        ).toEqual({ path: file1, uid: line1FirstUid });
       });
 
       it('returns the last global message when at the first byLine message for the file', () => {
         expect(
-          _getRelativeMessageUid({
+          _getRelativeMessage({
             currentMessageUid: line1FirstUid,
             messageMap,
             position: RelativePathPosition.previous,
           }),
-        ).toEqual(global2);
+        ).toEqual({ path: file1, uid: global2 });
       });
 
       it('returns the next byLine message for the line', () => {
         expect(
-          _getRelativeMessageUid({
+          _getRelativeMessage({
             currentMessageUid: line1FirstUid,
             messageMap,
             position: RelativePathPosition.next,
           }),
-        ).toEqual(line1SecondUid);
+        ).toEqual({ path: file1, uid: line1SecondUid });
       });
 
       it('returns the previous byLine message for the line', () => {
         expect(
-          _getRelativeMessageUid({
+          _getRelativeMessage({
             currentMessageUid: line1SecondUid,
             messageMap,
             position: RelativePathPosition.previous,
           }),
-        ).toEqual(line1FirstUid);
+        ).toEqual({ path: file1, uid: line1FirstUid });
       });
 
       it('returns the next byLine message for the file', () => {
         expect(
-          _getRelativeMessageUid({
+          _getRelativeMessage({
             currentMessageUid: line1SecondUid,
             messageMap,
             position: RelativePathPosition.next,
           }),
-        ).toEqual(line2Uid);
+        ).toEqual({ path: file1, uid: line2Uid });
       });
 
       it('returns the previous byLine message for the file', () => {
         expect(
-          _getRelativeMessageUid({
+          _getRelativeMessage({
             currentMessageUid: line2Uid,
             messageMap,
             position: RelativePathPosition.previous,
           }),
-        ).toEqual(line1SecondUid);
+        ).toEqual({ path: file1, uid: line1SecondUid });
       });
 
       it('returns the next byLine message for the file when no more messages for a line', () => {
         expect(
-          _getRelativeMessageUid({
+          _getRelativeMessage({
             currentMessageUid: line1SecondUid,
             messageMap,
             position: RelativePathPosition.next,
           }),
-        ).toEqual(line2Uid);
+        ).toEqual({ path: file1, uid: line2Uid });
       });
 
       it('returns the previous byLine message for the file when no more messages for the line', () => {
         expect(
-          _getRelativeMessageUid({
+          _getRelativeMessage({
             currentMessageUid: line2Uid,
             messageMap,
             position: RelativePathPosition.previous,
           }),
-        ).toEqual(line1SecondUid);
+        ).toEqual({ path: file1, uid: line1SecondUid });
       });
     });
 
@@ -867,14 +867,14 @@ describe(__filename, () => {
           }),
         );
         expect(
-          _getRelativeMessageUid({
+          _getRelativeMessage({
             currentMessageUid: global11,
             currentPath: file1,
             messageMap,
             pathList,
             position: RelativePathPosition.next,
           }),
-        ).toEqual(global12);
+        ).toEqual({ path: file3, uid: global12 });
       });
 
       it('returns the first byLine message in the next file', () => {
@@ -888,14 +888,14 @@ describe(__filename, () => {
         );
 
         expect(
-          _getRelativeMessageUid({
+          _getRelativeMessage({
             currentMessageUid: global11,
             currentPath: file1,
             messageMap,
             pathList,
             position: RelativePathPosition.next,
           }),
-        ).toEqual(line1Uid2);
+        ).toEqual({ path: file3, uid: line1Uid2 });
       });
 
       it('skips files with empty messages', () => {
@@ -912,14 +912,14 @@ describe(__filename, () => {
         messageMap[file2] = { global: [], byLine: [] };
 
         expect(
-          _getRelativeMessageUid({
+          _getRelativeMessage({
             currentMessageUid: global11,
             currentPath: file1,
             messageMap,
             pathList,
             position: RelativePathPosition.next,
           }),
-        ).toEqual(line1Uid2);
+        ).toEqual({ path: file3, uid: line1Uid2 });
       });
 
       it('returns the last byLine message in the previous file', () => {
@@ -935,14 +935,14 @@ describe(__filename, () => {
         );
 
         expect(
-          _getRelativeMessageUid({
+          _getRelativeMessage({
             currentMessageUid: global12,
             currentPath: file3,
             messageMap,
             pathList,
             position: RelativePathPosition.previous,
           }),
-        ).toEqual(line2Uid1);
+        ).toEqual({ path: file1, uid: line2Uid1 });
       });
 
       it('returns the last global message in the previous file', () => {
@@ -957,14 +957,14 @@ describe(__filename, () => {
         );
 
         expect(
-          _getRelativeMessageUid({
+          _getRelativeMessage({
             currentMessageUid: global12,
             currentPath: file3,
             messageMap,
             pathList,
             position: RelativePathPosition.previous,
           }),
-        ).toEqual(global21);
+        ).toEqual({ path: file1, uid: global21 });
       });
 
       it('wraps around from the last message in the last file to the first message in the first file', () => {
@@ -979,14 +979,14 @@ describe(__filename, () => {
         );
 
         expect(
-          _getRelativeMessageUid({
+          _getRelativeMessage({
             currentMessageUid: global12,
             currentPath: file3,
             messageMap,
             pathList,
             position: RelativePathPosition.next,
           }),
-        ).toEqual(global11);
+        ).toEqual({ path: file1, uid: global11 });
       });
 
       it('wraps around from the first message in the first file to the last message in the last file', () => {
@@ -1001,14 +1001,14 @@ describe(__filename, () => {
         );
 
         expect(
-          _getRelativeMessageUid({
+          _getRelativeMessage({
             currentMessageUid: global11,
             currentPath: file1,
             messageMap,
             pathList,
             position: RelativePathPosition.previous,
           }),
-        ).toEqual(global12);
+        ).toEqual({ path: file3, uid: global12 });
       });
     });
   });
