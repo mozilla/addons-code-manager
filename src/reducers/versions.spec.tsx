@@ -1370,11 +1370,13 @@ describe(__filename, () => {
       addonId = 1,
       baseVersionId = 2,
       headVersionId = 3,
+      store = configureStore(),
       version = fakeVersionWithDiff,
       _getDiff = jest.fn().mockReturnValue(Promise.resolve(version)),
       path = undefined as string | undefined,
     } = {}) => {
       return thunkTester({
+        store,
         createThunk: () =>
           fetchDiff({
             _getDiff,
@@ -1417,13 +1419,26 @@ describe(__filename, () => {
       });
     });
 
-    it('dispatches loadVersionInfo() when API response is successful', async () => {
+    it('dispatches loadVersionInfo() when API response is successful and version is not already loaded', async () => {
       const version = fakeVersionWithDiff;
 
       const { dispatch, thunk } = _fetchDiff({ version });
       await thunk();
 
       expect(dispatch).toHaveBeenCalledWith(
+        actions.loadVersionInfo({ version }),
+      );
+    });
+
+    it('does not dispatch loadVersionInfo() when version is already loaded', async () => {
+      const store = configureStore();
+      const version = fakeVersionWithDiff;
+      store.dispatch(actions.loadVersionInfo({ version }));
+
+      const { dispatch, thunk } = _fetchDiff({ version, store });
+      await thunk();
+
+      expect(dispatch).not.toHaveBeenCalledWith(
         actions.loadVersionInfo({ version }),
       );
     });
