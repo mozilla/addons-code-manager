@@ -185,12 +185,24 @@ export class CodeOverviewBase extends React.Component<Props, State> {
       const line =
         shapes && shapes.length ? shapes[shapeIndex].line : undefined;
 
+      let linkableLine = line;
+      if (line && selectedMessageMap) {
+        // Look for the first line with a linter message on it and link to
+        // that instead.
+        const firstMsg = shapes.filter(
+          (s) => selectedMessageMap.byLine[s.line],
+        )[0];
+        if (firstMsg) {
+          linkableLine = firstMsg.line;
+        }
+      }
+
       overview.push(
         <Link
           className={styles.line}
           to={{
             ...location,
-            hash: line ? getCodeLineAnchor(line) : '#',
+            hash: linkableLine ? getCodeLineAnchor(linkableLine) : '#',
           }}
           key={rowIndex}
           style={{

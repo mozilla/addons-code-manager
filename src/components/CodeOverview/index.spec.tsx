@@ -275,6 +275,64 @@ describe(__filename, () => {
     expect(link).toHaveProp('title', `Jump to line ${line}`);
   });
 
+  it('links to the first line that has a linter message', () => {
+    const firstLineWithMsg = 5;
+
+    const { innerRoot } = renderWithMessages({
+      // Create a file with 6 lines.
+      contentLines: generateFileLines({ count: 6 }),
+      // Make a grid of height 2 so that each row will contain 3 lines.
+      overviewHeight: 2,
+      // Put a linter message on line 5.
+      messages: [{ line: firstLineWithMsg }],
+      // Normalize the grid parameters.
+      rowHeight: 1,
+      overviewPadding: 0,
+      rowTopPadding: 0,
+    });
+
+    const allLinks = innerRoot.find(Link);
+    expect(allLinks).toHaveLength(2);
+
+    const link = allLinks.at(1);
+
+    expect(link).toHaveProp(
+      'to',
+      expect.objectContaining({
+        hash: getCodeLineAnchor(firstLineWithMsg),
+      }),
+    );
+  });
+
+  it('links to the first of multiple lines containing linter messages', () => {
+    const firstLineWithMsg = 5;
+
+    const { innerRoot } = renderWithMessages({
+      // Create a file with 6 lines.
+      contentLines: generateFileLines({ count: 6 }),
+      // Make a grid of height 2 so that each row will contain 3 lines.
+      overviewHeight: 2,
+      // Put a linter message on line 5 and line 6.
+      messages: [{ line: firstLineWithMsg }, { line: 6 }],
+      // Normalize the grid parameters.
+      rowHeight: 1,
+      overviewPadding: 0,
+      rowTopPadding: 0,
+    });
+
+    const allLinks = innerRoot.find(Link);
+    expect(allLinks).toHaveLength(2);
+
+    const link = allLinks.at(1);
+
+    expect(link).toHaveProp(
+      'to',
+      expect.objectContaining({
+        hash: getCodeLineAnchor(firstLineWithMsg),
+      }),
+    );
+  });
+
   it('sets link styles', () => {
     const rowHeight = 10;
     const rowTopPadding = 2;
