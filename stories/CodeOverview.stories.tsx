@@ -22,24 +22,22 @@ const render = ({
   messages = [],
   store = configureStore(),
 }: {
-  store?: Store;
   content?: string;
   messages?: Partial<LinterMessage>[];
+  store?: Store;
 } = {}) => {
-  let version = createInternalVersion(fakeVersion);
+  const path = 'background.js';
+  const version = createInternalVersion({
+    ...fakeVersion,
+    file: {
+      ...fakeVersionFile,
+      entries: { [path]: { ...fakeVersionEntry, path } },
+      // eslint-disable-next-line @typescript-eslint/camelcase
+      selected_file: path,
+    },
+  });
 
   if (messages.length) {
-    const path = 'background.js';
-    version = createInternalVersion({
-      ...fakeVersion,
-      file: {
-        ...fakeVersionFile,
-        entries: { [path]: { ...fakeVersionEntry, path } },
-        // eslint-disable-next-line @typescript-eslint/camelcase
-        selected_file: path,
-      },
-    });
-
     const result = createFakeExternalLinterResult({
       messages: messages.map((msg) => {
         return { uid: newLinterMessageUID(), ...msg, file: path };

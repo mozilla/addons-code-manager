@@ -1,5 +1,4 @@
-export default `/* @flow */
-import type {BrowserTab} from './tab';
+export default `import type {BrowserTab} from './tab';
 
 export type TabListMessage = {|
   action: 'tabListChanged',

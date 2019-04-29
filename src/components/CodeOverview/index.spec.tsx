@@ -477,7 +477,7 @@ describe(__filename, () => {
     expect(links.at(1).find(CodeLineShapes)).toHaveLength(0);
   });
 
-  it('uses the most severe linter type', () => {
+  it('uses the most severe linter message type', () => {
     const line = 1;
     const { innerRoot } = renderWithMessages({
       messages: [
