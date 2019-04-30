@@ -671,7 +671,7 @@ export const fetchDiff = ({
   path,
 }: FetchDiffParams): ThunkActionCreator => {
   return async (dispatch, getState) => {
-    const { api: apiState } = getState();
+    const { api: apiState, versions: versionsState } = getState();
 
     dispatch(actions.beginFetchDiff());
 
@@ -687,7 +687,9 @@ export const fetchDiff = ({
       dispatch(errorsActions.addError({ error: response.error }));
       dispatch(actions.abortFetchDiff());
     } else {
-      dispatch(actions.loadVersionInfo({ version: response }));
+      if (!getVersionInfo(versionsState, response.id)) {
+        dispatch(actions.loadVersionInfo({ version: response }));
+      }
       dispatch(
         actions.loadDiff({
           addonId,
