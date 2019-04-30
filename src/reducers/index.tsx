@@ -2,6 +2,7 @@ import { combineReducers } from 'redux';
 import { RouterState, connectRouter } from 'connected-react-router';
 import { History } from 'history';
 
+import accordionMenu, { AccordionMenuState } from './accordionMenu';
 import api, { ApiState } from './api';
 import errors, { ErrorsState } from './errors';
 import fileTree, { FileTreeState } from './fileTree';
@@ -10,6 +11,7 @@ import users, { UsersState } from './users';
 import versions, { VersionsState } from './versions';
 
 export type ApplicationState = {
+  accordionMenu: AccordionMenuState;
   api: ApiState;
   errors: ErrorsState;
   fileTree: FileTreeState;
@@ -21,6 +23,7 @@ export type ApplicationState = {
 
 const createRootReducer = (history: History) => {
   return combineReducers<ApplicationState>({
+    accordionMenu,
     api,
     errors,
     fileTree,
