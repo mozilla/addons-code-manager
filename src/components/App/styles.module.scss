@@ -1,6 +1,4 @@
-.container {
-  padding-top: 15px;
-}
+@import '../../scss/variables';
 
 .loginMessage,
 .isLoading {
@@ -10,10 +8,23 @@
   font-size: 1.2em;
   font-weight: 500;
   justify-content: center;
-  min-height: 100vh;
   text-align: center;
 
   p {
     margin: 4px auto;
+  }
+}
+
+.errors {
+  padding: $default-padding;
+  // Each error will have its own bottom margin.
+  padding-bottom: 0;
+}
+
+.errorAlert {
+  margin-bottom: $default-padding;
+
+  &:last-child {
+    margin-bottom: 0;
   }
 }

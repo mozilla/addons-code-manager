@@ -1,10 +1,11 @@
 import React from 'react';
-import { Alert, Container } from 'react-bootstrap';
+import { Alert } from 'react-bootstrap';
 import { Store } from 'redux';
 import { Route } from 'react-router-dom';
 
 import styles from './styles.module.scss';
 import configureStore from '../../configureStore';
+import { ContentShell } from '../FullscreenGrid';
 import { actions as apiActions } from '../../reducers/api';
 import { actions as errorsActions } from '../../reducers/errors';
 import { actions as userActions } from '../../reducers/users';
@@ -55,16 +56,14 @@ describe(__filename, () => {
   it('renders without an authentication token', () => {
     const root = render({ authToken: null });
 
-    expect(root.find(Container)).toHaveClassName(styles.container);
-    expect(root.find(`.${styles.content}`)).toHaveLength(1);
+    expect(root.find(ContentShell)).toHaveLength(1);
     expect(root.find(Navbar)).toHaveLength(1);
   });
 
   it('renders with an empty authentication token', () => {
     const root = render({ authToken: '' });
 
-    expect(root.find(Container)).toHaveClassName(styles.container);
-    expect(root.find(`.${styles.content}`)).toHaveLength(1);
+    expect(root.find(ContentShell)).toHaveLength(1);
     expect(root.find(Navbar)).toHaveLength(1);
   });
 
@@ -73,7 +72,9 @@ describe(__filename, () => {
     store.dispatch(userActions.beginFetchCurrentUser());
     const root = render({ store });
 
-    expect(root).toIncludeText('Getting your workspace ready');
+    expect(root.find(ContentShell).childAt(1)).toIncludeText(
+      'Getting your workspace ready',
+    );
     expect(root.find(Navbar)).toHaveLength(0);
   });
 
@@ -113,7 +114,7 @@ describe(__filename, () => {
     const root = render({ authToken: null });
 
     expect(root.find(Route)).toHaveLength(0);
-    expect(root.find(`.${styles.loginMessage}`)).toIncludeText('Please log in');
+    expect(root.find(ContentShell).children()).toIncludeText('Please log in');
   });
 
   it('exposes more routes when the user is logged in', () => {

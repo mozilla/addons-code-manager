@@ -1,15 +1,13 @@
 @import '../../scss/variables';
 
-$grid-gap: 10px;
-
 .FullscreenGrid {
   display: grid;
-  grid-gap: $grid-gap;
+  grid-gap: $default-padding;
   grid-template-areas:
     'FGHeader FGHeader FGHeader'
-    'FGNavPanel FGContentPanel FGAltPanel'
+    'FGMainSidePanel FGContent FGAltSidePanel'
     '. . .';
-  grid-template-columns: 1fr 4fr 1fr;
+  grid-template-columns: 2fr 5fr 1fr;
   grid-template-rows: min-content 1fr 0px;
   height: 100vh;
 }
@@ -18,23 +16,23 @@ $grid-gap: 10px;
   grid-area: FGHeader;
 }
 
-.NavPanel {
-  grid-area: FGNavPanel;
-  margin-left: $grid-gap;
+.mainSidePanel {
+  grid-area: FGMainSidePanel;
+  margin-left: $default-padding;
 }
 
-.AltPanel {
-  grid-area: FGAltPanel;
-  margin-right: $grid-gap;
+.altSidePanel {
+  grid-area: FGAltSidePanel;
+  margin-right: $default-padding;
 }
 
-.ContentPanel {
-  grid-area: FGContentPanel;
+.content {
+  grid-area: FGContent;
 }
 
-.NavPanel,
-.AltPanel,
-.ContentPanel {
+.mainSidePanel,
+.altSidePanel,
+.content {
   border-radius: $border-radius;
   border: 1px solid $light-gray;
   overflow-x: hidden;

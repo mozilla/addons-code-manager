@@ -1,10 +1,10 @@
 import * as React from 'react';
-import { Col, Row } from 'react-bootstrap';
 import { RouteComponentProps } from 'react-router-dom';
 import { connect } from 'react-redux';
 
 import { ApplicationState } from '../../reducers';
 import { ConnectedReduxProps } from '../../configureStore';
+import { ContentShell } from '../../components/FullscreenGrid';
 import FileTree from '../../components/FileTree';
 import DiffView from '../../components/DiffView';
 import Loading from '../../components/Loading';
@@ -147,35 +147,26 @@ export class CompareBase extends React.Component<Props> {
     const { addonId, compareInfo, version } = this.props;
 
     return (
-      <React.Fragment>
-        <Col md="3">
-          {version ? (
+      <ContentShell
+        mainSidePanel={
+          version ? (
             <FileTree onSelect={this.viewVersionFile} versionId={version.id} />
           ) : (
             this.renderLoadingMessageOrError(gettext('Loading file tree...'))
-          )}
-        </Col>
-        <Col md="9">
-          <Row>
-            <Col>
-              <VersionChooser addonId={addonId} />
-            </Col>
-          </Row>
-          <Row>
-            <Col>
-              {version && compareInfo ? (
-                <DiffView
-                  diffs={compareInfo.diffs}
-                  mimeType={compareInfo.mimeType}
-                  version={version}
-                />
-              ) : (
-                this.renderLoadingMessageOrError(gettext('Loading diff...'))
-              )}
-            </Col>
-          </Row>
-        </Col>
-      </React.Fragment>
+          )
+        }
+      >
+        <VersionChooser addonId={addonId} />
+        {version && compareInfo ? (
+          <DiffView
+            diffs={compareInfo.diffs}
+            mimeType={compareInfo.mimeType}
+            version={version}
+          />
+        ) : (
+          this.renderLoadingMessageOrError(gettext('Loading diff...'))
+        )}
+      </ContentShell>
     );
   }
 }

@@ -36,7 +36,7 @@ export class LoginButtonBase extends React.Component<Props> {
 
   render() {
     return (
-      <Button href={this.getFxaURL()} className={styles.link}>
+      <Button size="sm" href={this.getFxaURL()} className={styles.link}>
         {gettext('Log in')}
       </Button>
     );

@@ -1,3 +1,4 @@
+import * as React from 'react';
 import PropTypes from 'prop-types';
 import { History, Location } from 'history';
 import { ShallowWrapper, shallow } from 'enzyme';
@@ -29,6 +30,7 @@ import {
 import LinterProvider, {
   LinterProviderInfo,
 } from './components/LinterProvider';
+import { ContentShell } from './components/FullscreenGrid';
 
 /* eslint-disable @typescript-eslint/camelcase */
 
@@ -589,4 +591,16 @@ export const simulateLinterProvider = (
     messagesAreLoading,
     selectedMessageMap,
   });
+};
+
+/*
+ * Given a ShallowWrapper for a component that renders ContentShell,
+ * return a wrapper around one of its panel attributes.
+ */
+export const getContentShellPanel = (
+  root: ShallowWrapper,
+  panelAttr: 'mainSidePanel' | 'altSidePanel',
+) => {
+  const panel = root.find(ContentShell).prop(panelAttr);
+  return shallow(<div>{panel}</div>);
 };
