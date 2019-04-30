@@ -1,9 +1,14 @@
 import * as React from 'react';
 import { withRouter, Link, RouteComponentProps } from 'react-router-dom';
+import makeClassName from 'classnames';
 import chunk from 'lodash.chunk';
 import debounce from 'lodash.debounce';
 
 import { getCodeLineAnchor, getLines } from '../CodeView/utils';
+import {
+  LinterMessage as LinterMessageType,
+  findMostSevereType,
+} from '../../reducers/linter';
 import styles from './styles.module.scss';
 import { gettext } from '../../utils';
 import { Version } from '../../reducers/versions';
@@ -128,9 +133,29 @@ export class CodeOverviewBase extends React.Component<Props, State> {
       return null;
     }
 
-    // TODO: render linter messages here by looking at all shapes
-    // in groupOflineShapes.
-    // See https://github.com/mozilla/addons-code-manager/issues/523
+    const messages = selectedMessageMap
+      ? groupOflineShapes.reduce((matches: LinterMessageType[], shape) => {
+          if (selectedMessageMap.byLine[shape.line]) {
+            return matches.concat(selectedMessageMap.byLine[shape.line]);
+          }
+
+          return matches;
+        }, [])
+      : [];
+
+    if (messages.length) {
+      const type = findMostSevereType(messages);
+      return (
+        <div
+          key={messages.map((m) => m.uid).join(':')}
+          className={makeClassName(styles.linterMessage, {
+            [styles.linterError]: type === 'error',
+            [styles.linterWarning]: type === 'warning',
+            [styles.linterNotice]: type === 'notice',
+          })}
+        />
+      );
+    }
 
     const lineShapes = groupOflineShapes[shapeIndex];
 
@@ -160,12 +185,24 @@ export class CodeOverviewBase extends React.Component<Props, State> {
       const line =
         shapes && shapes.length ? shapes[shapeIndex].line : undefined;
 
+      let linkableLine = line;
+      if (line && selectedMessageMap) {
+        // Look for the first line with a linter message on it and link to
+        // that instead.
+        const firstMsg = shapes.filter(
+          (s) => selectedMessageMap.byLine[s.line],
+        )[0];
+        if (firstMsg) {
+          linkableLine = firstMsg.line;
+        }
+      }
+
       overview.push(
         <Link
           className={styles.line}
           to={{
             ...location,
-            hash: line ? getCodeLineAnchor(line) : '#',
+            hash: linkableLine ? getCodeLineAnchor(linkableLine) : '#',
           }}
           key={rowIndex}
           style={{

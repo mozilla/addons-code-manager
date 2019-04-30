@@ -16,7 +16,7 @@ import {
   fakeVersionFile,
 } from '../src/test-helpers';
 
-const JS = `/**
+export const JS_SAMPLE = `/**
  * There was an error executing the script.
  * Display the popup's error message, and hide the normal UI.
  */
@@ -51,7 +51,7 @@ const render = ({
   ...moreProps
 }: { store?: Store } & Partial<CodeViewProps> = {}) => {
   const props: CodeViewProps = {
-    content: JS,
+    content: JS_SAMPLE,
     mimeType: 'application/javascript',
     version: createInternalVersion(fakeVersion),
     ...moreProps,
@@ -86,7 +86,7 @@ const renderJSWithMessages = (
 
   return render({
     store,
-    content: JS,
+    content: JS_SAMPLE,
     mimeType: 'application/javascript',
     version,
     ...moreProps,
@@ -100,12 +100,15 @@ storiesOf('CodeView', module)
         sections: [
           {
             title: 'unsupported mime type',
-            sectionFn: () => render({ mimeType: '', content: JS }),
+            sectionFn: () => render({ mimeType: '', content: JS_SAMPLE }),
           },
           {
             title: 'application/javascript',
             sectionFn: () =>
-              render({ mimeType: 'application/javascript', content: JS }),
+              render({
+                mimeType: 'application/javascript',
+                content: JS_SAMPLE,
+              }),
           },
           {
             title: 'text/css',
