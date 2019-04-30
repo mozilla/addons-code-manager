@@ -78,10 +78,8 @@ export const createServer = ({
   const staticSrc = env.PUBLIC_URL
     ? `${env.PUBLIC_URL}${STATIC_PATH}`
     : "'none'";
-  const imgSrc = [staticSrc];
-  if (env.PUBLIC_URL) {
-    imgSrc.push('data:');
-  }
+  const imgSrc = [staticSrc, 'data:'];
+
   const connectSrc = [
     // Relax the connect-src if using the proxy otherwise Use the env var or
     // 'none' if the API host isn't set.
@@ -252,7 +250,7 @@ export const createServer = ({
       helmet.contentSecurityPolicy({
         directives: {
           ...prodCSP,
-          imgSrc: ["'self'", 'data:'],
+          imgSrc: [...prodCSP.imgSrc, "'self'"],
           scriptSrc: ["'self'", "'unsafe-inline'"],
           styleSrc: ["'self'", "'unsafe-inline'"],
           connectSrc: ["'self'"],

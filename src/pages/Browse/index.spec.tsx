@@ -278,6 +278,16 @@ describe(__filename, () => {
     expect(code).toHaveLength(1);
     expect(code).toHaveProp('content', content);
     expect(code).toHaveProp('mimeType', mimeType);
+
+    const overview = getContentShellPanel(root, 'altSidePanel').find(
+      CodeOverview,
+    );
+    expect(overview).toHaveLength(1);
+    expect(overview).toHaveProp('content', '');
+    expect(overview).toHaveProp(
+      'version',
+      expect.objectContaining({ id: version.id }),
+    );
   });
 
   it('renders a loading message when we do not have the content of a file yet', () => {

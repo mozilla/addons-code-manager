@@ -313,7 +313,7 @@ describe(__filename, () => {
         const response = await server.get('/');
         expect(response.status).toEqual(200);
         const policy = cspParser(response.header['content-security-policy']);
-        expect(policy['img-src']).toEqual(["'none'"]);
+        expect(policy['img-src']).toEqual(["'none'", 'data:']);
         expect(policy['script-src']).toEqual(["'none'"]);
         expect(policy['style-src']).toEqual(["'none'"]);
       });
@@ -617,7 +617,7 @@ describe(__filename, () => {
         expect(response.header).toHaveProperty('content-security-policy');
 
         const policy = cspParser(response.header['content-security-policy']);
-        expect(policy['img-src']).toEqual(["'self'", 'data:']);
+        expect(policy['img-src']).toEqual(["'none'", 'data:', "'self'"]);
       });
 
       it('relaxes script-src for local dev', async () => {

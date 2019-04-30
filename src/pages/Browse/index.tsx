@@ -171,7 +171,10 @@ export class BrowseBase extends React.Component<Props> {
         }
         altSidePanel={
           file ? (
-            <CodeOverview content={file.content} version={version} />
+            <CodeOverview
+              content={file.type === 'image' ? '' : file.content}
+              version={version}
+            />
           ) : null
         }
       >

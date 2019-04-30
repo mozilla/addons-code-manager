@@ -4,7 +4,7 @@ import * as React from 'react';
 
 import styles from './styles.module.scss';
 
-type PublicProps = {
+export type PublicProps = {
   _btoa?: typeof btoa;
   _log?: typeof log;
   _sanitize?: typeof purify.sanitize;
@@ -27,13 +27,18 @@ const convertImageData = ({
   content,
   mimeType,
 }: ConvertImageDataParams): string | null => {
+  const mimeTypeCased = mimeType.toLowerCase();
+  if (!mimeTypeCased.startsWith('image')) {
+    throw new Error(`Unexpected mimeType: "${mimeType}"`);
+  }
+
   try {
     return _btoa(
       // Run sanitize on svg files.
-      mimeType === 'image/svg+xml' ? _sanitize(content) : content,
+      mimeTypeCased === 'image/svg+xml' ? _sanitize(content) : content,
     );
   } catch (error) {
-    _log.debug('Error converting image data to ascii:', error);
+    _log.error('Error converting image data to ascii:', error);
     return null;
   }
 };
