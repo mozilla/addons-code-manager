@@ -9,6 +9,7 @@ describe(__filename, () => {
   const render = ({
     _btoa = btoa,
     _log = createFakeLogger(),
+    _sanitize = jest.fn(),
     content = 'some image content',
     mimeType = 'mime/type',
   } = {}) => {
@@ -16,6 +17,7 @@ describe(__filename, () => {
       <ImageView
         _btoa={_btoa}
         _log={_log}
+        _sanitize={_sanitize}
         mimeType={mimeType}
         content={content}
       />,
@@ -54,5 +56,23 @@ describe(__filename, () => {
 
     expect(_btoa).toHaveBeenCalled();
     expect(_log.debug).toHaveBeenCalled();
+  });
+
+  it('calls sanitize on svg files', () => {
+    const _sanitize = jest.fn();
+    const content = 'some content';
+    const mimeType = 'image/svg+xml';
+    render({ _sanitize, content, mimeType });
+
+    expect(_sanitize).toHaveBeenCalledWith(content);
+  });
+
+  it('does not call sanitize on non-svg files', () => {
+    const _sanitize = jest.fn();
+    const content = 'some content';
+    const mimeType = 'image/png';
+    render({ _sanitize, content, mimeType });
+
+    expect(_sanitize).not.toHaveBeenCalled();
   });
 });
