@@ -85,3 +85,9 @@ body.fullscreen {
   grid-template-columns: 3fr 1fr;
   grid-gap: 10px;
 }
+
+.AccordionMenuStory-ContentShell {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+}

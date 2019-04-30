@@ -4,6 +4,8 @@ import { config, library } from '@fortawesome/fontawesome-svg-core';
 import { fas } from '@fortawesome/free-solid-svg-icons';
 import { far } from '@fortawesome/free-regular-svg-icons';
 import '@fortawesome/fontawesome-svg-core/styles.css';
+// This is a polyfill.
+import 'focus-visible';
 
 export type ClientEnvVars = {
   NODE_ENV: string;
