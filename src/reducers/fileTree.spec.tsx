@@ -15,7 +15,11 @@ import reducer, {
   goToRelativeFile,
   initialState,
 } from './fileTree';
-import { createInternalVersion, createInternalVersionEntry } from './versions';
+import {
+  ExternalVersionEntry,
+  createInternalVersion,
+  createInternalVersionEntry,
+} from './versions';
 import { getMessageMap } from './linter';
 import {
   createFakeExternalLinterResult,
@@ -1018,38 +1022,72 @@ describe(__filename, () => {
     const file1 = 'file1.js';
     const file2 = 'file2.js';
     const file3 = 'file3.js';
+    const file4 = 'file4.js';
 
-    const entries = [
-      createInternalVersionEntry({
-        ...fakeVersionEntry,
-        filename: file1,
-        mime_category: 'text',
-        path: file1,
-        status: 'M',
-      }),
-      // Note that file2 does not contain any changes.
-      createInternalVersionEntry({
-        ...fakeVersionEntry,
-        filename: file2,
-        mime_category: 'text',
-        path: file2,
-        status: '',
-      }),
-      createInternalVersionEntry({
-        ...fakeVersionEntry,
-        filename: file3,
-        mime_category: 'text',
-        path: file3,
-        status: 'M',
-      }),
-    ];
-    const version = createVersionWithEntries(entries);
+    // const entries = [
+    //   createInternalVersionEntry({
+    //     ...fakeVersionEntry,
+    //     filename: file1,
+    //     mime_category: 'text',
+    //     path: file1,
+    //     status: 'M',
+    //   }),
+    //   // Note that file2 does not contain any changes.
+    //   createInternalVersionEntry({
+    //     ...fakeVersionEntry,
+    //     filename: file2,
+    //     mime_category: 'text',
+    //     path: file2,
+    //     status: '',
+    //   }),
+    //   createInternalVersionEntry({
+    //     ...fakeVersionEntry,
+    //     filename: file3,
+    //     mime_category: 'text',
+    //     path: file3,
+    //     status: 'M',
+    //   }),
+    //   createInternalVersionEntry({
+    //     ...fakeVersionEntry,
+    //     filename: file4,
+    //     mime_category: 'text',
+    //     path: file4,
+    //     status: 'M',
+    //   }),
+    // ];
+
+    const getFakeVersionAndPathList = (
+      entries: ({ path: string } & Partial<ExternalVersionEntry>)[],
+    ) => {
+      const pathList = entries.map((e) => e.path);
+
+      const version = createVersionWithEntries(
+        entries.map((params) =>
+          createInternalVersionEntry({
+            ...fakeVersionEntry,
+            mime_category: 'text',
+            status: 'M',
+            ...params,
+            filename: params.path,
+          }),
+        ),
+      );
+
+      return { pathList, version };
+    };
 
     it('gets the next path which has a diff', () => {
+      const { pathList, version } = getFakeVersionAndPathList([
+        { path: file1, status: 'M' },
+        { path: file2, status: '' },
+        { path: file3, status: 'M' },
+        { path: file4, status: 'M' },
+      ]);
+
       expect(
         findRelativePathWithDiff({
           currentPath: file1,
-          pathList: [file1, file2, file3],
+          pathList,
           position: RelativePathPosition.next,
           version,
         }),
@@ -1057,10 +1095,17 @@ describe(__filename, () => {
     });
 
     it('gets the previous path which has a diff', () => {
+      const { pathList, version } = getFakeVersionAndPathList([
+        { path: file1, status: 'M' },
+        { path: file2, status: '' },
+        { path: file3, status: 'M' },
+        { path: file4, status: 'M' },
+      ]);
+
       expect(
         findRelativePathWithDiff({
           currentPath: file3,
-          pathList: [file1, file2, file3],
+          pathList,
           position: RelativePathPosition.previous,
           version,
         }),
@@ -1068,10 +1113,17 @@ describe(__filename, () => {
     });
 
     it('wraps around to the first path on next', () => {
+      const { pathList, version } = getFakeVersionAndPathList([
+        { path: file1, status: 'M' },
+        { path: file2, status: '' },
+        { path: file3, status: 'M' },
+        { path: file4, status: 'M' },
+      ]);
+
       expect(
         findRelativePathWithDiff({
-          currentPath: file3,
-          pathList: [file1, file2, file3],
+          currentPath: file4,
+          pathList,
           position: RelativePathPosition.next,
           version,
         }),
@@ -1079,21 +1131,33 @@ describe(__filename, () => {
     });
 
     it('wraps around to the last path on previous', () => {
+      const { pathList, version } = getFakeVersionAndPathList([
+        { path: file1, status: 'M' },
+        { path: file2, status: '' },
+        { path: file3, status: 'M' },
+        { path: file4, status: 'M' },
+      ]);
+
       expect(
         findRelativePathWithDiff({
           currentPath: file1,
-          pathList: [file1, file2, file3],
+          pathList,
           position: RelativePathPosition.previous,
           version,
         }),
-      ).toEqual(file3);
+      ).toEqual(file4);
     });
 
     it('returns the current path if there are no other paths with changes', () => {
+      const { pathList, version } = getFakeVersionAndPathList([
+        { path: file1, status: 'M' },
+        { path: file2, status: '' },
+      ]);
+
       expect(
         findRelativePathWithDiff({
           currentPath: file1,
-          pathList: [file1, file2],
+          pathList,
           position: RelativePathPosition.next,
           version,
         }),
@@ -1101,14 +1165,8 @@ describe(__filename, () => {
     });
 
     it('throws an error if no entry is found for the next path', () => {
-      const testVersion = createVersionWithEntries([
-        createInternalVersionEntry({
-          ...fakeVersionEntry,
-          filename: file1,
-          mime_category: 'text',
-          path: file1,
-          status: 'M',
-        }),
+      const { version } = getFakeVersionAndPathList([
+        { path: file1, status: 'M' },
       ]);
 
       expect(() => {
@@ -1116,12 +1174,16 @@ describe(__filename, () => {
           currentPath: file1,
           pathList: [file1, file2],
           position: RelativePathPosition.next,
-          version: testVersion,
+          version,
         });
       }).toThrow(`Entry missing for path: ${file2}, versionId: ${version.id}`);
     });
 
     it('throws an error if no paths with diffs were found at all', () => {
+      const { version } = getFakeVersionAndPathList([
+        { path: file1, status: 'M' },
+      ]);
+
       expect(() => {
         findRelativePathWithDiff({
           currentPath: file1,
