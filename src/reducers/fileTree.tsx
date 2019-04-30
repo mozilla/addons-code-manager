@@ -190,12 +190,17 @@ export const getRelativePath = ({
   return pathList[newIndex];
 };
 
-const findRelativeMessageUid = (
+type MessagePathAndUid = {
+  path: string;
+  uid: LinterMessage['uid'];
+};
+
+const findRelativeMessage = (
   currentPath: string,
   messageMap: LinterMessageMap,
   pathList: string[],
   position: RelativePathPosition,
-): LinterMessage['uid'] | null => {
+): MessagePathAndUid => {
   let path = currentPath;
   const maxAttempts = pathList.length;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -211,7 +216,7 @@ const findRelativeMessageUid = (
         position === RelativePathPosition.previous ? msgArray.length - 1 : 0;
 
       if (msgArray[msgIndex]) {
-        return msgArray[msgIndex].uid;
+        return { path: nextPath, uid: msgArray[msgIndex].uid };
       }
     }
     path = nextPath;
@@ -220,11 +225,11 @@ const findRelativeMessageUid = (
   // because we should have at the very least gotten back to our original
   // message.
   throw new Error(
-    `findRelativeMessageUid was unable to find a message using currentPath: ${currentPath}`,
+    `findRelativeMessage was unable to find a message using currentPath: ${currentPath}`,
   );
 };
 
-export type GetRelativeMessageUidParams = {
+export type GetRelativeMessageParams = {
   currentMessageUid: LinterMessage['uid'] | void;
   currentPath: string;
   messageMap: LinterMessageMap;
@@ -232,13 +237,13 @@ export type GetRelativeMessageUidParams = {
   position: RelativePathPosition;
 };
 
-export const getRelativeMessageUid = ({
+export const getRelativeMessage = ({
   currentMessageUid,
   currentPath,
   messageMap,
   pathList,
   position,
-}: GetRelativeMessageUidParams): string | null => {
+}: GetRelativeMessageParams): MessagePathAndUid | null => {
   if (!Object.keys(messageMap).length) {
     // There are no messages at all.
     return null;
@@ -269,9 +274,9 @@ export const getRelativeMessageUid = ({
   }
 
   if (newIndex >= 0 && newIndex < messagesForPath.length) {
-    return messagesForPath[newIndex].uid;
+    return { path: currentPath, uid: messagesForPath[newIndex].uid };
   }
-  return findRelativeMessageUid(currentPath, messageMap, pathList, position);
+  return findRelativeMessage(currentPath, messageMap, pathList, position);
 };
 
 type GoToRelativeFileParams = {
