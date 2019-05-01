@@ -47,15 +47,10 @@ const convertImageData = ({
     return null;
   }
 
-  try {
-    return _btoa(
-      // Run sanitize on svg files.
-      mimeTypeCased === 'image/svg+xml' ? _sanitize(content) : content,
-    );
-  } catch (error) {
-    _log.error('Error converting image data to ascii:', error);
-    return null;
-  }
+  return _btoa(
+    // Run sanitize on svg files.
+    mimeTypeCased === 'image/svg+xml' ? _sanitize(content) : content,
+  );
 };
 
 const ImageViewBase = ({

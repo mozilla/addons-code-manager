@@ -36,36 +36,15 @@ describe(__filename, () => {
     );
   });
 
-  it('does not render an img tag when btoa fails', () => {
+  it('throws an error when btoa fails', () => {
+    const message = 'An error message';
     const _btoa = jest.fn().mockImplementation(() => {
-      throw new Error();
+      throw new Error(message);
     });
 
-    const root = render({ _btoa });
-
-    expect(root.find('img')).toHaveLength(0);
-  });
-
-  it('renders a message when btoa fails', () => {
-    const _btoa = jest.fn().mockImplementation(() => {
-      throw new Error();
-    });
-
-    const root = render({ _btoa });
-
-    expect(root.find('p')).toHaveText('Unrecognized image format');
-  });
-
-  it('logs an error message when btoa fails', () => {
-    const _btoa = jest.fn().mockImplementation(() => {
-      throw new Error();
-    });
-    const _log = createFakeLogger();
-
-    render({ _btoa, _log });
-
-    expect(_btoa).toHaveBeenCalled();
-    expect(_log.error).toHaveBeenCalled();
+    expect(() => {
+      render({ _btoa });
+    }).toThrow(message);
   });
 
   it('logs an error message if an image has an invalid mimeType', () => {
