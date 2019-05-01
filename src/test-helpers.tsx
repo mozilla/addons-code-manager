@@ -604,3 +604,24 @@ export const getContentShellPanel = (
   const panel = root.find(ContentShell).prop(panelAttr);
   return shallow(<div>{panel}</div>);
 };
+
+/*
+ * Returns a fake React ref that can be passed into a component instance.
+ *
+ * The `currentOverrides` parameters are applied to ref.current. By
+ * default, ref.current will be a real DOM node so you'll need to
+ * override any properties that the component may touch.
+ */
+export const createFakeRef = (
+  /* istanbul ignore next */
+  currentOverrides = {},
+  { currentElement = document.createElement('div') } = {},
+) => {
+  return {
+    ...React.createRef(),
+    current: {
+      ...currentElement,
+      ...currentOverrides,
+    },
+  };
+};

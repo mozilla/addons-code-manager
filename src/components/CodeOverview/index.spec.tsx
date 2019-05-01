@@ -14,6 +14,7 @@ import {
   createContextWithFakeRouter,
   createFakeExternalLinterResult,
   createFakeLocation,
+  createFakeRef,
   fakeVersion,
   shallowUntilTarget,
   simulateLinterProvider,
@@ -96,15 +97,6 @@ describe(__filename, () => {
       .map((i) => `// This is line ${i + 1} of the code`);
   };
 
-  const createFakeRef = (overrides = {}) => {
-    return {
-      current: {
-        ...document.createElement('div'),
-        ...overrides,
-      },
-    };
-  };
-
   const renderWithMessages = ({
     contentLines = generateFileLines({ count: 10 }),
     messages,
@@ -177,7 +169,7 @@ describe(__filename, () => {
 
   it('sets the overview height on mount', () => {
     const fakeRef = createFakeRef({ clientHeight: 100 });
-    const root = render({ initialOverviewRef: fakeRef });
+    const root = render({ createOverviewRef: () => fakeRef });
 
     expect(root.state('overviewHeight')).toEqual(fakeRef.current.clientHeight);
   });
@@ -185,7 +177,7 @@ describe(__filename, () => {
   it('sets the overview height in waitAndSetNewOverviewHeight', () => {
     const fakeRef = createFakeRef({ clientHeight: 100 });
     const { root, instance } = renderWithInstance({
-      initialOverviewRef: fakeRef,
+      createOverviewRef: () => fakeRef,
     });
 
     // Reset the overviewHeight so it will be calculated again.
@@ -199,7 +191,7 @@ describe(__filename, () => {
   it('can set the overview height explicitly', () => {
     const fakeRef = createFakeRef({ clientHeight: 400 });
     const { root, instance } = renderWithInstance({
-      initialOverviewRef: fakeRef,
+      createOverviewRef: () => fakeRef,
     });
 
     // Set a height that will be overwritten.
@@ -210,7 +202,9 @@ describe(__filename, () => {
   });
 
   it('only sets the overview height for defined refs', () => {
-    const { root, instance } = renderWithInstance({ initialOverviewRef: null });
+    const { root, instance } = renderWithInstance({
+      createOverviewRef: () => null,
+    });
 
     const overviewHeight = 200;
     root.setState({ overviewHeight });
@@ -224,7 +218,7 @@ describe(__filename, () => {
   it('only sets the overview height for active refs', () => {
     const { root, instance } = renderWithInstance({
       // Set an inactive ref.
-      initialOverviewRef: React.createRef(),
+      createOverviewRef: () => React.createRef(),
     });
 
     const overviewHeight = 200;
