@@ -46,6 +46,16 @@ describe(__filename, () => {
     expect(root.find('img')).toHaveLength(0);
   });
 
+  it('renders a message when btoa fails', () => {
+    const _btoa = jest.fn().mockImplementation(() => {
+      throw new Error();
+    });
+
+    const root = render({ _btoa });
+
+    expect(root.find('p')).toHaveText('Unrecognized image format');
+  });
+
   it('logs an error message when btoa fails', () => {
     const _btoa = jest.fn().mockImplementation(() => {
       throw new Error();
@@ -58,10 +68,18 @@ describe(__filename, () => {
     expect(_log.error).toHaveBeenCalled();
   });
 
-  it('throws an error if an image has an invalid mimeType', () => {
-    expect(() => {
-      render({ mimeType: 'invalid/type' });
-    }).toThrow('Unexpected mimeType: "invalid/type"');
+  it('logs an error message if an image has an invalid mimeType', () => {
+    const _log = createFakeLogger();
+
+    render({ _log, mimeType: 'invalid/type' });
+
+    expect(_log.error).toHaveBeenCalled();
+  });
+
+  it('renders a message if an image has an invalid mimeType', () => {
+    const root = render({ mimeType: 'invalid/type' });
+
+    expect(root.find('p')).toHaveText('Unrecognized image format');
   });
 
   it('calls sanitize on svg files', () => {

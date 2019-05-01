@@ -26,7 +26,9 @@ storiesOf('ImageView', module).addWithChapters('all variants', {
         },
         {
           title: 'jpg file',
-          sectionFn: () => <ImageView mimeType="image/jpg" content={jpgFile} />,
+          sectionFn: () => (
+            <ImageView mimeType="image/jpeg" content={jpgFile} />
+          ),
         },
         {
           title: 'png file',
@@ -36,6 +38,12 @@ storiesOf('ImageView', module).addWithChapters('all variants', {
           title: 'svg file',
           sectionFn: () => (
             <ImageView mimeType="image/svg+xml" content={svgFile} />
+          ),
+        },
+        {
+          title: 'Unrecognized mime type',
+          sectionFn: () => (
+            <ImageView mimeType="invalid/type" content={svgFile} />
           ),
         },
       ],

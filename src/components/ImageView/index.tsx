@@ -2,6 +2,7 @@ import purify from 'dompurify';
 import log from 'loglevel';
 import * as React from 'react';
 
+import { gettext } from '../../utils';
 import styles from './styles.module.scss';
 
 export type PublicProps = {
@@ -11,6 +12,19 @@ export type PublicProps = {
   mimeType: string;
   content: string;
 };
+
+// From https://developer.mozilla.org/en-US/docs/Web/HTML/Element/img#Firefox.
+const supportedImageMimeTypes = [
+  'image/jpeg',
+  'image/gif',
+  'image/png',
+  'image/svg+xml',
+  'image/bmp',
+  'image/vnd.microsoft.icon',
+  // webp isn't listed in the MDN article, but is documented elsewhere.
+  // e.g., https://caniuse.com/#search=webp
+  'image/webp',
+];
 
 type ConvertImageDataParams = {
   _btoa?: typeof btoa;
@@ -28,8 +42,9 @@ const convertImageData = ({
   mimeType,
 }: ConvertImageDataParams): string | null => {
   const mimeTypeCased = mimeType.toLowerCase();
-  if (!mimeTypeCased.startsWith('image')) {
-    throw new Error(`Unexpected mimeType: "${mimeType}"`);
+  if (!supportedImageMimeTypes.includes(mimeTypeCased)) {
+    _log.error('Unrecognized mimeType :', mimeType);
+    return null;
   }
 
   try {
@@ -57,11 +72,15 @@ const ImageViewBase = ({
     content,
     mimeType,
   });
-  return imageData ? (
+  return (
     <div className={styles.ImageView}>
-      <img alt="" src={`data:${mimeType};base64,${imageData}`} />
+      {imageData ? (
+        <img alt="" src={`data:${mimeType};base64,${imageData}`} />
+      ) : (
+        <p>{gettext('Unrecognized image format')}</p>
+      )}
     </div>
-  ) : null;
+  );
 };
 
 export default ImageViewBase;
