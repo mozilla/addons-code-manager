@@ -1,9 +1,8 @@
 import * as React from 'react';
 import makeClassName from 'classnames';
 
+import { AnyReactNode } from '../../typeUtils';
 import styles from './styles.module.scss';
-
-type AnyReactNode = React.ReactNode | React.ReactNode[];
 
 export const Header = ({
   children,
