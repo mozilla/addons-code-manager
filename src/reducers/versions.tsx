@@ -235,11 +235,25 @@ export const actions = {
     return (payload: { addonId: number; versions: ExternalVersionsList }) =>
       resolve(payload);
   }),
-  beginFetchDiff: createAction('BEGIN_FETCH_DIFF'),
+  beginFetchDiff: createAction('BEGIN_FETCH_DIFF', (resolve) => {
+    return (payload: {
+      addonId: number;
+      baseVersionId: number;
+      headVersionId: number;
+      path?: string;
+    }) => resolve(payload);
+  }),
   beginFetchVersionFile: createAction('BEGIN_FETCH_VERSION_FILE', (resolve) => {
     return (payload: { path: string; versionId: number }) => resolve(payload);
   }),
-  abortFetchDiff: createAction('ABORT_FETCH_DIFF'),
+  abortFetchDiff: createAction('ABORT_FETCH_DIFF', (resolve) => {
+    return (payload: {
+      addonId: number;
+      baseVersionId: number;
+      headVersionId: number;
+      path?: string;
+    }) => resolve(payload);
+  }),
   abortFetchVersionFile: createAction('ABORT_FETCH_VERSION_FILE', (resolve) => {
     return (payload: { path: string; versionId: number }) => resolve(payload);
   }),
@@ -264,10 +278,15 @@ export type VersionsState = {
   byAddonId: {
     [addonId: number]: VersionsMap;
   };
-  compareInfo:
-    | CompareInfo // data successfully loaded
-    | null // an error has occured
-    | undefined; // data not fetched yet
+  compareInfo: {
+    [compareInfoKey: string]:
+      | CompareInfo // data successfully loaded
+      | null // an error has occured
+      | undefined; // data not fetched yet
+  };
+  compareInfoIsLoading: {
+    [compareInfoKey: string]: boolean;
+  };
   versionInfo: {
     [versionId: number]:
       | Version // data successfully loaded
@@ -291,7 +310,8 @@ export type VersionsState = {
 
 export const initialState: VersionsState = {
   byAddonId: {},
-  compareInfo: undefined,
+  compareInfo: {},
+  compareInfoIsLoading: {},
   versionFiles: {},
   versionFilesLoading: {},
   versionInfo: {},
@@ -663,6 +683,56 @@ type FetchDiffParams = {
   path?: string;
 };
 
+type GetCompareInfoKeyParams = {
+  addonId: number;
+  baseVersionId: number;
+  headVersionId: number;
+  path?: string;
+};
+
+export const getCompareInfoKey = ({
+  addonId,
+  baseVersionId,
+  headVersionId,
+  path,
+}: GetCompareInfoKeyParams) => {
+  return [addonId, baseVersionId, headVersionId, path].join('/');
+};
+
+export const getCompareInfo = (
+  versions: VersionsState,
+  addonId: number,
+  baseVersionId: number,
+  headVersionId: number,
+  path?: string,
+) => {
+  const compareInfoKey = getCompareInfoKey({
+    addonId,
+    baseVersionId,
+    headVersionId,
+    path,
+  });
+
+  return versions.compareInfo[compareInfoKey];
+};
+
+export const isCompareInfoLoading = (
+  versions: VersionsState,
+  addonId: number,
+  baseVersionId: number,
+  headVersionId: number,
+  path?: string,
+) => {
+  const compareInfoKey = getCompareInfoKey({
+    addonId,
+    baseVersionId,
+    headVersionId,
+    path,
+  });
+
+  return versions.compareInfoIsLoading[compareInfoKey] || false;
+};
+
 export const fetchDiff = ({
   _getDiff = getDiff,
   addonId,
@@ -672,8 +742,22 @@ export const fetchDiff = ({
 }: FetchDiffParams): ThunkActionCreator => {
   return async (dispatch, getState) => {
     const { api: apiState, versions: versionsState } = getState();
+    if (
+      isCompareInfoLoading(
+        versionsState,
+        addonId,
+        baseVersionId,
+        headVersionId,
+        path,
+      )
+    ) {
+      log.debug('Aborting because the diff is already being fetched');
+      return;
+    }
 
-    dispatch(actions.beginFetchDiff());
+    dispatch(
+      actions.beginFetchDiff({ addonId, baseVersionId, headVersionId, path }),
+    );
 
     const response = await _getDiff({
       addonId,
@@ -684,8 +768,10 @@ export const fetchDiff = ({
     });
 
     if (isErrorResponse(response)) {
+      dispatch(
+        actions.abortFetchDiff({ addonId, baseVersionId, headVersionId, path }),
+      );
       dispatch(errorsActions.addError({ error: response.error }));
-      dispatch(actions.abortFetchDiff());
     } else {
       if (!getVersionInfo(versionsState, response.id)) {
         dispatch(actions.loadVersionInfo({ version: response }));
@@ -939,19 +1025,50 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
       };
     }
     case getType(actions.beginFetchDiff): {
+      const key = getCompareInfoKey(action.payload);
+
       return {
         ...state,
-        compareInfo: undefined,
+        compareInfo: {
+          ...state.compareInfo,
+          [key]: undefined,
+        },
+        compareInfoIsLoading: {
+          ...state.compareInfoIsLoading,
+          [key]: true,
+        },
       };
     }
     case getType(actions.abortFetchDiff): {
+      const key = getCompareInfoKey(action.payload);
+
       return {
         ...state,
-        compareInfo: null,
+        compareInfo: {
+          ...state.compareInfo,
+          [key]: null,
+        },
+        compareInfoIsLoading: {
+          ...state.compareInfoIsLoading,
+          [key]: false,
+        },
       };
     }
     case getType(actions.loadDiff): {
-      const { baseVersionId, headVersionId, version } = action.payload;
+      const {
+        addonId,
+        baseVersionId,
+        headVersionId,
+        path,
+        version,
+      } = action.payload;
+
+      const compareInfoKey = getCompareInfoKey({
+        addonId,
+        baseVersionId,
+        headVersionId,
+        path,
+      });
 
       const headVersion = getVersionInfo(state, headVersionId);
       if (!headVersion) {
@@ -968,12 +1085,19 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
       return {
         ...state,
         compareInfo: {
-          diffs: createInternalDiffs({
-            baseVersionId,
-            headVersionId,
-            version,
-          }),
-          mimeType: entry.mimeType,
+          ...state.compareInfo,
+          [compareInfoKey]: {
+            diffs: createInternalDiffs({
+              baseVersionId,
+              headVersionId,
+              version,
+            }),
+            mimeType: entry.mimeType,
+          },
+        },
+        compareInfoIsLoading: {
+          ...state.compareInfoIsLoading,
+          [compareInfoKey]: false,
         },
       };
     }

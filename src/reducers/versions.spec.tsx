@@ -19,6 +19,8 @@ import reducer, {
   fetchVersion,
   fetchVersionFile,
   fetchVersionsList,
+  getCompareInfo,
+  getCompareInfoKey,
   getDiffAnchors,
   getParentFolders,
   getRelativeDiffAnchor,
@@ -26,6 +28,7 @@ import reducer, {
   getVersionFiles,
   getVersionInfo,
   initialState,
+  isCompareInfoLoading,
   isFileLoading,
   viewVersionFile,
 } from './versions';
@@ -383,17 +386,66 @@ describe(__filename, () => {
       expect(state.byAddonId[addonId]).toEqual(createVersionsMap(versions));
     });
 
-    it('sets the compare info to `null` on abortFetchDiff()', () => {
-      const versionsState = reducer(undefined, actions.abortFetchDiff());
+    it('sets the compare info to `null` and the loading flag to `false` on abortFetchDiff()', () => {
+      const addonId = 1;
+      const baseVersionId = 2;
+      const headVersionId = 2;
 
-      expect(versionsState.compareInfo).toEqual(null);
+      let versionsState = reducer(
+        undefined,
+        actions.beginFetchDiff({
+          addonId,
+          baseVersionId,
+          headVersionId,
+        }),
+      );
+      versionsState = reducer(
+        versionsState,
+        actions.abortFetchDiff({
+          addonId,
+          baseVersionId,
+          headVersionId,
+        }),
+      );
+
+      expect(
+        getCompareInfo(versionsState, addonId, baseVersionId, headVersionId),
+      ).toEqual(null);
+      expect(
+        isCompareInfoLoading(
+          versionsState,
+          addonId,
+          baseVersionId,
+          headVersionId,
+        ),
+      ).toEqual(false);
     });
 
-    it('resets the compare info on beginFetchDiff()', () => {
-      let versionsState = reducer(undefined, actions.abortFetchDiff());
-      versionsState = reducer(versionsState, actions.beginFetchDiff());
+    it('resets the compare info and sets the loading flag to `true` on beginFetchDiff()', () => {
+      const addonId = 1;
+      const baseVersionId = 2;
+      const headVersionId = 2;
 
-      expect(versionsState.compareInfo).toEqual(undefined);
+      let versionsState = reducer(
+        undefined,
+        actions.abortFetchDiff({ addonId, baseVersionId, headVersionId }),
+      );
+      versionsState = reducer(
+        versionsState,
+        actions.beginFetchDiff({ addonId, baseVersionId, headVersionId }),
+      );
+
+      expect(
+        getCompareInfo(versionsState, addonId, baseVersionId, headVersionId),
+      ).toEqual(undefined);
+      expect(
+        isCompareInfoLoading(
+          versionsState,
+          addonId,
+          baseVersionId,
+          headVersionId,
+        ),
+      ).toEqual(true);
     });
 
     it('loads compare info', () => {
@@ -433,7 +485,9 @@ describe(__filename, () => {
         }),
       );
 
-      expect(versionsState.compareInfo).toEqual({
+      expect(
+        getCompareInfo(versionsState, addonId, baseVersionId, headVersionId),
+      ).toEqual({
         diffs: createInternalDiffs({
           baseVersionId,
           headVersionId,
@@ -441,6 +495,14 @@ describe(__filename, () => {
         }),
         mimeType,
       });
+      expect(
+        isCompareInfoLoading(
+          versionsState,
+          addonId,
+          baseVersionId,
+          headVersionId,
+        ),
+      ).toEqual(false);
     });
 
     it('throws an error when entry is missing on loadDiff()', () => {
@@ -1389,10 +1451,24 @@ describe(__filename, () => {
     };
 
     it('dispatches beginFetchDiff()', async () => {
-      const { dispatch, thunk } = _fetchDiff();
+      const addonId = 1;
+      const baseVersionId = 2;
+      const headVersionId = 3;
+
+      const { dispatch, thunk } = _fetchDiff({
+        addonId,
+        baseVersionId,
+        headVersionId,
+      });
       await thunk();
 
-      expect(dispatch).toHaveBeenCalledWith(actions.beginFetchDiff());
+      expect(dispatch).toHaveBeenCalledWith(
+        actions.beginFetchDiff({
+          addonId,
+          baseVersionId,
+          headVersionId,
+        }),
+      );
     });
 
     it('calls getDiff()', async () => {
@@ -1449,7 +1525,12 @@ describe(__filename, () => {
       const baseVersionId = 2;
       const headVersionId = version.id;
 
-      const { dispatch, thunk } = _fetchDiff({ version });
+      const { dispatch, thunk } = _fetchDiff({
+        addonId,
+        baseVersionId,
+        headVersionId,
+        version,
+      });
       await thunk();
 
       expect(dispatch).toHaveBeenCalledWith(
@@ -1463,16 +1544,50 @@ describe(__filename, () => {
     });
 
     it('dispatches abortFetchDiff() when API call has failed', async () => {
+      const addonId = 1;
+      const baseVersionId = 2;
+      const headVersionId = 2;
       const _getDiff = jest.fn().mockReturnValue(
         Promise.resolve({
           error: new Error('Bad Request'),
         }),
       );
 
-      const { dispatch, thunk } = _fetchDiff({ _getDiff });
+      const { dispatch, thunk } = _fetchDiff({
+        _getDiff,
+        addonId,
+        baseVersionId,
+        headVersionId,
+      });
       await thunk();
 
-      expect(dispatch).toHaveBeenCalledWith(actions.abortFetchDiff());
+      expect(dispatch).toHaveBeenCalledWith(
+        actions.abortFetchDiff({
+          addonId,
+          baseVersionId,
+          headVersionId,
+        }),
+      );
+    });
+
+    it('prevents itself to execute more than once for the same diff', async () => {
+      const addonId = 1;
+      const baseVersionId = 2;
+      const headVersionId = 3;
+
+      const { dispatch, thunk, store } = _fetchDiff({
+        addonId,
+        baseVersionId,
+        headVersionId,
+      });
+      // This simulates another previous call to `fetchDiff()`.
+      store.dispatch(
+        actions.beginFetchDiff({ addonId, baseVersionId, headVersionId }),
+      );
+
+      await thunk();
+
+      expect(dispatch).not.toHaveBeenCalled();
     });
   });
 
@@ -2032,6 +2147,65 @@ describe(__filename, () => {
           position: RelativePathPosition.previous,
         }),
       ).toEqual(null);
+    });
+  });
+
+  describe('getCompareInfoKey', () => {
+    it('computes a key given an addonId, baseVersionId and headVersionId', () => {
+      const addonId = 123;
+      const baseVersionId = 1;
+      const headVersionId = 2;
+
+      expect(
+        getCompareInfoKey({ addonId, baseVersionId, headVersionId }),
+      ).toEqual(`${addonId}/${baseVersionId}/${headVersionId}/`);
+    });
+
+    it('computes a key given an addonId, baseVersionId, headVersionId and path', () => {
+      const addonId = 123;
+      const baseVersionId = 1;
+      const headVersionId = 2;
+      const path = 'path';
+
+      expect(
+        getCompareInfoKey({ addonId, baseVersionId, headVersionId, path }),
+      ).toEqual(`${addonId}/${baseVersionId}/${headVersionId}/${path}`);
+    });
+  });
+
+  describe('isCompareInfoLoading', () => {
+    it('returns false by default', () => {
+      const addonId = 123;
+      const baseVersionId = 1;
+      const headVersionId = 2;
+
+      expect(
+        isCompareInfoLoading(
+          // Nothing has been loaded in this state.
+          initialState,
+          addonId,
+          baseVersionId,
+          headVersionId,
+        ),
+      ).toEqual(false);
+    });
+
+    it('returns true when loading compare info', () => {
+      const addonId = 123;
+      const baseVersionId = 1;
+      const headVersionId = 2;
+      const state = reducer(
+        undefined,
+        actions.beginFetchDiff({
+          addonId,
+          baseVersionId,
+          headVersionId,
+        }),
+      );
+
+      expect(
+        isCompareInfoLoading(state, addonId, baseVersionId, headVersionId),
+      ).toEqual(true);
     });
   });
 });

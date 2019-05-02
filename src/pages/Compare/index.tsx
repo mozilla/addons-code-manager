@@ -13,6 +13,7 @@ import {
   CompareInfo,
   Version,
   fetchDiff,
+  getCompareInfo,
   getVersionInfo,
   viewVersionFile,
 } from '../../reducers/versions';
@@ -34,7 +35,7 @@ type PropsFromRouter = {
 type PropsFromState = {
   addonId: number;
   compareInfo: CompareInfo | null | void;
-  isLoading: boolean;
+  path: string | undefined;
   version: Version | void | null;
 };
 
@@ -53,12 +54,19 @@ export class CompareBase extends React.Component<Props> {
     this.loadData();
   }
 
-  componentDidUpdate(prevProps: Props) {
-    this.loadData(prevProps);
+  componentDidUpdate() {
+    this.loadData();
   }
 
-  loadData(prevProps?: Props) {
-    const { _fetchDiff, dispatch, history, match, version } = this.props;
+  loadData() {
+    const {
+      _fetchDiff,
+      compareInfo,
+      dispatch,
+      history,
+      match,
+      path,
+    } = this.props;
     const { addonId, baseVersionId, headVersionId, lang } = match.params;
 
     const oldVersionId = parseInt(baseVersionId, 10);
@@ -73,9 +81,12 @@ export class CompareBase extends React.Component<Props> {
       return;
     }
 
-    const path = getPathFromQueryString(history);
+    if (compareInfo === null) {
+      // An error has occured when fetching the compare info.
+      return;
+    }
 
-    if (!version) {
+    if (compareInfo === undefined) {
       dispatch(
         _fetchDiff({
           addonId: parseInt(addonId, 10),
@@ -84,39 +95,10 @@ export class CompareBase extends React.Component<Props> {
           path: path || undefined,
         }),
       );
-      return;
-    }
-
-    // We do not want to update the selected path again (e.g., when a keyboard
-    // navigation updates the selected path), so we apply this logic to the
-    // first render (mount) only.
-    if (!prevProps) {
-      if (path && path !== version.selectedPath) {
-        // We preserve the hash in the URL (if any) when we load the file from
-        // an URL that has likely be shared.
-        this.viewVersionFile(path, { preserveHash: true });
-      }
-    } else if (
-      (prevProps.version &&
-        version.selectedPath !== prevProps.version.selectedPath) ||
-      addonId !== prevProps.match.params.addonId ||
-      baseVersionId !== prevProps.match.params.baseVersionId ||
-      headVersionId !== prevProps.match.params.headVersionId
-    ) {
-      dispatch(
-        _fetchDiff({
-          addonId: parseInt(addonId, 10),
-          baseVersionId: oldVersionId,
-          headVersionId: newVersionId,
-          path: version.selectedPath,
-        }),
-      );
     }
   }
 
-  // When selecting a new file to view, we do not want to preserve the hash in
-  // the URL (this hash highlights a specific line of code).
-  viewVersionFile = (path: string, { preserveHash = false } = {}) => {
+  viewVersionFile = (path: string) => {
     const { _viewVersionFile, dispatch, match } = this.props;
     const { headVersionId } = match.params;
 
@@ -124,15 +106,17 @@ export class CompareBase extends React.Component<Props> {
       _viewVersionFile({
         selectedPath: path,
         versionId: parseInt(headVersionId, 10),
-        preserveHash,
+        // When selecting a new file to view, we do not want to preserve the
+        // hash in the URL (this hash highlights a specific line of code).
+        preserveHash: false,
       }),
     );
   };
 
   renderLoadingMessageOrError(message: string) {
-    const { isLoading } = this.props;
+    const { compareInfo } = this.props;
 
-    if (!isLoading) {
+    if (compareInfo === null) {
       return (
         <p className={styles.error}>
           {gettext('Ooops, an error has occured.')}
@@ -171,16 +155,23 @@ export class CompareBase extends React.Component<Props> {
   }
 }
 
-const mapStateToProps = (
+export const mapStateToProps = (
   state: ApplicationState,
   ownProps: RouteComponentProps<PropsFromRouter>,
 ): PropsFromState => {
-  const { match } = ownProps;
+  const { history, match } = ownProps;
   const addonId = parseInt(match.params.addonId, 10);
+  const baseVersionId = parseInt(match.params.baseVersionId, 10);
   const headVersionId = parseInt(match.params.headVersionId, 10);
+  const path = getPathFromQueryString(history) || undefined;
 
-  const { compareInfo } = state.versions;
-  const isLoading = compareInfo === undefined;
+  const compareInfo = getCompareInfo(
+    state.versions,
+    addonId,
+    baseVersionId,
+    headVersionId,
+    path,
+  );
 
   // The Compare API returns the version info of the head/newest version.
   const version = getVersionInfo(state.versions, headVersionId);
@@ -188,7 +179,7 @@ const mapStateToProps = (
   return {
     addonId,
     compareInfo,
-    isLoading,
+    path,
     version,
   };
 };
