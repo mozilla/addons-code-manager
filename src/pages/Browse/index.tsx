@@ -128,6 +128,23 @@ export class BrowseBase extends React.Component<Props> {
     );
   };
 
+  getContent() {
+    const { file, version } = this.props;
+    if (!file || !version) {
+      return <Loading message={gettext('Loading content...')} />;
+    }
+    if (file.type === 'image') {
+      return <ImageView content={file.content} mimeType={file.mimeType} />;
+    }
+    return (
+      <CodeView
+        mimeType={file.mimeType}
+        content={file.content}
+        version={version}
+      />
+    );
+  }
+
   render() {
     const { file, version } = this.props;
 
@@ -138,22 +155,6 @@ export class BrowseBase extends React.Component<Props> {
         </ContentShell>
       );
     }
-
-    const getContent = () => {
-      if (!file) {
-        return <Loading message={gettext('Loading content...')} />;
-      }
-      if (file.type === 'image') {
-        return <ImageView content={file.content} mimeType={file.mimeType} />;
-      }
-      return (
-        <CodeView
-          mimeType={file.mimeType}
-          content={file.content}
-          version={version}
-        />
-      );
-    };
 
     return (
       <ContentShell
@@ -178,7 +179,7 @@ export class BrowseBase extends React.Component<Props> {
           ) : null
         }
       >
-        {getContent()}
+        {this.getContent()}
       </ContentShell>
     );
   }

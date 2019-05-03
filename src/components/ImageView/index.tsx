@@ -5,14 +5,6 @@ import * as React from 'react';
 import { gettext } from '../../utils';
 import styles from './styles.module.scss';
 
-export type PublicProps = {
-  _btoa?: typeof btoa;
-  _log?: typeof log;
-  _sanitize?: typeof purify.sanitize;
-  mimeType: string;
-  content: string;
-};
-
 // From https://developer.mozilla.org/en-US/docs/Web/HTML/Element/img#Firefox.
 const supportedImageMimeTypes = [
   'image/jpeg',
@@ -34,6 +26,8 @@ type ConvertImageDataParams = {
   mimeType: string;
 };
 
+export type PublicProps = ConvertImageDataParams;
+
 const convertImageData = ({
   _btoa = btoa,
   _log = log,
@@ -43,7 +37,7 @@ const convertImageData = ({
 }: ConvertImageDataParams): string | null => {
   const mimeTypeCased = mimeType.toLowerCase();
   if (!supportedImageMimeTypes.includes(mimeTypeCased)) {
-    _log.error('Unrecognized mimeType :', mimeType);
+    _log.error('Unrecognized mimeType passed to convertImageData: ', mimeType);
     return null;
   }
 
@@ -53,20 +47,8 @@ const convertImageData = ({
   );
 };
 
-const ImageViewBase = ({
-  _btoa,
-  _log,
-  _sanitize,
-  content,
-  mimeType,
-}: PublicProps) => {
-  const imageData = convertImageData({
-    _btoa,
-    _log,
-    _sanitize,
-    content,
-    mimeType,
-  });
+const ImageViewBase = ({ mimeType, ...props }: PublicProps) => {
+  const imageData = convertImageData({ mimeType, ...props });
   return (
     <div className={styles.ImageView}>
       {imageData ? (

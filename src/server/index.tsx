@@ -78,7 +78,6 @@ export const createServer = ({
   const staticSrc = env.PUBLIC_URL
     ? `${env.PUBLIC_URL}${STATIC_PATH}`
     : "'none'";
-  const imgSrc = [staticSrc, 'data:'];
 
   const connectSrc = [
     // Relax the connect-src if using the proxy otherwise Use the env var or
@@ -114,7 +113,7 @@ export const createServer = ({
     formAction: ["'none'"],
     frameAncestors: ["'none'"],
     frameSrc: ["'none'"],
-    imgSrc,
+    imgSrc: [staticSrc, 'data:'],
     manifestSrc: ["'none'"],
     mediaSrc: ["'none'"],
     objectSrc: ["'none'"],

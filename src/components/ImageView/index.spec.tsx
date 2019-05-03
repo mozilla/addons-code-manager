@@ -36,25 +36,6 @@ describe(__filename, () => {
     );
   });
 
-  it('throws an error when btoa fails', () => {
-    const message = 'An error message';
-    const _btoa = jest.fn().mockImplementation(() => {
-      throw new Error(message);
-    });
-
-    expect(() => {
-      render({ _btoa });
-    }).toThrow(message);
-  });
-
-  it('logs an error message if an image has an invalid mimeType', () => {
-    const _log = createFakeLogger();
-
-    render({ _log, mimeType: 'invalid/type' });
-
-    expect(_log.error).toHaveBeenCalled();
-  });
-
   it('renders a message if an image has an invalid mimeType', () => {
     const root = render({ mimeType: 'invalid/type' });
 
@@ -93,8 +74,8 @@ describe(__filename, () => {
       <svg version="1.1">
         <circle fill="red" />
         <script>alert('XSS via SVG')</script>
-        </svg>
-      `;
+      </svg>
+    `;
     const root = render({ content, mimeType: 'image/svg+xml' });
 
     const img: ShallowWrapper = root.find('img');
