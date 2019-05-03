@@ -7,8 +7,6 @@ import {
   createFakeHistory,
   createFakeLocation,
   createFakeThunk,
-  fakeExternalDiff,
-  fakeVersionEntry,
   fakeVersionWithDiff,
   getContentShellPanel,
   shallowUntilTarget,
@@ -17,10 +15,8 @@ import {
 import configureStore from '../../configureStore';
 import {
   actions as versionsActions,
-  createInternalCompareInfo,
   createInternalDiffs,
   createInternalVersion,
-  createInternalVersionEntry,
 } from '../../reducers/versions';
 import FileTree from '../../components/FileTree';
 import DiffView from '../../components/DiffView';
@@ -28,12 +24,7 @@ import Loading from '../../components/Loading';
 import VersionChooser from '../../components/VersionChooser';
 import styles from './styles.module.scss';
 
-import Compare, {
-  CompareBase,
-  PublicProps,
-  makeCompareInfoKey,
-  mapStateToProps,
-} from '.';
+import Compare, { CompareBase, PublicProps, mapStateToProps } from '.';
 
 describe(__filename, () => {
   type GetRouteParamsParams = {
@@ -634,72 +625,5 @@ describe(__filename, () => {
     });
 
     expect(dispatch).not.toHaveBeenCalled();
-  });
-
-  describe('makeCompareInfoKey', () => {
-    const fakeDiffWithContent = (path: string, allContent: string[]) => {
-      return {
-        ...fakeExternalDiff,
-        path,
-        hunks: [
-          {
-            ...fakeExternalDiff.hunks[0],
-            changes: allContent.map((content) => {
-              return {
-                ...fakeExternalDiff.hunks[0].changes[0],
-                content,
-              };
-            }),
-          },
-        ],
-      };
-    };
-
-    it('makes a key out of CompareInfo content', () => {
-      const baseVersionId = 1;
-      const headVersionId = 2;
-
-      const manifestContent1 = '[manifest content 1]';
-      const manifestContent2 = '[manifest content 2]';
-
-      const backgroundContent1 = '[background content 1]';
-      const backgroundContent2 = '[background content 2]';
-
-      const version = {
-        ...fakeVersionWithDiff,
-        id: headVersionId,
-        file: {
-          ...fakeVersionWithDiff.file,
-          diff: [
-            fakeDiffWithContent('manifest.json', [
-              manifestContent1,
-              manifestContent2,
-            ]),
-            fakeDiffWithContent('background.js', [
-              backgroundContent1,
-              backgroundContent2,
-            ]),
-          ],
-        },
-      };
-
-      expect(
-        makeCompareInfoKey(
-          createInternalCompareInfo({
-            baseVersionId,
-            headVersionId,
-            entry: createInternalVersionEntry(fakeVersionEntry),
-            version,
-          }),
-        ),
-      ).toEqual(
-        [
-          manifestContent1,
-          manifestContent2,
-          backgroundContent1,
-          backgroundContent2,
-        ].join(':'),
-      );
-    });
   });
 });

@@ -20,18 +20,6 @@ import {
 import { gettext, getPathFromQueryString } from '../../utils';
 import styles from './styles.module.scss';
 
-export const makeCompareInfoKey = (info: CompareInfo) => {
-  const changes = [];
-  for (const diff of info.diffs) {
-    for (const hunk of diff.hunks) {
-      for (const change of hunk.changes) {
-        changes.push(change.content);
-      }
-    }
-  }
-  return changes.join(':');
-};
-
 export type PublicProps = {
   _fetchDiff: typeof fetchDiff;
   _viewVersionFile: typeof viewVersionFile;
@@ -145,7 +133,7 @@ export class CompareBase extends React.Component<Props> {
   }
 
   render() {
-    const { addonId, compareInfo, version } = this.props;
+    const { addonId, compareInfo, path, version } = this.props;
 
     return (
       <ContentShell
@@ -160,10 +148,7 @@ export class CompareBase extends React.Component<Props> {
         <div className={styles.diffShell}>
           <VersionChooser addonId={addonId} />
           {version && compareInfo ? (
-            <div
-              key={makeCompareInfoKey(compareInfo)}
-              className={styles.diffContent}
-            >
+            <div key={`${version.id}:${path}`} className={styles.diffContent}>
               {/* The key in this ^ resets scrollbars between files */}
               <DiffView
                 diffs={compareInfo.diffs}
