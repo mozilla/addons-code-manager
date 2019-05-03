@@ -2,12 +2,20 @@ import * as React from 'react';
 import { Store } from 'redux';
 
 import configureStore from '../../configureStore';
-import { RelativePathPosition } from '../../reducers/fileTree';
-import { actions as versionActions } from '../../reducers/versions';
+import {
+  actions as fileTreeActions,
+  RelativePathPosition,
+} from '../../reducers/fileTree';
+import {
+  actions as versionsActions,
+  createInternalVersion,
+} from '../../reducers/versions';
 import {
   CreateKeydownEventParams,
   createKeydownEvent,
   createFakeThunk,
+  fakeVersion,
+  fakeVersionEntry,
   shallowUntilTarget,
   spyOn,
 } from '../../test-helpers';
@@ -24,17 +32,45 @@ describe(__filename, () => {
     store?: Store;
   } & Partial<PublicProps & DefaultProps>;
 
-  const render = ({
-    currentPath = 'file1.js',
+  const configureStoreWithFileTree = ({
     pathList = ['file1.js'],
     store = configureStore(),
-    versionId = 123,
+    versionId = 321,
+  } = {}) => {
+    store.dispatch(
+      fileTreeActions.buildTree({
+        version: createInternalVersion({
+          ...fakeVersion,
+          id: versionId,
+          file: {
+            ...fakeVersion.file,
+            entries: pathList.reduce((pathMap, path: string) => {
+              return {
+                ...pathMap,
+                [path]: {
+                  ...fakeVersionEntry,
+                  filename: path,
+                  path,
+                },
+              };
+            }, {}),
+          },
+        }),
+      }),
+    );
+
+    return store;
+  };
+
+  const render = ({
+    currentPath = 'file1.js',
+    versionId = 1235,
+    store,
     ...moreProps
   }: RenderParams = {}) => {
     const props = {
       _goToRelativeFile: jest.fn(),
       currentPath,
-      pathList,
       versionId,
       ...moreProps,
     };
@@ -43,7 +79,11 @@ describe(__filename, () => {
       <KeyboardShortcuts {...props} />,
       KeyboardShortcutsBase,
       {
-        shallowOptions: { context: { store } },
+        shallowOptions: {
+          context: {
+            store: store || configureStoreWithFileTree({ versionId }),
+          },
+        },
       },
     );
   };
@@ -102,7 +142,7 @@ describe(__filename, () => {
       const pathList = [currentPath];
       const versionId = 123;
 
-      const store = configureStore();
+      const store = configureStoreWithFileTree({ versionId, pathList });
       const dispatch = spyOn(store, 'dispatch');
       const fakeThunk = createFakeThunk();
       const _goToRelativeFile = fakeThunk.createThunk;
@@ -112,7 +152,6 @@ describe(__filename, () => {
         {
           _goToRelativeFile,
           currentPath,
-          pathList,
           store,
           versionId,
         },
@@ -131,52 +170,49 @@ describe(__filename, () => {
   it.each(['e', 'o'])('dispatches expandTree when "%s" is pressed', (key) => {
     const versionId = 123;
 
-    const store = configureStore();
+    const store = configureStoreWithFileTree({ versionId });
     const dispatch = spyOn(store, 'dispatch');
 
-    renderAndTriggerKeyEvent(
-      { key: key as string },
-      {
-        store,
-        versionId,
-      },
-    );
+    renderAndTriggerKeyEvent({ key: key as string }, { store, versionId });
 
     expect(dispatch).toHaveBeenCalledWith(
-      versionActions.expandTree({ versionId }),
+      versionsActions.expandTree({ versionId }),
     );
   });
 
   it('dispatches collapseTree when "c" is pressed', () => {
-    const versionId = 123;
+    const versionId = 723;
 
+    const store = configureStoreWithFileTree({ versionId });
+    const dispatch = spyOn(store, 'dispatch');
+
+    renderAndTriggerKeyEvent({ key: 'c' }, { store, versionId });
+
+    expect(dispatch).toHaveBeenCalledWith(
+      versionsActions.collapseTree({ versionId }),
+    );
+  });
+
+  it('does not listen to keyboard events without a file tree', () => {
+    // Configure an empty store, one without a file tree loaded.
     const store = configureStore();
     const dispatch = spyOn(store, 'dispatch');
 
-    renderAndTriggerKeyEvent(
-      { key: 'c' },
-      {
-        store,
-        versionId,
-      },
-    );
+    renderAndTriggerKeyEvent({ key: 'c' }, { store });
 
-    expect(dispatch).toHaveBeenCalledWith(
-      versionActions.collapseTree({ versionId }),
-    );
+    expect(dispatch).not.toHaveBeenCalled();
   });
 
   it.each(['altKey', 'ctrlKey', 'metaKey', 'shiftKey'])(
     'does not dispatch when %s modifies the key',
-    (modififierKey) => {
-      const store = configureStore();
+    (modifierKey) => {
+      const versionId = 432;
+      const store = configureStoreWithFileTree({ versionId });
       const dispatch = spyOn(store, 'dispatch');
 
       renderAndTriggerKeyEvent(
-        { key: 'k', [modififierKey]: true },
-        {
-          store,
-        },
+        { key: 'k', [modifierKey]: true },
+        { versionId, store },
       );
 
       expect(dispatch).not.toHaveBeenCalled();

@@ -1,10 +1,13 @@
+import log from 'loglevel';
 import * as React from 'react';
 import { connect } from 'react-redux';
 
+import { ApplicationState } from '../../reducers';
 import { ConnectedReduxProps } from '../../configureStore';
 import {
   FileTree,
   RelativePathPosition,
+  getTree,
   goToRelativeFile,
 } from '../../reducers/fileTree';
 import { actions as versionsActions } from '../../reducers/versions';
@@ -15,8 +18,11 @@ const keys = ['k', 'j', 'e', 'o', 'c'];
 
 export type PublicProps = {
   currentPath: string;
-  pathList: FileTree['pathList'];
   versionId: number;
+};
+
+type PropsFromState = {
+  pathList: FileTree['pathList'] | void;
 };
 
 export type DefaultProps = {
@@ -24,7 +30,7 @@ export type DefaultProps = {
   _goToRelativeFile: typeof goToRelativeFile;
 };
 
-type Props = PublicProps & DefaultProps & ConnectedReduxProps;
+type Props = PublicProps & PropsFromState & DefaultProps & ConnectedReduxProps;
 
 export class KeyboardShortcutsBase extends React.Component<Props> {
   static defaultProps: DefaultProps = {
@@ -40,6 +46,11 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
       pathList,
       versionId,
     } = this.props;
+
+    if (!pathList) {
+      log.warn('Ignoring keyboard events while fileTree.pathList is undefined');
+      return;
+    }
 
     if (
       !event.altKey &&
@@ -106,8 +117,6 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
   render() {
     return (
       <div className={styles.KeyboardShortcuts}>
-        <h4>{gettext('Keyboard Shortcuts')}</h4>
-
         <dl className={styles.definitions}>
           <dt>
             <kbd>k</kbd>
@@ -131,6 +140,23 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
   }
 }
 
-export default connect()(KeyboardShortcutsBase) as React.ComponentType<
-  PublicProps & Partial<DefaultProps>
->;
+const mapStateToProps = (
+  state: ApplicationState,
+  ownProps: PublicProps,
+): PropsFromState => {
+  const { versionId } = ownProps;
+
+  const tree = getTree(state.fileTree, versionId);
+  if (!tree) {
+    // TODO: Do not rely on <FileTree> to actually load the data.
+    // This will be fixed in:
+    // https://github.com/mozilla/addons-code-manager/issues/678
+    log.warn(`No tree was loaded for version:`, versionId);
+  }
+
+  return { pathList: tree && tree.pathList };
+};
+
+export default connect(mapStateToProps)(
+  KeyboardShortcutsBase,
+) as React.ComponentType<PublicProps & Partial<DefaultProps>>;

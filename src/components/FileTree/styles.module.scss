@@ -1,3 +1,17 @@
+@import '../../scss/variables';
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.treeShell {
+  border-radius: $border-radius;
+  border: 1px solid $light-gray;
+  overflow: auto;
+}
+
 .controlButtons {
   display: grid;
   grid-column-gap: 10px;

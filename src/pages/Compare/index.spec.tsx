@@ -8,7 +8,6 @@ import {
   createFakeLocation,
   createFakeThunk,
   fakeVersionWithDiff,
-  getContentShellPanel,
   shallowUntilTarget,
   spyOn,
 } from '../../test-helpers';
@@ -18,10 +17,9 @@ import {
   createInternalDiffs,
   createInternalVersion,
 } from '../../reducers/versions';
-import FileTree from '../../components/FileTree';
 import DiffView from '../../components/DiffView';
 import Loading from '../../components/Loading';
-import VersionChooser from '../../components/VersionChooser';
+import VersionFileViewer from '../../components/VersionFileViewer';
 import styles from './styles.module.scss';
 
 import Compare, { CompareBase, PublicProps, mapStateToProps } from '.';
@@ -170,20 +168,6 @@ describe(__filename, () => {
     };
   };
 
-  it('renders loading messages when no version has been loaded', () => {
-    const addonId = 123;
-    const root = render({ addonId: String(addonId) });
-
-    expect(
-      getContentShellPanel(root, 'mainSidePanel').find(Loading),
-    ).toHaveProp('message', 'Loading file tree...');
-    expect(root.find(Loading)).toHaveProp('message', 'Loading diff...');
-
-    // This component is always displayed.
-    expect(root.find(VersionChooser)).toHaveLength(1);
-    expect(root.find(VersionChooser)).toHaveProp('addonId', addonId);
-  });
-
   it('renders a loading message when no diff has been loaded', () => {
     const version = fakeVersionWithDiff;
     const store = configureStore();
@@ -195,12 +179,12 @@ describe(__filename, () => {
     expect(root.find(Loading)).toHaveProp('message', 'Loading diff...');
   });
 
-  it('renders a FileTree component when a diff has been loaded', () => {
+  it('renders a VersionFileViewer', () => {
     const { root, version } = loadDiffAndRender();
 
-    const tree = getContentShellPanel(root, 'mainSidePanel').find(FileTree);
-    expect(tree).toHaveLength(1);
-    expect(tree).toHaveProp('versionId', version.id);
+    const viewer = root.find(VersionFileViewer);
+    expect(viewer).toHaveLength(1);
+    expect(viewer).toHaveProp('version', createInternalVersion(version));
   });
 
   it('renders a DiffView', () => {
@@ -285,9 +269,6 @@ describe(__filename, () => {
       store,
     });
 
-    expect(
-      getContentShellPanel(root, 'mainSidePanel').find(`.${styles.error}`),
-    ).toHaveLength(1);
     expect(root.find(`.${styles.error}`)).toHaveLength(1);
   });
 
@@ -522,9 +503,7 @@ describe(__filename, () => {
 
     dispatch.mockClear();
 
-    const onSelectFile = getContentShellPanel(root, 'mainSidePanel')
-      .find(FileTree)
-      .prop('onSelect');
+    const onSelectFile = root.find(VersionFileViewer).prop('onSelectFile');
     onSelectFile(path);
 
     expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);

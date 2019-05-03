@@ -48,7 +48,12 @@ const render = ({
   store = configureStore(),
   ...props
 }: { store?: Store } & GetPropsParams = {}) => {
-  return renderWithStoreAndRouter(<FileTreeNode {...getProps(props)} />, store);
+  return renderWithStoreAndRouter(
+    <div className="FileTreeNodeStory-shell">
+      <FileTreeNode {...getProps(props)} />
+    </div>,
+    store,
+  );
 };
 
 storiesOf('FileTreeNode', module).addWithChapters('all variants', {
