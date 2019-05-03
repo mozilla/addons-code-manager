@@ -201,35 +201,6 @@ describe(__filename, () => {
     expect(root.state('overviewHeight')).toEqual(fakeRef.current.clientHeight);
   });
 
-  it('only sets the overview height for defined refs', () => {
-    const { root, instance } = renderWithInstance({
-      createOverviewRef: () => null,
-    });
-
-    const overviewHeight = 200;
-    root.setState({ overviewHeight });
-
-    instance.setOverviewHeight();
-
-    // Make sure no new height was set.
-    expect(root.state('overviewHeight')).toEqual(overviewHeight);
-  });
-
-  it('only sets the overview height for active refs', () => {
-    const { root, instance } = renderWithInstance({
-      // Set an inactive ref.
-      createOverviewRef: () => React.createRef(),
-    });
-
-    const overviewHeight = 200;
-    root.setState({ overviewHeight });
-
-    instance.setOverviewHeight();
-
-    // Make sure no new height was set.
-    expect(root.state('overviewHeight')).toEqual(overviewHeight);
-  });
-
   it('can reset the overview height', () => {
     const { root, instance } = renderWithInstance();
 

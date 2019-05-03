@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { shallow } from 'enzyme';
+import { ListGroup } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { TreefoldRenderPropsForFileTree } from '../FileTree';
@@ -12,6 +13,7 @@ import {
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import {
   createFakeExternalLinterResult,
+  createFakeRef,
   fakeExternalLinterMessage,
   fakeVersion,
   simulateLinterProvider,
@@ -19,6 +21,7 @@ import {
 import styles from './styles.module.scss';
 
 import FileTreeNode, {
+  DefaultProps,
   LINTER_KNOWN_LIBRARY_CODE,
   PublicProps,
   findMostSevereTypeForPath,
@@ -66,7 +69,7 @@ export const getTreefoldRenderProps = ({
 };
 
 describe(__filename, () => {
-  type RenderParams = Partial<PublicProps>;
+  type RenderParams = Partial<PublicProps> & Partial<DefaultProps>;
 
   const render = ({
     version = createInternalVersion(fakeVersion),
@@ -526,6 +529,61 @@ describe(__filename, () => {
     expect(provider).toHaveProp('versionId', version.id);
     expect(provider).toHaveProp('validationURL', version.validationURL);
     expect(provider).toHaveProp('selectedPath', version.selectedPath);
+  });
+
+  it('executes node scrolling helper on mount', () => {
+    const _scrollIntoViewIfNeeded = jest.fn();
+
+    render({ _scrollIntoViewIfNeeded });
+
+    expect(_scrollIntoViewIfNeeded).toHaveBeenCalled();
+  });
+
+  it('executes node scrolling helper on update', () => {
+    const _scrollIntoViewIfNeeded = jest.fn();
+
+    const root = render({ _scrollIntoViewIfNeeded });
+    _scrollIntoViewIfNeeded.mockClear();
+    root.setProps({});
+
+    expect(_scrollIntoViewIfNeeded).toHaveBeenCalled();
+  });
+
+  it('scrolls a node into view when selected', () => {
+    const version = createInternalVersion(fakeVersion);
+    const fakeRef = createFakeRef({ scrollIntoView: jest.fn() });
+
+    render({
+      ...getTreefoldRenderProps({ id: version.selectedPath }),
+      createNodeRef: () => fakeRef,
+      version,
+    });
+
+    expect(fakeRef.current.scrollIntoView).toHaveBeenCalled();
+  });
+
+  it('does not scroll a node into view when not selected', () => {
+    const fakeRef = createFakeRef({ scrollIntoView: jest.fn() });
+
+    render({
+      ...getTreefoldRenderProps({ id: 'any-other-file.js' }),
+      createNodeRef: () => fakeRef,
+    });
+
+    expect(fakeRef.current.scrollIntoView).not.toHaveBeenCalled();
+  });
+
+  it('configures ListGroup.Item with a custom div', () => {
+    const root = renderWithLinterProvider();
+
+    const itemShell = root.find(ListGroup.Item);
+    const createItem = itemShell.renderProp('as');
+
+    // Make sure the custom element renders arbitrary props.
+    const className = 'Example';
+    const item = createItem({ className });
+
+    expect(item).toHaveClassName(className);
   });
 
   describe('isKnownLibrary', () => {
