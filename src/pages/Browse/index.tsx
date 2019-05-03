@@ -24,6 +24,7 @@ import { gettext, getPathFromQueryString } from '../../utils';
 import Loading from '../../components/Loading';
 import CodeView from '../../components/CodeView';
 import FileMetadata from '../../components/FileMetadata';
+import ImageView from '../../components/ImageView';
 import styles from './styles.module.scss';
 
 export type PublicProps = {};
@@ -127,6 +128,23 @@ export class BrowseBase extends React.Component<Props> {
     );
   };
 
+  getContent() {
+    const { file, version } = this.props;
+    if (!file || !version) {
+      return <Loading message={gettext('Loading content...')} />;
+    }
+    if (file.type === 'image') {
+      return <ImageView content={file.content} mimeType={file.mimeType} />;
+    }
+    return (
+      <CodeView
+        mimeType={file.mimeType}
+        content={file.content}
+        version={version}
+      />
+    );
+  }
+
   render() {
     const { file, version } = this.props;
 
@@ -154,19 +172,14 @@ export class BrowseBase extends React.Component<Props> {
         }
         altSidePanel={
           file ? (
-            <CodeOverview content={file.content} version={version} />
+            <CodeOverview
+              content={file.type === 'image' ? '' : file.content}
+              version={version}
+            />
           ) : null
         }
       >
-        {file ? (
-          <CodeView
-            mimeType={file.mimeType}
-            content={file.content}
-            version={version}
-          />
-        ) : (
-          <Loading message={gettext('Loading content...')} />
-        )}
+        {this.getContent()}
       </ContentShell>
     );
   }

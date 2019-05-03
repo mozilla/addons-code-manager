@@ -4,6 +4,7 @@ import queryString from 'query-string';
 import { History } from 'history';
 
 import {
+  createFakeEntry,
   createFakeHistory,
   createFakeLocation,
   createFakeThunk,
@@ -24,6 +25,7 @@ import Loading from '../../components/Loading';
 import CodeOverview from '../../components/CodeOverview';
 import CodeView from '../../components/CodeView';
 import FileMetadata from '../../components/FileMetadata';
+import ImageView from '../../components/ImageView';
 
 import Browse, { BrowseBase, Props as BrowseProps } from '.';
 
@@ -245,6 +247,43 @@ describe(__filename, () => {
     );
     expect(overview).toHaveLength(1);
     expect(overview).toHaveProp('content', content);
+    expect(overview).toHaveProp(
+      'version',
+      expect.objectContaining({ id: version.id }),
+    );
+  });
+
+  it('renders an image file', () => {
+    const mimeType = 'image/png';
+    const path = 'image.png';
+    const entry = createFakeEntry('image', path, mimeType);
+    const content = 'some image data';
+    const version = {
+      ...fakeVersion,
+      file: {
+        ...fakeVersionFile,
+        content,
+        entries: { [path]: entry },
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        selected_file: path,
+      },
+    };
+
+    const store = configureStore();
+    _loadVersionAndFile({ store, version });
+
+    const root = render({ store, versionId: String(version.id) });
+
+    const code = root.find(ImageView);
+    expect(code).toHaveLength(1);
+    expect(code).toHaveProp('content', content);
+    expect(code).toHaveProp('mimeType', mimeType);
+
+    const overview = getContentShellPanel(root, 'altSidePanel').find(
+      CodeOverview,
+    );
+    expect(overview).toHaveLength(1);
+    expect(overview).toHaveProp('content', '');
     expect(overview).toHaveProp(
       'version',
       expect.objectContaining({ id: version.id }),

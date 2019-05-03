@@ -1,23 +1,25 @@
 import * as React from 'react';
-import { shallow } from 'enzyme';
+import { shallow, ShallowWrapper } from 'enzyme';
 
 import { createFakeLogger } from '../../test-helpers';
 
-import ImageView from '.';
+import ImageView, { PublicProps } from '.';
 
 describe(__filename, () => {
   const render = ({
     _btoa = btoa,
     _log = createFakeLogger(),
     content = 'some image content',
-    mimeType = 'mime/type',
-  } = {}) => {
+    mimeType = 'image/png',
+    ...props
+  }: Partial<PublicProps> = {}) => {
     return shallow(
       <ImageView
         _btoa={_btoa}
         _log={_log}
         mimeType={mimeType}
         content={content}
+        {...props}
       />,
     );
   };
@@ -34,25 +36,55 @@ describe(__filename, () => {
     );
   });
 
-  it('does not render an img tag when btoa fails', () => {
-    const _btoa = jest.fn().mockImplementation(() => {
-      throw new Error();
-    });
+  it('renders a message if an image has an invalid mimeType', () => {
+    const root = render({ mimeType: 'invalid/type' });
 
-    const root = render({ _btoa });
-
-    expect(root.find('img')).toHaveLength(0);
+    expect(root.find('p')).toHaveText('Unrecognized image format');
   });
 
-  it('logs a debug message when btoa fails', () => {
-    const _btoa = jest.fn().mockImplementation(() => {
-      throw new Error();
-    });
-    const _log = createFakeLogger();
+  it('calls sanitize on svg files', () => {
+    const _sanitize = jest.fn();
+    const content = 'some content';
+    const mimeType = 'image/svg+xml';
+    render({ _sanitize, content, mimeType });
 
-    render({ _btoa, _log });
+    expect(_sanitize).toHaveBeenCalledWith(content);
+  });
 
-    expect(_btoa).toHaveBeenCalled();
-    expect(_log.debug).toHaveBeenCalled();
+  it('recognizes upper cased svg mimeType', () => {
+    const _sanitize = jest.fn();
+    const content = 'some content';
+    const mimeType = 'IMAGE/SVG+XML';
+    render({ _sanitize, content, mimeType });
+
+    expect(_sanitize).toHaveBeenCalledWith(content);
+  });
+
+  it('does not call sanitize on non-svg files', () => {
+    const _sanitize = jest.fn();
+    const content = 'some content';
+    const mimeType = 'image/png';
+    render({ _sanitize, content, mimeType });
+
+    expect(_sanitize).not.toHaveBeenCalled();
+  });
+
+  it('sanitizes an svg file', () => {
+    const content = `
+      <svg version="1.1">
+        <circle fill="red" />
+        <script>alert('XSS via SVG')</script>
+      </svg>
+    `;
+    const root = render({ content, mimeType: 'image/svg+xml' });
+
+    const img: ShallowWrapper = root.find('img');
+    const src: string = img.prop('src');
+    const parts = src.split(',');
+    const contentPart = parts[parts.length - 1];
+
+    const svg = String(atob(contentPart));
+    expect(svg).toContain('<circle');
+    expect(svg).not.toContain('<script>');
   });
 });
