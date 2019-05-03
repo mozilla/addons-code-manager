@@ -20,6 +20,18 @@ import {
 import { gettext, getPathFromQueryString } from '../../utils';
 import styles from './styles.module.scss';
 
+export const makeCompareInfoKey = (info: CompareInfo) => {
+  const changes = [];
+  for (const diff of info.diffs) {
+    for (const hunk of diff.hunks) {
+      for (const change of hunk.changes) {
+        changes.push(change.content);
+      }
+    }
+  }
+  return changes.join(':');
+};
+
 export type PublicProps = {
   _fetchDiff: typeof fetchDiff;
   _viewVersionFile: typeof viewVersionFile;
@@ -124,7 +136,12 @@ export class CompareBase extends React.Component<Props> {
       );
     }
 
-    return <Loading message={message} />;
+    return (
+      // Use a container so that `display: flex` doesn't disturb the contents.
+      <div>
+        <Loading message={message} />
+      </div>
+    );
   }
 
   render() {
@@ -140,16 +157,24 @@ export class CompareBase extends React.Component<Props> {
           )
         }
       >
-        <VersionChooser addonId={addonId} />
-        {version && compareInfo ? (
-          <DiffView
-            diffs={compareInfo.diffs}
-            mimeType={compareInfo.mimeType}
-            version={version}
-          />
-        ) : (
-          this.renderLoadingMessageOrError(gettext('Loading diff...'))
-        )}
+        <div className={styles.diffShell}>
+          <VersionChooser addonId={addonId} />
+          {version && compareInfo ? (
+            <div
+              key={makeCompareInfoKey(compareInfo)}
+              className={styles.diffContent}
+            >
+              {/* The key in this ^ resets scrollbars between files */}
+              <DiffView
+                diffs={compareInfo.diffs}
+                mimeType={compareInfo.mimeType}
+                version={version}
+              />
+            </div>
+          ) : (
+            this.renderLoadingMessageOrError(gettext('Loading diff...'))
+          )}
+        </div>
       </ContentShell>
     );
   }

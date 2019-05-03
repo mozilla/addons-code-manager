@@ -2,11 +2,9 @@
 
 .VersionChooser {
   background-color: #fff;
-  margin-bottom: $default-padding;
-  padding: $default-padding;
   width: 100%;
 }
 
-.heading {
-  margin-bottom: $default-padding;
+.form {
+  display: flex;
 }

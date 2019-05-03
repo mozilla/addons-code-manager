@@ -48,6 +48,11 @@ body.fullscreen {
   }
 }
 
+.DiffViewStory-panel {
+  border-radius: $border-radius;
+  border: 1px solid $light-gray;
+}
+
 .CodeView-panel {
   border-radius: $border-radius;
   border: 1px solid $light-gray;

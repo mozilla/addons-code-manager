@@ -1,22 +1,7 @@
 @import '../../scss/variables';
 
-// We add `.diff` to override the react-diff-view default style.
-.diff.diff {
-  border-bottom-left-radius: $border-radius;
-  border-bottom-right-radius: $border-radius;
-  border-collapse: separate;
-  border-color: $light-gray;
-  border-spacing: 0;
-  border-style: solid;
-  border-width: 0 1px 1px 1px;
-  margin-bottom: $default-padding;
-}
-
 .header {
   background-color: lighten($light-gray, 2);
-  border-top-left-radius: $border-radius;
-  border-top-right-radius: $border-radius;
-  border: 1px solid $light-gray;
   padding: $default-padding;
 }
 
@@ -59,6 +44,10 @@
   .diff-line .diff-code-selected {
     background-color: $light-gray;
   }
+}
+
+.globalLinterMessages {
+  padding: $default-padding $default-padding 0 $default-padding;
 }
 
 .inlineLinterMessages {

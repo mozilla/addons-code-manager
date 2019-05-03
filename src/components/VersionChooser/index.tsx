@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Col, Form, Row } from 'react-bootstrap';
+import { Form } from 'react-bootstrap';
 import { connect } from 'react-redux';
 import { withRouter, RouteComponentProps } from 'react-router-dom';
 
@@ -104,37 +104,31 @@ export class VersionChooserBase extends React.Component<Props> {
 
     return (
       <div className={styles.VersionChooser}>
-        <Form>
-          <Row className={styles.heading}>
-            <Col>
-              <h3>{gettext('Compare changes')}</h3>
-            </Col>
-          </Row>
+        <Form className={styles.form}>
+          <VersionSelect
+            className={styles.baseVersionSelect}
+            id="VersionSelect-oldVersion"
+            isLoading={!versionsMap}
+            isSelectable={_lowerVersionsThan(headVersionId)}
+            label={gettext('Old version')}
+            listedVersions={listedVersions}
+            onChange={this.onOldVersionChange}
+            unlistedVersions={unlistedVersions}
+            value={baseVersionId}
+          />
 
-          <Form.Row>
-            <VersionSelect
-              className={styles.baseVersionSelect}
-              isLoading={!versionsMap}
-              isSelectable={_lowerVersionsThan(headVersionId)}
-              label={gettext('Choose an old version')}
-              listedVersions={listedVersions}
-              onChange={this.onOldVersionChange}
-              unlistedVersions={unlistedVersions}
-              value={baseVersionId}
-            />
-
-            <VersionSelect
-              className={styles.headVersionSelect}
-              isLoading={!versionsMap}
-              isSelectable={_higherVersionsThan(baseVersionId)}
-              label={gettext('Choose a new version')}
-              listedVersions={listedVersions}
-              onChange={this.onNewVersionChange}
-              unlistedVersions={unlistedVersions}
-              value={headVersionId}
-              withLeftArrow
-            />
-          </Form.Row>
+          <VersionSelect
+            className={styles.headVersionSelect}
+            id="VersionSelect-newVersion"
+            isLoading={!versionsMap}
+            isSelectable={_higherVersionsThan(baseVersionId)}
+            label={gettext('New version')}
+            listedVersions={listedVersions}
+            onChange={this.onNewVersionChange}
+            unlistedVersions={unlistedVersions}
+            value={headVersionId}
+            withLeftArrow
+          />
         </Form>
       </div>
     );

@@ -115,14 +115,8 @@ describe(__filename, () => {
     const root = render({ addonId, store });
 
     expect(root.find(VersionSelect)).toHaveLength(2);
-    expect(root.find(VersionSelect).at(0)).toHaveProp(
-      'label',
-      'Choose an old version',
-    );
-    expect(root.find(VersionSelect).at(1)).toHaveProp(
-      'label',
-      'Choose a new version',
-    );
+    expect(root.find(VersionSelect).at(0)).toHaveProp('label', 'Old version');
+    expect(root.find(VersionSelect).at(1)).toHaveProp('label', 'New version');
     expect(root.find(VersionSelect).at(1)).toHaveProp('withLeftArrow', true);
   });
 

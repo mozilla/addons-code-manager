@@ -154,6 +154,12 @@ export class DiffViewBase extends React.Component<Props> {
       // Remove the `#` if `location.hash` is defined
       location.hash.length > 2 ? [location.hash.substring(1)] : [];
 
+    const globalLinterMessages = selectedMessageMap
+      ? selectedMessageMap.global.map((message) => {
+          return <LinterMessage key={message.uid} message={message} />;
+        })
+      : [];
+
     return (
       <div className={styles.DiffView}>
         {diffs.length === 0 && (
@@ -165,10 +171,11 @@ export class DiffViewBase extends React.Component<Props> {
           </React.Fragment>
         )}
 
-        {selectedMessageMap &&
-          selectedMessageMap.global.map((message) => {
-            return <LinterMessage key={message.uid} message={message} />;
-          })}
+        {globalLinterMessages.length ? (
+          <div className={styles.globalLinterMessages}>
+            {globalLinterMessages}
+          </div>
+        ) : null}
 
         {diffs.map((diff) => {
           const { oldRevision, newRevision, hunks, type } = diff;

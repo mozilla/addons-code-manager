@@ -1,0 +1,14 @@
+@import '../../scss/variables';
+
+.diffShell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.diffContent {
+  border-radius: $border-radius;
+  border: 1px solid $light-gray;
+  overflow: auto;
+}
