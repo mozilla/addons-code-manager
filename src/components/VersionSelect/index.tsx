@@ -12,7 +12,7 @@ import styles from './styles.module.scss';
 
 export type PublicProps = {
   className?: string;
-  id: string;
+  controlId: string;
   isLoading: boolean;
   isSelectable: (version: VersionsListItem) => boolean;
   label: string;
@@ -52,7 +52,7 @@ class VersionSelectBase extends React.Component<PublicProps> {
   render() {
     const {
       className,
-      id,
+      controlId,
       isLoading,
       label,
       listedVersions,
@@ -66,11 +66,10 @@ class VersionSelectBase extends React.Component<PublicProps> {
         <Form.Group
           as={Col}
           className={makeClassName(className, styles.formGroup)}
+          controlId={controlId}
         >
           {withLeftArrow && <FontAwesomeIcon icon="long-arrow-alt-left" />}
-          <Form.Label className={styles.label} htmlFor={id}>
-            {label}
-          </Form.Label>
+          <Form.Label className={styles.label}>{label}</Form.Label>
           {isLoading ? (
             <div
               className={makeClassName(
@@ -83,12 +82,7 @@ class VersionSelectBase extends React.Component<PublicProps> {
               <Skeleton className={styles.simulatedFormControlSkeleton} />
             </div>
           ) : (
-            <Form.Control
-              id={id}
-              as="select"
-              value={value}
-              onChange={this.onChange}
-            >
+            <Form.Control as="select" value={value} onChange={this.onChange}>
               {listedVersions.length && (
                 <optgroup
                   className={styles.listedGroup}

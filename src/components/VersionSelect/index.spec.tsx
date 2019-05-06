@@ -31,7 +31,7 @@ describe(__filename, () => {
     const versionsMap = createVersionsMap(versions);
 
     const allProps = {
-      id: 'anyIdString',
+      controlId: 'anyIdString',
       isLoading: false,
       isSelectable: jest.fn().mockReturnValue(true),
       label: 'select a version',
@@ -55,12 +55,11 @@ describe(__filename, () => {
     expect(root.find(Form.Label)).toIncludeText(label);
   });
 
-  it('associates a label with its control', () => {
-    const id = 'SomeIdString';
-    const root = render({ id });
+  it('assigns a controlId', () => {
+    const controlId = 'SomeIdString';
+    const root = render({ controlId });
 
-    expect(root.find(Form.Label)).toHaveProp('htmlFor', id);
-    expect(root.find(Form.Control)).toHaveProp('id', id);
+    expect(root.find(Form.Group)).toHaveProp('controlId', controlId);
   });
 
   it('does not render an arrow icon by default', () => {

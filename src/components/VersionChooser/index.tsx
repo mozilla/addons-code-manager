@@ -107,7 +107,7 @@ export class VersionChooserBase extends React.Component<Props> {
         <Form className={styles.form}>
           <VersionSelect
             className={styles.baseVersionSelect}
-            id="VersionSelect-oldVersion"
+            controlId="VersionSelect-oldVersion"
             isLoading={!versionsMap}
             isSelectable={_lowerVersionsThan(headVersionId)}
             label={gettext('Old version')}
@@ -119,7 +119,7 @@ export class VersionChooserBase extends React.Component<Props> {
 
           <VersionSelect
             className={styles.headVersionSelect}
-            id="VersionSelect-newVersion"
+            controlId="VersionSelect-newVersion"
             isLoading={!versionsMap}
             isSelectable={_higherVersionsThan(baseVersionId)}
             label={gettext('New version')}
