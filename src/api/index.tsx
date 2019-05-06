@@ -80,7 +80,9 @@ export const makeApiURL = ({
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const makeQueryString = (query: { [key: string]: any }) => {
+export const makeQueryString = (query: {
+  [key: string]: string | number | null | void | boolean;
+}) => {
   const resolvedQuery = { ...query };
   Object.keys(resolvedQuery).forEach((key) => {
     const value = resolvedQuery[key];

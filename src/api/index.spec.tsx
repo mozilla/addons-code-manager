@@ -510,8 +510,7 @@ describe(__filename, () => {
   describe('makeQueryString', () => {
     it('transforms an object to a query string', () => {
       const query = makeQueryString({ user: 123, addon: 321 });
-      expect(query).toContain('user=123');
-      expect(query).toContain('addon=321');
+      expect(query).toEqual(expect.urlWithTheseParams({ addon: '321' }));
     });
 
     it('ignores undefined query string values', () => {
@@ -531,22 +530,22 @@ describe(__filename, () => {
 
     it('handles falsey integers', () => {
       const query = makeQueryString({ flag: 0 });
-      expect(query).toEqual('?flag=0');
+      expect(query).toEqual(expect.urlWithTheseParams({ flag: '0' }));
     });
 
     it('handles truthy integers', () => {
       const query = makeQueryString({ flag: 1 });
-      expect(query).toEqual('?flag=1');
+      expect(query).toEqual(expect.urlWithTheseParams({ flag: '1' }));
     });
 
     it('handles false values', () => {
       const query = makeQueryString({ flag: false });
-      expect(query).toEqual('?flag=false');
+      expect(query).toEqual(expect.urlWithTheseParams({ flag: 'false' }));
     });
 
     it('handles true values', () => {
       const query = makeQueryString({ flag: true });
-      expect(query).toEqual('?flag=true');
+      expect(query).toEqual(expect.urlWithTheseParams({ flag: 'true' }));
     });
   });
 });
