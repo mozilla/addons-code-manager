@@ -3,18 +3,25 @@ import { Store } from 'redux';
 import { storiesOf } from '@storybook/react';
 
 import configureStore from '../src/configureStore';
+import FullscreenGrid, { ContentShell } from '../src/components/FullscreenGrid';
 import CodeView, {
   PublicProps as CodeViewProps,
 } from '../src/components/CodeView';
 import { LinterMessage, actions } from '../src/reducers/linter';
 import { createInternalVersion } from '../src/reducers/versions';
-import { newLinterMessageUID, renderWithStoreAndRouter } from './utils';
+import {
+  newLinterMessageUID,
+  rootAttributeParams,
+  renderWithStoreAndRouter,
+} from './utils';
 import {
   createFakeExternalLinterResult,
   fakeVersion,
   fakeVersionEntry,
   fakeVersionFile,
 } from '../src/test-helpers';
+
+const getParams = () => rootAttributeParams({ fullscreen: true });
 
 export const JS_SAMPLE = `/**
  * There was an error executing the script.
@@ -57,9 +64,11 @@ const render = ({
     ...moreProps,
   };
   return renderWithStoreAndRouter(
-    <div className="CodeView-panel">
-      <CodeView {...props} />
-    </div>,
+    <FullscreenGrid>
+      <ContentShell>
+        <CodeView {...props} />
+      </ContentShell>
+    </FullscreenGrid>,
     store,
   );
 };
@@ -99,136 +108,120 @@ const renderJSWithMessages = (
 };
 
 storiesOf('CodeView', module)
-  .addWithChapters('mime types', {
-    chapters: [
-      {
-        sections: [
-          {
-            title: 'unsupported mime type',
-            sectionFn: () => render({ mimeType: '', content: JS_SAMPLE }),
-          },
-          {
-            title: 'application/javascript',
-            sectionFn: () =>
-              render({
-                mimeType: 'application/javascript',
-                content: JS_SAMPLE,
-              }),
-          },
-          {
-            title: 'text/css',
-            sectionFn: () => render({ mimeType: 'text/css', content: CSS }),
-          },
-        ],
-      },
-    ],
-  })
-  .addWithChapters('linter messages', {
-    chapters: [
-      {
-        sections: [
-          {
-            title: 'one global message',
-            sectionFn: () => {
-              return renderJSWithMessages([
-                {
-                  line: null,
-                  message:
-                    'The &#34;update_url&#34; property is not used by Firefox.',
-                  description: [
-                    'The &#34;update_url&#34; is not used by Firefox in the root of a manifest; your add-on will be updated via the Add-ons site and not your &#34;update_url&#34;.',
-                  ],
-                  type: 'warning',
-                },
-              ]);
-            },
-          },
-          {
-            title: 'multiple global messages',
-            sectionFn: () => {
-              return renderJSWithMessages([
-                {
-                  line: null,
-                  message:
-                    'The &#34;update_url&#34; property is not used by Firefox.',
-                  description: [
-                    'The &#34;update_url&#34; is not used by Firefox in the root of a manifest; your add-on will be updated via the Add-ons site and not your &#34;update_url&#34;.',
-                  ],
-                  type: 'warning',
-                },
-                {
-                  line: null,
-                  message:
-                    '/permissions: Unknown permissions &#34;unlimitedStorage&#34; at 8.',
-                  description: ['See ... for more information.'],
-                  type: 'notice',
-                },
-              ]);
-            },
-          },
-          {
-            title: 'one message on one line',
-            sectionFn: () => {
-              return renderJSWithMessages([
-                {
-                  line: 7,
-                  message: 'document.querySelector() detected',
-                  description: [
-                    'Pretty sweet call to document.querySelector(). Nice.',
-                  ],
-                  type: 'notice',
-                },
-              ]);
-            },
-          },
-          {
-            title: 'multiple messages on one line',
-            sectionFn: () => {
-              const line = 7;
-              return renderJSWithMessages([
-                {
-                  line,
-                  message: 'document.querySelector() detected',
-                  description: [
-                    'Pretty sweet call to document.querySelector(). Nice.',
-                  ],
-                  type: 'notice',
-                },
-                {
-                  line,
-                  message: 'classList.remove() considered harmful',
-                  description: [
-                    'Calling element.classList.remove() is harmful but not really.',
-                  ],
-                  type: 'error',
-                },
-              ]);
-            },
-          },
-          {
-            title: 'multiple messages on multiple lines',
-            sectionFn: () => {
-              return renderJSWithMessages([
-                {
-                  line: 7,
-                  message: 'document.querySelector() detected',
-                  description: [
-                    'Pretty sweet call to document.querySelector(). Nice.',
-                  ],
-                  type: 'notice',
-                },
-                {
-                  line: 18,
-                  message: 'browser.tabs.executeScript() is deprecated',
-                  description: [
-                    'browser.tabs.executeScript() will not be supported in the near future. Just kidding.',
-                  ],
-                  type: 'warning',
-                },
-              ]);
-            },
-          },
-        ],
-      },
-    ],
-  });
+  .add(
+    'Mime type: (unsupported)',
+    () => render({ mimeType: '', content: JS_SAMPLE }),
+    getParams(),
+  )
+  .add(
+    'Mime type: application/javascript',
+    () =>
+      render({
+        mimeType: 'application/javascript',
+        content: JS_SAMPLE,
+      }),
+    getParams(),
+  )
+  .add(
+    'Mime type: text/css',
+    () => render({ mimeType: 'text/css', content: CSS }),
+    getParams(),
+  )
+  .add(
+    'One global linter message',
+    () => {
+      return renderJSWithMessages([
+        {
+          line: null,
+          message: 'The &#34;update_url&#34; property is not used by Firefox.',
+          description: [
+            'The &#34;update_url&#34; is not used by Firefox in the root of a manifest; your add-on will be updated via the Add-ons site and not your &#34;update_url&#34;.',
+          ],
+          type: 'warning',
+        },
+      ]);
+    },
+    getParams(),
+  )
+  .add(
+    'Multiple global linter messages',
+    () => {
+      return renderJSWithMessages([
+        {
+          line: null,
+          message: 'The &#34;update_url&#34; property is not used by Firefox.',
+          description: [
+            'The &#34;update_url&#34; is not used by Firefox in the root of a manifest; your add-on will be updated via the Add-ons site and not your &#34;update_url&#34;.',
+          ],
+          type: 'warning',
+        },
+        {
+          line: null,
+          message:
+            '/permissions: Unknown permissions &#34;unlimitedStorage&#34; at 8.',
+          description: ['See ... for more information.'],
+          type: 'notice',
+        },
+      ]);
+    },
+    getParams(),
+  )
+  .add(
+    'One linter message on one line',
+    () => {
+      return renderJSWithMessages([
+        {
+          line: 7,
+          message: 'document.querySelector() detected',
+          description: ['Pretty sweet call to document.querySelector(). Nice.'],
+          type: 'notice',
+        },
+      ]);
+    },
+    getParams(),
+  )
+  .add(
+    'Multiple linter messages on one line',
+    () => {
+      const line = 7;
+      return renderJSWithMessages([
+        {
+          line,
+          message: 'document.querySelector() detected',
+          description: ['Pretty sweet call to document.querySelector(). Nice.'],
+          type: 'notice',
+        },
+        {
+          line,
+          message: 'classList.remove() considered harmful',
+          description: [
+            'Calling element.classList.remove() is harmful but not really.',
+          ],
+          type: 'error',
+        },
+      ]);
+    },
+    getParams(),
+  )
+  .add(
+    'Multiple linter messages on multiple lines',
+    () => {
+      return renderJSWithMessages([
+        {
+          line: 7,
+          message: 'document.querySelector() detected',
+          description: ['Pretty sweet call to document.querySelector(). Nice.'],
+          type: 'notice',
+        },
+        {
+          line: 18,
+          message: 'browser.tabs.executeScript() is deprecated',
+          description: [
+            'browser.tabs.executeScript() will not be supported in the near future. Just kidding.',
+          ],
+          type: 'warning',
+        },
+      ]);
+    },
+    getParams(),
+  );
