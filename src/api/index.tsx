@@ -79,7 +79,6 @@ export const makeApiURL = ({
   return parts.join('');
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const makeQueryString = (query: {
   [key: string]: string | number | null | void | boolean;
 }) => {
