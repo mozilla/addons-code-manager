@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/camelcase */
+import queryString from 'query-string';
 import React from 'react';
 import {
   Diff,
@@ -8,7 +9,7 @@ import {
   getChangeKey,
 } from 'react-diff-view';
 import { ShallowWrapper, shallow } from 'enzyme';
-import { Location } from 'history';
+import { History, Location } from 'history';
 
 import basicDiff from './fixtures/basicDiff';
 import multipleDiff from './fixtures/multipleDiff';
@@ -16,9 +17,10 @@ import diffWithDeletions from './fixtures/diffWithDeletions';
 import LinterMessage from '../LinterMessage';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import { getLanguageFromMimeType } from '../../utils';
-import { createInternalVersion } from '../../reducers/versions';
+import { DiffPosition, createInternalVersion } from '../../reducers/versions';
 import {
   createContextWithFakeRouter,
+  createFakeHistory,
   createFakeLinterMessagesByPath,
   createFakeLocation,
   fakeVersion,
@@ -28,22 +30,23 @@ import {
 import styles from './styles.module.scss';
 
 import DiffView, {
-  DiffViewBase,
   DefaultProps,
+  DiffViewBase,
   PublicProps,
   getAllHunkChanges,
 } from '.';
 
 describe(__filename, () => {
-  type RenderParams = { location?: Location } & Partial<
+  type RenderParams = { history?: History; location?: Location } & Partial<
     PublicProps & DefaultProps
   >;
 
   const render = ({
+    history = createFakeHistory(),
     location = createFakeLocation(),
     ...props
   }: RenderParams = {}) => {
-    const shallowOptions = createContextWithFakeRouter({ location });
+    const shallowOptions = createContextWithFakeRouter({ history, location });
 
     return shallowUntilTarget(
       <DiffView
@@ -220,6 +223,196 @@ describe(__filename, () => {
     renderWithLinterProvider({ _document, location });
 
     expect(_document.querySelector).toHaveBeenCalledWith(location.hash);
+  });
+
+  it('tries to find the selected line element on update', () => {
+    const _document = {
+      ...document,
+      querySelector: jest.fn(),
+    };
+    const location = createFakeLocation({ hash: '#some-hash' });
+
+    const root = render({ _document });
+    root.setProps({ location });
+
+    expect(_document.querySelector).toHaveBeenCalledWith(location.hash);
+  });
+
+  it('calls history.push to navigate to the first diff when showDiff is "first"', () => {
+    const firstDiffAnchor = 'D5';
+    const _getRelativeDiffAnchor = jest.fn().mockReturnValue(firstDiffAnchor);
+    const location = createFakeLocation({
+      search: queryString.stringify({ showDiff: DiffPosition.first }),
+    });
+    const history = createFakeHistory({ location });
+
+    const queryParams = queryString.parse(location.search);
+    const newParams = { ...queryParams };
+
+    delete newParams.showDiff;
+    const newLocation = {
+      ...location,
+      hash: `#${firstDiffAnchor}`,
+      search: `?${queryString.stringify(newParams)}`,
+    };
+
+    renderWithLinterProvider({ _getRelativeDiffAnchor, history, location });
+
+    expect(history.push).toHaveBeenCalledWith(newLocation);
+  });
+
+  it('calls history.push to navigate to the last diff when showDiff is "last"', () => {
+    const lastDiffAnchor = 'D5';
+    const _getDiffAnchors = jest
+      .fn()
+      .mockReturnValue(['D1', 'D2', lastDiffAnchor]);
+    const location = createFakeLocation({
+      search: queryString.stringify({ showDiff: DiffPosition.last }),
+    });
+    const history = createFakeHistory({ location });
+
+    const queryParams = queryString.parse(location.search);
+    const newParams = { ...queryParams };
+
+    delete newParams.showDiff;
+    const newLocation = {
+      ...location,
+      hash: `#${lastDiffAnchor}`,
+      search: `?${queryString.stringify(newParams)}`,
+    };
+
+    renderWithLinterProvider({ _getDiffAnchors, history, location });
+
+    expect(history.push).toHaveBeenCalledWith(newLocation);
+  });
+
+  it('calls history.push on update to navigate to the first diff when showDiff is "first"', () => {
+    const firstDiffAnchor = 'D5';
+    const _getRelativeDiffAnchor = jest.fn().mockReturnValue(firstDiffAnchor);
+    const location = createFakeLocation({
+      search: queryString.stringify({ showDiff: DiffPosition.first }),
+    });
+    const history = createFakeHistory({ location });
+
+    const queryParams = queryString.parse(location.search);
+    const newParams = { ...queryParams };
+
+    delete newParams.showDiff;
+    const newLocation = {
+      ...location,
+      hash: `#${firstDiffAnchor}`,
+      search: `?${queryString.stringify(newParams)}`,
+    };
+
+    const root = render({
+      _getRelativeDiffAnchor,
+      diff: null,
+      history,
+      location,
+    });
+
+    expect(history.push).not.toHaveBeenCalled();
+
+    root.setProps({ diff: parseDiff(basicDiff)[0] });
+
+    expect(history.push).toHaveBeenCalledWith(newLocation);
+  });
+
+  it('calls history.push on update to navigate to the last diff when showDiff is "last"', () => {
+    const lastDiffAnchor = 'D5';
+    const _getDiffAnchors = jest
+      .fn()
+      .mockReturnValue(['D1', 'D2', lastDiffAnchor]);
+    const location = createFakeLocation({
+      search: queryString.stringify({ showDiff: DiffPosition.last }),
+    });
+    const history = createFakeHistory({ location });
+
+    const queryParams = queryString.parse(location.search);
+    const newParams = { ...queryParams };
+
+    delete newParams.showDiff;
+    const newLocation = {
+      ...location,
+      hash: `#${lastDiffAnchor}`,
+      search: `?${queryString.stringify(newParams)}`,
+    };
+
+    const root = render({
+      _getDiffAnchors,
+      diff: null,
+      history,
+      location,
+    });
+
+    expect(history.push).not.toHaveBeenCalled();
+
+    root.setProps({ diff: parseDiff(basicDiff)[0] });
+
+    expect(history.push).toHaveBeenCalledWith(newLocation);
+  });
+
+  it('does not call history.push to navigate to the first diff when there is no diff', () => {
+    const _getRelativeDiffAnchor = jest.fn().mockReturnValue('some-anchor');
+    const location = createFakeLocation({
+      search: queryString.stringify({ showDiff: DiffPosition.first }),
+    });
+    const history = createFakeHistory({ location });
+
+    renderWithLinterProvider({
+      _getRelativeDiffAnchor,
+      diff: null,
+      history,
+      location,
+    });
+
+    expect(history.push).not.toHaveBeenCalled();
+  });
+
+  it('does not call history.push to navigate to a diff when showDiff query param is falsey', () => {
+    const _getRelativeDiffAnchor = jest.fn().mockReturnValue('some-anchor');
+    const location = createFakeLocation();
+    const history = createFakeHistory({ location });
+
+    renderWithLinterProvider({
+      _getRelativeDiffAnchor,
+      history,
+      location,
+    });
+
+    expect(history.push).not.toHaveBeenCalled();
+  });
+
+  it('does not call history.push to navigate to the first diff when there are no diff anchors', () => {
+    const _getRelativeDiffAnchor = jest.fn().mockReturnValue(null);
+    const location = createFakeLocation({
+      search: queryString.stringify({ showDiff: DiffPosition.first }),
+    });
+    const history = createFakeHistory({ location });
+
+    renderWithLinterProvider({
+      _getRelativeDiffAnchor,
+      history,
+      location,
+    });
+
+    expect(history.push).not.toHaveBeenCalled();
+  });
+
+  it('does not call history.push to navigate to the last diff when there are no diff anchors', () => {
+    const _getDiffAnchors = jest.fn().mockReturnValue([]);
+    const location = createFakeLocation({
+      search: queryString.stringify({ showDiff: DiffPosition.last }),
+    });
+    const history = createFakeHistory({ location });
+
+    renderWithLinterProvider({
+      _getDiffAnchors,
+      history,
+      location,
+    });
+
+    expect(history.push).not.toHaveBeenCalled();
   });
 
   it('does not try to find the selected line element on mount when hash is empty', () => {

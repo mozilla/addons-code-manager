@@ -15,6 +15,11 @@ import {
   findRelativePathWithDiff,
 } from './fileTree';
 
+export enum DiffPosition {
+  first = 'first',
+  last = 'last',
+}
+
 type VersionCompatibility = {
   [appName: string]: {
     min: string;
@@ -470,46 +475,43 @@ export const getDiffAnchors = (diff: DiffInfo): string[] => {
 };
 
 export type GetRelativeDiffAnchorParams = {
-  currentAnchor: string | void;
+  currentAnchor?: string | void;
   diff: DiffInfo;
-  position: RelativePathPosition;
+  position?: RelativePathPosition;
 };
 
 export const getRelativeDiffAnchor = ({
   currentAnchor,
   diff,
-  position,
+  position = RelativePathPosition.next,
 }: GetRelativeDiffAnchorParams): string | null => {
   const anchors = getDiffAnchors(diff);
-  if (!anchors.length) {
-    // There are no changes in the diff.
-    // This can happen if a file is saved but not changed internally.
-    return null;
-  }
+  if (anchors.length) {
+    let newIndex;
+    if (!currentAnchor) {
+      // Since we aren't looking for an anchor relative to an existing one,
+      // just get the first anchor.
+      newIndex = 0;
+    } else {
+      const currentIndex = anchors.indexOf(currentAnchor);
+      if (currentIndex < 0) {
+        throw new Error(
+          `Could not locate anchor: ${currentAnchor} in the diff.`,
+        );
+      }
 
-  let newIndex;
-  if (!currentAnchor) {
-    // Since we aren't looking for an anchor relative to an existing one,
-    // just get the first anchor.
-    newIndex = 0;
-  } else {
-    const currentIndex = anchors.indexOf(currentAnchor);
-    if (currentIndex < 0) {
-      throw new Error(`Could not locate anchor: ${currentAnchor} in the diff.`);
+      newIndex =
+        position === RelativePathPosition.previous
+          ? currentIndex - 1
+          : currentIndex + 1;
     }
 
-    newIndex =
-      position === RelativePathPosition.previous
-        ? currentIndex - 1
-        : currentIndex + 1;
+    if (newIndex >= 0 && newIndex < anchors.length) {
+      return anchors[newIndex];
+    }
   }
 
-  if (newIndex >= 0 && newIndex < anchors.length) {
-    return anchors[newIndex];
-  }
-  // There is no next/previous anchor in the file.
-  // In the future we will go to the next/previous file, but for now we
-  // return null.
+  // There is no next/previous anchor in the file, so return null.
   return null;
 };
 
