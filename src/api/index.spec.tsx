@@ -16,6 +16,7 @@ import {
   isErrorResponse,
   logOutFromServer,
   makeApiURL,
+  makeQueryString,
 } from '.';
 
 describe(__filename, () => {
@@ -188,6 +189,22 @@ describe(__filename, () => {
         expect.urlWithTheseParams(query),
         expect.any(Object),
       );
+    });
+
+    it('calls makeQueryString to construct the query string', async () => {
+      const _makeQueryString = jest.fn();
+      const query = { foo: '1', bar: 'abc' };
+
+      await callApiWithDefaultApiState({
+        _makeQueryString,
+        endpoint: '/url',
+        // Here, we disable the lang so that only `query` is passed to
+        // `makeQueryString()`.
+        lang: null,
+        query,
+      });
+
+      expect(_makeQueryString).toHaveBeenCalledWith(query);
     });
 
     it('can include credentials', async () => {
@@ -487,6 +504,49 @@ describe(__filename, () => {
       expect(() => {
         makeApiURL({});
       }).toThrow(/Either `path` or `url` must be defined/);
+    });
+  });
+
+  describe('makeQueryString', () => {
+    it('transforms an object to a query string', () => {
+      const query = makeQueryString({ user: 123, addon: 321 });
+      expect(query).toContain('user=123');
+      expect(query).toContain('addon=321');
+    });
+
+    it('ignores undefined query string values', () => {
+      const query = makeQueryString({ user: undefined, addon: 321 });
+      expect(query).toEqual('?addon=321');
+    });
+
+    it('ignores null query string values', () => {
+      const query = makeQueryString({ user: null, addon: 321 });
+      expect(query).toEqual('?addon=321');
+    });
+
+    it('ignores empty string query string values', () => {
+      const query = makeQueryString({ user: '', addon: 321 });
+      expect(query).toEqual('?addon=321');
+    });
+
+    it('handles falsey integers', () => {
+      const query = makeQueryString({ flag: 0 });
+      expect(query).toEqual('?flag=0');
+    });
+
+    it('handles truthy integers', () => {
+      const query = makeQueryString({ flag: 1 });
+      expect(query).toEqual('?flag=1');
+    });
+
+    it('handles false values', () => {
+      const query = makeQueryString({ flag: false });
+      expect(query).toEqual('?flag=false');
+    });
+
+    it('handles true values', () => {
+      const query = makeQueryString({ flag: true });
+      expect(query).toEqual('?flag=true');
     });
   });
 });

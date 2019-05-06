@@ -1,3 +1,5 @@
+import urllib from 'url';
+
 import log from 'loglevel';
 
 import { ApiState } from '../reducers/api';
@@ -77,6 +79,20 @@ export const makeApiURL = ({
   return parts.join('');
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const makeQueryString = (query: { [key: string]: any }) => {
+  const resolvedQuery = { ...query };
+  Object.keys(resolvedQuery).forEach((key) => {
+    const value = resolvedQuery[key];
+    if (value === undefined || value === null || value === '') {
+      // Make sure we don't turn this into ?key= (empty string) because sending
+      // an empty string to the API sometimes triggers bugs.
+      delete resolvedQuery[key];
+    }
+  });
+  return urllib.format({ query: resolvedQuery });
+};
+
 export enum HttpMethod {
   DELETE = 'DELETE',
   GET = 'GET',
@@ -86,6 +102,7 @@ export enum HttpMethod {
 }
 
 type CallApiParams = {
+  _makeQueryString?: typeof makeQueryString;
   apiState: ApiState;
   endpoint: string;
   includeCredentials?: boolean;
@@ -119,6 +136,7 @@ type Headers = {
 // For the `extends {}` part, please see:
 // https://github.com/Microsoft/TypeScript/issues/4922
 export const callApi = async <SuccessResponseType extends {}>({
+  _makeQueryString = makeQueryString,
   apiState,
   endpoint,
   includeCredentials = false,
@@ -147,11 +165,7 @@ export const callApi = async <SuccessResponseType extends {}>({
   // Add the lang parameter to the query string.
   const queryWithLang: QueryWithLang = lang ? { ...query, lang } : query;
 
-  const queryString = Object.keys(queryWithLang)
-    .map((k) => `${k}=${queryWithLang[k]}`)
-    .join('&');
-
-  path = `${path}?${queryString}`;
+  path = `${path}${_makeQueryString(queryWithLang)}`;
 
   try {
     const response = await fetch(makeApiURL({ path, version }), {
