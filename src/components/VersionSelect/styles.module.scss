@@ -1,7 +1,4 @@
-.arrow {
-  margin: auto;
-  padding-top: 14px;
-}
+@import '../../scss/variables';
 
 .option {
   font-weight: 600;
@@ -17,5 +14,19 @@
 
   .simulatedFormControlSkeleton {
     width: 60px;
+  }
+}
+
+.formGroup {
+  align-items: center;
+  display: flex;
+}
+
+.label {
+  margin: 0 $default-padding;
+  white-space: nowrap;
+
+  &:first-child {
+    margin-left: 0;
   }
 }

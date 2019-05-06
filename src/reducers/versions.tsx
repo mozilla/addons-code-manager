@@ -699,6 +699,27 @@ export const getCompareInfoKey = ({
   return [addonId, baseVersionId, headVersionId, path].join('/');
 };
 
+export const createInternalCompareInfo = ({
+  baseVersionId,
+  headVersionId,
+  entry,
+  version,
+}: {
+  baseVersionId: number;
+  headVersionId: number;
+  entry: VersionEntry;
+  version: ExternalVersionWithDiff;
+}): CompareInfo => {
+  return {
+    diffs: createInternalDiffs({
+      baseVersionId,
+      headVersionId,
+      version,
+    }),
+    mimeType: entry.mimeType,
+  };
+};
+
 export const getCompareInfo = (
   versions: VersionsState,
   addonId: number,
@@ -1086,14 +1107,12 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
         ...state,
         compareInfo: {
           ...state.compareInfo,
-          [compareInfoKey]: {
-            diffs: createInternalDiffs({
-              baseVersionId,
-              headVersionId,
-              version,
-            }),
-            mimeType: entry.mimeType,
-          },
+          [compareInfoKey]: createInternalCompareInfo({
+            baseVersionId,
+            headVersionId,
+            entry,
+            version,
+          }),
         },
         compareInfoIsLoading: {
           ...state.compareInfoIsLoading,

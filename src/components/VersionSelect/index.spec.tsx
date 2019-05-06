@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { shallow } from 'enzyme';
 import { Form } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import Skeleton from '../Skeleton';
 import {
@@ -24,27 +25,23 @@ describe(__filename, () => {
   >;
 
   const render = ({
-    className = undefined,
-    isLoading = false,
-    isSelectable = jest.fn().mockReturnValue(true),
-    label = 'select a version',
-    onChange = jest.fn(),
-    value = undefined,
     versions = fakeVersionsList,
-    withLeftArrow = false,
+    ...props
   }: RenderParams = {}) => {
     const versionsMap = createVersionsMap(versions);
 
     const allProps = {
-      className,
-      isLoading,
-      isSelectable,
-      label,
+      controlId: 'anyIdString',
+      isLoading: false,
+      isSelectable: jest.fn().mockReturnValue(true),
+      label: 'select a version',
       listedVersions: versionsMap.listed,
-      onChange,
+      onChange: jest.fn(),
       unlistedVersions: versionsMap.unlisted,
-      value,
-      withLeftArrow,
+      value: undefined,
+      versions,
+      withLeftArrow: false,
+      ...props,
     };
 
     return shallow(<VersionSelect {...allProps} />);
@@ -58,16 +55,25 @@ describe(__filename, () => {
     expect(root.find(Form.Label)).toIncludeText(label);
   });
 
-  it('does not render an arrow by default', () => {
-    const root = render();
+  it('assigns a controlId', () => {
+    const controlId = 'SomeIdString';
+    const root = render({ controlId });
 
-    expect(root.find(`.${styles.arrow}`)).toHaveLength(0);
+    expect(root.find(Form.Group)).toHaveProp('controlId', controlId);
   });
 
-  it('renders an arrow when withLeftArrow is true', () => {
+  it('does not render an arrow icon by default', () => {
+    const root = render();
+
+    expect(root.find(FontAwesomeIcon)).toHaveLength(0);
+  });
+
+  it('renders an arrow icon when withLeftArrow is true', () => {
     const root = render({ withLeftArrow: true });
 
-    expect(root.find(`.${styles.arrow}`)).toHaveLength(1);
+    const icon = root.find(FontAwesomeIcon);
+    expect(icon).toHaveLength(1);
+    expect(icon).toHaveProp('icon', 'long-arrow-alt-left');
   });
 
   it('renders two lists of versions', () => {

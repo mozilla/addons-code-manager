@@ -124,11 +124,16 @@ export class CompareBase extends React.Component<Props> {
       );
     }
 
-    return <Loading message={message} />;
+    return (
+      // Use a container so that `display: flex` doesn't disturb the contents.
+      <div>
+        <Loading message={message} />
+      </div>
+    );
   }
 
   render() {
-    const { addonId, compareInfo, version } = this.props;
+    const { addonId, compareInfo, path, version } = this.props;
 
     return (
       <ContentShell
@@ -140,16 +145,21 @@ export class CompareBase extends React.Component<Props> {
           )
         }
       >
-        <VersionChooser addonId={addonId} />
-        {version && compareInfo ? (
-          <DiffView
-            diffs={compareInfo.diffs}
-            mimeType={compareInfo.mimeType}
-            version={version}
-          />
-        ) : (
-          this.renderLoadingMessageOrError(gettext('Loading diff...'))
-        )}
+        <div className={styles.diffShell}>
+          <VersionChooser addonId={addonId} />
+          {version && compareInfo ? (
+            <div key={`${version.id}:${path}`} className={styles.diffContent}>
+              {/* The key in this ^ resets scrollbars between files */}
+              <DiffView
+                diffs={compareInfo.diffs}
+                mimeType={compareInfo.mimeType}
+                version={version}
+              />
+            </div>
+          ) : (
+            this.renderLoadingMessageOrError(gettext('Loading diff...'))
+          )}
+        </div>
       </ContentShell>
     );
   }

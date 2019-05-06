@@ -29,7 +29,12 @@ const render = (
     ...moreProps,
   };
 
-  return renderWithStoreAndRouter(<DiffView {...props} />, store);
+  return renderWithStoreAndRouter(
+    <div className="DiffViewStory-panel">
+      <DiffView {...props} />
+    </div>,
+    store,
+  );
 };
 
 const renderWithMessages = (

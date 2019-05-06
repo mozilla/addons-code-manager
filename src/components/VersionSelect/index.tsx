@@ -12,6 +12,7 @@ import styles from './styles.module.scss';
 
 export type PublicProps = {
   className?: string;
+  controlId: string;
   isLoading: boolean;
   isSelectable: (version: VersionsListItem) => boolean;
   label: string;
@@ -51,6 +52,7 @@ class VersionSelectBase extends React.Component<PublicProps> {
   render() {
     const {
       className,
+      controlId,
       isLoading,
       label,
       listedVersions,
@@ -61,14 +63,13 @@ class VersionSelectBase extends React.Component<PublicProps> {
 
     return (
       <React.Fragment>
-        {withLeftArrow && (
-          <div className={styles.arrow}>
-            <FontAwesomeIcon icon="long-arrow-alt-left" />
-          </div>
-        )}
-
-        <Form.Group as={Col} className={className}>
-          <Form.Label>{label}</Form.Label>
+        <Form.Group
+          as={Col}
+          className={makeClassName(className, styles.formGroup)}
+          controlId={controlId}
+        >
+          {withLeftArrow && <FontAwesomeIcon icon="long-arrow-alt-left" />}
+          <Form.Label className={styles.label}>{label}</Form.Label>
           {isLoading ? (
             <div
               className={makeClassName(
