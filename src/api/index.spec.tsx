@@ -510,7 +510,9 @@ describe(__filename, () => {
   describe('makeQueryString', () => {
     it('transforms an object to a query string', () => {
       const query = makeQueryString({ user: 123, addon: 321 });
-      expect(query).toEqual(expect.urlWithTheseParams({ addon: '321' }));
+      expect(query).toEqual(
+        expect.urlWithTheseParams({ user: '123', addon: '321' }),
+      );
     });
 
     it('ignores undefined query string values', () => {
