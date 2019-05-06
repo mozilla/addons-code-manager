@@ -1,3 +1,4 @@
+import log from 'loglevel';
 import * as React from 'react';
 import { ListGroup } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -15,10 +16,19 @@ import {
 } from '../../reducers/linter';
 import styles from './styles.module.scss';
 
+type ScrollIntoViewIfNeeded = () => void;
+
 export type PublicProps = TreefoldRenderPropsForFileTree & {
+  _scrollIntoViewIfNeeded?: ScrollIntoViewIfNeeded;
   onSelect: (id: string) => void;
   version: Version;
 };
+
+export type DefaultProps = {
+  createNodeRef: () => React.RefObject<HTMLDivElement> | null;
+};
+
+type Props = PublicProps & DefaultProps;
 
 type MessageType = LinterMessage['type'];
 
@@ -107,7 +117,44 @@ const getIconForType = (type: string | null) => {
   }
 };
 
-class FileTreeNodeBase<TreeNodeType> extends React.Component<PublicProps> {
+class FileTreeNodeBase<TreeNodeType> extends React.Component<Props> {
+  static defaultProps = {
+    createNodeRef: () => React.createRef(),
+  };
+
+  private scrollIntoViewIfNeeded: ScrollIntoViewIfNeeded;
+
+  private nodeRef = this.props.createNodeRef();
+
+  constructor(props: Props) {
+    super(props);
+    this.scrollIntoViewIfNeeded =
+      this.props._scrollIntoViewIfNeeded || this._scrollIntoViewIfNeeded;
+  }
+
+  componentDidMount() {
+    this.scrollIntoViewIfNeeded();
+  }
+
+  componentDidUpdate() {
+    this.scrollIntoViewIfNeeded();
+  }
+
+  _scrollIntoViewIfNeeded = () => {
+    if (this.isSelected()) {
+      if (this.nodeRef && this.nodeRef.current) {
+        this.nodeRef.current.scrollIntoView();
+      } else {
+        log.warn(`nodeRef.current was unexpectedly empty: ${this.nodeRef}`);
+      }
+    }
+  };
+
+  isSelected() {
+    const { node, version } = this.props;
+    return version.selectedPath === node.id;
+  }
+
   renderWithLinterInfo = ({ messageMap }: LinterProviderInfo) => {
     const {
       getToggleProps,
@@ -118,7 +165,6 @@ class FileTreeNodeBase<TreeNodeType> extends React.Component<PublicProps> {
       node,
       onSelect,
       renderChildNodes,
-      version,
     } = this.props;
 
     const hasLinterMessages =
@@ -147,7 +193,7 @@ class FileTreeNodeBase<TreeNodeType> extends React.Component<PublicProps> {
     let listGroupItemProps = {
       className: makeClassName(styles.node, {
         [styles.directoryNode]: isFolder,
-        [styles.selected]: version.selectedPath === node.id,
+        [styles.selected]: this.isSelected(),
         [styles.hasLinterMessages]: hasLinterMessages,
         [styles.hasLinterErrors]: linterType === 'error',
         [styles.hasLinterWarnings]: linterType === 'warning',
@@ -163,9 +209,13 @@ class FileTreeNodeBase<TreeNodeType> extends React.Component<PublicProps> {
       };
     }
 
+    const ItemElement = (props = {}) => {
+      return <div ref={this.nodeRef} {...props} />;
+    };
+
     return (
       <React.Fragment>
-        <ListGroup.Item {...listGroupItemProps}>
+        <ListGroup.Item as={ItemElement} {...listGroupItemProps}>
           <span
             className={styles.nodeItem}
             style={{ paddingLeft: `${level * 12}px` }}
