@@ -48,6 +48,11 @@ body.fullscreen {
   }
 }
 
+.FileTreeNodeStory-shell {
+  border-radius: $border-radius;
+  border: 1px solid $light-gray;
+}
+
 .DiffViewStory-panel {
   border-radius: $border-radius;
   border: 1px solid $light-gray;

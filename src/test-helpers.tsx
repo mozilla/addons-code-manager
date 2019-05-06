@@ -30,7 +30,7 @@ import {
 import LinterProvider, {
   LinterProviderInfo,
 } from './components/LinterProvider';
-import { ContentShell } from './components/FullscreenGrid';
+import { ContentShell, PanelAttribs } from './components/FullscreenGrid';
 
 /* eslint-disable @typescript-eslint/camelcase */
 
@@ -601,7 +601,7 @@ export const simulateLinterProvider = (
  */
 export const getContentShellPanel = (
   root: ShallowWrapper,
-  panelAttr: 'mainSidePanel' | 'altSidePanel',
+  panelAttr: PanelAttribs,
 ) => {
   const panel = root.find(ContentShell).prop(panelAttr);
   return shallow(<div>{panel}</div>);

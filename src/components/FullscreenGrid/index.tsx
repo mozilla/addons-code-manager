@@ -18,6 +18,8 @@ export const Header = ({
   );
 };
 
+export type PanelAttribs = 'altSidePanel' | 'mainSidePanel';
+
 type ContentShellProps = {
   altSidePanel?: AnyReactNode;
   altSidePanelClass?: string;

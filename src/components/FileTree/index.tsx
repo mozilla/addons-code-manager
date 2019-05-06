@@ -1,6 +1,6 @@
 import log from 'loglevel';
 import * as React from 'react';
-import { Button, ListGroup } from 'react-bootstrap';
+import { Button } from 'react-bootstrap';
 import { connect } from 'react-redux';
 import Treefold, { TreefoldRenderProps } from 'react-treefold';
 
@@ -8,7 +8,6 @@ import styles from './styles.module.scss';
 import FileTreeNode, {
   PublicProps as FileTreeNodeProps,
 } from '../FileTreeNode';
-import KeyboardShortcuts from '../KeyboardShortcuts';
 import Loading from '../Loading';
 import { ApplicationState } from '../../reducers';
 import { ConnectedReduxProps } from '../../configureStore';
@@ -141,7 +140,7 @@ export class FileTreeBase extends React.Component<Props> {
     }
 
     return (
-      <ListGroup>
+      <div className={styles.shell}>
         <div className={styles.controlButtons}>
           <Button
             className={styles.button}
@@ -164,18 +163,15 @@ export class FileTreeBase extends React.Component<Props> {
             {gettext('Close all folders')}
           </Button>
         </div>
-        <Treefold
-          nodes={[tree.nodes]}
-          render={this.renderNode}
-          isNodeExpanded={this.isNodeExpanded}
-          onToggleExpand={this.onToggleExpand}
-        />
-        <KeyboardShortcuts
-          currentPath={version.selectedPath}
-          pathList={tree.pathList}
-          versionId={version.id}
-        />
-      </ListGroup>
+        <div className={styles.treeShell}>
+          <Treefold
+            nodes={[tree.nodes]}
+            render={this.renderNode}
+            isNodeExpanded={this.isNodeExpanded}
+            onToggleExpand={this.onToggleExpand}
+          />
+        </div>
+      </div>
     );
   }
 }

@@ -1,15 +1,12 @@
 import * as React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import { connect } from 'react-redux';
-import { Col, Row } from 'react-bootstrap';
 import log from 'loglevel';
 
 import { ApplicationState } from '../../reducers';
 import { ConnectedReduxProps } from '../../configureStore';
 import { ApiState } from '../../reducers/api';
-import CodeOverview from '../../components/CodeOverview';
-import { ContentShell } from '../../components/FullscreenGrid';
-import FileTree from '../../components/FileTree';
+import VersionFileViewer from '../../components/VersionFileViewer';
 import {
   Version,
   VersionFile,
@@ -23,9 +20,7 @@ import {
 import { gettext, getPathFromQueryString } from '../../utils';
 import Loading from '../../components/Loading';
 import CodeView from '../../components/CodeView';
-import FileMetadata from '../../components/FileMetadata';
 import ImageView from '../../components/ImageView';
-import styles from './styles.module.scss';
 
 export type PublicProps = {};
 
@@ -148,39 +143,15 @@ export class BrowseBase extends React.Component<Props> {
   render() {
     const { file, version } = this.props;
 
-    if (!version) {
-      return (
-        <ContentShell>
-          <Loading message={gettext('Loading version...')} />
-        </ContentShell>
-      );
-    }
-
     return (
-      <ContentShell
-        mainSidePanel={
-          <React.Fragment>
-            <FileTree onSelect={this.viewVersionFile} versionId={version.id} />
-            {file && (
-              <Row>
-                <Col className={styles.metadata}>
-                  <FileMetadata file={file} />
-                </Col>
-              </Row>
-            )}
-          </React.Fragment>
-        }
-        altSidePanel={
-          file ? (
-            <CodeOverview
-              content={file.type === 'image' ? '' : file.content}
-              version={version}
-            />
-          ) : null
-        }
+      <VersionFileViewer
+        file={file}
+        onSelectFile={this.viewVersionFile}
+        showFileInfo
+        version={version}
       >
         {this.getContent()}
-      </ContentShell>
+      </VersionFileViewer>
     );
   }
 }

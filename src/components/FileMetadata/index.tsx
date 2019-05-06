@@ -12,8 +12,6 @@ type PublicProps = {
 const FileMetadataBase = ({ file }: PublicProps) => {
   return (
     <div className={styles.FileMetadata}>
-      <h4>{gettext('Information about this file')}</h4>
-
       <dl>
         <dt>{gettext('Version')}</dt>
         <dd className={styles.version}>{file.version}</dd>

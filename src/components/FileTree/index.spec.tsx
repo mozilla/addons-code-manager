@@ -1,7 +1,6 @@
 /* eslint @typescript-eslint/camelcase: 0 */
 import { shallow } from 'enzyme';
 import * as React from 'react';
-import { ListGroup } from 'react-bootstrap';
 import Treefold from 'react-treefold';
 import { Store } from 'redux';
 
@@ -23,7 +22,6 @@ import {
 } from '../../test-helpers';
 import { getTreefoldRenderProps } from '../FileTreeNode/index.spec';
 import FileTreeNode from '../FileTreeNode';
-import KeyboardShortcuts from '../KeyboardShortcuts';
 import Loading from '../Loading';
 
 import FileTree, { DefaultProps, FileTreeBase, PublicProps } from '.';
@@ -125,45 +123,17 @@ describe(__filename, () => {
       expect(dispatch).not.toHaveBeenCalled();
     });
 
-    it('renders a ListGroup component with a Treefold', () => {
+    it('renders a Treefold component', () => {
       const store = configureStore();
       const version = getVersion({ store });
       _buildTree(store, version);
 
       const root = render({ store, versionId: version.id });
 
-      expect(root.find(ListGroup)).toHaveLength(1);
       expect(root.find(Treefold)).toHaveLength(1);
       expect(root.find(Treefold)).toHaveProp('nodes', [
         buildFileTree(version).nodes,
       ]);
-    });
-
-    it('renders a KeyboardShortcuts component', () => {
-      const store = configureStore();
-      const version = getVersion({ store });
-      _buildTree(store, version);
-
-      const root = render({ store, versionId: version.id });
-
-      const keyboardShortcuts = root.find(KeyboardShortcuts);
-
-      expect(keyboardShortcuts).toHaveLength(1);
-      expect(keyboardShortcuts).toHaveProp('currentPath', version.selectedPath);
-      expect(keyboardShortcuts).toHaveProp(
-        'pathList',
-        buildFileTree(version).pathList,
-      );
-      expect(keyboardShortcuts).toHaveProp('versionId', version.id);
-    });
-
-    it('does not render a KeyboardShortcuts component without a tree', () => {
-      const store = configureStore();
-      const version = getVersion({ store });
-
-      const root = render({ store, versionId: version.id });
-
-      expect(root.find(KeyboardShortcuts)).toHaveLength(0);
     });
 
     it('passes the onSelect prop to FileTreeNode', () => {

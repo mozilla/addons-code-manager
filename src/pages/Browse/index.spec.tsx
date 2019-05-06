@@ -11,21 +11,19 @@ import {
   fakeVersion,
   fakeVersionEntry,
   fakeVersionFile,
-  getContentShellPanel,
   shallowUntilTarget,
   spyOn,
 } from '../../test-helpers';
 import configureStore from '../../configureStore';
 import {
   actions as versionsActions,
-  getVersionFile,
+  createInternalVersion,
 } from '../../reducers/versions';
-import FileTree from '../../components/FileTree';
 import Loading from '../../components/Loading';
 import CodeOverview from '../../components/CodeOverview';
 import CodeView from '../../components/CodeView';
-import FileMetadata from '../../components/FileMetadata';
 import ImageView from '../../components/ImageView';
+import VersionFileViewer from '../../components/VersionFileViewer';
 
 import Browse, { BrowseBase, Props as BrowseProps } from '.';
 
@@ -152,15 +150,6 @@ describe(__filename, () => {
     };
   };
 
-  it('renders a page with a loading message', () => {
-    const versionId = '123456';
-
-    const root = render({ versionId });
-
-    expect(root.find(Loading)).toHaveLength(1);
-    expect(root.find(Loading)).toHaveProp('message', 'Loading version...');
-  });
-
   it('dispatches fetchVersion on mount', () => {
     const addonId = 9876;
     const versionId = 4321;
@@ -182,47 +171,14 @@ describe(__filename, () => {
     expect(_fetchVersion).toHaveBeenCalledWith({ addonId, versionId });
   });
 
-  it('renders a FileTree component when a version has been loaded', () => {
-    const version = fakeVersion;
-
-    const store = configureStore();
-    _loadVersionAndFile({ store, version });
-
-    const root = render({ store, versionId: String(version.id) });
-
-    const tree = getContentShellPanel(root, 'mainSidePanel').find(FileTree);
-    expect(tree).toHaveLength(1);
-    expect(tree).toHaveProp('versionId', version.id);
-  });
-
-  it('renders a FileMetadata component when a version file has loaded', () => {
-    const version = fakeVersion;
-
-    const store = configureStore();
-    _loadVersionAndFile({ store, version });
-
-    const root = render({ store, versionId: String(version.id) });
-
-    const metadata = getContentShellPanel(root, 'mainSidePanel').find(
-      FileMetadata,
-    );
-    expect(metadata).toHaveLength(1);
-    expect(metadata).toHaveProp(
-      'file',
-      getVersionFile(
-        store.getState().versions,
-        version.id,
-        version.file.selected_file,
-      ),
-    );
-  });
-
-  it('renders the content and an overview of the file', () => {
-    const content = 'example code for an extension';
+  it('renders a VersionFileViewer', () => {
     const version = {
       ...fakeVersion,
-      id: 987663,
-      file: { ...fakeVersionFile, content },
+      id: 87652,
+      file: {
+        ...fakeVersion.file,
+        id: 991234,
+      },
     };
 
     const store = configureStore();
@@ -230,26 +186,14 @@ describe(__filename, () => {
 
     const root = render({ store, versionId: String(version.id) });
 
-    const code = root.find(CodeView);
-    expect(code).toHaveLength(1);
-    expect(code).toHaveProp(
-      'mimeType',
-      version.file.entries[version.file.selected_file].mimetype,
-    );
-    expect(code).toHaveProp('content', content);
-    expect(code).toHaveProp(
-      'version',
-      expect.objectContaining({ id: version.id }),
-    );
-
-    const overview = getContentShellPanel(root, 'altSidePanel').find(
-      CodeOverview,
-    );
-    expect(overview).toHaveLength(1);
-    expect(overview).toHaveProp('content', content);
-    expect(overview).toHaveProp(
-      'version',
-      expect.objectContaining({ id: version.id }),
+    const viewer = root.find(VersionFileViewer);
+    expect(viewer).toHaveLength(1);
+    expect(viewer).toHaveProp('version', createInternalVersion(version));
+    expect(viewer).toHaveProp(
+      'file',
+      expect.objectContaining({
+        id: version.file.id,
+      }),
     );
   });
 
@@ -278,16 +222,6 @@ describe(__filename, () => {
     expect(code).toHaveLength(1);
     expect(code).toHaveProp('content', content);
     expect(code).toHaveProp('mimeType', mimeType);
-
-    const overview = getContentShellPanel(root, 'altSidePanel').find(
-      CodeOverview,
-    );
-    expect(overview).toHaveLength(1);
-    expect(overview).toHaveProp('content', '');
-    expect(overview).toHaveProp(
-      'version',
-      expect.objectContaining({ id: version.id }),
-    );
   });
 
   it('renders a loading message when we do not have the content of a file yet', () => {
@@ -331,10 +265,10 @@ describe(__filename, () => {
       versionId: String(version.id),
     });
 
-    const fileTree = getContentShellPanel(root, 'mainSidePanel').find(FileTree);
-    expect(fileTree).toHaveProp('onSelect');
+    const viewer = root.find(VersionFileViewer);
+    expect(viewer).toHaveProp('onSelectFile');
 
-    const onSelectFile = fileTree.prop('onSelect');
+    const onSelectFile = viewer.prop('onSelectFile');
     onSelectFile(path);
 
     expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);

@@ -4,11 +4,10 @@ import { connect } from 'react-redux';
 
 import { ApplicationState } from '../../reducers';
 import { ConnectedReduxProps } from '../../configureStore';
-import { ContentShell } from '../../components/FullscreenGrid';
-import FileTree from '../../components/FileTree';
 import DiffView from '../../components/DiffView';
 import Loading from '../../components/Loading';
 import VersionChooser from '../../components/VersionChooser';
+import VersionFileViewer from '../../components/VersionFileViewer';
 import {
   CompareInfo,
   Version,
@@ -135,15 +134,14 @@ export class CompareBase extends React.Component<Props> {
   render() {
     const { addonId, compareInfo, path, version } = this.props;
 
+    // TODO: set showFileInfo=true when we can:
+    // https://github.com/mozilla/addons-code-manager/issues/647
     return (
-      <ContentShell
-        mainSidePanel={
-          version ? (
-            <FileTree onSelect={this.viewVersionFile} versionId={version.id} />
-          ) : (
-            this.renderLoadingMessageOrError(gettext('Loading file tree...'))
-          )
-        }
+      <VersionFileViewer
+        file={null}
+        onSelectFile={this.viewVersionFile}
+        showFileInfo={false}
+        version={version}
       >
         <div className={styles.diffShell}>
           <VersionChooser addonId={addonId} />
@@ -160,7 +158,7 @@ export class CompareBase extends React.Component<Props> {
             this.renderLoadingMessageOrError(gettext('Loading diff...'))
           )}
         </div>
-      </ContentShell>
+      </VersionFileViewer>
     );
   }
 }
