@@ -23,7 +23,7 @@ import reducer, {
   getCompareInfoKey,
   getDiffAnchors,
   getParentFolders,
-  getRelativeDiffAnchor,
+  getRelativeDiff,
   getVersionFile,
   getVersionFiles,
   getVersionInfo,
@@ -48,6 +48,7 @@ import {
   fakeVersionWithDiff,
   fakeVersionsList,
   fakeVersionsListItem,
+  getFakeVersionAndPathList,
   thunkTester,
 } from '../test-helpers';
 
@@ -2024,18 +2025,39 @@ describe(__filename, () => {
     });
   });
 
-  describe('getRelativeDiffAnchor', () => {
-    it('returns null if there are no changes in the diff', () => {
+  describe('getRelativeDiff', () => {
+    const file1 = 'file1.js';
+    const file2 = 'file2.js';
+
+    const _getRelativeDiff = ({ ...params }) => {
+      return getRelativeDiff({
+        currentAnchor: '',
+        diff: createFakeDiffWithChanges([[]]),
+        pathList: [fakeVersion.file.selected_file],
+        version: createInternalVersion(fakeVersion),
+        ...params,
+      });
+    };
+
+    it('returns the current path if there are no changes in the diff and no other paths with diffs', () => {
+      const { pathList, version } = getFakeVersionAndPathList([
+        { path: file1, status: 'M' },
+        { path: file2, status: '' },
+      ]);
+      version.selectedPath = file1;
+
       const diff = createFakeDiffWithChanges([
         [{ lineNumber: 1, type: 'normal' }],
       ]);
       expect(
-        getRelativeDiffAnchor({
+        _getRelativeDiff({
           currentAnchor: '',
           diff,
+          pathList,
           position: RelativePathPosition.next,
+          version,
         }),
-      ).toEqual(null);
+      ).toEqual({ path: file1 });
     });
 
     it.each([
@@ -2056,12 +2078,12 @@ describe(__filename, () => {
         // This is needed because TS only sees arguments from `each` as strings.
         const position = pos as RelativePathPosition;
         expect(
-          getRelativeDiffAnchor({
+          _getRelativeDiff({
             currentAnchor: '',
             diff,
             position,
           }),
-        ).toEqual('D2');
+        ).toEqual({ anchor: 'D2' });
       },
     );
 
@@ -2071,7 +2093,7 @@ describe(__filename, () => {
       ]);
       const currentAnchor = 'D99';
       expect(() => {
-        getRelativeDiffAnchor({
+        _getRelativeDiff({
           currentAnchor,
           diff,
           position: RelativePathPosition.next,
@@ -2089,12 +2111,12 @@ describe(__filename, () => {
         ],
       ]);
       expect(
-        getRelativeDiffAnchor({
+        _getRelativeDiff({
           currentAnchor: 'D1',
           diff,
           position: RelativePathPosition.next,
         }),
-      ).toEqual('I4');
+      ).toEqual({ anchor: 'I4' });
     });
 
     it('returns the previous anchor in the diff', () => {
@@ -2107,15 +2129,21 @@ describe(__filename, () => {
         ],
       ]);
       expect(
-        getRelativeDiffAnchor({
+        _getRelativeDiff({
           currentAnchor: 'I4',
           diff,
           position: RelativePathPosition.previous,
         }),
-      ).toEqual('D1');
+      ).toEqual({ anchor: 'D1' });
     });
 
-    it('returns null if there is no next anchor in the diff', () => {
+    it('returns the next path with a diff if there is no next anchor in the diff', () => {
+      const { pathList, version } = getFakeVersionAndPathList([
+        { path: file1, status: 'M' },
+        { path: file2, status: 'M' },
+      ]);
+      version.selectedPath = file1;
+
       const diff = createFakeDiffWithChanges([
         [
           { lineNumber: 1, type: 'delete' },
@@ -2123,16 +2151,25 @@ describe(__filename, () => {
           { lineNumber: 3, type: 'normal' },
         ],
       ]);
+
       expect(
-        getRelativeDiffAnchor({
+        _getRelativeDiff({
           currentAnchor: 'D1',
           diff,
+          pathList,
           position: RelativePathPosition.next,
+          version,
         }),
-      ).toEqual(null);
+      ).toEqual({ path: file2 });
     });
 
-    it('returns null if there is no previous anchor in the diff', () => {
+    it('returns the previous path with a diff if there is no previous anchor in the diff', () => {
+      const { pathList, version } = getFakeVersionAndPathList([
+        { path: file1, status: 'M' },
+        { path: file2, status: 'M' },
+      ]);
+      version.selectedPath = file2;
+
       const diff = createFakeDiffWithChanges([
         [
           { lineNumber: 1, type: 'normal' },
@@ -2141,12 +2178,14 @@ describe(__filename, () => {
         ],
       ]);
       expect(
-        getRelativeDiffAnchor({
+        _getRelativeDiff({
           currentAnchor: 'D2',
           diff,
+          pathList,
           position: RelativePathPosition.previous,
+          version,
         }),
-      ).toEqual(null);
+      ).toEqual({ path: file1 });
     });
   });
 
