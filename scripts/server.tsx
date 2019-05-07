@@ -6,7 +6,7 @@ import chalk from 'chalk';
 import { ServerEnvVars, createServer } from '../src/server';
 
 // Load environment configuration.
-require('react-scripts/config/env');
+require('amo-react-scripts/config/env');
 
 const app = createServer({
   // This is risky but also expected because `process.env` is only defined at

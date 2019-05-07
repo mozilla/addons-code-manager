@@ -1,2 +1,2 @@
 /* eslint spaced-comment: 0 */
-/// <reference types="react-scripts" />
+/// <reference types="amo-react-scripts" />
