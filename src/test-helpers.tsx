@@ -15,7 +15,6 @@ import {
 } from './reducers/linter';
 import { ExternalUser } from './reducers/users';
 import {
-  createInternalVersion,
   ExternalChange,
   ExternalVersionAddon,
   ExternalVersionEntry,
@@ -26,6 +25,8 @@ import {
   ExternalVersionsListItem,
   Version,
   VersionEntryType,
+  createInternalVersion,
+  createInternalVersionEntry,
 } from './reducers/versions';
 import LinterProvider, {
   LinterProviderInfo,
@@ -126,6 +127,26 @@ export const createVersionWithEntries = (
     ...createInternalVersion(fakeVersion),
     entries,
   };
+};
+
+export const getFakeVersionAndPathList = (
+  entries: ({ path: string } & Partial<ExternalVersionEntry>)[],
+) => {
+  const pathList = entries.map((e) => e.path);
+
+  const version = createVersionWithEntries(
+    entries.map((params) =>
+      createInternalVersionEntry({
+        ...fakeVersionEntry,
+        mime_category: 'text',
+        status: 'M',
+        ...params,
+        filename: params.path,
+      }),
+    ),
+  );
+
+  return { pathList, version };
 };
 
 export const fakeUser: ExternalUser = Object.freeze({

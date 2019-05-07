@@ -9,7 +9,11 @@ import { ThunkActionCreator } from '../configureStore';
 import { getDiff, getVersion, getVersionsList, isErrorResponse } from '../api';
 import { LocalizedStringMap } from '../utils';
 import { actions as errorsActions } from './errors';
-import { ROOT_PATH, RelativePathPosition } from './fileTree';
+import {
+  ROOT_PATH,
+  RelativePathPosition,
+  findRelativePathWithDiff,
+} from './fileTree';
 
 type VersionCompatibility = {
   [appName: string]: {
@@ -507,6 +511,47 @@ export const getRelativeDiffAnchor = ({
   // In the future we will go to the next/previous file, but for now we
   // return null.
   return null;
+};
+
+export type GetRelativeDiffParams = {
+  _findRelativePathWithDiff?: typeof findRelativePathWithDiff;
+  _getRelativeDiffAnchor?: typeof getRelativeDiffAnchor;
+  currentAnchor: string | void;
+  diff: DiffInfo;
+  pathList: string[];
+  position?: RelativePathPosition;
+  version: Version;
+};
+
+type RelativeDiffResult = {
+  anchor: string | null;
+  path: string | null;
+};
+
+export const getRelativeDiff = ({
+  _findRelativePathWithDiff = findRelativePathWithDiff,
+  _getRelativeDiffAnchor = getRelativeDiffAnchor,
+  currentAnchor,
+  diff,
+  pathList,
+  position = RelativePathPosition.next,
+  version,
+}: GetRelativeDiffParams): RelativeDiffResult => {
+  const result: RelativeDiffResult = {
+    anchor: _getRelativeDiffAnchor({ currentAnchor, diff, position }),
+    path: null,
+  };
+
+  if (!result.anchor) {
+    result.path = _findRelativePathWithDiff({
+      currentPath: version.selectedPath,
+      pathList,
+      position,
+      version,
+    });
+  }
+
+  return result;
 };
 
 type FetchVersionParams = {
