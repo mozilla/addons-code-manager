@@ -2060,32 +2060,23 @@ describe(__filename, () => {
       ).toEqual({ path: file1 });
     });
 
-    it.each([
-      ['next', RelativePathPosition.next],
-      ['previous', RelativePathPosition.previous],
-    ])(
-      'returns the first anchor with no current anchor for %s',
-      (desc, pos) => {
-        const diff = createFakeDiffWithChanges([
-          [
-            { lineNumber: 1, type: 'normal' },
-            { lineNumber: 2, type: 'delete' },
-            { lineNumber: 3, type: 'insert' },
-            { lineNumber: 4, type: 'normal' },
-            { lineNumber: 5, type: 'insert' },
-          ],
-        ]);
-        // This is needed because TS only sees arguments from `each` as strings.
-        const position = pos as RelativePathPosition;
-        expect(
-          _getRelativeDiff({
-            currentAnchor: '',
-            diff,
-            position,
-          }),
-        ).toEqual({ anchor: 'D2' });
-      },
-    );
+    it('returns the first anchor with no current anchor', () => {
+      const diff = createFakeDiffWithChanges([
+        [
+          { lineNumber: 1, type: 'normal' },
+          { lineNumber: 2, type: 'delete' },
+          { lineNumber: 3, type: 'insert' },
+          { lineNumber: 4, type: 'normal' },
+          { lineNumber: 5, type: 'insert' },
+        ],
+      ]);
+      expect(
+        _getRelativeDiff({
+          currentAnchor: '',
+          diff,
+        }),
+      ).toEqual({ anchor: 'D2' });
+    });
 
     it('throws an error if the currentAnchor cannot be found', () => {
       const diff = createFakeDiffWithChanges([
