@@ -52,7 +52,6 @@ jobs:
         # `yarn build` takes some time so let's simulate it instead.
         - mkdir build && touch build/index.html
         - yarn serve &
-        # If `yarn serve` fails, the following commands should not be run.
         - sleep 120 && pkill -f node
     - stage: storybook deployment
       <<: *node-prod
