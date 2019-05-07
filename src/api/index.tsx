@@ -80,7 +80,7 @@ export const makeApiURL = ({
 };
 
 export const makeQueryString = (query: {
-  [key: string]: string | number | null | undefined | boolean;
+  [key: string]: string | number | null | void | boolean;
 }) => {
   const resolvedQuery = { ...query };
   Object.keys(resolvedQuery).forEach((key) => {
