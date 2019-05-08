@@ -49,10 +49,9 @@ jobs:
     - name: yarn serve (node@production)
       <<: *node-prod
       script:
-        # `yarn build` takes some time so let's simulate it instead.
-        - mkdir build && touch build/index.html
+        - yarn build
         - yarn serve &
-        - sleep 120 && pkill -f node
+        - sleep 30 && kill $! # kill last backgrounded process (a.k.a. the node server)
     - stage: storybook deployment
       <<: *node-prod
       if: branch = master AND type = push AND fork = false
