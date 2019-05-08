@@ -7,8 +7,18 @@ import { makeApiURL } from '../../api';
 import LoginButton from '.';
 
 describe(__filename, () => {
-  const render = ({ fxaConfig = 'fxa', _window = window } = {}) => {
-    return shallow(<LoginButton fxaConfig={fxaConfig} _window={_window} />);
+  const render = ({
+    _window = window,
+    fxaConfig = 'fxa',
+    isLocalDev = false,
+  } = {}) => {
+    return shallow(
+      <LoginButton
+        _window={_window}
+        fxaConfig={fxaConfig}
+        isLocalDev={isLocalDev}
+      />,
+    );
   };
 
   it('renders a login button', () => {
@@ -33,7 +43,7 @@ describe(__filename, () => {
     );
   });
 
-  it('passes a relative URL to addons-server when FxA config is `local`', () => {
+  it('passes a relative URL to addons-server in local dev', () => {
     const fxaConfig = 'local';
     const origin = 'https://example.org';
     const path = '/en-US/browse/4913/versions/1527/';
@@ -47,7 +57,7 @@ describe(__filename, () => {
       },
     };
 
-    const root = render({ fxaConfig, _window });
+    const root = render({ fxaConfig, _window, isLocalDev: true });
 
     expect(root.find(Button)).toHaveLength(1);
     expect(root.find(Button)).toHaveProp(

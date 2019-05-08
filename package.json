@@ -101,6 +101,7 @@
   "scripts": {
     "build": "react-scripts build",
     "build-local-dev-config": "cat .env.dev .env.common-local > .env.local",
+    "build-local-olympia-config": "cat .env.olympia > .env.local",
     "build-local-stage-config": "cat .env.stage .env.common-local > .env.local",
     "dev": "yarn build-local-dev-config && yarn stmux-dev",
     "dev-2col": "yarn build-local-dev-config && yarn stmux [ 'yarn test' .. [ 'tsc -w' : 'yarn react-scripts-start' : 'yarn serve-dev' ] ]",
@@ -108,6 +109,7 @@
     "eject": "react-scripts eject",
     "eslint": "eslint --ext ts --ext js --ext tsx src/",
     "lint": "yarn eslint",
+    "olympia": "yarn build-local-olympia-config && yarn stmux-dev",
     "prettier": "prettier --write '**'",
     "prettier-ci": "prettier --list-different '**' || (echo '\n\nThis failure means you did not run `yarn prettier-dev` before committing\n\n' && exit 1)",
     "prettier-dev": "pretty-quick --branch master",
