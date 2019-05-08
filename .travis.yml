@@ -46,6 +46,12 @@ jobs:
     - name: storybook-smoke-test (node@production)
       <<: *node-prod
       script: yarn storybook-smoke-test
+    - name: yarn serve (node@production)
+      <<: *node-prod
+      script:
+        - yarn build
+        - yarn serve &
+        - sleep 30 && kill $! # kill last backgrounded process (a.k.a. the node server)
     - stage: storybook deployment
       <<: *node-prod
       if: branch = master AND type = push AND fork = false
