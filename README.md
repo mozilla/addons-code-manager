@@ -107,9 +107,9 @@ This runs all the _lint_ commands at once.
 
 A prerequisite to run this command is to [install addons-server locally](https://addons-server.readthedocs.io/en/latest/topics/install/index.html).
 
-This runs all development processes in a single column using [stmux][]. Open [http://olympia.dev:4000](http://olympia.dev:4000) to view the development site. **Press CTRL-a-? for help**. The application is configured to use a [local AMO API](https://addons-server.readthedocs.io/).
+This runs all development processes in a single column using [stmux][]. Open [http://olympia.test:5000](http://olympia.test:5000) to view the development site. **Press CTRL-a-? for help**. The application is configured to use a [local AMO API](https://addons-server.readthedocs.io/).
 
-Known issue: it is possible to login/logout but the login process will redirect you to the AMO frontend (http://olympia.dev) instead of http://olympia.dev:4000. You will have to manually go to code-manager, after that there should be no other authentication problem.
+Known issue: it is possible to login/logout but the login process will redirect you to the AMO frontend (http://olympia.test) instead of http://olympia.test:5000. You will have to manually go to code-manager, after that there should be no other authentication problem.
 
 ### `yarn prettier`
 
