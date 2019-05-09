@@ -474,16 +474,16 @@ export const getDiffAnchors = (diffs: DiffInfo[]): string[] => {
 
 export type GetRelativeDiffAnchorParams = {
   currentAnchor: string | void;
-  diff: DiffInfo;
+  diffs: DiffInfo[];
   position: RelativePathPosition;
 };
 
 export const getRelativeDiffAnchor = ({
   currentAnchor,
-  diff,
+  diffs,
   position,
 }: GetRelativeDiffAnchorParams): string | null => {
-  const anchors = getDiffAnchors(diff);
+  const anchors = getDiffAnchors(diffs);
   if (!anchors.length) {
     // There are no changes in the diff.
     // This can happen if a file is saved but not changed internally.

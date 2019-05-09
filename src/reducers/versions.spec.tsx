@@ -2059,13 +2059,13 @@ describe(__filename, () => {
 
   describe('getRelativeDiffAnchor', () => {
     it('returns null if there are no changes in the diff', () => {
-      const diff = createFakeDiffWithChanges([
-        [{ lineNumber: 1, type: 'normal' }],
-      ]);
+      const diffs = [
+        createFakeDiffWithChanges([[{ lineNumber: 1, type: 'normal' }]]),
+      ];
       expect(
         getRelativeDiffAnchor({
           currentAnchor: '',
-          diff,
+          diffs,
           position: RelativePathPosition.next,
         }),
       ).toEqual(null);
@@ -2077,21 +2077,23 @@ describe(__filename, () => {
     ])(
       'returns the first anchor with no current anchor for %s',
       (desc, pos) => {
-        const diff = createFakeDiffWithChanges([
-          [
-            { lineNumber: 1, type: 'normal' },
-            { lineNumber: 2, type: 'delete' },
-            { lineNumber: 3, type: 'insert' },
-            { lineNumber: 4, type: 'normal' },
-            { lineNumber: 5, type: 'insert' },
-          ],
-        ]);
+        const diffs = [
+          createFakeDiffWithChanges([
+            [
+              { lineNumber: 1, type: 'normal' },
+              { lineNumber: 2, type: 'delete' },
+              { lineNumber: 3, type: 'insert' },
+              { lineNumber: 4, type: 'normal' },
+              { lineNumber: 5, type: 'insert' },
+            ],
+          ]),
+        ];
         // This is needed because TS only sees arguments from `each` as strings.
         const position = pos as RelativePathPosition;
         expect(
           getRelativeDiffAnchor({
             currentAnchor: '',
-            diff,
+            diffs,
             position,
           }),
         ).toEqual('D2');
@@ -2099,84 +2101,116 @@ describe(__filename, () => {
     );
 
     it('throws an error if the currentAnchor cannot be found', () => {
-      const diff = createFakeDiffWithChanges([
-        [{ lineNumber: 1, type: 'insert' }],
-      ]);
+      const diffs = [
+        createFakeDiffWithChanges([[{ lineNumber: 1, type: 'insert' }]]),
+      ];
       const currentAnchor = 'D99';
       expect(() => {
         getRelativeDiffAnchor({
           currentAnchor,
-          diff,
+          diffs,
           position: RelativePathPosition.next,
         });
       }).toThrow(`Could not locate anchor: ${currentAnchor} in the diff.`);
     });
 
     it('returns the next anchor in the diff', () => {
-      const diff = createFakeDiffWithChanges([
-        [
-          { lineNumber: 1, type: 'delete' },
-          { lineNumber: 2, type: 'insert' },
-          { lineNumber: 3, type: 'normal' },
-          { lineNumber: 4, type: 'insert' },
-        ],
-      ]);
+      const diffs = [
+        createFakeDiffWithChanges([
+          [
+            { lineNumber: 1, type: 'delete' },
+            { lineNumber: 2, type: 'insert' },
+            { lineNumber: 3, type: 'normal' },
+            { lineNumber: 4, type: 'insert' },
+          ],
+        ]),
+      ];
       expect(
         getRelativeDiffAnchor({
           currentAnchor: 'D1',
-          diff,
+          diffs,
+          position: RelativePathPosition.next,
+        }),
+      ).toEqual('I4');
+    });
+
+    it('works with multiple diffs', () => {
+      const diffs = [
+        createFakeDiffWithChanges([
+          [
+            { lineNumber: 1, type: 'delete' },
+            { lineNumber: 2, type: 'insert' },
+          ],
+        ]),
+        createFakeDiffWithChanges([
+          [
+            { lineNumber: 3, type: 'normal' },
+            { lineNumber: 4, type: 'insert' },
+          ],
+        ]),
+      ];
+      expect(
+        getRelativeDiffAnchor({
+          currentAnchor: 'D1',
+          diffs,
           position: RelativePathPosition.next,
         }),
       ).toEqual('I4');
     });
 
     it('returns the previous anchor in the diff', () => {
-      const diff = createFakeDiffWithChanges([
-        [
-          { lineNumber: 1, type: 'delete' },
-          { lineNumber: 2, type: 'insert' },
-          { lineNumber: 3, type: 'normal' },
-          { lineNumber: 4, type: 'insert' },
-        ],
-      ]);
+      const diffs = [
+        createFakeDiffWithChanges([
+          [
+            { lineNumber: 1, type: 'delete' },
+            { lineNumber: 2, type: 'insert' },
+            { lineNumber: 3, type: 'normal' },
+            { lineNumber: 4, type: 'insert' },
+          ],
+        ]),
+      ];
       expect(
         getRelativeDiffAnchor({
           currentAnchor: 'I4',
-          diff,
+          diffs,
           position: RelativePathPosition.previous,
         }),
       ).toEqual('D1');
     });
 
     it('returns null if there is no next anchor in the diff', () => {
-      const diff = createFakeDiffWithChanges([
-        [
-          { lineNumber: 1, type: 'delete' },
-          { lineNumber: 2, type: 'insert' },
-          { lineNumber: 3, type: 'normal' },
-        ],
-      ]);
+      const diffs = [
+        createFakeDiffWithChanges([
+          [
+            { lineNumber: 1, type: 'delete' },
+            { lineNumber: 2, type: 'insert' },
+            { lineNumber: 3, type: 'normal' },
+          ],
+        ]),
+      ];
       expect(
         getRelativeDiffAnchor({
           currentAnchor: 'D1',
-          diff,
+          diffs,
           position: RelativePathPosition.next,
         }),
       ).toEqual(null);
     });
 
     it('returns null if there is no previous anchor in the diff', () => {
-      const diff = createFakeDiffWithChanges([
-        [
-          { lineNumber: 1, type: 'normal' },
-          { lineNumber: 2, type: 'delete' },
-          { lineNumber: 3, type: 'insert' },
-        ],
-      ]);
+      const diffs = [
+        createFakeDiffWithChanges([
+          [
+            { lineNumber: 1, type: 'normal' },
+            { lineNumber: 2, type: 'delete' },
+            { lineNumber: 3, type: 'insert' },
+          ],
+        ]),
+      ];
       expect(
         getRelativeDiffAnchor({
           currentAnchor: 'D2',
-          diff,
+          diffs,
           position: RelativePathPosition.previous,
         }),
       ).toEqual(null);
