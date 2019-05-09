@@ -15,11 +15,7 @@ import reducer, {
   goToRelativeFile,
   initialState,
 } from './fileTree';
-import {
-  ExternalVersionEntry,
-  createInternalVersion,
-  createInternalVersionEntry,
-} from './versions';
+import { createInternalVersion, createInternalVersionEntry } from './versions';
 import { getMessageMap } from './linter';
 import {
   createFakeExternalLinterResult,
@@ -27,6 +23,7 @@ import {
   createVersionWithEntries,
   fakeVersion,
   fakeVersionEntry,
+  getFakeVersionAndPathList,
   thunkTester,
 } from '../test-helpers';
 import { getLocalizedString } from '../utils';
@@ -1023,26 +1020,6 @@ describe(__filename, () => {
     const file2 = 'file2.js';
     const file3 = 'file3.js';
     const file4 = 'file4.js';
-
-    const getFakeVersionAndPathList = (
-      entries: ({ path: string } & Partial<ExternalVersionEntry>)[],
-    ) => {
-      const pathList = entries.map((e) => e.path);
-
-      const version = createVersionWithEntries(
-        entries.map((params) =>
-          createInternalVersionEntry({
-            ...fakeVersionEntry,
-            mime_category: 'text',
-            status: 'M',
-            ...params,
-            filename: params.path,
-          }),
-        ),
-      );
-
-      return { pathList, version };
-    };
 
     it('gets the next path which has a diff', () => {
       const { pathList, version } = getFakeVersionAndPathList([
