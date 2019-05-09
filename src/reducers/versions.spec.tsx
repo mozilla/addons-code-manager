@@ -7,6 +7,7 @@ import reducer, {
   ExternalVersionWithDiff,
   ExternalVersionsList,
   Version,
+  VersionEntryStatus,
   VersionEntryType,
   actions,
   createInternalDiff,
@@ -22,6 +23,7 @@ import reducer, {
   getCompareInfo,
   getCompareInfoKey,
   getDiffAnchors,
+  getMostRelevantEntryStatus,
   getParentFolders,
   getRelativeDiff,
   getRelativeDiffAnchor,
@@ -41,6 +43,7 @@ import {
   createFakeHistory,
   createFakeLocation,
   createFakeLogger,
+  createVersionWithEntries,
   fakeExternalDiff,
   fakeVersion,
   fakeVersionAddon,
@@ -2399,6 +2402,73 @@ describe(__filename, () => {
           }),
         ),
       ).toThrow(/unknown path/);
+    });
+  });
+
+  describe('getMostRelevantEntryStatus', () => {
+    it('returns undefined for a non-existant file', () => {
+      const version = createVersionWithEntries([
+        { path: 'background.js', status: 'A' },
+      ]);
+
+      expect(getMostRelevantEntryStatus(version, 'content-script.js')).toEqual(
+        undefined,
+      );
+    });
+
+    it('returns a file status', () => {
+      const path = 'background.js';
+      const entryStatus = 'A';
+
+      const version = createVersionWithEntries([{ path, status: entryStatus }]);
+
+      expect(getMostRelevantEntryStatus(version, path)).toEqual(entryStatus);
+    });
+
+    it('returns undefined for a directory without any statuses', () => {
+      const parentDir = 'scripts';
+
+      const version = createVersionWithEntries([
+        { path: `${parentDir}/background.js`, status: undefined },
+        { path: `${parentDir}/content.js`, status: undefined },
+      ]);
+
+      expect(getMostRelevantEntryStatus(version, parentDir)).toEqual(undefined);
+    });
+
+    it.each([
+      [['D', 'A', 'D'], 'A'],
+      [['D', 'M'], 'M'],
+      [['D', ''], 'D'],
+      [['C'], 'C'],
+    ])(
+      'looks in a directory of files having %s and returns %s',
+      (statuses, expectedStatus) => {
+        const parentDir = 'scripts';
+
+        const version = createVersionWithEntries(
+          (statuses as VersionEntryStatus[]).map((s) => {
+            return { path: `${parentDir}/file-${s}.js`, status: s };
+          }),
+        );
+
+        expect(getMostRelevantEntryStatus(version, parentDir)).toEqual(
+          expectedStatus,
+        );
+      },
+    );
+
+    it('returns the relevant file status for nested directory paths', () => {
+      const topDir = 'scripts';
+      const parentDir = `${topDir}/within/nested/dirs`;
+
+      const version = createVersionWithEntries([
+        { path: `${topDir}/messageBus.js`, status: 'D' },
+        { path: `${parentDir}/background.js`, status: 'D' },
+        { path: `${parentDir}/content.js`, status: 'M' },
+      ]);
+
+      expect(getMostRelevantEntryStatus(version, parentDir)).toEqual('M');
     });
   });
 });

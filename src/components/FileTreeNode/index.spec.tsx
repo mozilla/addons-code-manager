@@ -5,7 +5,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import configureStore from '../../configureStore';
 import { TreefoldRenderPropsForFileTree } from '../FileTree';
-import { actions as versionsActions } from '../../reducers/versions';
 import {
   ExternalLinterMessage,
   createInternalMessage,
@@ -13,6 +12,11 @@ import {
 } from '../../reducers/linter';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import {
+  actions as versionsActions,
+  VersionEntryStatus,
+} from '../../reducers/versions';
+import {
+  createExternalVersionWithEntries,
   createFakeExternalLinterResult,
   createFakeRef,
   createStoreWithVersion,
@@ -294,6 +298,85 @@ describe(__filename, () => {
     });
 
     expect(root.find(`.${styles.selected}`)).toHaveLength(0);
+  });
+
+  it.each([
+    ['D', styles.wasDeleted],
+    ['M', styles.wasModified],
+    ['A', styles.wasAdded],
+  ])('classifies a file with status %s as %s', (fileStatus, className) => {
+    const versionId = 7654;
+    const path = 'scripts/background.js';
+
+    const store = createStoreWithVersion(
+      createExternalVersionWithEntries(
+        [{ path, status: fileStatus as VersionEntryStatus }],
+        { id: versionId },
+      ),
+    );
+
+    const root = renderWithLinterProvider({
+      ...getTreefoldRenderProps({ id: path }),
+      store,
+      versionId,
+    });
+
+    expect(root.find(`.${styles.nodeItem}`)).toHaveClassName(className);
+  });
+
+  it('handles directories with many file statuses', () => {
+    const versionId = 321;
+    const dirPath = 'scripts';
+
+    const store = createStoreWithVersion(
+      createExternalVersionWithEntries(
+        [
+          { path: `${dirPath}/background.js`, status: 'D' },
+          { path: `${dirPath}/content.js`, status: 'M' },
+        ],
+        { id: versionId },
+      ),
+    );
+
+    const root = renderWithLinterProvider({
+      ...getTreefoldRenderProps({ id: dirPath }),
+      store,
+      versionId,
+    });
+
+    expect(root.find(`.${styles.nodeItem}`)).toHaveClassName(
+      styles.wasModified,
+    );
+    expect(root.find(`.${styles.nodeItem}`)).not.toHaveClassName(
+      styles.wasDeleted,
+    );
+  });
+
+  it('does not classify files with an undefined status', () => {
+    const versionId = 321;
+    const path = 'scripts/background.js';
+
+    const store = createStoreWithVersion(
+      createExternalVersionWithEntries([{ path, status: undefined }], {
+        id: versionId,
+      }),
+    );
+
+    const root = renderWithLinterProvider({
+      ...getTreefoldRenderProps({ id: path }),
+      store,
+      versionId,
+    });
+
+    expect(root.find(`.${styles.nodeItem}`)).not.toHaveClassName(
+      styles.wasAdded,
+    );
+    expect(root.find(`.${styles.nodeItem}`)).not.toHaveClassName(
+      styles.wasModified,
+    );
+    expect(root.find(`.${styles.nodeItem}`)).not.toHaveClassName(
+      styles.wasDeleted,
+    );
   });
 
   it.each([

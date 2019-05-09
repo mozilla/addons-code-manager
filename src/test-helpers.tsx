@@ -1,3 +1,5 @@
+import pathLib from 'path';
+
 import * as React from 'react';
 import PropTypes from 'prop-types';
 import { History, Location } from 'history';
@@ -122,13 +124,45 @@ export const fakeVersion: ExternalVersionWithContent = Object.freeze({
   version: '1.0',
 });
 
-export const createVersionWithEntries = (
+export const createExternalVersionWithEntries = (
+  partialEntries: ({ path: string } & Partial<ExternalVersionEntry>)[],
+  versionProps: Partial<ExternalVersionWithContent> = {},
+) => {
+  return {
+    ...fakeVersion,
+    ...versionProps,
+    file: {
+      ...fakeVersion.file,
+      entries: partialEntries.reduce((entries, file) => {
+        return {
+          [file.path]: {
+            ...fakeVersionEntry,
+            filename: pathLib.basename(file.path),
+            path: file.path,
+            ...file,
+          },
+          ...entries,
+        };
+      }, {}),
+    },
+  };
+};
+
+// Try to use createVersionWithEntries instead, if possible, since that
+// one is composed of a realistic external object.
+export const createVersionWithInternalEntries = (
   entries: Version['entries'],
 ): Version => {
   return {
     ...createInternalVersion(fakeVersion),
     entries,
   };
+};
+
+export const createVersionWithEntries = (
+  ...args: Parameters<typeof createExternalVersionWithEntries>
+) => {
+  return createInternalVersion(createExternalVersionWithEntries(...args));
 };
 
 export const getFakeVersionAndPathList = (

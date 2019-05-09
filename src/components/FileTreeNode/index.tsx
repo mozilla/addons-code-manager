@@ -13,6 +13,7 @@ import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import {
   Version,
   actions as versionsActions,
+  getMostRelevantEntryStatus,
   getVersionInfo,
 } from '../../reducers/versions';
 import {
@@ -180,6 +181,7 @@ export class FileTreeNodeBase<TreeNodeType> extends React.Component<Props> {
       node,
       onSelect,
       renderChildNodes,
+      version,
     } = this.props;
 
     const hasLinterMessages =
@@ -224,6 +226,9 @@ export class FileTreeNodeBase<TreeNodeType> extends React.Component<Props> {
       };
     }
 
+    const adjustedLevel = level + 1;
+    const entryStatus = getMostRelevantEntryStatus(version, node.id);
+
     const ItemElement = (props = {}) => {
       return <div ref={this.nodeRef} {...props} />;
     };
@@ -232,8 +237,12 @@ export class FileTreeNodeBase<TreeNodeType> extends React.Component<Props> {
       <React.Fragment>
         <ListGroup.Item as={ItemElement} {...listGroupItemProps}>
           <span
-            className={styles.nodeItem}
-            style={{ paddingLeft: `${level * 12}px` }}
+            className={makeClassName(styles.nodeItem, {
+              [styles.wasDeleted]: entryStatus && entryStatus === 'D',
+              [styles.wasModified]: entryStatus && entryStatus === 'M',
+              [styles.wasAdded]: entryStatus && entryStatus === 'A',
+            })}
+            style={{ paddingLeft: `${adjustedLevel * 10}px` }}
           >
             {isFolder ? (
               <FontAwesomeIcon icon={isExpanded ? 'folder-open' : 'folder'} />
@@ -251,7 +260,7 @@ export class FileTreeNodeBase<TreeNodeType> extends React.Component<Props> {
           ) : (
             <ListGroup.Item
               className={makeClassName(styles.node, styles.emptyNodeDirectory)}
-              style={{ paddingLeft: `${(level + 2) * 20}px` }}
+              style={{ paddingLeft: `${(adjustedLevel + 2) * 20}px` }}
             >
               {gettext('This folder is empty')}
             </ListGroup.Item>

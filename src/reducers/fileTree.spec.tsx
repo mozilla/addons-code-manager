@@ -20,7 +20,7 @@ import { getMessageMap } from './linter';
 import {
   createFakeExternalLinterResult,
   createFakeThunk,
-  createVersionWithEntries,
+  createVersionWithInternalEntries,
   fakeVersion,
   fakeVersionEntry,
   getFakeVersionAndPathList,
@@ -71,7 +71,7 @@ describe(__filename, () => {
 
   describe('buildFileTree', () => {
     it('creates a root node', () => {
-      const version = createVersionWithEntries([]);
+      const version = createVersionWithInternalEntries([]);
       const addonName = getLocalizedString(version.addon.name);
 
       const tree = buildFileTreeNodes(version);
@@ -92,7 +92,7 @@ describe(__filename, () => {
           filename,
         }),
       ];
-      const version = createVersionWithEntries(entries);
+      const version = createVersionWithInternalEntries(entries);
 
       const tree = buildFileTreeNodes(version);
 
@@ -113,7 +113,7 @@ describe(__filename, () => {
           filename,
         }),
       ];
-      const version = createVersionWithEntries(entries);
+      const version = createVersionWithInternalEntries(entries);
 
       const tree = buildFileTreeNodes(version);
 
@@ -144,7 +144,7 @@ describe(__filename, () => {
           path: `${directory}/${file}`,
         }),
       ];
-      const version = createVersionWithEntries(entries);
+      const version = createVersionWithInternalEntries(entries);
 
       const tree = buildFileTreeNodes(version);
 
@@ -181,7 +181,7 @@ describe(__filename, () => {
           path: `${badDirectoryName}/${file}`,
         }),
       ];
-      const version = createVersionWithEntries(entries);
+      const version = createVersionWithInternalEntries(entries);
 
       expect(() => {
         buildFileTreeNodes(version);
@@ -213,7 +213,7 @@ describe(__filename, () => {
           path: `${directoryName}/${directoryName}/${fileName}`,
         }),
       ];
-      const version = createVersionWithEntries(entries);
+      const version = createVersionWithInternalEntries(entries);
 
       const data = buildFileTreeNodes(version);
 
@@ -255,7 +255,7 @@ describe(__filename, () => {
           mime_category: 'directory',
         }),
       ];
-      const version = createVersionWithEntries(entries);
+      const version = createVersionWithInternalEntries(entries);
 
       const tree = buildFileTreeNodes(version);
 
@@ -292,7 +292,7 @@ describe(__filename, () => {
           filename: 'A',
         }),
       ];
-      const version = createVersionWithEntries(entries);
+      const version = createVersionWithInternalEntries(entries);
 
       const tree = buildFileTreeNodes(version);
 
@@ -325,7 +325,7 @@ describe(__filename, () => {
           mime_category: 'directory',
         }),
       ];
-      const version = createVersionWithEntries(entries);
+      const version = createVersionWithInternalEntries(entries);
 
       const tree = buildFileTreeNodes(version);
 
@@ -364,7 +364,7 @@ describe(__filename, () => {
           path: 'parent/A',
         }),
       ];
-      const version = createVersionWithEntries(entries);
+      const version = createVersionWithInternalEntries(entries);
 
       const tree = buildFileTreeNodes(version);
       const firstNode = tree.children[0] as DirectoryNode;
@@ -403,7 +403,7 @@ describe(__filename, () => {
           path: 'parent/A',
         }),
       ];
-      const version = createVersionWithEntries(entries);
+      const version = createVersionWithInternalEntries(entries);
 
       const tree = buildFileTreeNodes(version);
       const firstNode = tree.children[0] as DirectoryNode;

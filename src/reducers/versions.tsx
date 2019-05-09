@@ -406,6 +406,25 @@ export const getVersionInfo = (versions: VersionsState, versionId: number) => {
   return versions.versionInfo[versionId];
 };
 
+export const getMostRelevantEntryStatus = (
+  version: Version,
+  path: string,
+): VersionEntryStatus | void => {
+  const statuses = version.entries
+    .filter((e) => e.path.startsWith(path))
+    .map((e) => e.status);
+
+  const priorities: VersionEntryStatus[] = ['A', 'M', 'D'];
+
+  for (const p of priorities) {
+    if (statuses.includes(p)) {
+      return p;
+    }
+  }
+
+  return statuses.length ? statuses[0] : undefined;
+};
+
 export const getVersionFile = (
   versions: VersionsState,
   versionId: number,

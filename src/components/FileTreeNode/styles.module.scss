@@ -8,7 +8,9 @@
   flex-direction: row;
   flex-wrap: nowrap;
   justify-content: space-between;
-  padding: 0.5rem 1.25rem;
+  margin-left: 0;
+  margin-right: 0;
+  padding: 0;
 
   &:first-child {
     border-radius: 0;
@@ -23,8 +25,12 @@
 
 .nodeItem {
   align-items: flex-start;
+  // Set up a common border that can be colored in different ways
+  // according to the file status.
+  border-left: 10px solid transparent;
   display: flex;
   line-height: 1;
+  padding: 0.6rem 1.25rem 0.4rem 1.25rem;
   width: 100%;
 }
 
@@ -36,6 +42,8 @@
 
 .nodeName {
   overflow: hidden;
+  // This accounts for low hanging glyphs such as `g` in a way that
+  // does not disrupt the icon alignment (as opposed to using line-height)
   padding-bottom: 0.2rem;
   text-overflow: ellipsis;
   white-space: wrap;
@@ -64,4 +72,16 @@
 
 .isKnownLibrary {
   color: lighten($black, 50);
+}
+
+.wasDeleted {
+  border-left-color: $red;
+}
+
+.wasModified {
+  border-left-color: $orange;
+}
+
+.wasAdded {
+  border-left-color: $green;
 }
