@@ -1,5 +1,8 @@
 @import '../../scss/variables';
 
+$collapse-button-height: 40px;
+$expand-button-width: 40px;
+
 .FullscreenGrid {
   display: grid;
   grid-gap: $default-padding;
@@ -10,6 +13,10 @@
   grid-template-columns: 2fr 5fr 1fr;
   grid-template-rows: min-content 1fr 0px;
   height: 100vh;
+
+  &.mainSidePanelIsCollapsed {
+    grid-template-columns: $expand-button-width 7fr 1fr;
+  }
 }
 
 .Header {
@@ -17,8 +24,27 @@
 }
 
 .mainSidePanel {
+  display: flex;
+  flex-direction: column;
   grid-area: FGMainSidePanel;
+  height: 100%;
+  justify-content: space-between;
   margin-left: $default-padding;
+
+  .mainSidePanelToggleButton {
+    height: $collapse-button-height;
+    width: 100%;
+  }
+
+  &.mainSidePanelIsCollapsed {
+    background-color: $light-gray;
+    padding: 0;
+
+    .mainSidePanelToggleButton {
+      height: 100%;
+      padding: 0;
+    }
+  }
 }
 
 .altSidePanel {
@@ -38,4 +64,13 @@
   overflow-x: hidden;
   overflow-y: auto;
   padding: $default-padding;
+}
+
+.mainSidePanelContent {
+  height: calc(100% - #{$collapse-button-height + $default-padding});
+  overflow-x: auto;
+
+  .mainSidePanelIsCollapsed & {
+    display: none;
+  }
 }
