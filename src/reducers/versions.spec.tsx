@@ -2219,6 +2219,7 @@ describe(__filename, () => {
         currentAnchor: '',
         diff: createFakeDiffWithChanges([]),
         pathList: [fakeVersion.file.selected_file],
+        position: RelativePathPosition.next,
         version: createInternalVersion(fakeVersion),
         ...params,
       });

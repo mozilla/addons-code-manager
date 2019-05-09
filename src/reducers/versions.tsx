@@ -519,7 +519,7 @@ export type GetRelativeDiffParams = {
   currentAnchor: string | void;
   diff: DiffInfo;
   pathList: string[];
-  position?: RelativePathPosition;
+  position: RelativePathPosition;
   version: Version;
 };
 
@@ -534,7 +534,7 @@ export const getRelativeDiff = ({
   currentAnchor,
   diff,
   pathList,
-  position = RelativePathPosition.next,
+  position,
   version,
 }: GetRelativeDiffParams): RelativeDiffResult => {
   const result: RelativeDiffResult = {
