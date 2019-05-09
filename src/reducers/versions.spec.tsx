@@ -2217,24 +2217,28 @@ describe(__filename, () => {
     const _getRelativeDiff = ({ ...params }) => {
       return getRelativeDiff({
         currentAnchor: '',
-        diff: createFakeDiffWithChanges([[]]),
+        diff: createFakeDiffWithChanges([]),
         pathList: [fakeVersion.file.selected_file],
         version: createInternalVersion(fakeVersion),
         ...params,
       });
     };
 
-    it('calls _getRelativeDiffAnchor to locate the next diff', () => {
-      const _getRelativeDiffAnchor = jest.fn();
+    it('returns an anchor from _getRelativeDiffAnchor', () => {
+      const anchor = 'D1';
+      const path = file1;
+      const _getRelativeDiffAnchor = jest.fn().mockReturnValue(anchor);
       const currentAnchor = '';
       const diff = createFakeDiffWithChanges([[]]);
       const position = RelativePathPosition.next;
+      const { version } = getFakeVersionAndPathList([{ path, status: 'M' }]);
 
-      _getRelativeDiff({
+      const result = _getRelativeDiff({
         _getRelativeDiffAnchor,
         currentAnchor,
         diff,
         position,
+        version,
       });
 
       expect(_getRelativeDiffAnchor).toHaveBeenCalledWith({
@@ -2242,34 +2246,19 @@ describe(__filename, () => {
         diff,
         position,
       });
-    });
-
-    it('returns an anchor from _getRelativeDiffAnchor', () => {
-      const anchor = 'D1';
-      const _getRelativeDiffAnchor = jest.fn().mockReturnValue(anchor);
-      const currentAnchor = '';
-      const diff = createFakeDiffWithChanges([[]]);
-      const position = RelativePathPosition.next;
-
-      const result = _getRelativeDiff({
-        _getRelativeDiffAnchor,
-        currentAnchor,
-        diff,
-        position,
-      });
-
       expect(result).toEqual({ anchor, path: null });
     });
 
-    it('calls _findRelativePathWithDiff when no anchor is found', () => {
-      const _findRelativePathWithDiff = jest.fn();
+    it('returns a path from _findRelativePathWithDiff when no anchor is found', () => {
+      const path = file1;
+      const _findRelativePathWithDiff = jest.fn().mockReturnValue(path);
       const _getRelativeDiffAnchor = jest.fn().mockReturnValue(null);
       const position = RelativePathPosition.next;
       const { pathList, version } = getFakeVersionAndPathList([
-        { path: file1, status: 'M' },
+        { path, status: 'M' },
       ]);
 
-      _getRelativeDiff({
+      const result = _getRelativeDiff({
         _findRelativePathWithDiff,
         _getRelativeDiffAnchor,
         pathList,
@@ -2283,19 +2272,30 @@ describe(__filename, () => {
         position,
         version,
       });
+      expect(result).toEqual({ anchor: null, path });
     });
 
-    it('returns a path from _findRelativePathWithDiff when no anchor is found', () => {
-      const path = 'some/path.js';
-      const _findRelativePathWithDiff = jest.fn().mockReturnValue(path);
-      const _getRelativeDiffAnchor = jest.fn().mockReturnValue(null);
+    it('returns the next diff anchor', () => {
+      const diff = createFakeDiffWithChanges([
+        [
+          { lineNumber: 1, type: 'normal' },
+          { lineNumber: 2, type: 'delete' },
+          { lineNumber: 3, type: 'insert' },
+          { lineNumber: 4, type: 'normal' },
+          { lineNumber: 5, type: 'insert' },
+        ],
+      ]);
+      const path = file1;
+      const { version } = getFakeVersionAndPathList([{ path, status: 'M' }]);
 
-      const result = _getRelativeDiff({
-        _findRelativePathWithDiff,
-        _getRelativeDiffAnchor,
-      });
-
-      expect(result).toEqual({ anchor: null, path });
+      expect(
+        _getRelativeDiff({
+          currentAnchor: 'D2',
+          diff,
+          position: RelativePathPosition.next,
+          version,
+        }),
+      ).toEqual({ anchor: 'I5', path: null });
     });
   });
 });

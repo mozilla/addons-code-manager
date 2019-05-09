@@ -145,6 +145,7 @@ export const getFakeVersionAndPathList = (
       }),
     ),
   );
+  version.selectedPath = pathList[0];
 
   return { pathList, version };
 };
