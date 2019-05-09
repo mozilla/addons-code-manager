@@ -10,6 +10,10 @@
   grid-template-columns: 2fr 5fr 1fr;
   grid-template-rows: min-content 1fr 0px;
   height: 100vh;
+
+  &.mainSidePanelIsCollapsed {
+    grid-template-columns: 40px 7fr 1fr;
+  }
 }
 
 .Header {
@@ -17,8 +21,17 @@
 }
 
 .mainSidePanel {
+  display: flex;
+  flex-direction: column;
   grid-area: FGMainSidePanel;
+  height: 100%;
+  justify-content: space-between;
   margin-left: $default-padding;
+
+  &.isCollapsed {
+    background-color: $light-gray;
+    padding: 0;
+  }
 }
 
 .altSidePanel {
@@ -38,4 +51,21 @@
   overflow-x: hidden;
   overflow-y: auto;
   padding: $default-padding;
+}
+
+.mainSidePanelContent {
+  height: calc(100% - 50px);
+}
+
+.mainSidePanelCollapseButton {
+  height: 40px;
+}
+
+.ToggleButton {
+  background-color: $light-gray;
+  border-radius: $border-radius;
+  border: 0;
+  height: 100%;
+  text-align: center;
+  width: 100%;
 }

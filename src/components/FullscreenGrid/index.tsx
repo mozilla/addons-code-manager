@@ -1,8 +1,24 @@
 import * as React from 'react';
 import makeClassName from 'classnames';
+import { connect } from 'react-redux';
 
+import { ApplicationState } from '../../reducers';
 import { AnyReactNode } from '../../typeUtils';
+import ContentShellComponent from './ContentShell';
 import styles from './styles.module.scss';
+
+type PropsFromState = {
+  mainSidePanelIsExpanded: boolean;
+};
+
+type PublicProps = {
+  children?: AnyReactNode;
+  className?: string;
+};
+
+type Props = PublicProps & PropsFromState;
+
+export type PanelAttribs = 'altSidePanel' | 'mainSidePanel';
 
 export const Header = ({
   children,
@@ -18,54 +34,32 @@ export const Header = ({
   );
 };
 
-export type PanelAttribs = 'altSidePanel' | 'mainSidePanel';
+export const ContentShell = ContentShellComponent;
 
-type ContentShellProps = {
-  altSidePanel?: AnyReactNode;
-  altSidePanelClass?: string;
-  children?: AnyReactNode;
-  className?: string;
-  mainSidePanel?: AnyReactNode;
-  mainSidePanelClass?: string;
-};
-
-export const ContentShell = ({
-  altSidePanel,
-  altSidePanelClass,
+export const FullscreenGridBase = ({
   children,
   className,
-  mainSidePanel,
-  mainSidePanelClass,
-}: ContentShellProps) => {
+  mainSidePanelIsExpanded,
+}: Props) => {
   return (
-    <React.Fragment>
-      <aside
-        className={makeClassName(styles.mainSidePanel, mainSidePanelClass)}
-      >
-        {mainSidePanel}
-      </aside>
-      <main className={makeClassName(styles.content, className)}>
-        {children}
-      </main>
-      <aside className={makeClassName(styles.altSidePanel, altSidePanelClass)}>
-        {altSidePanel}
-      </aside>
-    </React.Fragment>
-  );
-};
-
-const FullscreenGrid = ({
-  children,
-  className,
-}: {
-  children?: AnyReactNode;
-  className?: string;
-}) => {
-  return (
-    <div className={makeClassName(styles.FullscreenGrid, className)}>
+    <div
+      className={makeClassName(
+        styles.FullscreenGrid,
+        {
+          [styles.mainSidePanelIsCollapsed]: !mainSidePanelIsExpanded,
+        },
+        className,
+      )}
+    >
       {children}
     </div>
   );
 };
 
-export default FullscreenGrid;
+const mapStateToProps = (state: ApplicationState): PropsFromState => {
+  return {
+    mainSidePanelIsExpanded: state.fullscreenGrid.mainSidePanelIsExpanded,
+  };
+};
+
+export default connect(mapStateToProps)(FullscreenGridBase);
