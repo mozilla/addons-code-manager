@@ -1990,7 +1990,7 @@ describe(__filename, () => {
 
   describe('getDiffAnchors', () => {
     it('returns the first anchor for each diff in a file', () => {
-      const diff = createFakeDiffWithChanges([
+      const diff1 = createFakeDiffWithChanges([
         // First hunk
         [
           { lineNumber: 1, type: 'insert' },
@@ -2015,13 +2015,44 @@ describe(__filename, () => {
           { lineNumber: 23, type: 'insert' },
         ],
       ]);
-      expect(getDiffAnchors(diff)).toEqual([
+      const diff2 = createFakeDiffWithChanges([
+        // First hunk
+        [
+          { lineNumber: 31, type: 'insert' },
+          { lineNumber: 32, type: 'normal' },
+          { lineNumber: 33, type: 'delete' },
+          { lineNumber: 34, type: 'insert' },
+          { lineNumber: 35, type: 'normal' },
+          { lineNumber: 36, type: 'insert' },
+        ],
+        // Second hunk
+        [
+          { lineNumber: 41, type: 'insert' },
+          { lineNumber: 42, type: 'normal' },
+          { lineNumber: 43, type: 'delete' },
+          { lineNumber: 44, type: 'insert' },
+          { lineNumber: 45, type: 'normal' },
+        ],
+        // Third hunk
+        [
+          { lineNumber: 51, type: 'normal' },
+          { lineNumber: 52, type: 'delete' },
+          { lineNumber: 53, type: 'insert' },
+        ],
+      ]);
+      expect(getDiffAnchors([diff1, diff2])).toEqual([
         'I1',
         'D3',
         'I6',
         'I11',
         'D13',
         'D22',
+        'I31',
+        'D33',
+        'I36',
+        'I41',
+        'D43',
+        'D52',
       ]);
     });
   });

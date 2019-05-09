@@ -451,18 +451,21 @@ export const isFileLoading = (
   return false;
 };
 
-export const getDiffAnchors = (diff: DiffInfo): string[] => {
+export const getDiffAnchors = (diffs: DiffInfo[]): string[] => {
   const anchors: string[] = [];
 
-  for (const hunk of diff.hunks) {
+  for (const diff of diffs) {
     let seekingChange = true;
-    for (const change of hunk.changes) {
-      if (change.type === 'normal') {
-        seekingChange = true;
-      } else if (seekingChange) {
-        // This is the first change in a block.
-        anchors.push(getChangeKey(change));
-        seekingChange = false;
+    for (const hunk of diff.hunks) {
+      seekingChange = true;
+      for (const change of hunk.changes) {
+        if (change.type === 'normal') {
+          seekingChange = true;
+        } else if (seekingChange) {
+          // This is the first change in a block.
+          anchors.push(getChangeKey(change));
+          seekingChange = false;
+        }
       }
     }
   }
