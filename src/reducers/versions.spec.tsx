@@ -2282,7 +2282,7 @@ describe(__filename, () => {
     const _getRelativeDiff = ({ ...params }) => {
       return getRelativeDiff({
         currentAnchor: '',
-        diff: createFakeDiffWithChanges([]),
+        diffs: [createFakeDiffWithChanges([])],
         pathList: [fakeVersion.file.selected_file],
         position: RelativePathPosition.next,
         version: createInternalVersion(fakeVersion),
@@ -2295,21 +2295,21 @@ describe(__filename, () => {
       const path = file1;
       const _getRelativeDiffAnchor = jest.fn().mockReturnValue(anchor);
       const currentAnchor = '';
-      const diff = createFakeDiffWithChanges([[]]);
+      const diffs = [createFakeDiffWithChanges([[]])];
       const position = RelativePathPosition.next;
       const { version } = getFakeVersionAndPathList([{ path, status: 'M' }]);
 
       const result = _getRelativeDiff({
         _getRelativeDiffAnchor,
         currentAnchor,
-        diff,
+        diffs,
         position,
         version,
       });
 
       expect(_getRelativeDiffAnchor).toHaveBeenCalledWith({
         currentAnchor,
-        diff,
+        diffs,
         position,
       });
       expect(result).toEqual({ anchor, path: null });
@@ -2342,22 +2342,24 @@ describe(__filename, () => {
     });
 
     it('returns the next diff anchor', () => {
-      const diff = createFakeDiffWithChanges([
-        [
-          { lineNumber: 1, type: 'normal' },
-          { lineNumber: 2, type: 'delete' },
-          { lineNumber: 3, type: 'insert' },
-          { lineNumber: 4, type: 'normal' },
-          { lineNumber: 5, type: 'insert' },
-        ],
-      ]);
+      const diffs = [
+        createFakeDiffWithChanges([
+          [
+            { lineNumber: 1, type: 'normal' },
+            { lineNumber: 2, type: 'delete' },
+            { lineNumber: 3, type: 'insert' },
+            { lineNumber: 4, type: 'normal' },
+            { lineNumber: 5, type: 'insert' },
+          ],
+        ]),
+      ];
       const path = file1;
       const { version } = getFakeVersionAndPathList([{ path, status: 'M' }]);
 
       expect(
         _getRelativeDiff({
           currentAnchor: 'D2',
-          diff,
+          diffs,
           position: RelativePathPosition.next,
           version,
         }),
