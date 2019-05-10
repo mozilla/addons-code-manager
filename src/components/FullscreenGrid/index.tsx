@@ -2,7 +2,17 @@ import * as React from 'react';
 import makeClassName from 'classnames';
 
 import { AnyReactNode } from '../../typeUtils';
+import ContentShellComponent from './ContentShell';
 import styles from './styles.module.scss';
+
+type PublicProps = {
+  children?: AnyReactNode;
+  className?: string;
+};
+
+type Props = PublicProps;
+
+export type PanelAttribs = 'altSidePanel' | 'mainSidePanel';
 
 export const Header = ({
   children,
@@ -18,49 +28,9 @@ export const Header = ({
   );
 };
 
-export type PanelAttribs = 'altSidePanel' | 'mainSidePanel';
+export const ContentShell = ContentShellComponent;
 
-type ContentShellProps = {
-  altSidePanel?: AnyReactNode;
-  altSidePanelClass?: string;
-  children?: AnyReactNode;
-  className?: string;
-  mainSidePanel?: AnyReactNode;
-  mainSidePanelClass?: string;
-};
-
-export const ContentShell = ({
-  altSidePanel,
-  altSidePanelClass,
-  children,
-  className,
-  mainSidePanel,
-  mainSidePanelClass,
-}: ContentShellProps) => {
-  return (
-    <React.Fragment>
-      <aside
-        className={makeClassName(styles.mainSidePanel, mainSidePanelClass)}
-      >
-        {mainSidePanel}
-      </aside>
-      <main className={makeClassName(styles.content, className)}>
-        {children}
-      </main>
-      <aside className={makeClassName(styles.altSidePanel, altSidePanelClass)}>
-        {altSidePanel}
-      </aside>
-    </React.Fragment>
-  );
-};
-
-const FullscreenGrid = ({
-  children,
-  className,
-}: {
-  children?: AnyReactNode;
-  className?: string;
-}) => {
+export const FullscreenGridBase = ({ children, className }: Props) => {
   return (
     <div className={makeClassName(styles.FullscreenGrid, className)}>
       {children}
@@ -68,4 +38,4 @@ const FullscreenGrid = ({
   );
 };
 
-export default FullscreenGrid;
+export default FullscreenGridBase;
