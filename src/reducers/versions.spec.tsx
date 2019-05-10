@@ -9,7 +9,7 @@ import reducer, {
   Version,
   VersionEntryType,
   actions,
-  createInternalDiffs,
+  createInternalDiff,
   createInternalVersion,
   createInternalVersionAddon,
   createInternalVersionEntry,
@@ -490,7 +490,7 @@ describe(__filename, () => {
       expect(
         getCompareInfo(versionsState, addonId, baseVersionId, headVersionId),
       ).toEqual({
-        diffs: createInternalDiffs({
+        diff: createInternalDiff({
           baseVersionId,
           headVersionId,
           version,
@@ -1196,19 +1196,23 @@ describe(__filename, () => {
     });
   });
 
-  describe('createInternalDiffs', () => {
-    type CreateInternalDiffsParams = {
+  describe('createInternalDiff', () => {
+    type CreateInternalDiffParams = {
       baseVersionId?: number;
       headVersionId?: number;
       version: ExternalVersionWithDiff;
     };
 
-    const _createInternalDiffs = ({
+    const _createInternalDiff = ({
       baseVersionId = 1,
       headVersionId = 2,
       version,
-    }: CreateInternalDiffsParams) => {
-      return createInternalDiffs({ baseVersionId, headVersionId, version });
+    }: CreateInternalDiffParams): DiffInfo => {
+      return createInternalDiff({
+        baseVersionId,
+        headVersionId,
+        version,
+      }) as DiffInfo;
     };
 
     const createVersionWithChange = (change = {}) => {
@@ -1236,7 +1240,7 @@ describe(__filename, () => {
       };
     };
 
-    it('creates an array of DiffInfo objects from a version with diff', () => {
+    it('creates a DiffInfo object from a version with diff', () => {
       const baseVersionId = 132;
       const headVersionId = 133;
       const externalDiffs = [fakeExternalDiff];
@@ -1248,35 +1252,32 @@ describe(__filename, () => {
         },
       };
 
-      const diffs = _createInternalDiffs({
+      const diff = _createInternalDiff({
         baseVersionId,
         headVersionId,
         version,
       });
 
-      expect(diffs).toHaveLength(externalDiffs.length);
-      diffs.forEach((diff, index) => {
-        const externalDiff = externalDiffs[index];
+      const externalDiff = externalDiffs[0];
 
-        expect(diff).toHaveProperty('oldRevision', String(baseVersionId));
-        expect(diff).toHaveProperty('newRevision', String(headVersionId));
-        expect(diff).toHaveProperty('oldMode', externalDiff.mode);
-        expect(diff).toHaveProperty('newMode', externalDiff.mode);
-        expect(diff).toHaveProperty('oldPath', externalDiff.old_path);
-        expect(diff).toHaveProperty('newPath', externalDiff.path);
-        expect(diff).toHaveProperty(
-          'oldEndingNewLine',
-          externalDiff.old_ending_new_line,
-        );
-        expect(diff).toHaveProperty(
-          'newEndingNewLine',
-          externalDiff.new_ending_new_line,
-        );
+      expect(diff).toHaveProperty('oldRevision', String(baseVersionId));
+      expect(diff).toHaveProperty('newRevision', String(headVersionId));
+      expect(diff).toHaveProperty('oldMode', externalDiff.mode);
+      expect(diff).toHaveProperty('newMode', externalDiff.mode);
+      expect(diff).toHaveProperty('oldPath', externalDiff.old_path);
+      expect(diff).toHaveProperty('newPath', externalDiff.path);
+      expect(diff).toHaveProperty(
+        'oldEndingNewLine',
+        externalDiff.old_ending_new_line,
+      );
+      expect(diff).toHaveProperty(
+        'newEndingNewLine',
+        externalDiff.new_ending_new_line,
+      );
 
-        // These props will be tested in a different test case below.
-        expect(diff).toHaveProperty('type');
-        expect(diff).toHaveProperty('hunks');
-      });
+      // These props will be tested in a different test case below.
+      expect(diff).toHaveProperty('type');
+      expect(diff).toHaveProperty('hunks');
     });
 
     it.each([
@@ -1296,7 +1297,7 @@ describe(__filename, () => {
         },
       };
 
-      const diff = _createInternalDiffs({ version })[0];
+      const diff = _createInternalDiff({ version });
 
       expect(diff.type).toEqual(type);
     });
@@ -1310,7 +1311,7 @@ describe(__filename, () => {
         },
       };
 
-      const diff = _createInternalDiffs({ version })[0];
+      const diff = _createInternalDiff({ version });
 
       expect(diff.hunks).toHaveLength(fakeExternalDiff.hunks.length);
       diff.hunks.forEach((hunk, index) => {
@@ -1337,7 +1338,7 @@ describe(__filename, () => {
         },
       };
 
-      const diff = _createInternalDiffs({ version })[0];
+      const diff = _createInternalDiff({ version });
 
       const firstHunk = diff.hunks[0];
       const firstExternalHunk = fakeExternalDiff.hunks[0];
@@ -1376,7 +1377,7 @@ describe(__filename, () => {
         type,
       });
 
-      const diff = _createInternalDiffs({ version })[0];
+      const diff = _createInternalDiff({ version });
       const change = diff.hunks[0].changes[0];
 
       expect(change).toHaveProperty('type', type);
@@ -1397,7 +1398,7 @@ describe(__filename, () => {
         type,
       });
 
-      const diff = _createInternalDiffs({ version })[0];
+      const diff = _createInternalDiff({ version });
       const change = diff.hunks[0].changes[0];
 
       expect(change).toHaveProperty('type', type);
@@ -1418,7 +1419,7 @@ describe(__filename, () => {
         type,
       });
 
-      const diff = _createInternalDiffs({ version })[0];
+      const diff = _createInternalDiff({ version });
       const change = diff.hunks[0].changes[0];
 
       expect(change).toHaveProperty('type', type);

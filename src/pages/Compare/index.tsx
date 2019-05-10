@@ -149,7 +149,7 @@ export class CompareBase extends React.Component<Props> {
             <div key={`${version.id}:${path}`} className={styles.diffContent}>
               {/* The key in this ^ resets scrollbars between files */}
               <DiffView
-                diffs={compareInfo.diffs}
+                diff={compareInfo.diff}
                 mimeType={compareInfo.mimeType}
                 version={version}
               />

@@ -208,7 +208,7 @@ export type VersionsMap = {
 };
 
 export type CompareInfo = {
-  diffs: DiffInfo[];
+  diff: DiffInfo | null;
   mimeType: string;
 };
 
@@ -662,18 +662,17 @@ export const fetchVersionsList = ({
   };
 };
 
-type CreateInternalDiffsParams = {
+type CreateInternalDiffParams = {
   version: ExternalVersionWithDiff;
   baseVersionId: number;
   headVersionId: number;
 };
 
-// This function returns an array of objects compatible with `react-diff-view`.
-export const createInternalDiffs = ({
+export const createInternalDiff = ({
   baseVersionId,
   headVersionId,
   version,
-}: CreateInternalDiffsParams) => {
+}: CreateInternalDiffParams): DiffInfo | null => {
   const GIT_STATUS_TO_TYPE: { [status: string]: DiffInfoType } = {
     A: 'add',
     C: 'copy',
@@ -682,42 +681,42 @@ export const createInternalDiffs = ({
     R: 'rename',
   };
 
-  return version.file.diff.map(
-    (diff: ExternalDiff): DiffInfo => {
-      return {
-        newRevision: String(headVersionId),
-        oldRevision: String(baseVersionId),
-        hunks: diff.hunks.map((hunk: ExternalHunk) => ({
-          changes: hunk.changes.map((change: ExternalChange) => ({
-            content: change.content,
-            isDelete: change.type === 'delete',
-            isInsert: change.type === 'insert',
-            isNormal: change.type === 'normal',
-            lineNumber:
-              change.type === 'insert'
-                ? change.new_line_number
-                : change.old_line_number,
-            newLineNumber: change.new_line_number,
-            oldLineNumber: change.old_line_number,
-            type: change.type,
-          })),
-          content: hunk.header,
-          isPlain: false,
-          newLines: hunk.new_lines,
-          newStart: hunk.new_start,
-          oldLines: hunk.old_lines,
-          oldStart: hunk.old_start,
+  if (version.file.diff.length) {
+    const diff = version.file.diff[0];
+    return {
+      newRevision: String(headVersionId),
+      oldRevision: String(baseVersionId),
+      hunks: diff.hunks.map((hunk: ExternalHunk) => ({
+        changes: hunk.changes.map((change: ExternalChange) => ({
+          content: change.content,
+          isDelete: change.type === 'delete',
+          isInsert: change.type === 'insert',
+          isNormal: change.type === 'normal',
+          lineNumber:
+            change.type === 'insert'
+              ? change.new_line_number
+              : change.old_line_number,
+          newLineNumber: change.new_line_number,
+          oldLineNumber: change.old_line_number,
+          type: change.type,
         })),
-        type: GIT_STATUS_TO_TYPE[diff.mode] || GIT_STATUS_TO_TYPE.M,
-        newEndingNewLine: diff.new_ending_new_line,
-        oldEndingNewLine: diff.old_ending_new_line,
-        newMode: diff.mode,
-        oldMode: diff.mode,
-        newPath: diff.path,
-        oldPath: diff.old_path,
-      };
-    },
-  );
+        content: hunk.header,
+        isPlain: false,
+        newLines: hunk.new_lines,
+        newStart: hunk.new_start,
+        oldLines: hunk.old_lines,
+        oldStart: hunk.old_start,
+      })),
+      type: GIT_STATUS_TO_TYPE[diff.mode] || GIT_STATUS_TO_TYPE.M,
+      newEndingNewLine: diff.new_ending_new_line,
+      oldEndingNewLine: diff.old_ending_new_line,
+      newMode: diff.mode,
+      oldMode: diff.mode,
+      newPath: diff.path,
+      oldPath: diff.old_path,
+    };
+  }
+  return null;
 };
 
 type FetchDiffParams = {
@@ -756,7 +755,7 @@ export const createInternalCompareInfo = ({
   version: ExternalVersionWithDiff;
 }): CompareInfo => {
   return {
-    diffs: createInternalDiffs({
+    diff: createInternalDiff({
       baseVersionId,
       headVersionId,
       version,
