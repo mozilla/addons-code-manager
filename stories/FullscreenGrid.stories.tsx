@@ -5,6 +5,7 @@ import FullscreenGrid, {
   Header,
   ContentShell,
 } from '../src/components/FullscreenGrid';
+import ToggleButton from '../src/components/FullscreenGrid/ToggleButton';
 import { generateParagraphs, rootAttributeParams } from './utils';
 
 const getParams = () => rootAttributeParams({ fullscreen: true });
@@ -46,3 +47,36 @@ storiesOf('FullscreenGrid', module)
     },
     getParams(),
   );
+
+const renderToggleButton = (props = {}) => {
+  return <ToggleButton onClick={() => {}} {...props} />;
+};
+
+storiesOf('FullscreenGrid/ToggleButton', module).addWithChapters(
+  'all variants',
+  {
+    chapters: [
+      {
+        sections: [
+          {
+            title: 'default button',
+            sectionFn: () => renderToggleButton(),
+          },
+          {
+            title: 'with a label',
+            sectionFn: () => renderToggleButton({ label: 'toggle me' }),
+          },
+          {
+            title: 'toggleLeft = "true"',
+            sectionFn: () => renderToggleButton({ toggleLeft: true }),
+          },
+          {
+            title: 'toggleLeft = "true" with a label',
+            sectionFn: () =>
+              renderToggleButton({ toggleLeft: true, label: 'toggle me' }),
+          },
+        ],
+      },
+    ],
+  },
+);
