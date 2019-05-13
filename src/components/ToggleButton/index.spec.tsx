@@ -3,8 +3,9 @@ import { shallow } from 'enzyme';
 import { Button } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import ToggleButton from './ToggleButton';
-import styles from './ToggleButton.module.scss';
+import styles from './styles.module.scss';
+
+import ToggleButton from '.';
 
 describe(__filename, () => {
   const render = (overrides = {}) => {

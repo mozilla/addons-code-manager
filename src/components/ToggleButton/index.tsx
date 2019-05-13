@@ -4,7 +4,7 @@ import { Button } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { gettext } from '../../utils';
-import styles from './ToggleButton.module.scss';
+import styles from './styles.module.scss';
 
 type Props = {
   className?: string;
