@@ -133,7 +133,10 @@ describe(__filename, () => {
     const onSelectFile = jest.fn();
     const { version } = getInternalVersionAndFile();
 
-    const root = renderPanel({ onSelectFile, version }, 'mainSidePanel');
+    const root = renderPanel(
+      { onSelectFile, version },
+      PanelAttribs.mainSidePanel,
+    );
 
     const tree = root.find(FileTree);
     expect(tree).toHaveLength(1);
@@ -143,7 +146,7 @@ describe(__filename, () => {
 
   it('shows an information panel by default', () => {
     const { file } = getInternalVersionAndFile();
-    const root = renderPanel({ file }, 'mainSidePanel');
+    const root = renderPanel({ file }, PanelAttribs.mainSidePanel);
     const item = getItem(root, ItemTitles.Information);
 
     const meta = item.find(FileMetadata);
@@ -151,7 +154,10 @@ describe(__filename, () => {
   });
 
   it('can hide the information panel', () => {
-    const root = renderPanel({ showFileInfo: false }, 'mainSidePanel');
+    const root = renderPanel(
+      { showFileInfo: false },
+      PanelAttribs.mainSidePanel,
+    );
 
     expect(getItem(root, ItemTitles.Information)).toHaveLength(0);
   });
@@ -159,7 +165,7 @@ describe(__filename, () => {
   it('renders a placeholder in the information panel without a file', () => {
     const root = renderPanel(
       { file: null, showFileInfo: true },
-      'mainSidePanel',
+      PanelAttribs.mainSidePanel,
     );
     const item = getItem(root, ItemTitles.Information);
 
@@ -169,7 +175,7 @@ describe(__filename, () => {
 
   it('renders a KeyboardShortcuts panel', () => {
     const { version } = getInternalVersionAndFile();
-    const root = renderPanel({ version }, 'mainSidePanel');
+    const root = renderPanel({ version }, PanelAttribs.mainSidePanel);
     const item = getItem(root, ItemTitles.Shortcuts);
 
     const shortcuts = item.find(KeyboardShortcuts);
@@ -180,7 +186,7 @@ describe(__filename, () => {
 
   it('renders CodeOverview', () => {
     const { file, version } = getInternalVersionAndFile();
-    const root = renderPanel({ file, version }, 'altSidePanel');
+    const root = renderPanel({ file, version }, PanelAttribs.altSidePanel);
 
     const overview = root.find(CodeOverview);
     expect(overview).toHaveLength(1);
@@ -189,7 +195,7 @@ describe(__filename, () => {
   });
 
   it('does not render CodeOverview without a file', () => {
-    const root = renderPanel({ file: null }, 'altSidePanel');
+    const root = renderPanel({ file: null }, PanelAttribs.altSidePanel);
 
     expect(root.find(CodeOverview)).toHaveLength(0);
   });
@@ -204,7 +210,7 @@ describe(__filename, () => {
       path,
       entry,
     });
-    const root = renderPanel({ file, version }, 'altSidePanel');
+    const root = renderPanel({ file, version }, PanelAttribs.altSidePanel);
 
     const overview = root.find(CodeOverview);
     expect(overview).toHaveProp('content', '');
