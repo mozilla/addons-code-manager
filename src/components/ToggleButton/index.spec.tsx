@@ -42,11 +42,18 @@ describe(__filename, () => {
     expect(root.find(FontAwesomeIcon)).toHaveProp('icon', 'angle-double-right');
   });
 
+  it('does not add the `toggleLeft` style by default', () => {
+    const root = render();
+
+    expect(root).not.toHaveClassName(styles.toggleLeft);
+  });
+
   it(`inverts the button's direction when toggleLeft is true`, () => {
     const label = 'text should be after the icon';
 
     const root = render({ label, toggleLeft: true });
 
+    expect(root).toHaveClassName(styles.toggleLeft);
     expect(root.childAt(0).type()).toEqual(FontAwesomeIcon);
     expect(root.childAt(0)).toHaveProp('icon', 'angle-double-left');
     expect(root.childAt(1)).toIncludeText(label);
