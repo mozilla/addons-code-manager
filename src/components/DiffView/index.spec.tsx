@@ -161,12 +161,10 @@ describe(__filename, () => {
 
     // Simulate the interface of <Diff />
     const children = root.find(Diff).prop('children');
-    const diffComponent = shallow(<div>{children(diff.hunks)}</div>);
+    const diffWrapper = shallow(<div>{children(diff.hunks)}</div>);
 
-    expect(diffComponent.find(`.${styles.hunk}`)).toHaveLength(
-      diff.hunks.length,
-    );
-    expect(diffComponent.find(`.${styles.hunkSeparator}`)).toHaveLength(
+    expect(diffWrapper.find(`.${styles.hunk}`)).toHaveLength(diff.hunks.length);
+    expect(diffWrapper.find(`.${styles.hunkSeparator}`)).toHaveLength(
       // There are less separators than hunks.
       diff.hunks.length - 1,
     );
