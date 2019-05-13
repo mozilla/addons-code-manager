@@ -20,6 +20,7 @@ export type PublicProps = {
 };
 
 type PropsFromState = {
+  altSidePanelIsExpanded: boolean;
   mainSidePanelIsExpanded: boolean;
 };
 
@@ -28,6 +29,7 @@ type Props = PublicProps & PropsFromState & ConnectedReduxProps;
 export const ContentShellBase = ({
   altSidePanel,
   altSidePanelClass,
+  altSidePanelIsExpanded,
   children,
   className,
   dispatch,
@@ -62,11 +64,33 @@ export const ContentShellBase = ({
           toggleLeft={mainSidePanelIsExpanded}
         />
       </aside>
+
       <main className={makeClassName(styles.content, className)}>
         {children}
       </main>
-      <aside className={makeClassName(styles.altSidePanel, altSidePanelClass)}>
-        {altSidePanel}
+
+      <aside
+        aria-expanded={altSidePanelIsExpanded ? 'true' : 'false'}
+        className={makeClassName(
+          styles.altSidePanel,
+          {
+            [styles.altSidePanelIsCollapsed]: !altSidePanelIsExpanded,
+          },
+          altSidePanelClass,
+        )}
+      >
+        <div className={styles.altSidePanelContent}>{altSidePanel}</div>
+        <ToggleButton
+          className={styles.altSidePanelToggleButton}
+          label={altSidePanelIsExpanded ? gettext('Collapse') : null}
+          onClick={() => dispatch(actions.toggleAltSidePanel())}
+          title={
+            altSidePanelIsExpanded
+              ? gettext('Collapse this panel')
+              : gettext('Expand this panel')
+          }
+          toggleLeft={!altSidePanelIsExpanded}
+        />
       </aside>
     </React.Fragment>
   );
@@ -74,6 +98,7 @@ export const ContentShellBase = ({
 
 const mapStateToProps = (state: ApplicationState): PropsFromState => {
   return {
+    altSidePanelIsExpanded: state.fullscreenGrid.altSidePanelIsExpanded,
     mainSidePanelIsExpanded: state.fullscreenGrid.mainSidePanelIsExpanded,
   };
 };

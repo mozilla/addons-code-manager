@@ -51,7 +51,7 @@ describe(__filename, () => {
       const root = render(<FullscreenGrid />);
 
       expect(root).toHaveClassName(styles.FullscreenGrid);
-      expect(root).not.toHaveClassName(styles.hasACollapsedMainSidePanel);
+      expect(root).not.toHaveClassName(styles.withMainSidePanelCollapsed);
     });
 
     it('sets an extra CSS class when the main side panel is collapsed', () => {
@@ -60,7 +60,32 @@ describe(__filename, () => {
 
       const root = render(<FullscreenGrid />, { store });
 
-      expect(root).toHaveClassName(styles.hasACollapsedMainSidePanel);
+      expect(root).toHaveClassName(styles.withMainSidePanelCollapsed);
+      expect(root).not.toHaveClassName(styles.withAltSidePanelCollapsed);
+      expect(root).not.toHaveClassName(styles.withBothSidePanelsCollapsed);
+    });
+
+    it('sets an extra CSS class when the alt side panel is collapsed', () => {
+      const store = configureStore();
+      store.dispatch(fullscreenGridActions.toggleAltSidePanel());
+
+      const root = render(<FullscreenGrid />, { store });
+
+      expect(root).toHaveClassName(styles.withAltSidePanelCollapsed);
+      expect(root).not.toHaveClassName(styles.withMainSidePanelCollapsed);
+      expect(root).not.toHaveClassName(styles.withBothSidePanelsCollapsed);
+    });
+
+    it('sets an extra CSS class when both side panels are collapsed', () => {
+      const store = configureStore();
+      store.dispatch(fullscreenGridActions.toggleMainSidePanel());
+      store.dispatch(fullscreenGridActions.toggleAltSidePanel());
+
+      const root = render(<FullscreenGrid />, { store });
+
+      expect(root).toHaveClassName(styles.withBothSidePanelsCollapsed);
+      expect(root).not.toHaveClassName(styles.withAltSidePanelCollapsed);
+      expect(root).not.toHaveClassName(styles.withMainSidePanelCollapsed);
     });
   });
 
