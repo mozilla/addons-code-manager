@@ -124,7 +124,7 @@ export type ExternalVersionFileWithContent = PartialExternalVersionFile & {
 };
 
 export type ExternalVersionFileWithDiff = PartialExternalVersionFile & {
-  diff: ExternalDiff[];
+  diff: ExternalDiff | null;
 };
 
 export type ExternalVersionWithContent = PartialExternalVersion & {
@@ -681,8 +681,8 @@ export const createInternalDiff = ({
     R: 'rename',
   };
 
-  if (version.file.diff.length) {
-    const diff = version.file.diff[0];
+  const { diff } = version.file;
+  if (diff) {
     return {
       newRevision: String(headVersionId),
       oldRevision: String(baseVersionId),

@@ -289,7 +289,7 @@ export const fakeVersionWithDiff: ExternalVersionWithDiff = {
   ...fakeVersion,
   file: {
     ...fakeVersion.file,
-    diff: [fakeExternalDiff],
+    diff: fakeExternalDiff,
   },
 };
 

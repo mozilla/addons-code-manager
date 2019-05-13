@@ -1220,22 +1220,20 @@ describe(__filename, () => {
         ...fakeVersion,
         file: {
           ...fakeVersion.file,
-          diff: [
-            {
-              ...fakeExternalDiff,
-              hunks: [
-                {
-                  ...fakeExternalDiff.hunks[0],
-                  changes: [
-                    {
-                      ...fakeExternalDiff.hunks[0].changes[0],
-                      ...change,
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
+          diff: {
+            ...fakeExternalDiff,
+            hunks: [
+              {
+                ...fakeExternalDiff.hunks[0],
+                changes: [
+                  {
+                    ...fakeExternalDiff.hunks[0].changes[0],
+                    ...change,
+                  },
+                ],
+              },
+            ],
+          },
         },
       };
     };
@@ -1243,12 +1241,12 @@ describe(__filename, () => {
     it('creates a DiffInfo object from a version with diff', () => {
       const baseVersionId = 132;
       const headVersionId = 133;
-      const externalDiffs = [fakeExternalDiff];
+      const externalDiff = fakeExternalDiff;
       const version = {
         ...fakeVersion,
         file: {
           ...fakeVersion.file,
-          diff: externalDiffs,
+          diff: externalDiff,
         },
       };
 
@@ -1257,8 +1255,6 @@ describe(__filename, () => {
         headVersionId,
         version,
       });
-
-      const externalDiff = externalDiffs[0];
 
       expect(diff).toHaveProperty('oldRevision', String(baseVersionId));
       expect(diff).toHaveProperty('newRevision', String(headVersionId));
@@ -1280,14 +1276,14 @@ describe(__filename, () => {
       expect(diff).toHaveProperty('hunks');
     });
 
-    it('returns null if the array of diffs is empty', () => {
+    it('returns null if diff is falsey', () => {
       const baseVersionId = 132;
       const headVersionId = 133;
       const version = {
         ...fakeVersion,
         file: {
           ...fakeVersion.file,
-          diff: [],
+          diff: null,
         },
       };
 
@@ -1313,7 +1309,7 @@ describe(__filename, () => {
         ...fakeVersion,
         file: {
           ...fakeVersion.file,
-          diff: [{ ...fakeExternalDiff, mode }],
+          diff: { ...fakeExternalDiff, mode },
         },
       };
 
@@ -1327,7 +1323,7 @@ describe(__filename, () => {
         ...fakeVersion,
         file: {
           ...fakeVersion.file,
-          diff: [fakeExternalDiff],
+          diff: fakeExternalDiff,
         },
       };
 
@@ -1354,7 +1350,7 @@ describe(__filename, () => {
         ...fakeVersion,
         file: {
           ...fakeVersion.file,
-          diff: [fakeExternalDiff],
+          diff: fakeExternalDiff,
         },
       };
 
