@@ -1,7 +1,8 @@
 import React from 'react';
 import { storiesOf } from '@storybook/react';
 
-import FullscreenGrid, { ContentShell } from '../src/components/FullscreenGrid';
+import ContentShell from '../src/components/FullscreenGrid/ContentShell';
+import FullscreenGrid from '../src/components/FullscreenGrid';
 import AccordionMenu, { AccordionItem } from '../src/components/AccordionMenu';
 import {
   generateParagraphs,

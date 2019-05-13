@@ -3,7 +3,8 @@ import { Store } from 'redux';
 import { storiesOf } from '@storybook/react';
 
 import configureStore from '../src/configureStore';
-import FullscreenGrid, { ContentShell } from '../src/components/FullscreenGrid';
+import ContentShell from '../src/components/FullscreenGrid/ContentShell';
+import FullscreenGrid from '../src/components/FullscreenGrid';
 import CodeView, {
   PublicProps as CodeViewProps,
 } from '../src/components/CodeView';

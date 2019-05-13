@@ -1,9 +1,10 @@
 import React from 'react';
 import { storiesOf } from '@storybook/react';
 
+import ContentShell from '../src/components/FullscreenGrid/ContentShell';
 import FullscreenGrid, {
   Header,
-  ContentShell,
+  PanelAttribs,
 } from '../src/components/FullscreenGrid';
 import { generateParagraphs, rootAttributeParams } from './utils';
 
@@ -17,10 +18,10 @@ storiesOf('FullscreenGrid', module)
         <FullscreenGrid>
           <Header className="FullscreenGridStory-Header">Header</Header>
           <ContentShell
-            altSidePanel="altSidePanel"
+            altSidePanel={PanelAttribs.altSidePanel}
             altSidePanelClass="FullscreenGridStory-altSidePanel"
             className="FullscreenGridStory-content"
-            mainSidePanel="mainSidePanel"
+            mainSidePanel={PanelAttribs.mainSidePanel}
             mainSidePanelClass="FullscreenGridStory-mainSidePanel"
           >
             Content

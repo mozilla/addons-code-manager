@@ -24,7 +24,8 @@ import {
   fetchCurrentUser,
   selectCurrentUser,
 } from '../../reducers/users';
-import FullscreenGrid, { ContentShell, Header } from '../FullscreenGrid';
+import ContentShell from '../FullscreenGrid/ContentShell';
+import FullscreenGrid, { Header } from '../FullscreenGrid';
 import Navbar from '../Navbar';
 import Browse from '../../pages/Browse';
 import Compare from '../../pages/Compare';
