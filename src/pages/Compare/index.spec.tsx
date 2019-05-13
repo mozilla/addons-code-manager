@@ -14,7 +14,7 @@ import {
 import configureStore from '../../configureStore';
 import {
   actions as versionsActions,
-  createInternalDiffs,
+  createInternalDiff,
   createInternalVersion,
 } from '../../reducers/versions';
 import DiffView from '../../components/DiffView';
@@ -228,8 +228,8 @@ describe(__filename, () => {
     const diffView = root.find(DiffView);
     expect(diffView).toHaveLength(1);
     expect(diffView).toHaveProp(
-      'diffs',
-      createInternalDiffs({
+      'diff',
+      createInternalDiff({
         baseVersionId,
         headVersionId: version.id,
         version,

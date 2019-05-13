@@ -30,7 +30,7 @@ export const getAllHunkChanges = (hunks: Hunks): ChangeInfo[] => {
 };
 
 export type PublicProps = {
-  diffs: DiffInfo[];
+  diff: DiffInfo | null;
   mimeType: string;
   version: Version;
 };
@@ -142,7 +142,7 @@ export class DiffViewBase extends React.Component<Props> {
   };
 
   renderWithMessages = ({ selectedMessageMap }: LinterProviderInfo) => {
-    const { _tokenize, diffs, mimeType, viewType, location } = this.props;
+    const { _tokenize, diff, mimeType, viewType, location } = this.props;
 
     const options = {
       highlight: true,
@@ -162,7 +162,7 @@ export class DiffViewBase extends React.Component<Props> {
 
     return (
       <div className={styles.DiffView}>
-        {diffs.length === 0 && (
+        {!diff && (
           <React.Fragment>
             <div className={styles.header} />
             <div className={makeClassName(styles.diff, styles.noDiffs)}>
@@ -177,29 +177,25 @@ export class DiffViewBase extends React.Component<Props> {
           </div>
         ) : null}
 
-        {diffs.map((diff) => {
-          const { oldRevision, newRevision, hunks, type } = diff;
+        {diff && (
+          <React.Fragment key={`${diff.oldRevision}-${diff.newRevision}`}>
+            {this.renderHeader(diff)}
 
-          return (
-            <React.Fragment key={`${oldRevision}-${newRevision}`}>
-              {this.renderHeader(diff)}
-
-              <Diff
-                className={styles.diff}
-                diffType={type}
-                hunks={hunks}
-                tokens={_tokenize(hunks, options)}
-                viewType={viewType}
-                gutterType="anchor"
-                generateAnchorID={getChangeKey}
-                selectedChanges={selectedChanges}
-                widgets={this.getWidgets(hunks, selectedMessageMap)}
-              >
-                {this.renderHunks}
-              </Diff>
-            </React.Fragment>
-          );
-        })}
+            <Diff
+              className={styles.diff}
+              diffType={diff.type}
+              hunks={diff.hunks}
+              tokens={_tokenize(diff.hunks, options)}
+              viewType={viewType}
+              gutterType="anchor"
+              generateAnchorID={getChangeKey}
+              selectedChanges={selectedChanges}
+              widgets={this.getWidgets(diff.hunks, selectedMessageMap)}
+            >
+              {this.renderHunks}
+            </Diff>
+          </React.Fragment>
+        )}
       </div>
     );
   };

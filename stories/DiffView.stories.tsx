@@ -23,7 +23,7 @@ const render = (
   store = configureStore(),
 ) => {
   const props: DiffViewProps = {
-    diffs: parseDiff(basicDiff),
+    diff: parseDiff(basicDiff)[0],
     mimeType: 'application/javascript',
     version: createInternalVersion(fakeVersion),
     ...moreProps,
@@ -62,7 +62,7 @@ const renderWithMessages = (
   store.dispatch(actions.loadLinterResult({ versionId: version.id, result }));
 
   const props: DiffViewProps = {
-    diffs: parseDiff(basicDiff),
+    diff: parseDiff(basicDiff)[0],
     mimeType: 'application/javascript',
     version,
     ...moreProps,
@@ -79,13 +79,13 @@ storiesOf('DiffView', module)
           {
             title: 'diff with additions and deletions',
             sectionFn: () => {
-              return render({ diffs: parseDiff(diffWithDeletions) });
+              return render({ diff: parseDiff(diffWithDeletions)[0] });
             },
           },
           {
             title: 'no differences',
             sectionFn: () => {
-              return render({ diffs: [] });
+              return render({ diff: null });
             },
           },
         ],
@@ -193,7 +193,7 @@ storiesOf('DiffView', module)
                     type: 'error',
                   },
                 ],
-                { diffs: parseDiff(diffWithDeletions) },
+                { diff: parseDiff(diffWithDeletions)[0] },
               );
             },
           },

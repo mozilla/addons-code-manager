@@ -47,7 +47,7 @@ describe(__filename, () => {
 
     return shallowUntilTarget(
       <DiffView
-        diffs={parseDiff(basicDiff)}
+        diff={parseDiff(basicDiff)[0]}
         mimeType="text/plain"
         version={createInternalVersion(fakeVersion)}
         {...props}
@@ -109,7 +109,7 @@ describe(__filename, () => {
   };
 
   it('renders with no differences', () => {
-    const root = renderWithLinterProvider({ diffs: [] });
+    const root = renderWithLinterProvider({ diff: null });
 
     expect(root.find(Diff)).toHaveLength(0);
     expect(root.find(`.${styles.header}`)).toHaveLength(1);
@@ -130,23 +130,11 @@ describe(__filename, () => {
   });
 
   it('passes parsed diff information to DiffView', () => {
-    const diffs = parseDiff(basicDiff);
-    const root = renderWithLinterProvider({ diffs });
+    const diff = parseDiff(basicDiff)[0];
+    const root = renderWithLinterProvider({ diff });
 
-    expect(diffs).toHaveLength(1);
-    expect(root.find(Diff)).toHaveProp('diffType', diffs[0].type);
-    expect(root.find(Diff)).toHaveProp('hunks', diffs[0].hunks);
-  });
-
-  it('creates multiple Diff instances when there are multiple files in the diff', () => {
-    const diffs = parseDiff(multipleDiff);
-    const root = renderWithLinterProvider({ diffs });
-
-    expect(root.find(Diff)).toHaveLength(diffs.length);
-    diffs.forEach((diff, index) => {
-      expect(root.find(Diff).at(index)).toHaveProp('diffType', diff.type);
-      expect(root.find(Diff).at(index)).toHaveProp('hunks', diff.hunks);
-    });
+    expect(root.find(Diff)).toHaveProp('diffType', diff.type);
+    expect(root.find(Diff)).toHaveProp('hunks', diff.hunks);
   });
 
   it('renders a header with diff stats', () => {
@@ -159,7 +147,7 @@ describe(__filename, () => {
 
   it('renders a header with diff stats for multiple hunks', () => {
     const root = renderWithLinterProvider({
-      diffs: parseDiff(diffWithDeletions),
+      diff: parseDiff(diffWithDeletions)[0],
     });
 
     expect(root.find(`.${styles.header}`)).toHaveLength(1);
@@ -168,35 +156,32 @@ describe(__filename, () => {
   });
 
   it('renders hunks with separators', () => {
-    const diffs = parseDiff(diffWithDeletions);
-    const root = renderWithLinterProvider({ diffs });
+    const diff = parseDiff(diffWithDeletions)[0];
+    const root = renderWithLinterProvider({ diff });
 
     // Simulate the interface of <Diff />
     const children = root.find(Diff).prop('children');
-    const diff = shallow(<div>{children(diffs[0].hunks)}</div>);
+    const diffWrapper = shallow(<div>{children(diff.hunks)}</div>);
 
-    expect(diff.find(`.${styles.hunk}`)).toHaveLength(diffs[0].hunks.length);
-    expect(diff.find(`.${styles.hunkSeparator}`)).toHaveLength(
+    expect(diffWrapper.find(`.${styles.hunk}`)).toHaveLength(diff.hunks.length);
+    expect(diffWrapper.find(`.${styles.hunkSeparator}`)).toHaveLength(
       // There are less separators than hunks.
-      diffs[0].hunks.length - 1,
+      diff.hunks.length - 1,
     );
   });
 
   it('tokenizes the hunks to add syntax highlighting', () => {
-    const diffs = parseDiff(multipleDiff);
+    const diff = parseDiff(multipleDiff)[0];
     const mimeType = 'application/javascript';
     const _tokenize = jest.fn();
 
-    renderWithLinterProvider({ _tokenize, diffs, mimeType });
+    renderWithLinterProvider({ _tokenize, diff, mimeType });
 
-    diffs.forEach((diff) => {
-      expect(_tokenize).toHaveBeenCalledWith(diff.hunks, {
-        highlight: true,
-        language: getLanguageFromMimeType(mimeType),
-        refractor: expect.any(Object),
-      });
+    expect(_tokenize).toHaveBeenCalledWith(diff.hunks, {
+      highlight: true,
+      language: getLanguageFromMimeType(mimeType),
+      refractor: expect.any(Object),
     });
-    expect(_tokenize).toHaveBeenCalledTimes(diffs.length);
   });
 
   it('configures anchors/links on each line number', () => {
@@ -314,15 +299,15 @@ describe(__filename, () => {
       { line: 23, uid: 'second' },
     ];
 
-    const diffs = parseDiff(diffWithDeletions);
+    const diff = parseDiff(diffWithDeletions)[0];
     const widgets = renderAndGetWidgets({
-      diffs,
+      diff,
       selectedMessageMap: createFakeLinterMessagesByPath({
         messages: externalMessages,
       }),
     });
 
-    const { hunks } = diffs[0];
+    const { hunks } = diff;
 
     const firstWidget = renderWidget(hunks, widgets, externalMessages[0].line);
     expect(firstWidget.find(LinterMessage)).toHaveLength(1);
@@ -350,7 +335,7 @@ describe(__filename, () => {
     ];
 
     const widgets = renderAndGetWidgets({
-      diffs: parseDiff(diffWithDeletions),
+      diff: parseDiff(diffWithDeletions)[0],
       selectedMessageMap: createFakeLinterMessagesByPath({
         messages: externalMessages,
       }),
@@ -366,15 +351,15 @@ describe(__filename, () => {
     const line = 9;
     const externalMessages = [{ line, uid: 'first' }, { line, uid: 'second' }];
 
-    const diffs = parseDiff(diffWithDeletions);
+    const diff = parseDiff(diffWithDeletions)[0];
     const widgets = renderAndGetWidgets({
-      diffs,
+      diff,
       selectedMessageMap: createFakeLinterMessagesByPath({
         messages: externalMessages,
       }),
     });
 
-    const { hunks } = diffs[0];
+    const { hunks } = diff;
 
     const root = renderWidget(hunks, widgets, line);
     const messages = root.find(LinterMessage);
@@ -396,7 +381,7 @@ describe(__filename, () => {
 
   it('does not render widgets without linter messages', () => {
     const widgets = renderAndGetWidgets({
-      diffs: parseDiff(diffWithDeletions),
+      diff: parseDiff(diffWithDeletions)[0],
       selectedMessageMap: null,
     });
     expect(getWidgetNodes(widgets).length).toEqual(0);
@@ -404,8 +389,8 @@ describe(__filename, () => {
 
   describe('getAllHunkChanges', () => {
     it('returns a flattened list of all changes', () => {
-      const diffs = parseDiff(diffWithDeletions);
-      const changes = getAllHunkChanges(diffs[0].hunks);
+      const diff = parseDiff(diffWithDeletions)[0];
+      const changes = getAllHunkChanges(diff.hunks);
 
       // Check a line from the first hunk:
       expect(changes.filter((c) => c.lineNumber === 2)[0].content).toEqual(
