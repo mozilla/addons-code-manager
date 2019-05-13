@@ -904,11 +904,12 @@ export const viewVersionFile = ({
     const queryParams = {
       ...queryString.parse(router.location.search),
       path: selectedPath,
-      showFirstDiff,
     };
+
+    const baseSearch = `?${queryString.stringify(queryParams)}`;
     const newLocation = {
       ...router.location,
-      search: `?${queryString.stringify(queryParams)}`,
+      search: showFirstDiff ? `${baseSearch}&showFirstDiff=true` : baseSearch,
     };
 
     // We do not want to preserve the hash when we select a new file for

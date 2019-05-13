@@ -30,6 +30,7 @@ import reducer, {
   getVersionFile,
   getVersionFiles,
   getVersionInfo,
+  goToRelativeDiff,
   initialState,
   isCompareInfoLoading,
   isFileLoading,
@@ -44,6 +45,7 @@ import {
   createFakeLocation,
   createFakeLogger,
   createVersionWithEntries,
+  createFakeThunk,
   fakeExternalDiff,
   fakeVersion,
   fakeVersionAddon,
@@ -1832,6 +1834,27 @@ describe(__filename, () => {
       );
     });
 
+    it('appends showFirstDiff=true if requested', async () => {
+      const location = createFakeLocation({ pathname });
+      const history = createFakeHistory({ location });
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () =>
+          viewVersionFile({ selectedPath, showFirstDiff: true, versionId }),
+        store: configureStore({ history }),
+      });
+
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(
+        push({
+          ...location,
+          search: `?path=${selectedPath}&showFirstDiff=true`,
+          hash: undefined,
+        }),
+      );
+    });
+
     it('does not preserve the location hash by default', async () => {
       const hash = '#some-hash';
       const location = createFakeLocation({ pathname, hash });
@@ -2296,6 +2319,31 @@ describe(__filename, () => {
       expect(result).toEqual({ anchor: null, path });
     });
 
+    it('returns a path from _findRelativePathWithDiff when diff is null', () => {
+      const path = file1;
+      const _findRelativePathWithDiff = jest.fn().mockReturnValue(path);
+      const position = RelativePathPosition.next;
+      const { pathList, version } = getFakeVersionAndPathList([
+        { path, status: 'M' },
+      ]);
+
+      const result = _getRelativeDiff({
+        _findRelativePathWithDiff,
+        diff: null,
+        pathList,
+        position,
+        version,
+      });
+
+      expect(_findRelativePathWithDiff).toHaveBeenCalledWith({
+        currentPath: version.selectedPath,
+        pathList,
+        position,
+        version,
+      });
+      expect(result).toEqual({ anchor: null, path });
+    });
+
     it('returns the next diff anchor', () => {
       const diff = createFakeDiffWithChanges([
         [
@@ -2468,6 +2516,197 @@ describe(__filename, () => {
       ]);
 
       expect(getMostRelevantEntryStatus(version, parentDir)).toEqual('M');
+    });
+  });
+
+  describe('goToRelativeDiff', () => {
+    const _goToRelativeDiff = ({
+      _getRelativeDiff = jest.fn(),
+      _viewVersionFile = jest.fn(),
+      currentAnchor = '',
+      diff = null,
+      pathList = ['file1.js'],
+      position = RelativePathPosition.next,
+      versionId = 1,
+    } = {}) => {
+      return goToRelativeDiff({
+        _getRelativeDiff,
+        _viewVersionFile,
+        currentAnchor,
+        diff,
+        pathList,
+        position,
+        versionId,
+      });
+    };
+
+    it('dispatches push for a new anchor for the current file', async () => {
+      const anchor = 'D1';
+      const _getRelativeDiff = jest.fn().mockReturnValue({ anchor });
+      const currentAnchor = '';
+      const diff = null;
+      const pathList = ['file1.js'];
+      const position = RelativePathPosition.next;
+      const versionId = 123;
+
+      const store = configureStore();
+      store.dispatch(
+        actions.loadVersionInfo({ version: { ...fakeVersion, id: versionId } }),
+      );
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () =>
+          _goToRelativeDiff({
+            _getRelativeDiff,
+            currentAnchor,
+            diff,
+            pathList,
+            position,
+            versionId,
+          }),
+        store,
+      });
+
+      const version = getVersionInfo(
+        store.getState().versions,
+        versionId,
+      ) as Version;
+
+      await thunk();
+
+      expect(_getRelativeDiff).toHaveBeenCalledWith({
+        currentAnchor,
+        diff,
+        pathList,
+        position,
+        version,
+      });
+
+      expect(dispatch).toHaveBeenCalledWith(
+        push(
+          // TODO: This is probably not good enough.
+          // We should check the location object as well, but I'm not sure how
+          // to set up a location in the router in the test.
+          expect.objectContaining({
+            hash: `#${anchor}`,
+          }),
+        ),
+      );
+    });
+
+    it('dispatches viewVersionFile for a new file', async () => {
+      const path = 'newFile.js';
+      const _getRelativeDiff = jest.fn().mockReturnValue({ path });
+      const currentAnchor = '';
+      const diff = null;
+      const pathList = ['file1.js'];
+      const position = RelativePathPosition.next;
+      const versionId = 123;
+
+      const fakeThunk = createFakeThunk();
+      const _viewVersionFile = fakeThunk.createThunk;
+
+      const store = configureStore();
+      store.dispatch(
+        actions.loadVersionInfo({ version: { ...fakeVersion, id: versionId } }),
+      );
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () =>
+          _goToRelativeDiff({
+            _getRelativeDiff,
+            _viewVersionFile,
+            currentAnchor,
+            diff,
+            pathList,
+            position,
+            versionId,
+          }),
+        store,
+      });
+
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+      expect(_viewVersionFile).toHaveBeenCalledWith({
+        preserveHash: false,
+        selectedPath: path,
+        showFirstDiff: true,
+        versionId,
+      });
+    });
+
+    it('dispatches nothing if no anchor or path is returned', async () => {
+      const _getRelativeDiff = jest
+        .fn()
+        .mockReturnValue({ anchor: null, path: null });
+      const versionId = 123;
+
+      const store = configureStore();
+      store.dispatch(
+        actions.loadVersionInfo({ version: { ...fakeVersion, id: versionId } }),
+      );
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () =>
+          _goToRelativeDiff({
+            _getRelativeDiff,
+            versionId,
+          }),
+        store,
+      });
+
+      await thunk();
+
+      expect(dispatch).not.toHaveBeenCalled();
+    });
+
+    it('throws an exception if the version is not loaded', async () => {
+      const versionId = 123;
+      const store = configureStore();
+      store.dispatch(
+        actions.loadVersionInfo({ version: { ...fakeVersion, id: versionId } }),
+      );
+
+      const { thunk } = thunkTester({
+        createThunk: () =>
+          _goToRelativeDiff({
+            versionId: versionId + 1,
+          }),
+        store,
+      });
+
+      // TODO: This doesn't work. Maybe we cannot test for an exception in a thunk?
+      expect(async () => {
+        await thunk();
+      }).toThrow('Cannot go to relative diff without a version loaded');
+    });
+
+    it('does not call _getRelativeDiff if the version is not loaded', async () => {
+      const _getRelativeDiff = jest.fn();
+      const versionId = 123;
+
+      const store = configureStore();
+      store.dispatch(
+        actions.loadVersionInfo({ version: { ...fakeVersion, id: versionId } }),
+      );
+
+      const { thunk } = thunkTester({
+        createThunk: () =>
+          _goToRelativeDiff({
+            _getRelativeDiff,
+            versionId: versionId + 1,
+          }),
+        store,
+      });
+
+      // TODO: Without this, the test stops because of the exception,
+      // but this doesn't seem like a good thing to do in a test.
+      try {
+        await thunk();
+      } catch (e) {}
+
+      expect(_getRelativeDiff).not.toHaveBeenCalled();
     });
   });
 });
