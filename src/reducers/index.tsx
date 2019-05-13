@@ -6,6 +6,7 @@ import accordionMenu, { AccordionMenuState } from './accordionMenu';
 import api, { ApiState } from './api';
 import errors, { ErrorsState } from './errors';
 import fileTree, { FileTreeState } from './fileTree';
+import fullscreenGrid, { FullscreenGridState } from './fullscreenGrid';
 import linter, { LinterState } from './linter';
 import users, { UsersState } from './users';
 import versions, { VersionsState } from './versions';
@@ -15,6 +16,7 @@ export type ApplicationState = {
   api: ApiState;
   errors: ErrorsState;
   fileTree: FileTreeState;
+  fullscreenGrid: FullscreenGridState;
   linter: LinterState;
   router: RouterState;
   users: UsersState;
@@ -27,6 +29,7 @@ const createRootReducer = (history: History) => {
     api,
     errors,
     fileTree,
+    fullscreenGrid,
     linter,
     router: connectRouter(history),
     users,
