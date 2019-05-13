@@ -1280,6 +1280,26 @@ describe(__filename, () => {
       expect(diff).toHaveProperty('hunks');
     });
 
+    it('returns null if the array of diffs is empty', () => {
+      const baseVersionId = 132;
+      const headVersionId = 133;
+      const version = {
+        ...fakeVersion,
+        file: {
+          ...fakeVersion.file,
+          diff: [],
+        },
+      };
+
+      expect(
+        _createInternalDiff({
+          baseVersionId,
+          headVersionId,
+          version,
+        }),
+      ).toEqual(null);
+    });
+
     it.each([
       ['add', 'A'],
       ['copy', 'C'],
