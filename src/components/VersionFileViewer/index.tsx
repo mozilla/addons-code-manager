@@ -4,7 +4,7 @@ import AccordionMenu, { AccordionItem } from '../AccordionMenu';
 import CodeOverview from '../CodeOverview';
 import FileMetadata from '../FileMetadata';
 import FileTree, { PublicProps as FileTreeProps } from '../FileTree';
-import { ContentShell } from '../FullscreenGrid';
+import ContentShell from '../FullscreenGrid/ContentShell';
 import KeyboardShortcuts from '../KeyboardShortcuts';
 import Loading from '../Loading';
 import { Version, VersionFile } from '../../reducers/versions';

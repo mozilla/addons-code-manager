@@ -1,13 +1,11 @@
 import * as React from 'react';
 import { shallow } from 'enzyme';
 
-import FullscreenGrid, { Header, ContentShell } from '.';
+import ContentShell from './ContentShell';
+
+import FullscreenGrid, { Header } from '.';
 
 describe(__filename, () => {
-  it('exposes ContentShell', () => {
-    expect(ContentShell).toBeDefined();
-  });
-
   describe('FullscreenGrid', () => {
     it('accepts a custom className', () => {
       const className = 'MyGrid';

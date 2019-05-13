@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom';
 
-import { ContentShell } from '../../components/FullscreenGrid';
+import ContentShell from '../../components/FullscreenGrid/ContentShell';
 import { gettext } from '../../utils';
 
 type Props = {

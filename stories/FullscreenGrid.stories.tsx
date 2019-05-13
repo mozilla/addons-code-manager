@@ -1,10 +1,8 @@
 import React from 'react';
 import { storiesOf } from '@storybook/react';
 
-import FullscreenGrid, {
-  Header,
-  ContentShell,
-} from '../src/components/FullscreenGrid';
+import ContentShell from '../src/components/FullscreenGrid/ContentShell';
+import FullscreenGrid, { Header } from '../src/components/FullscreenGrid';
 import { generateParagraphs, rootAttributeParams } from './utils';
 
 const getParams = () => rootAttributeParams({ fullscreen: true });

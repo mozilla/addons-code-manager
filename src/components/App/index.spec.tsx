@@ -5,7 +5,7 @@ import { Route } from 'react-router-dom';
 
 import styles from './styles.module.scss';
 import configureStore from '../../configureStore';
-import { ContentShell } from '../FullscreenGrid';
+import ContentShell from '../FullscreenGrid/ContentShell';
 import { actions as apiActions } from '../../reducers/api';
 import { actions as errorsActions } from '../../reducers/errors';
 import { actions as userActions } from '../../reducers/users';

@@ -2,7 +2,6 @@ import * as React from 'react';
 import makeClassName from 'classnames';
 
 import { AnyReactNode } from '../../typeUtils';
-import ContentShellComponent from './ContentShell';
 import styles from './styles.module.scss';
 
 type PublicProps = {
@@ -27,8 +26,6 @@ export const Header = ({
     </header>
   );
 };
-
-export const ContentShell = ContentShellComponent;
 
 export const FullscreenGridBase = ({ children, className }: Props) => {
   return (
