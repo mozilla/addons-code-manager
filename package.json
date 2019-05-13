@@ -89,7 +89,7 @@
     "eslint-plugin-amo": "^1.10.1",
     "jest-enzyme": "^7.0.1",
     "jest-fetch-mock": "^2.1.0",
-    "prettier": "1.17.0",
+    "prettier": "1.17.1",
     "pretty-quick": "^1.8.1",
     "react-storybook-addon-chapters": "^3.1.1",
     "stmux": "^1.6.1",
