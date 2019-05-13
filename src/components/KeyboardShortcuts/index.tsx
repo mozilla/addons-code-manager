@@ -124,8 +124,7 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
           if (compareInfo) {
             dispatch(
               _goToRelativeDiff({
-                // TODO: Store the current anchor somewhere.
-                currentAnchor: currentAnchor.replace('#', ''),
+                currentAnchor,
                 diff: compareInfo.diff,
                 pathList,
                 position: RelativePathPosition.next,
@@ -138,7 +137,7 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
           if (compareInfo) {
             dispatch(
               _goToRelativeDiff({
-                currentAnchor: currentAnchor.replace('#', ''),
+                currentAnchor,
                 diff: compareInfo.diff,
                 pathList,
                 position: RelativePathPosition.previous,
@@ -177,6 +176,14 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
           </dt>
           <dd>{gettext('Down file')}</dd>
           <dt>
+            <kbd>p</kbd>
+          </dt>
+          <dd>{gettext('Previous change')}</dd>
+          <dt>
+            <kbd>n</kbd>
+          </dt>
+          <dd>{gettext('Next change')}</dd>
+          <dt>
             <kbd>o</kbd>
           </dt>
           <dd>{gettext('Open all folders')}</dd>
@@ -195,6 +202,7 @@ const mapStateToProps = (
   ownProps: PublicProps & RouteComponentProps<PropsFromRouter>,
 ): PropsFromState => {
   const { history, location, match, versionId } = ownProps;
+
   const addonId = parseInt(match.params.addonId, 10);
   const baseVersionId = parseInt(match.params.baseVersionId, 10);
   const headVersionId = parseInt(match.params.headVersionId, 10);
@@ -222,7 +230,7 @@ const mapStateToProps = (
 
   return {
     compareInfo,
-    currentAnchor: location.hash,
+    currentAnchor: location.hash.replace(/^#/, ''),
     pathList: tree && tree.pathList,
   };
 };
