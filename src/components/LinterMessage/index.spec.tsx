@@ -10,10 +10,17 @@ import LinterMessage, { decodeHtmlEntities } from '.';
 
 describe(__filename, () => {
   const render = ({
+    _scrollToElement = null,
     message = createInternalMessage(fakeExternalLinterMessage),
     inline = false,
   } = {}) => {
-    return shallow(<LinterMessage message={message} inline={inline} />);
+    return shallow(
+      <LinterMessage
+        _scrollToElement={_scrollToElement}
+        message={message}
+        inline={inline}
+      />,
+    );
   };
 
   const renderMessage = (attributes = {}) => {
@@ -153,7 +160,6 @@ describe(__filename, () => {
       <LinterMessage
         _scrollToElement={_scrollToElement}
         message={createInternalMessage(fakeExternalLinterMessage)}
-        shouldScrollToMessage
       />,
     );
 

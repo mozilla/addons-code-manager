@@ -76,7 +76,11 @@ export class CodeViewBase extends React.Component<Props> {
               <LinterMessage
                 key={message.uid}
                 message={message}
-                shouldScrollToMessage={isLineSelected(message.uid, location)}
+                _scrollToElement={
+                  isLineSelected(message.uid, location)
+                    ? _scrollToElement
+                    : null
+                }
               />
             );
           })}
@@ -131,10 +135,11 @@ export class CodeViewBase extends React.Component<Props> {
                                 inline
                                 key={msg.uid}
                                 message={msg}
-                                shouldScrollToMessage={isLineSelected(
-                                  msg.uid,
-                                  location,
-                                )}
+                                _scrollToElement={
+                                  isLineSelected(msg.uid, location)
+                                    ? _scrollToElement
+                                    : null
+                                }
                               />
                             );
                           })}

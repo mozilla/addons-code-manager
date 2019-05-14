@@ -60,26 +60,21 @@ const renderDescription = (description: LinterMessage['description']) => {
 };
 
 type PublicProps = {
-  _scrollToElement?: typeof scrollToElement;
+  _scrollToElement: typeof scrollToElement | null;
   inline?: boolean;
   message: LinterMessage;
-  shouldScrollToMessage?: boolean;
 };
 
 const LinterMessageBase = ({
-  _scrollToElement = scrollToElement,
+  _scrollToElement,
   inline = false,
   message,
-  shouldScrollToMessage = false,
 }: PublicProps) => {
   const { description, message: linterMessage, type } = message;
   const variant = getAlertVariant(type);
 
   return (
-    <div
-      className="LinterMessage"
-      ref={shouldScrollToMessage ? _scrollToElement : null}
-    >
+    <div className="LinterMessage" ref={_scrollToElement}>
       <Alert
         className={makeClassName(styles[variant], { [styles.inline]: inline })}
         variant={variant}

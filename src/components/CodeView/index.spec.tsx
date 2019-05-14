@@ -262,10 +262,10 @@ describe(__filename, () => {
 
     expect(message).toHaveLength(1);
     expect(message).toHaveProp('message', selectedMessageMap.byLine[line][0]);
-    expect(message).toHaveProp('shouldScrollToMessage', false);
+    expect(message).toHaveProp('_scrollToElement', null);
   });
 
-  it('indicates that a byLine message should be scrolled into view', () => {
+  it('passes scrollToElement to a linter message if it should be scrolled into view', () => {
     const uid = 'some-byLine-message-id';
     const externalMessage = {
       ...fakeExternalLinterMessage,
@@ -283,7 +283,7 @@ describe(__filename, () => {
 
     const message = root.find(LinterMessage);
     expect(message).toHaveLength(1);
-    expect(message).toHaveProp('shouldScrollToMessage', true);
+    expect(message).toHaveProp('_scrollToElement', scrollToElement);
   });
 
   it('renders multiple LinterMessage components on one line', () => {
@@ -339,7 +339,7 @@ describe(__filename, () => {
     const message = root.find(LinterMessage);
     expect(message).toHaveLength(1);
     expect(message).toHaveProp('message', expect.objectContaining({ uid }));
-    expect(message).toHaveProp('shouldScrollToMessage', false);
+    expect(message).toHaveProp('_scrollToElement', null);
   });
 
   it('indicates that a global message should be scrolled into view', () => {
@@ -356,7 +356,7 @@ describe(__filename, () => {
 
     const message = root.find(LinterMessage);
     expect(message).toHaveLength(1);
-    expect(message).toHaveProp('shouldScrollToMessage', true);
+    expect(message).toHaveProp('_scrollToElement', scrollToElement);
   });
 
   it('renders all global LinterMessage components', () => {
