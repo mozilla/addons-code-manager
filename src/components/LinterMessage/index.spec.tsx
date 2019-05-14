@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { shallow } from 'enzyme';
+import { mount, shallow } from 'enzyme';
 import { Alert } from 'react-bootstrap';
 
 import { createInternalMessage } from '../../reducers/linter';
@@ -37,8 +37,9 @@ describe(__filename, () => {
   ])('renders the Alert variant "%s" for "%s"', (alertVariant, messageType) => {
     const root = renderMessage({ type: messageType });
 
-    expect(root.find(Alert)).toHaveProp('variant', alertVariant);
-    expect(root).toHaveClassName(`.${styles[alertVariant]}`);
+    const alert = root.find(Alert);
+    expect(alert).toHaveProp('variant', alertVariant);
+    expect(alert).toHaveClassName(`.${styles[alertVariant]}`);
   });
 
   it('renders a message and description', () => {
@@ -141,7 +142,24 @@ describe(__filename, () => {
   it('can be marked as an inline message', () => {
     const root = render({ inline: true });
 
-    expect(root).toHaveClassName(`.${styles.inline}`);
+    expect(root.find(Alert)).toHaveClassName(`.${styles.inline}`);
+  });
+
+  it('calls _scrollToElement() when requested', () => {
+    const _scrollToElement = jest.fn();
+
+    // We need `mount()` because `ref` is only used in a DOM environment.
+    const root = mount(
+      <LinterMessage
+        _scrollToElement={_scrollToElement}
+        message={createInternalMessage(fakeExternalLinterMessage)}
+        shouldScrollToMessage
+      />,
+    );
+
+    expect(_scrollToElement).toHaveBeenCalledWith(
+      root.find('.LinterMessage').getDOMNode(),
+    );
   });
 
   describe('decodeHtmlEntities', () => {

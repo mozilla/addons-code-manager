@@ -36,14 +36,14 @@ const isLineSelected = (
   return `#${id}` === location.hash;
 };
 
-export const scrollToSelectedLine = (element: HTMLTableRowElement | null) => {
+export const scrollToElement = (element: HTMLElement | null) => {
   if (element) {
     element.scrollIntoView();
   }
 };
 
 export type PublicProps = {
-  _scrollToSelectedLine?: typeof scrollToSelectedLine;
+  _scrollToElement?: typeof scrollToElement;
   mimeType: string;
   content: string;
   version: Version;
@@ -54,13 +54,13 @@ type Props = PublicProps & RouteComponentProps;
 type RowProps = {
   className: string;
   id: string;
-  ref?: typeof scrollToSelectedLine;
+  ref?: typeof scrollToElement;
 };
 
 export class CodeViewBase extends React.Component<Props> {
   renderWithLinterInfo = ({ selectedMessageMap }: LinterProviderInfo) => {
     const {
-      _scrollToSelectedLine = scrollToSelectedLine,
+      _scrollToElement = scrollToElement,
       content,
       location,
       mimeType,
@@ -72,7 +72,13 @@ export class CodeViewBase extends React.Component<Props> {
       <React.Fragment>
         {selectedMessageMap &&
           selectedMessageMap.global.map((message) => {
-            return <LinterMessage key={message.uid} message={message} />;
+            return (
+              <LinterMessage
+                key={message.uid}
+                message={message}
+                shouldScrollToMessage={isLineSelected(message.uid, location)}
+              />
+            );
           })}
         <div className={styles.CodeView}>
           <table className={styles.table}>
@@ -92,7 +98,7 @@ export class CodeViewBase extends React.Component<Props> {
                       rowProps.className,
                       styles.selectedLine,
                     ),
-                    ref: _scrollToSelectedLine,
+                    ref: _scrollToElement,
                   };
                 }
 
@@ -125,6 +131,10 @@ export class CodeViewBase extends React.Component<Props> {
                                 inline
                                 key={msg.uid}
                                 message={msg}
+                                shouldScrollToMessage={isLineSelected(
+                                  msg.uid,
+                                  location,
+                                )}
                               />
                             );
                           })}

@@ -23,7 +23,7 @@ import {
 } from '../../test-helpers';
 import styles from './styles.module.scss';
 
-import CodeView, { CodeViewBase, PublicProps, scrollToSelectedLine } from '.';
+import CodeView, { CodeViewBase, PublicProps, scrollToElement } from '.';
 
 describe(__filename, () => {
   type RenderParams = Partial<PublicProps> & {
@@ -100,9 +100,11 @@ describe(__filename, () => {
   };
 
   const renderWithMessages = ({
+    location = createFakeLocation(),
     messages,
     ...props
   }: {
+    location?: Location<{}>;
     messages: Partial<ExternalLinterMessage>[];
     props?: RenderParams;
   }) => {
@@ -124,6 +126,7 @@ describe(__filename, () => {
     const selectedMessageMap = map[file];
 
     const root = renderWithLinterProvider({
+      location,
       messageMap: map,
       selectedMessageMap,
       content: contentLines.join('\n'),
@@ -231,19 +234,19 @@ describe(__filename, () => {
     expect(root.find(`#${getCodeLineAnchorID(1)}`)).toHaveLength(1);
   });
 
-  it('calls _scrollToSelectedLine() when rendering a selected line', () => {
+  it('calls _scrollToElement() when rendering a selected line', () => {
     const selectedLine = 2;
     const lines = ['first', 'second'];
     const content = lines.join('\n');
     const location = createFakeLocation({
       hash: getCodeLineAnchor(selectedLine),
     });
-    const _scrollToSelectedLine = jest.fn();
+    const _scrollToElement = jest.fn();
 
     // We need `mount()` because `ref` is only used in a DOM environment.
-    const root = renderWithMount({ _scrollToSelectedLine, content, location });
+    const root = renderWithMount({ _scrollToElement, content, location });
 
-    expect(_scrollToSelectedLine).toHaveBeenCalledWith(
+    expect(_scrollToElement).toHaveBeenCalledWith(
       root.find(`#${getCodeLineAnchorID(selectedLine)}`).getDOMNode(),
     );
   });
@@ -259,6 +262,28 @@ describe(__filename, () => {
 
     expect(message).toHaveLength(1);
     expect(message).toHaveProp('message', selectedMessageMap.byLine[line][0]);
+    expect(message).toHaveProp('shouldScrollToMessage', false);
+  });
+
+  it('indicates that a byLine message should be scrolled into view', () => {
+    const uid = 'some-byLine-message-id';
+    const externalMessage = {
+      ...fakeExternalLinterMessage,
+      line: 1,
+      uid,
+    };
+    const location = createFakeLocation({
+      hash: `#${uid}`,
+    });
+
+    const { root } = renderWithMessages({
+      messages: [externalMessage],
+      location,
+    });
+
+    const message = root.find(LinterMessage);
+    expect(message).toHaveLength(1);
+    expect(message).toHaveProp('shouldScrollToMessage', true);
   });
 
   it('renders multiple LinterMessage components on one line', () => {
@@ -314,6 +339,24 @@ describe(__filename, () => {
     const message = root.find(LinterMessage);
     expect(message).toHaveLength(1);
     expect(message).toHaveProp('message', expect.objectContaining({ uid }));
+    expect(message).toHaveProp('shouldScrollToMessage', false);
+  });
+
+  it('indicates that a global message should be scrolled into view', () => {
+    const uid = 'some-global-message-id';
+    const externalMessage = createGlobalExternalMessage({ uid });
+    const location = createFakeLocation({
+      hash: `#${uid}`,
+    });
+
+    const { root } = renderWithMessages({
+      messages: [externalMessage],
+      location,
+    });
+
+    const message = root.find(LinterMessage);
+    expect(message).toHaveLength(1);
+    expect(message).toHaveProp('shouldScrollToMessage', true);
   });
 
   it('renders all global LinterMessage components', () => {
@@ -333,7 +376,7 @@ describe(__filename, () => {
     expect(message.at(1).prop('message')).toMatchObject({ uid: secondUid });
   });
 
-  describe('scrollToSelectedLine', () => {
+  describe('scrollToElement', () => {
     it('calls scrollIntoView() when the element is not null', () => {
       const element = {
         // Create a HTMLTableRowElement that we can override.
@@ -341,7 +384,7 @@ describe(__filename, () => {
         scrollIntoView: jest.fn(),
       };
 
-      scrollToSelectedLine(element);
+      scrollToElement(element);
 
       expect(element.scrollIntoView).toHaveBeenCalled();
     });
@@ -349,7 +392,7 @@ describe(__filename, () => {
     it('does not break when the element is null', () => {
       const element = null;
 
-      scrollToSelectedLine(element);
+      scrollToElement(element);
     });
   });
 });

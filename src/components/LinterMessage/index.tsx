@@ -6,6 +6,7 @@ import makeClassName from 'classnames';
 
 import styles from './styles.module.scss';
 import { LinterMessage } from '../../reducers/linter';
+import { scrollToElement } from '../CodeView';
 
 const getAlertVariant = (type: LinterMessage['type']) => {
   switch (type) {
@@ -59,22 +60,34 @@ const renderDescription = (description: LinterMessage['description']) => {
 };
 
 type PublicProps = {
+  _scrollToElement?: typeof scrollToElement;
   inline?: boolean;
   message: LinterMessage;
+  shouldScrollToMessage?: boolean;
 };
 
-const LinterMessageBase = ({ message, inline = false }: PublicProps) => {
+const LinterMessageBase = ({
+  _scrollToElement = scrollToElement,
+  inline = false,
+  message,
+  shouldScrollToMessage = false,
+}: PublicProps) => {
   const { description, message: linterMessage, type } = message;
   const variant = getAlertVariant(type);
 
   return (
-    <Alert
-      className={makeClassName(styles[variant], { [styles.inline]: inline })}
-      variant={variant}
+    <div
+      className="LinterMessage"
+      ref={shouldScrollToMessage ? _scrollToElement : null}
     >
-      <Alert.Heading>{decodeHtmlEntities(linterMessage)}</Alert.Heading>
-      <p className={styles.description}>{renderDescription(description)}</p>
-    </Alert>
+      <Alert
+        className={makeClassName(styles[variant], { [styles.inline]: inline })}
+        variant={variant}
+      >
+        <Alert.Heading>{decodeHtmlEntities(linterMessage)}</Alert.Heading>
+        <p className={styles.description}>{renderDescription(description)}</p>
+      </Alert>
+    </div>
   );
 };
 
