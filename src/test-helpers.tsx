@@ -25,6 +25,7 @@ import {
   ExternalVersionsListItem,
   Version,
   VersionEntryType,
+  actions as versionsActions,
   createInternalVersion,
   createInternalVersionEntry,
 } from './reducers/versions';
@@ -649,4 +650,13 @@ export const createFakeRef = (
       ...currentOverrides,
     },
   };
+};
+
+export const createStoreWithVersion = (
+  /* istanbul ignore next */
+  version = fakeVersion,
+) => {
+  const store = configureStore();
+  store.dispatch(versionsActions.loadVersionInfo({ version }));
+  return store;
 };

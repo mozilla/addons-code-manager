@@ -183,6 +183,7 @@ export type Version = {
   addon: VersionAddon;
   entries: VersionEntry[];
   expandedPaths: string[];
+  focusedPath: string | null;
   id: number;
   reviewed: string;
   selectedPath: string;
@@ -224,6 +225,10 @@ export const actions = {
   }),
   updateSelectedPath: createAction('UPDATE_SELECTED_PATH', (resolve) => {
     return (payload: { selectedPath: string; versionId: number }) =>
+      resolve(payload);
+  }),
+  setFocusedPath: createAction('SET_FOCUSED_PATH', (resolve) => {
+    return (payload: { path: string | null; versionId: number }) =>
       resolve(payload);
   }),
   toggleExpandedPath: createAction('TOGGLE_EXPANDED_PATH', (resolve) => {
@@ -381,6 +386,7 @@ export const createInternalVersion = (
       return createInternalVersionEntry(version.file.entries[nodeName]);
     }),
     expandedPaths: getParentFolders(version.file.selected_file),
+    focusedPath: null,
     id: version.id,
     reviewed: version.reviewed,
     selectedPath: version.file.selected_file,
@@ -1005,6 +1011,32 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
               ...expandedPaths,
               ...parents.filter((newPath) => !expandedPaths.includes(newPath)),
             ],
+          },
+        },
+      };
+    }
+    case getType(actions.setFocusedPath): {
+      const { path, versionId } = action.payload;
+
+      const version = state.versionInfo[versionId];
+
+      if (!version) {
+        throw new Error(`Version missing for versionId: ${versionId}`);
+      }
+
+      if (path && !version.entries.find((e) => e.path === path)) {
+        throw new Error(
+          `Path "${path}" is an unknown path for version ID ${versionId}`,
+        );
+      }
+
+      return {
+        ...state,
+        versionInfo: {
+          ...state.versionInfo,
+          [versionId]: {
+            ...version,
+            focusedPath: path,
           },
         },
       };

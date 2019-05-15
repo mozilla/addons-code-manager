@@ -1,10 +1,11 @@
 import * as React from 'react';
-import { shallow } from 'enzyme';
+import { Store } from 'redux';
 import { ListGroup } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
+import configureStore from '../../configureStore';
 import { TreefoldRenderPropsForFileTree } from '../FileTree';
-import { createInternalVersion } from '../../reducers/versions';
+import { actions as versionsActions } from '../../reducers/versions';
 import {
   ExternalLinterMessage,
   createInternalMessage,
@@ -14,15 +15,18 @@ import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import {
   createFakeExternalLinterResult,
   createFakeRef,
+  createStoreWithVersion,
   fakeExternalLinterMessage,
   fakeVersion,
+  shallowUntilTarget,
   simulateLinterProvider,
+  spyOn,
 } from '../../test-helpers';
 import styles from './styles.module.scss';
 
 import FileTreeNode, {
-  DefaultProps,
   LINTER_KNOWN_LIBRARY_CODE,
+  FileTreeNodeBase,
   PublicProps,
   findMostSevereTypeForPath,
   isKnownLibrary,
@@ -69,20 +73,27 @@ export const getTreefoldRenderProps = ({
 };
 
 describe(__filename, () => {
-  type RenderParams = Partial<PublicProps> & Partial<DefaultProps>;
+  type RenderParams = { store?: Store } & Partial<PublicProps>;
 
   const render = ({
-    version = createInternalVersion(fakeVersion),
+    versionId = 12349876,
+    store = createStoreWithVersion({ ...fakeVersion, id: versionId }),
     ...props
   }: RenderParams = {}) => {
     const allProps: PublicProps = {
       onSelect: () => undefined,
-      version,
+      versionId,
       ...getTreefoldRenderProps(),
       ...props,
     };
 
-    return shallow(<FileTreeNode {...allProps} />);
+    return shallowUntilTarget(
+      <FileTreeNode {...allProps} />,
+      FileTreeNodeBase,
+      {
+        shallowOptions: { context: { store } },
+      },
+    );
   };
 
   const _getMessageMap = (
@@ -110,21 +121,30 @@ describe(__filename, () => {
   };
 
   const renderWithLinterMessages = ({
-    version = createInternalVersion(fakeVersion),
     messages = [fakeExternalLinterMessage],
     treefoldRenderProps = {},
   }) => {
+    const externalVersion = fakeVersion;
+    const store = createStoreWithVersion(externalVersion);
     const renderProps = getTreefoldRenderProps({
-      id: version.selectedPath,
+      id: externalVersion.file.selected_file,
       ...treefoldRenderProps,
     });
 
     return renderWithLinterProvider({
       messageMap: _getMessageMap(messages),
-      version,
       ...renderProps,
+      store,
+      versionId: externalVersion.id,
     });
   };
+
+  it('requires a loaded version', () => {
+    const store = configureStore();
+    expect(() => render({ store, versionId: fakeVersion.id + 1 })).toThrow(
+      /No version exists/,
+    );
+  });
 
   it('renders a simple directory node', () => {
     const name = 'simple directory node';
@@ -256,11 +276,13 @@ describe(__filename, () => {
   });
 
   it('marks a file node as selected', () => {
-    const version = createInternalVersion(fakeVersion);
+    const externalVersion = fakeVersion;
+    const store = createStoreWithVersion(externalVersion);
 
     const root = renderWithLinterProvider({
-      ...getTreefoldRenderProps({ id: version.selectedPath }),
-      version,
+      store,
+      versionId: externalVersion.id,
+      ...getTreefoldRenderProps({ id: externalVersion.file.selected_file }),
     });
 
     expect(root.find(`.${styles.selected}`)).toHaveLength(1);
@@ -269,7 +291,6 @@ describe(__filename, () => {
   it('does not mark a file node as selected when it is not selected', () => {
     const root = renderWithLinterProvider({
       ...getTreefoldRenderProps({ id: 'not-the-selected-path' }),
-      version: createInternalVersion(fakeVersion),
     });
 
     expect(root.find(`.${styles.selected}`)).toHaveLength(0);
@@ -522,13 +543,20 @@ describe(__filename, () => {
   });
 
   it('configures LinterProvider', () => {
-    const version = createInternalVersion(fakeVersion);
-    const root = render({ version });
+    const externalVersion = fakeVersion;
+    const store = createStoreWithVersion(externalVersion);
+    const root = render({ store, versionId: externalVersion.id });
 
     const provider = root.find(LinterProvider);
-    expect(provider).toHaveProp('versionId', version.id);
-    expect(provider).toHaveProp('validationURL', version.validationURL);
-    expect(provider).toHaveProp('selectedPath', version.selectedPath);
+    expect(provider).toHaveProp('versionId', externalVersion.id);
+    expect(provider).toHaveProp(
+      'validationURL',
+      externalVersion.validation_url_json,
+    );
+    expect(provider).toHaveProp(
+      'selectedPath',
+      externalVersion.file.selected_file,
+    );
   });
 
   it('executes node scrolling helper on mount', () => {
@@ -549,28 +577,82 @@ describe(__filename, () => {
     expect(_scrollIntoViewIfNeeded).toHaveBeenCalled();
   });
 
-  it('scrolls a node into view when selected', () => {
-    const version = createInternalVersion(fakeVersion);
+  it('focuses a node when selected and not already in focus', () => {
+    const externalVersion = fakeVersion;
+    const nodeId = externalVersion.file.selected_file;
+
+    const store = createStoreWithVersion(externalVersion);
     const fakeRef = createFakeRef({ scrollIntoView: jest.fn() });
+    // Make sure the path is not in focus.
+    store.dispatch(
+      versionsActions.setFocusedPath({
+        path: null,
+        versionId: externalVersion.id,
+      }),
+    );
+
+    const dispatch = spyOn(store, 'dispatch');
 
     render({
-      ...getTreefoldRenderProps({ id: version.selectedPath }),
+      // Render the selected path.
+      ...getTreefoldRenderProps({ id: nodeId }),
       createNodeRef: () => fakeRef,
-      version,
+      store,
+      versionId: externalVersion.id,
     });
 
     expect(fakeRef.current.scrollIntoView).toHaveBeenCalled();
+    expect(dispatch).toHaveBeenCalledWith(
+      versionsActions.setFocusedPath({
+        path: nodeId,
+        versionId: externalVersion.id,
+      }),
+    );
   });
 
-  it('does not scroll a node into view when not selected', () => {
+  it('does not focus a node when not selected', () => {
+    const versionId = 8765;
+    const store = createStoreWithVersion({ ...fakeVersion, id: versionId });
+    // Make sure the path is not in focus.
+    store.dispatch(versionsActions.setFocusedPath({ path: null, versionId }));
     const fakeRef = createFakeRef({ scrollIntoView: jest.fn() });
+    const dispatch = spyOn(store, 'dispatch');
 
     render({
       ...getTreefoldRenderProps({ id: 'any-other-file.js' }),
       createNodeRef: () => fakeRef,
+      versionId,
+      store,
     });
 
     expect(fakeRef.current.scrollIntoView).not.toHaveBeenCalled();
+    expect(dispatch).not.toHaveBeenCalled();
+  });
+
+  it('does not focus a node when selected and already in focus', () => {
+    const externalVersion = fakeVersion;
+    const store = createStoreWithVersion(externalVersion);
+    const nodeId = externalVersion.file.selected_file;
+
+    // Focus the path.
+    store.dispatch(
+      versionsActions.setFocusedPath({
+        path: nodeId,
+        versionId: externalVersion.id,
+      }),
+    );
+    const fakeRef = createFakeRef({ scrollIntoView: jest.fn() });
+    const dispatch = spyOn(store, 'dispatch');
+
+    render({
+      ...getTreefoldRenderProps({ id: nodeId }),
+      createNodeRef: () => fakeRef,
+      versionId: externalVersion.id,
+      store,
+    });
+
+    expect(fakeRef.current.scrollIntoView).not.toHaveBeenCalled();
+    expect(dispatch).not.toHaveBeenCalled();
   });
 
   it('configures ListGroup.Item with a custom div', () => {

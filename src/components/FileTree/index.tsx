@@ -78,7 +78,9 @@ export class FileTreeBase extends React.Component<Props> {
     const { onSelect, version } = this.props;
 
     if (version) {
-      return <FileTreeNode {...props} onSelect={onSelect} version={version} />;
+      return (
+        <FileTreeNode {...props} onSelect={onSelect} versionId={version.id} />
+      );
     }
     return <Loading message={gettext('Loading version...')} />;
   };
@@ -184,7 +186,10 @@ const mapStateToProps = (
   const version = getVersionInfo(state.versions, versionId);
 
   if (!version) {
-    // This should never happen as we are fetching the version in all of the
+    // TODO: support loading version objects as needed.
+    // https://github.com/mozilla/addons-code-manager/issues/754
+    //
+    // An empty version should never happen as we are fetching the version in all of the
     // parents on this component and only rendering the FileTree if we have a
     // version, but let's log a warning in case we encounter a case where this
     // does happen.

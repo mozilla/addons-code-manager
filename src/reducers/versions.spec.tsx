@@ -614,6 +614,7 @@ describe(__filename, () => {
         addon: createInternalVersionAddon(version.addon),
         entries: [createInternalVersionEntry(entry)],
         expandedPaths: getParentFolders(version.file.selected_file),
+        focusedPath: null,
         id: version.id,
         reviewed: version.reviewed,
         version: version.version,
@@ -2314,6 +2315,90 @@ describe(__filename, () => {
           version,
         }),
       ).toEqual({ anchor: 'I5', path: null });
+    });
+  });
+
+  describe('setFocusedPath', () => {
+    it('sets a focused path', () => {
+      const versionId = 54376;
+      const path = 'scripts/background.js';
+
+      let state;
+
+      state = reducer(
+        state,
+        actions.loadVersionInfo({
+          version: {
+            ...fakeVersion,
+            id: versionId,
+            file: {
+              ...fakeVersion.file,
+              entries: {
+                ...fakeVersion.file.entries,
+                [path]: { ...fakeVersionEntry, path },
+              },
+            },
+          },
+        }),
+      );
+      state = reducer(
+        state,
+        actions.setFocusedPath({
+          path,
+          versionId,
+        }),
+      );
+
+      const version = getVersionInfo(state, versionId);
+      if (!version) {
+        throw new Error(
+          `Unexpectedly found an empty version for ID ${versionId}`,
+        );
+      }
+      expect(version.focusedPath).toEqual(path);
+    });
+
+    it('requires the version to exist in state', () => {
+      expect(() =>
+        reducer(
+          undefined,
+          actions.setFocusedPath({
+            path: 'any-path',
+            versionId: fakeVersion.id + 1,
+          }),
+        ),
+      ).toThrow(/Version missing/);
+    });
+
+    it('requires a known path', () => {
+      const versionId = 54376;
+      const path = 'scripts/background.js';
+
+      const state = reducer(
+        undefined,
+        actions.loadVersionInfo({
+          version: {
+            ...fakeVersion,
+            id: versionId,
+            file: {
+              ...fakeVersion.file,
+              entries: {
+                [path]: { ...fakeVersionEntry, path },
+              },
+            },
+          },
+        }),
+      );
+
+      expect(() =>
+        reducer(
+          state,
+          actions.setFocusedPath({
+            path: 'some-completely-unknown-path',
+            versionId,
+          }),
+        ),
+      ).toThrow(/unknown path/);
     });
   });
 });

@@ -2,10 +2,8 @@ import React from 'react';
 import { Store } from 'redux';
 import { storiesOf } from '@storybook/react';
 
-import configureStore from '../src/configureStore';
 import FileTreeNode, { PublicProps } from '../src/components/FileTreeNode';
-import { createInternalVersion } from '../src/reducers/versions';
-import { fakeVersion } from '../src/test-helpers';
+import { createStoreWithVersion, fakeVersion } from '../src/test-helpers';
 import { renderWithStoreAndRouter } from './utils';
 
 type GetPropsParams = {
@@ -21,7 +19,7 @@ const getProps = ({
   nodeName = 'node name',
   nodeId = 'node-id',
   renderChildNodes = () => ({}),
-  version = createInternalVersion(fakeVersion),
+  versionId = fakeVersion.id,
 }: GetPropsParams = {}) => {
   return {
     getToggleProps: () => ({
@@ -40,17 +38,18 @@ const getProps = ({
     },
     renderChildNodes,
     onSelect: () => {},
-    version,
+    versionId,
   };
 };
 
 const render = ({
-  store = configureStore(),
+  versionId = 543219,
+  store = createStoreWithVersion({ ...fakeVersion, id: versionId }),
   ...props
 }: { store?: Store } & GetPropsParams = {}) => {
   return renderWithStoreAndRouter(
     <div className="FileTreeNodeStory-shell">
-      <FileTreeNode {...getProps(props)} />
+      <FileTreeNode {...getProps({ versionId, ...props })} />
     </div>,
     store,
   );
@@ -81,10 +80,14 @@ storiesOf('FileTreeNode', module).addWithChapters('all variants', {
         {
           title: 'directory, expanded, with a child',
           sectionFn: () => {
-            const version = createInternalVersion(fakeVersion);
+            const versionId = 921;
+            const store = createStoreWithVersion({
+              ...fakeVersion,
+              id: versionId,
+            });
 
             return render({
-              version,
+              versionId,
               hasChildNodes: true,
               isExpanded: true,
               isFolder: true,
@@ -92,20 +95,29 @@ storiesOf('FileTreeNode', module).addWithChapters('all variants', {
               renderChildNodes: () => {
                 return (
                   <FileTreeNode
-                    version={version}
-                    {...getProps({ level: 1, nodeName: 'background.js' })}
+                    {...getProps({
+                      versionId,
+                      level: 1,
+                      nodeName: 'background.js',
+                    })}
                   />
                 );
               },
+              store,
             });
           },
         },
         {
           title: 'selected node',
           sectionFn: () => {
-            const version = createInternalVersion(fakeVersion);
+            const externalVersion = fakeVersion;
+            const store = createStoreWithVersion(externalVersion);
 
-            return render({ version, nodeId: version.selectedPath });
+            return render({
+              store,
+              versionId: externalVersion.id,
+              nodeId: externalVersion.file.selected_file,
+            });
           },
         },
       ],
