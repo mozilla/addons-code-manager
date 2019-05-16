@@ -619,6 +619,7 @@ describe(__filename, () => {
         version: version.version,
         selectedPath: version.file.selected_file,
         validationURL: fakeVersion.validation_url_json,
+        visibleSelectedPath: null,
       });
     });
 
@@ -2314,6 +2315,90 @@ describe(__filename, () => {
           version,
         }),
       ).toEqual({ anchor: 'I5', path: null });
+    });
+  });
+
+  describe('setVisibleSelectedPath', () => {
+    it('sets a visible selected path', () => {
+      const versionId = 54376;
+      const path = 'scripts/background.js';
+
+      let state;
+
+      state = reducer(
+        state,
+        actions.loadVersionInfo({
+          version: {
+            ...fakeVersion,
+            id: versionId,
+            file: {
+              ...fakeVersion.file,
+              entries: {
+                ...fakeVersion.file.entries,
+                [path]: { ...fakeVersionEntry, path },
+              },
+            },
+          },
+        }),
+      );
+      state = reducer(
+        state,
+        actions.setVisibleSelectedPath({
+          path,
+          versionId,
+        }),
+      );
+
+      const version = getVersionInfo(state, versionId);
+      if (!version) {
+        throw new Error(
+          `Unexpectedly found an empty version for ID ${versionId}`,
+        );
+      }
+      expect(version.visibleSelectedPath).toEqual(path);
+    });
+
+    it('requires the version to exist in state', () => {
+      expect(() =>
+        reducer(
+          undefined,
+          actions.setVisibleSelectedPath({
+            path: 'any-path',
+            versionId: fakeVersion.id + 1,
+          }),
+        ),
+      ).toThrow(/Version missing/);
+    });
+
+    it('requires a known path', () => {
+      const versionId = 54376;
+      const path = 'scripts/background.js';
+
+      const state = reducer(
+        undefined,
+        actions.loadVersionInfo({
+          version: {
+            ...fakeVersion,
+            id: versionId,
+            file: {
+              ...fakeVersion.file,
+              entries: {
+                [path]: { ...fakeVersionEntry, path },
+              },
+            },
+          },
+        }),
+      );
+
+      expect(() =>
+        reducer(
+          state,
+          actions.setVisibleSelectedPath({
+            path: 'some-completely-unknown-path',
+            versionId,
+          }),
+        ),
+      ).toThrow(/unknown path/);
     });
   });
 });

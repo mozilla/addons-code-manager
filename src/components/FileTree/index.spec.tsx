@@ -153,7 +153,7 @@ describe(__filename, () => {
       );
     });
 
-    it('passes the version prop to FileTreeNode', () => {
+    it('configures FileTreeNode', () => {
       const store = configureStore();
       const version = getVersion({ store });
 
@@ -164,8 +164,8 @@ describe(__filename, () => {
       );
 
       expect(shallow(<div>{node}</div>).find(FileTreeNode)).toHaveProp(
-        'version',
-        version,
+        'versionId',
+        version.id,
       );
     });
 

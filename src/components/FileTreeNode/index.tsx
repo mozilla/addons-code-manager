@@ -1,13 +1,20 @@
 import log from 'loglevel';
 import * as React from 'react';
+import { connect } from 'react-redux';
 import { ListGroup } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import makeClassName from 'classnames';
 
+import { ApplicationState } from '../../reducers';
+import { ConnectedReduxProps } from '../../configureStore';
 import { gettext } from '../../utils';
 import { TreefoldRenderPropsForFileTree } from '../FileTree';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
-import { Version } from '../../reducers/versions';
+import {
+  Version,
+  actions as versionsActions,
+  getVersionInfo,
+} from '../../reducers/versions';
 import {
   LinterMessage,
   LinterMessageMap,
@@ -20,15 +27,16 @@ type ScrollIntoViewIfNeeded = () => void;
 
 export type PublicProps = TreefoldRenderPropsForFileTree & {
   _scrollIntoViewIfNeeded?: ScrollIntoViewIfNeeded;
+  createNodeRef?: () => React.RefObject<HTMLDivElement> | null;
   onSelect: (id: string) => void;
+  versionId: number;
+};
+
+type PropsFromState = {
   version: Version;
 };
 
-export type DefaultProps = {
-  createNodeRef: () => React.RefObject<HTMLDivElement> | null;
-};
-
-type Props = PublicProps & DefaultProps;
+type Props = PublicProps & PropsFromState & ConnectedReduxProps;
 
 type MessageType = LinterMessage['type'];
 
@@ -117,14 +125,13 @@ const getIconForType = (type: string | null) => {
   }
 };
 
-class FileTreeNodeBase<TreeNodeType> extends React.Component<Props> {
-  static defaultProps = {
-    createNodeRef: () => React.createRef(),
-  };
-
+export class FileTreeNodeBase<TreeNodeType> extends React.Component<Props> {
   private scrollIntoViewIfNeeded: ScrollIntoViewIfNeeded;
 
-  private nodeRef = this.props.createNodeRef();
+  private nodeRef: React.RefObject<HTMLDivElement> | null = this.props
+    .createNodeRef
+    ? this.props.createNodeRef()
+    : React.createRef();
 
   constructor(props: Props) {
     super(props);
@@ -141,9 +148,17 @@ class FileTreeNodeBase<TreeNodeType> extends React.Component<Props> {
   }
 
   _scrollIntoViewIfNeeded = () => {
-    if (this.isSelected()) {
+    const { dispatch, node, version } = this.props;
+
+    if (this.isSelected() && version.visibleSelectedPath !== node.id) {
       if (this.nodeRef && this.nodeRef.current) {
         this.nodeRef.current.scrollIntoView();
+        dispatch(
+          versionsActions.setVisibleSelectedPath({
+            path: node.id,
+            versionId: version.id,
+          }),
+        );
       } else {
         log.warn(`nodeRef.current was unexpectedly empty: ${this.nodeRef}`);
       }
@@ -261,4 +276,21 @@ class FileTreeNodeBase<TreeNodeType> extends React.Component<Props> {
   }
 }
 
-export default FileTreeNodeBase;
+const mapStateToProps = (
+  state: ApplicationState,
+  ownProps: PublicProps,
+): PropsFromState => {
+  const version = getVersionInfo(state.versions, ownProps.versionId);
+  if (!version) {
+    // TODO: support loading version objects as needed.
+    // https://github.com/mozilla/addons-code-manager/issues/754
+    throw new Error(
+      `No version exists in state for version ID ${ownProps.versionId}`,
+    );
+  }
+  return { version };
+};
+
+export default connect(mapStateToProps)(
+  FileTreeNodeBase,
+) as React.ComponentType<PublicProps>;

@@ -187,6 +187,7 @@ export type Version = {
   reviewed: string;
   selectedPath: string;
   validationURL: string;
+  visibleSelectedPath: string | null;
   version: string;
 };
 
@@ -226,6 +227,13 @@ export const actions = {
     return (payload: { selectedPath: string; versionId: number }) =>
       resolve(payload);
   }),
+  setVisibleSelectedPath: createAction(
+    'SET_VISIBLE_SELECTED_PATH',
+    (resolve) => {
+      return (payload: { path: string | null; versionId: number }) =>
+        resolve(payload);
+    },
+  ),
   toggleExpandedPath: createAction('TOGGLE_EXPANDED_PATH', (resolve) => {
     return (payload: { path: string; versionId: number }) => resolve(payload);
   }),
@@ -386,6 +394,7 @@ export const createInternalVersion = (
     selectedPath: version.file.selected_file,
     version: version.version,
     validationURL: version.validation_url_json,
+    visibleSelectedPath: null,
   };
 };
 
@@ -1005,6 +1014,32 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
               ...expandedPaths,
               ...parents.filter((newPath) => !expandedPaths.includes(newPath)),
             ],
+          },
+        },
+      };
+    }
+    case getType(actions.setVisibleSelectedPath): {
+      const { path, versionId } = action.payload;
+
+      const version = state.versionInfo[versionId];
+
+      if (!version) {
+        throw new Error(`Version missing for versionId: ${versionId}`);
+      }
+
+      if (path && !version.entries.find((e) => e.path === path)) {
+        throw new Error(
+          `Path "${path}" is an unknown path for version ID ${versionId}`,
+        );
+      }
+
+      return {
+        ...state,
+        versionInfo: {
+          ...state.versionInfo,
+          [versionId]: {
+            ...version,
+            visibleSelectedPath: path,
           },
         },
       };
