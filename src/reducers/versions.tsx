@@ -15,9 +15,9 @@ import {
   findRelativePathWithDiff,
 } from './fileTree';
 
-export enum DiffPosition {
-  first = 'first',
-  last = 'last',
+export enum ScrollTarget {
+  firstDiff = 'firstDiff',
+  lastDiff = 'lastDiff',
 }
 
 type VersionCompatibility = {

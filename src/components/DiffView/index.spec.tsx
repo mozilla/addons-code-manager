@@ -17,7 +17,7 @@ import diffWithDeletions from './fixtures/diffWithDeletions';
 import LinterMessage from '../LinterMessage';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import { getLanguageFromMimeType } from '../../utils';
-import { DiffPosition, createInternalVersion } from '../../reducers/versions';
+import { ScrollTarget, createInternalVersion } from '../../reducers/versions';
 import {
   createContextWithFakeRouter,
   createFakeHistory,
@@ -238,22 +238,21 @@ describe(__filename, () => {
     expect(_document.querySelector).toHaveBeenCalledWith(location.hash);
   });
 
-  it('calls history.push to navigate to the first diff when showDiff is "first"', () => {
+  it('calls history.push to navigate to the first diff when scrollTo is "first"', () => {
     const firstDiffAnchor = 'D5';
     const _getRelativeDiffAnchor = jest.fn().mockReturnValue(firstDiffAnchor);
     const location = createFakeLocation({
-      search: queryString.stringify({ showDiff: DiffPosition.first }),
+      search: queryString.stringify({ scrollTo: ScrollTarget.firstDiff }),
     });
     const history = createFakeHistory({ location });
 
     const queryParams = queryString.parse(location.search);
-    const newParams = { ...queryParams };
+    const newParams = { ...queryParams, scrollTo: undefined };
 
-    delete newParams.showDiff;
     const newLocation = {
       ...location,
       hash: `#${firstDiffAnchor}`,
-      search: `?${queryString.stringify(newParams)}`,
+      search: queryString.stringify(newParams),
     };
 
     renderWithLinterProvider({ _getRelativeDiffAnchor, history, location });
@@ -261,24 +260,24 @@ describe(__filename, () => {
     expect(history.push).toHaveBeenCalledWith(newLocation);
   });
 
-  it('calls history.push to navigate to the last diff when showDiff is "last"', () => {
+  it('calls history.push to navigate to the last diff when scrollTo is "last"', () => {
     const lastDiffAnchor = 'D5';
     const _getDiffAnchors = jest
       .fn()
       .mockReturnValue(['D1', 'D2', lastDiffAnchor]);
     const location = createFakeLocation({
-      search: queryString.stringify({ showDiff: DiffPosition.last }),
+      search: queryString.stringify({ scrollTo: ScrollTarget.lastDiff }),
     });
     const history = createFakeHistory({ location });
 
     const queryParams = queryString.parse(location.search);
     const newParams = { ...queryParams };
 
-    delete newParams.showDiff;
+    delete newParams.scrollTo;
     const newLocation = {
       ...location,
       hash: `#${lastDiffAnchor}`,
-      search: `?${queryString.stringify(newParams)}`,
+      search: queryString.stringify(newParams),
     };
 
     renderWithLinterProvider({ _getDiffAnchors, history, location });
@@ -286,22 +285,22 @@ describe(__filename, () => {
     expect(history.push).toHaveBeenCalledWith(newLocation);
   });
 
-  it('calls history.push on update to navigate to the first diff when showDiff is "first"', () => {
+  it('calls history.push on update to navigate to the first diff when scrollTo is "first"', () => {
     const firstDiffAnchor = 'D5';
     const _getRelativeDiffAnchor = jest.fn().mockReturnValue(firstDiffAnchor);
     const location = createFakeLocation({
-      search: queryString.stringify({ showDiff: DiffPosition.first }),
+      search: queryString.stringify({ scrollTo: ScrollTarget.firstDiff }),
     });
     const history = createFakeHistory({ location });
 
     const queryParams = queryString.parse(location.search);
     const newParams = { ...queryParams };
 
-    delete newParams.showDiff;
+    delete newParams.scrollTo;
     const newLocation = {
       ...location,
       hash: `#${firstDiffAnchor}`,
-      search: `?${queryString.stringify(newParams)}`,
+      search: queryString.stringify(newParams),
     };
 
     const root = render({
@@ -318,24 +317,24 @@ describe(__filename, () => {
     expect(history.push).toHaveBeenCalledWith(newLocation);
   });
 
-  it('calls history.push on update to navigate to the last diff when showDiff is "last"', () => {
+  it('calls history.push on update to navigate to the last diff when scrollTo is "last"', () => {
     const lastDiffAnchor = 'D5';
     const _getDiffAnchors = jest
       .fn()
       .mockReturnValue(['D1', 'D2', lastDiffAnchor]);
     const location = createFakeLocation({
-      search: queryString.stringify({ showDiff: DiffPosition.last }),
+      search: queryString.stringify({ scrollTo: ScrollTarget.lastDiff }),
     });
     const history = createFakeHistory({ location });
 
     const queryParams = queryString.parse(location.search);
     const newParams = { ...queryParams };
 
-    delete newParams.showDiff;
+    delete newParams.scrollTo;
     const newLocation = {
       ...location,
       hash: `#${lastDiffAnchor}`,
-      search: `?${queryString.stringify(newParams)}`,
+      search: queryString.stringify(newParams),
     };
 
     const root = render({
@@ -355,7 +354,7 @@ describe(__filename, () => {
   it('does not call history.push to navigate to the first diff when there is no diff', () => {
     const _getRelativeDiffAnchor = jest.fn().mockReturnValue('some-anchor');
     const location = createFakeLocation({
-      search: queryString.stringify({ showDiff: DiffPosition.first }),
+      search: queryString.stringify({ scrollTo: ScrollTarget.firstDiff }),
     });
     const history = createFakeHistory({ location });
 
@@ -369,7 +368,7 @@ describe(__filename, () => {
     expect(history.push).not.toHaveBeenCalled();
   });
 
-  it('does not call history.push to navigate to a diff when showDiff query param is falsey', () => {
+  it('does not call history.push to navigate to a diff when scrollTo query param is falsey', () => {
     const _getRelativeDiffAnchor = jest.fn().mockReturnValue('some-anchor');
     const location = createFakeLocation();
     const history = createFakeHistory({ location });
@@ -386,7 +385,7 @@ describe(__filename, () => {
   it('does not call history.push to navigate to the first diff when there are no diff anchors', () => {
     const _getRelativeDiffAnchor = jest.fn().mockReturnValue(null);
     const location = createFakeLocation({
-      search: queryString.stringify({ showDiff: DiffPosition.first }),
+      search: queryString.stringify({ scrollTo: ScrollTarget.firstDiff }),
     });
     const history = createFakeHistory({ location });
 
@@ -402,7 +401,7 @@ describe(__filename, () => {
   it('does not call history.push to navigate to the last diff when there are no diff anchors', () => {
     const _getDiffAnchors = jest.fn().mockReturnValue([]);
     const location = createFakeLocation({
-      search: queryString.stringify({ showDiff: DiffPosition.last }),
+      search: queryString.stringify({ scrollTo: ScrollTarget.lastDiff }),
     });
     const history = createFakeHistory({ location });
 

@@ -19,7 +19,7 @@ import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import LinterMessage from '../LinterMessage';
 import refractor from '../../refractor';
 import {
-  DiffPosition,
+  ScrollTarget,
   Version,
   getDiffAnchors,
   getRelativeDiffAnchor,
@@ -82,10 +82,10 @@ export class DiffViewBase extends React.Component<Props> {
 
     if (diff) {
       const queryParams = queryString.parse(location.search);
-      const { showDiff } = queryParams;
+      const { scrollTo } = queryParams;
       let anchor;
-      if (showDiff) {
-        if (showDiff === DiffPosition.first) {
+      if (scrollTo) {
+        if (scrollTo === ScrollTarget.firstDiff) {
           anchor = _getRelativeDiffAnchor({ diff });
         } else {
           const anchors = _getDiffAnchors(diff);
@@ -96,11 +96,11 @@ export class DiffViewBase extends React.Component<Props> {
         if (anchor) {
           const newParams = { ...queryParams };
 
-          delete newParams.showDiff;
+          delete newParams.scrollTo;
           const newLocation = {
             ...location,
             hash: `#${anchor}`,
-            search: `?${queryString.stringify(newParams)}`,
+            search: queryString.stringify(newParams),
           };
 
           history.push(newLocation);
