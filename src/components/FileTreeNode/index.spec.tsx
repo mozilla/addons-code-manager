@@ -585,7 +585,7 @@ describe(__filename, () => {
     const fakeRef = createFakeRef({ scrollIntoView: jest.fn() });
     // Make sure the path is not in focus.
     store.dispatch(
-      versionsActions.setFocusedPath({
+      versionsActions.setVisibleSelectedPath({
         path: null,
         versionId: externalVersion.id,
       }),
@@ -603,7 +603,7 @@ describe(__filename, () => {
 
     expect(fakeRef.current.scrollIntoView).toHaveBeenCalled();
     expect(dispatch).toHaveBeenCalledWith(
-      versionsActions.setFocusedPath({
+      versionsActions.setVisibleSelectedPath({
         path: nodeId,
         versionId: externalVersion.id,
       }),
@@ -614,7 +614,9 @@ describe(__filename, () => {
     const versionId = 8765;
     const store = createStoreWithVersion({ ...fakeVersion, id: versionId });
     // Make sure the path is not in focus.
-    store.dispatch(versionsActions.setFocusedPath({ path: null, versionId }));
+    store.dispatch(
+      versionsActions.setVisibleSelectedPath({ path: null, versionId }),
+    );
     const fakeRef = createFakeRef({ scrollIntoView: jest.fn() });
     const dispatch = spyOn(store, 'dispatch');
 
@@ -636,7 +638,7 @@ describe(__filename, () => {
 
     // Focus the path.
     store.dispatch(
-      versionsActions.setFocusedPath({
+      versionsActions.setVisibleSelectedPath({
         path: nodeId,
         versionId: externalVersion.id,
       }),

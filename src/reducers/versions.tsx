@@ -183,11 +183,11 @@ export type Version = {
   addon: VersionAddon;
   entries: VersionEntry[];
   expandedPaths: string[];
-  focusedPath: string | null;
   id: number;
   reviewed: string;
   selectedPath: string;
   validationURL: string;
+  visibleSelectedPath: string | null;
   version: string;
 };
 
@@ -227,10 +227,13 @@ export const actions = {
     return (payload: { selectedPath: string; versionId: number }) =>
       resolve(payload);
   }),
-  setFocusedPath: createAction('SET_FOCUSED_PATH', (resolve) => {
-    return (payload: { path: string | null; versionId: number }) =>
-      resolve(payload);
-  }),
+  setVisibleSelectedPath: createAction(
+    'SET_VISIBLE_SELECTED_PATH',
+    (resolve) => {
+      return (payload: { path: string | null; versionId: number }) =>
+        resolve(payload);
+    },
+  ),
   toggleExpandedPath: createAction('TOGGLE_EXPANDED_PATH', (resolve) => {
     return (payload: { path: string; versionId: number }) => resolve(payload);
   }),
@@ -386,12 +389,12 @@ export const createInternalVersion = (
       return createInternalVersionEntry(version.file.entries[nodeName]);
     }),
     expandedPaths: getParentFolders(version.file.selected_file),
-    focusedPath: null,
     id: version.id,
     reviewed: version.reviewed,
     selectedPath: version.file.selected_file,
     version: version.version,
     validationURL: version.validation_url_json,
+    visibleSelectedPath: null,
   };
 };
 
@@ -1015,7 +1018,7 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
         },
       };
     }
-    case getType(actions.setFocusedPath): {
+    case getType(actions.setVisibleSelectedPath): {
       const { path, versionId } = action.payload;
 
       const version = state.versionInfo[versionId];
@@ -1036,7 +1039,7 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
           ...state.versionInfo,
           [versionId]: {
             ...version,
-            focusedPath: path,
+            visibleSelectedPath: path,
           },
         },
       };

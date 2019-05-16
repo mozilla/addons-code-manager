@@ -614,12 +614,12 @@ describe(__filename, () => {
         addon: createInternalVersionAddon(version.addon),
         entries: [createInternalVersionEntry(entry)],
         expandedPaths: getParentFolders(version.file.selected_file),
-        focusedPath: null,
         id: version.id,
         reviewed: version.reviewed,
         version: version.version,
         selectedPath: version.file.selected_file,
         validationURL: fakeVersion.validation_url_json,
+        visibleSelectedPath: null,
       });
     });
 
@@ -2318,8 +2318,8 @@ describe(__filename, () => {
     });
   });
 
-  describe('setFocusedPath', () => {
-    it('sets a focused path', () => {
+  describe('setVisibleSelectedPath', () => {
+    it('sets a visible selected path', () => {
       const versionId = 54376;
       const path = 'scripts/background.js';
 
@@ -2343,7 +2343,7 @@ describe(__filename, () => {
       );
       state = reducer(
         state,
-        actions.setFocusedPath({
+        actions.setVisibleSelectedPath({
           path,
           versionId,
         }),
@@ -2355,14 +2355,14 @@ describe(__filename, () => {
           `Unexpectedly found an empty version for ID ${versionId}`,
         );
       }
-      expect(version.focusedPath).toEqual(path);
+      expect(version.visibleSelectedPath).toEqual(path);
     });
 
     it('requires the version to exist in state', () => {
       expect(() =>
         reducer(
           undefined,
-          actions.setFocusedPath({
+          actions.setVisibleSelectedPath({
             path: 'any-path',
             versionId: fakeVersion.id + 1,
           }),
@@ -2393,7 +2393,7 @@ describe(__filename, () => {
       expect(() =>
         reducer(
           state,
-          actions.setFocusedPath({
+          actions.setVisibleSelectedPath({
             path: 'some-completely-unknown-path',
             versionId,
           }),

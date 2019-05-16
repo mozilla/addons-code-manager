@@ -150,11 +150,11 @@ export class FileTreeNodeBase<TreeNodeType> extends React.Component<Props> {
   _scrollIntoViewIfNeeded = () => {
     const { dispatch, node, version } = this.props;
 
-    if (this.isSelected() && version.focusedPath !== node.id) {
+    if (this.isSelected() && version.visibleSelectedPath !== node.id) {
       if (this.nodeRef && this.nodeRef.current) {
         this.nodeRef.current.scrollIntoView();
         dispatch(
-          versionsActions.setFocusedPath({
+          versionsActions.setVisibleSelectedPath({
             path: node.id,
             versionId: version.id,
           }),
