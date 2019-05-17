@@ -75,13 +75,10 @@
 }
 
 .wasDeleted {
-  border-left-color: $red;
+  border-left-color: $diff-gutter-delete-color;
 }
 
-.wasModified {
-  border-left-color: $orange;
-}
-
+.wasModified,
 .wasAdded {
-  border-left-color: $green;
+  border-left-color: $diff-gutter-insert-color;
 }
