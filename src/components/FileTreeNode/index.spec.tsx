@@ -143,6 +143,36 @@ describe(__filename, () => {
     });
   };
 
+  const renderWithVersionEntries = (
+    partialEntries: Parameters<typeof createExternalVersionWithEntries>[0],
+    renderProps: RenderParams = {},
+  ) => {
+    const versionId = 321;
+
+    const store = createStoreWithVersion(
+      createExternalVersionWithEntries(partialEntries, { id: versionId }),
+    );
+
+    return renderWithLinterProvider({
+      ...renderProps,
+      store,
+      versionId,
+    });
+  };
+
+  const renderVersionEntry = ({
+    path = 'background.js',
+    entryStatus = undefined,
+  }: {
+    path?: string;
+    entryStatus?: VersionEntryStatus;
+  }) => {
+    return renderWithVersionEntries([{ path, status: entryStatus }], {
+      // Link this node to the version entry.
+      ...getTreefoldRenderProps({ id: path, name: path }),
+    });
+  };
+
   it('requires a loaded version', () => {
     const store = configureStore();
     expect(() => render({ store, versionId: fakeVersion.id + 1 })).toThrow(
@@ -305,44 +335,28 @@ describe(__filename, () => {
     ['M', styles.wasModified],
     ['A', styles.wasAdded],
   ])('classifies a file with status %s as %s', (fileStatus, className) => {
-    const versionId = 7654;
     const path = 'scripts/background.js';
-
-    const store = createStoreWithVersion(
-      createExternalVersionWithEntries(
-        [{ path, status: fileStatus as VersionEntryStatus }],
-        { id: versionId },
-      ),
+    const root = renderWithVersionEntries(
+      [{ path, status: fileStatus as VersionEntryStatus }],
+      {
+        ...getTreefoldRenderProps({ id: path }),
+      },
     );
-
-    const root = renderWithLinterProvider({
-      ...getTreefoldRenderProps({ id: path }),
-      store,
-      versionId,
-    });
 
     expect(root.find(`.${styles.nodeItem}`)).toHaveClassName(className);
   });
 
   it('handles directories with many file statuses', () => {
-    const versionId = 321;
     const dirPath = 'scripts';
-
-    const store = createStoreWithVersion(
-      createExternalVersionWithEntries(
-        [
-          { path: `${dirPath}/background.js`, status: 'D' },
-          { path: `${dirPath}/content.js`, status: 'M' },
-        ],
-        { id: versionId },
-      ),
+    const root = renderWithVersionEntries(
+      [
+        { path: `${dirPath}/background.js`, status: 'D' },
+        { path: `${dirPath}/content.js`, status: 'M' },
+      ],
+      {
+        ...getTreefoldRenderProps({ id: dirPath }),
+      },
     );
-
-    const root = renderWithLinterProvider({
-      ...getTreefoldRenderProps({ id: dirPath }),
-      store,
-      versionId,
-    });
 
     expect(root.find(`.${styles.nodeItem}`)).toHaveClassName(
       styles.wasModified,
@@ -353,19 +367,9 @@ describe(__filename, () => {
   });
 
   it('does not classify files with an undefined status', () => {
-    const versionId = 321;
     const path = 'scripts/background.js';
-
-    const store = createStoreWithVersion(
-      createExternalVersionWithEntries([{ path, status: undefined }], {
-        id: versionId,
-      }),
-    );
-
-    const root = renderWithLinterProvider({
+    const root = renderWithVersionEntries([{ path, status: undefined }], {
       ...getTreefoldRenderProps({ id: path }),
-      store,
-      versionId,
     });
 
     expect(root.find(`.${styles.nodeItem}`)).not.toHaveClassName(
@@ -376,6 +380,53 @@ describe(__filename, () => {
     );
     expect(root.find(`.${styles.nodeItem}`)).not.toHaveClassName(
       styles.wasDeleted,
+    );
+  });
+
+  it('adds a title to the node name', () => {
+    const path = 'background.js';
+    const root = renderVersionEntry({ path, entryStatus: undefined });
+
+    expect(root.find(`.${styles.nodeName}`)).toHaveProp(
+      'title',
+      `View ${path}`,
+    );
+  });
+
+  it('adds a title to a deleted node', () => {
+    const root = renderVersionEntry({ entryStatus: 'D' });
+
+    expect(root.find(`.${styles.nodeName}`)).toHaveProp(
+      'title',
+      expect.stringMatching(/\(deleted\)$/),
+    );
+  });
+
+  it('adds a title to a modified node', () => {
+    const root = renderVersionEntry({ entryStatus: 'M' });
+
+    expect(root.find(`.${styles.nodeName}`)).toHaveProp(
+      'title',
+      expect.stringMatching(/\(modified\)$/),
+    );
+  });
+
+  it('adds a title to an added node', () => {
+    const root = renderVersionEntry({ entryStatus: 'A' });
+
+    expect(root.find(`.${styles.nodeName}`)).toHaveProp(
+      'title',
+      expect.stringMatching(/\(added\)$/),
+    );
+  });
+
+  it('does not adjust the title for additional types of nodes', () => {
+    const path = 'background.js';
+    const root = renderVersionEntry({ path, entryStatus: 'C' });
+
+    expect(root.find(`.${styles.nodeName}`)).toHaveProp(
+      'title',
+      `View ${path}`,
     );
   });
 

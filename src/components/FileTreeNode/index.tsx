@@ -233,14 +233,27 @@ export class FileTreeNodeBase<TreeNodeType> extends React.Component<Props> {
       return <div ref={this.nodeRef} {...props} />;
     };
 
+    const entryWasDeleted = entryStatus && entryStatus === 'D';
+    const entryWasModified = entryStatus && entryStatus === 'M';
+    const entryWasAdded = entryStatus && entryStatus === 'A';
+
+    let nodeTitle = gettext(`View ${node.name}`);
+    if (entryWasDeleted) {
+      nodeTitle = gettext(`${nodeTitle} (deleted)`);
+    } else if (entryWasModified) {
+      nodeTitle = gettext(`${nodeTitle} (modified)`);
+    } else if (entryWasAdded) {
+      nodeTitle = gettext(`${nodeTitle} (added)`);
+    }
+
     return (
       <React.Fragment>
         <ListGroup.Item as={ItemElement} {...listGroupItemProps}>
           <span
             className={makeClassName(styles.nodeItem, {
-              [styles.wasDeleted]: entryStatus && entryStatus === 'D',
-              [styles.wasModified]: entryStatus && entryStatus === 'M',
-              [styles.wasAdded]: entryStatus && entryStatus === 'A',
+              [styles.wasDeleted]: entryWasDeleted,
+              [styles.wasModified]: entryWasModified,
+              [styles.wasAdded]: entryWasAdded,
             })}
             style={{ paddingLeft: `${adjustedLevel * 10}px` }}
           >
@@ -249,7 +262,9 @@ export class FileTreeNodeBase<TreeNodeType> extends React.Component<Props> {
             ) : (
               <FontAwesomeIcon icon="file" />
             )}
-            <span className={styles.nodeName}>{node.name}</span>
+            <span title={nodeTitle} className={styles.nodeName}>
+              {node.name}
+            </span>
             {nodeIcons}
           </span>
         </ListGroup.Item>
