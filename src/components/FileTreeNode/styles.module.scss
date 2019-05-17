@@ -75,10 +75,10 @@
 }
 
 .wasDeleted {
-  border-left-color: $diff-gutter-delete-color;
+  border-left-color: darken($diff-gutter-delete-color, 10);
 }
 
 .wasModified,
 .wasAdded {
-  border-left-color: $diff-gutter-insert-color;
+  border-left-color: darken($diff-gutter-insert-color, 10);
 }
