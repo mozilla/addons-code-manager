@@ -1,3 +1,4 @@
+import queryString from 'query-string';
 import * as React from 'react';
 import {
   ChangeInfo,
@@ -17,7 +18,12 @@ import makeClassName from 'classnames';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import LinterMessage from '../LinterMessage';
 import refractor from '../../refractor';
-import { Version } from '../../reducers/versions';
+import {
+  ScrollTarget,
+  Version,
+  getDiffAnchors,
+  getRelativeDiffAnchor,
+} from '../../reducers/versions';
 import { getLanguageFromMimeType, gettext } from '../../utils';
 import styles from './styles.module.scss';
 import 'react-diff-view/style/index.css';
@@ -37,6 +43,8 @@ export type PublicProps = {
 
 export type DefaultProps = {
   _document: typeof document;
+  _getDiffAnchors: typeof getDiffAnchors;
+  _getRelativeDiffAnchor: typeof getRelativeDiffAnchor;
   _tokenize: typeof tokenize;
   viewType: DiffProps['viewType'];
 };
@@ -48,12 +56,57 @@ export type Props = PublicProps & DefaultProps & RouterProps;
 export class DiffViewBase extends React.Component<Props> {
   static defaultProps: DefaultProps = {
     _document: document,
+    _getDiffAnchors: getDiffAnchors,
+    _getRelativeDiffAnchor: getRelativeDiffAnchor,
     _tokenize: tokenize,
     viewType: 'unified',
   };
 
   componentDidMount() {
-    const { _document, location } = this.props;
+    this.loadData();
+  }
+
+  componentDidUpdate() {
+    this.loadData();
+  }
+
+  loadData() {
+    const {
+      _document,
+      _getDiffAnchors,
+      _getRelativeDiffAnchor,
+      diff,
+      history,
+      location,
+    } = this.props;
+
+    if (diff) {
+      const queryParams = queryString.parse(location.search);
+      const { scrollTo } = queryParams;
+      let anchor;
+      if (scrollTo) {
+        if (scrollTo === ScrollTarget.firstDiff) {
+          anchor = _getRelativeDiffAnchor({ diff });
+        } else {
+          const anchors = _getDiffAnchors(diff);
+          if (anchors.length) {
+            anchor = anchors[anchors.length - 1];
+          }
+        }
+        if (anchor) {
+          const newParams = { ...queryParams };
+
+          delete newParams.scrollTo;
+          const newLocation = {
+            ...location,
+            hash: `#${anchor}`,
+            search: queryString.stringify(newParams),
+          };
+
+          history.push(newLocation);
+        }
+      }
+    }
 
     if (!location.hash.length) {
       return;

@@ -2053,7 +2053,6 @@ describe(__filename, () => {
         getRelativeDiffAnchor({
           currentAnchor: '',
           diff,
-          position: RelativePathPosition.next,
         }),
       ).toEqual(null);
     });
