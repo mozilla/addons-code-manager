@@ -14,3 +14,10 @@ $alert-secondary-bg-color: #e2e3e5;
 $code-font-family: Consolas, Courier, monospace;
 $code-font-size: 16px;
 $code-line-height: 1.5;
+
+// These colors were copied from react-diff-view:
+// https://github.com/otakustay/react-diff-view/blob/0f0bbc77b7a3039d5a49303969c04f01122059c6/src/Hunk/Change.css
+// If they ever go out of sync, we'll have to define all of our
+// own colors explicitly and override the react-diff-view styles.
+$diff-gutter-delete-color: #fadde0;
+$diff-gutter-insert-color: #d6fedb;

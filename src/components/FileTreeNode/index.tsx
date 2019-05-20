@@ -13,6 +13,7 @@ import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import {
   Version,
   actions as versionsActions,
+  getMostRelevantEntryStatus,
   getVersionInfo,
 } from '../../reducers/versions';
 import {
@@ -180,6 +181,7 @@ export class FileTreeNodeBase<TreeNodeType> extends React.Component<Props> {
       node,
       onSelect,
       renderChildNodes,
+      version,
     } = this.props;
 
     const hasLinterMessages =
@@ -224,23 +226,45 @@ export class FileTreeNodeBase<TreeNodeType> extends React.Component<Props> {
       };
     }
 
+    const adjustedLevel = level + 1;
+    const entryStatus = getMostRelevantEntryStatus(version, node.id);
+
     const ItemElement = (props = {}) => {
       return <div ref={this.nodeRef} {...props} />;
     };
+
+    const entryWasDeleted = entryStatus && entryStatus === 'D';
+    const entryWasModified = entryStatus && entryStatus === 'M';
+    const entryWasAdded = entryStatus && entryStatus === 'A';
+
+    let nodeTitle = gettext(`View ${node.name}`);
+    if (entryWasDeleted) {
+      nodeTitle = gettext(`${nodeTitle} (deleted)`);
+    } else if (entryWasModified) {
+      nodeTitle = gettext(`${nodeTitle} (modified)`);
+    } else if (entryWasAdded) {
+      nodeTitle = gettext(`${nodeTitle} (added)`);
+    }
 
     return (
       <React.Fragment>
         <ListGroup.Item as={ItemElement} {...listGroupItemProps}>
           <span
-            className={styles.nodeItem}
-            style={{ paddingLeft: `${level * 12}px` }}
+            className={makeClassName(styles.nodeItem, {
+              [styles.wasDeleted]: entryWasDeleted,
+              [styles.wasModified]: entryWasModified,
+              [styles.wasAdded]: entryWasAdded,
+            })}
+            style={{ paddingLeft: `${adjustedLevel * 10}px` }}
           >
             {isFolder ? (
               <FontAwesomeIcon icon={isExpanded ? 'folder-open' : 'folder'} />
             ) : (
               <FontAwesomeIcon icon="file" />
             )}
-            <span className={styles.nodeName}>{node.name}</span>
+            <span title={nodeTitle} className={styles.nodeName}>
+              {node.name}
+            </span>
             {nodeIcons}
           </span>
         </ListGroup.Item>
@@ -251,7 +275,7 @@ export class FileTreeNodeBase<TreeNodeType> extends React.Component<Props> {
           ) : (
             <ListGroup.Item
               className={makeClassName(styles.node, styles.emptyNodeDirectory)}
-              style={{ paddingLeft: `${(level + 2) * 20}px` }}
+              style={{ paddingLeft: `${(adjustedLevel + 2) * 20}px` }}
             >
               {gettext('This folder is empty')}
             </ListGroup.Item>
