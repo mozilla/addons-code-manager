@@ -1,0 +1,14 @@
+@import '../../scss/variables';
+
+.errorSimulationButtons {
+  display: flex;
+  justify-content: center;
+
+  > * {
+    margin-left: $default-padding;
+  }
+
+  &:first-child {
+    margin-left: 0;
+  }
+}

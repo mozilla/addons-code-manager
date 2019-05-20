@@ -1,20 +1,58 @@
+import log from 'loglevel';
 import * as React from 'react';
+import { Button } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 
 import ContentShell from '../../components/FullscreenGrid/ContentShell';
 import { gettext } from '../../utils';
+import styles from './styles.module.scss';
 
-type Props = {
+export type PublicProps = {};
+
+export type DefaultProps = {
+  _log: typeof log;
+  allowErrorSimulation: boolean;
   showLocalDevLinks: boolean;
 };
 
+type Props = PublicProps & DefaultProps;
+
 export class IndexBase extends React.Component<Props> {
   static defaultProps = {
+    _log: log,
+    allowErrorSimulation:
+      process.env.REACT_APP_UNSAFE_ERROR_SIMULATION === 'true',
     showLocalDevLinks: process.env.REACT_APP_IS_LOCAL_DEV === 'true',
   };
 
+  canSimulateErrors() {
+    const { _log, allowErrorSimulation } = this.props;
+
+    if (allowErrorSimulation) {
+      return true;
+    }
+
+    _log.warn(
+      'Not simulating errors because REACT_APP_UNSAFE_ERROR_SIMULATION=false.',
+    );
+    return false;
+  }
+
+  logAnError = () => {
+    const { _log } = this.props;
+    if (this.canSimulateErrors()) {
+      _log.error('This is a simulated error message');
+    }
+  };
+
+  throwAnError = () => {
+    if (this.canSimulateErrors()) {
+      throw new Error('This is a simulated error');
+    }
+  };
+
   render() {
-    const { showLocalDevLinks } = this.props;
+    const { allowErrorSimulation, showLocalDevLinks } = this.props;
 
     const apiHost = process.env.REACT_APP_API_HOST;
     const repoUrl = 'https://github.com/mozilla/addons-code-manager';
@@ -65,6 +103,35 @@ export class IndexBase extends React.Component<Props> {
                 </Link>
               </li>
             </ul>
+          </React.Fragment>
+        )}
+        {allowErrorSimulation && (
+          <React.Fragment>
+            <hr />
+            <p>
+              {gettext(
+                'Error Simulation (REACT_APP_UNSAFE_ERROR_SIMULATION=true):',
+              )}
+            </p>
+            <p>
+              {gettext('💣 Click a button and check the developer console 💥')}
+            </p>
+            <div className={styles.errorSimulationButtons}>
+              <Button
+                className={styles.throwAnErrorButton}
+                onClick={this.throwAnError}
+                variant="danger"
+              >
+                {gettext('Throw an error')}
+              </Button>
+              <Button
+                className={styles.logAnErrorButton}
+                onClick={this.logAnError}
+                variant="danger"
+              >
+                {gettext('Log an error')}
+              </Button>
+            </div>
           </React.Fragment>
         )}
       </ContentShell>
