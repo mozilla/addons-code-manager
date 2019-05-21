@@ -2,7 +2,7 @@ import * as React from 'react';
 import makeClassName from 'classnames';
 import { connect } from 'react-redux';
 
-import { ThunkDispatch } from '../../configureStore';
+import { ConnectedReduxProps } from '../../configureStore';
 import { ApplicationState } from '../../reducers';
 import { actions } from '../../reducers/fullscreenGrid';
 import { AnyReactNode } from '../../typeUtils';
@@ -23,21 +23,17 @@ type PropsFromState = {
   mainSidePanelIsExpanded: boolean;
 };
 
-type DispatchProps = {
-  toggleMainSidePanel: () => void;
-};
-
-type Props = PublicProps & PropsFromState & DispatchProps;
+type Props = PublicProps & PropsFromState & ConnectedReduxProps;
 
 export const ContentShellBase = ({
   altSidePanel,
   altSidePanelClass,
   children,
   className,
+  dispatch,
   mainSidePanel,
   mainSidePanelClass,
   mainSidePanelIsExpanded,
-  toggleMainSidePanel,
 }: Props) => {
   return (
     <React.Fragment>
@@ -57,7 +53,7 @@ export const ContentShellBase = ({
           label={
             mainSidePanelIsExpanded ? gettext('Collapse this panel') : null
           }
-          onClick={toggleMainSidePanel}
+          onClick={() => dispatch(actions.toggleMainSidePanel())}
           title={
             mainSidePanelIsExpanded
               ? gettext('Collapse this panel')
@@ -82,13 +78,4 @@ const mapStateToProps = (state: ApplicationState): PropsFromState => {
   };
 };
 
-const mapDispatchToProps = (dispatch: ThunkDispatch): DispatchProps => {
-  return {
-    toggleMainSidePanel: () => dispatch(actions.toggleMainSidePanel()),
-  };
-};
-
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(ContentShellBase);
+export default connect(mapStateToProps)(ContentShellBase);
