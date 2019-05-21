@@ -1,6 +1,5 @@
 @import '../../scss/variables';
 
-$collapse-button-height: 40px;
 $expand-button-width: 40px;
 
 .FullscreenGrid {
@@ -32,7 +31,9 @@ $expand-button-width: 40px;
   margin-left: $default-padding;
 
   .mainSidePanelToggleButton {
-    height: $collapse-button-height;
+    height: auto;
+    margin-top: $default-padding;
+    padding: $default-padding;
     width: 100%;
   }
 
@@ -66,8 +67,13 @@ $expand-button-width: 40px;
   padding: $default-padding;
 }
 
+.mainSidePanel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
 .mainSidePanelContent {
-  height: calc(100% - #{$collapse-button-height + $default-padding});
   overflow-x: auto;
 
   .mainSidePanelIsCollapsed & {
