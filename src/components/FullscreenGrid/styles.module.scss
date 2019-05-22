@@ -23,16 +23,16 @@ $expand-button-width: 40px;
 }
 
 .mainSidePanel {
-  display: flex;
+  display: grid;
   flex-direction: column;
   grid-area: FGMainSidePanel;
+  grid-gap: $default-padding;
+  grid-template-rows: 1fr auto;
   height: auto;
-  justify-content: space-between;
   margin-left: $default-padding;
 
   .mainSidePanelToggleButton {
     height: auto;
-    margin-top: $default-padding;
     padding: $default-padding;
     width: 100%;
 
@@ -43,7 +43,7 @@ $expand-button-width: 40px;
 
   &.mainSidePanelIsCollapsed {
     background-color: $light-gray;
-    margin-top: 0;
+    grid-gap: 0;
     padding: 0;
 
     .mainSidePanelToggleButton {
