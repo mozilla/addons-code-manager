@@ -1835,7 +1835,7 @@ describe(__filename, () => {
       );
     });
 
-    it('appends showDiff if requested', async () => {
+    it('appends scrollTo if requested', async () => {
       const location = createFakeLocation({ pathname });
       const history = createFakeHistory({ location });
       const diffPosition = ScrollTarget.firstDiff;
@@ -1844,7 +1844,7 @@ describe(__filename, () => {
         createThunk: () =>
           viewVersionFile({
             selectedPath,
-            showDiff: diffPosition,
+            scrollTo: diffPosition,
             versionId,
           }),
         store: configureStore({ history }),
@@ -1855,7 +1855,7 @@ describe(__filename, () => {
       expect(dispatch).toHaveBeenCalledWith(
         push({
           ...location,
-          search: `?path=${selectedPath}&showDiff=${diffPosition}`,
+          search: `?path=${selectedPath}&scrollTo=${diffPosition}`,
           hash: undefined,
         }),
       );
@@ -2645,7 +2645,7 @@ describe(__filename, () => {
         expect(_viewVersionFile).toHaveBeenCalledWith({
           preserveHash: false,
           selectedPath: path,
-          showDiff: diffPosition,
+          scrollTo: diffPosition,
           versionId,
         });
       },

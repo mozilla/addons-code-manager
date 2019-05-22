@@ -889,14 +889,14 @@ export const fetchDiff = ({
 type ViewVersionFileParams = {
   preserveHash?: boolean;
   selectedPath: string;
-  showDiff?: ScrollTarget;
+  scrollTo?: ScrollTarget;
   versionId: number;
 };
 
 export const viewVersionFile = ({
   preserveHash = false,
   selectedPath,
-  showDiff,
+  scrollTo,
   versionId,
 }: ViewVersionFileParams): ThunkActionCreator => {
   return async (dispatch, getState) => {
@@ -904,7 +904,7 @@ export const viewVersionFile = ({
     const queryParams = {
       ...queryString.parse(router.location.search),
       path: selectedPath,
-      showDiff,
+      scrollTo,
     };
 
     const newLocation = {
@@ -970,7 +970,7 @@ export const goToRelativeDiff = ({
         _viewVersionFile({
           preserveHash: false,
           selectedPath: nextDiffInfo.path,
-          showDiff:
+          scrollTo:
             position === RelativePathPosition.next
               ? ScrollTarget.firstDiff
               : ScrollTarget.lastDiff,
