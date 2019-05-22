@@ -934,7 +934,9 @@ type GoToRelativeDiffParams = {
 };
 
 export const goToRelativeDiff = ({
+  /* istanbul ignore next */
   _getRelativeDiff = getRelativeDiff,
+  /* istanbul ignore next */
   _viewVersionFile = viewVersionFile,
   currentAnchor,
   diff,
