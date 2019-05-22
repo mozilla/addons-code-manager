@@ -28,14 +28,20 @@ export class IndexBase extends React.Component<Props> {
   canSimulateErrors() {
     const { _log, allowErrorSimulation } = this.props;
 
-    if (allowErrorSimulation) {
-      return true;
+    if (!allowErrorSimulation) {
+      _log.warn(
+        'Not simulating errors because REACT_APP_UNSAFE_ERROR_SIMULATION=false.',
+      );
+      return false;
     }
 
-    _log.warn(
-      'Not simulating errors because REACT_APP_UNSAFE_ERROR_SIMULATION=false.',
-    );
-    return false;
+    if (!process.env.REACT_APP_SENTRY_DSN) {
+      _log.warn(
+        'Sentry is not reporting errors! env.REACT_APP_SENTRY_DSN is undefined',
+      );
+    }
+
+    return true;
   }
 
   logAnError = () => {
