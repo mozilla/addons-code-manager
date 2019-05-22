@@ -1,4 +1,5 @@
 import { push } from 'connected-react-router';
+import { createBrowserHistory } from 'history';
 import { ChangeInfo, DiffInfo, parseDiff } from 'react-diff-view';
 import { getType } from 'typesafe-actions';
 
@@ -1841,12 +1842,13 @@ describe(__filename, () => {
       const diffPosition = ScrollTarget.firstDiff;
 
       const { dispatch, thunk } = thunkTester({
-        createThunk: () =>
-          viewVersionFile({
+        createThunk: () => {
+          return viewVersionFile({
             selectedPath,
             scrollTo: diffPosition,
             versionId,
-          }),
+          });
+        },
         store: configureStore({ history }),
       });
 
@@ -2547,15 +2549,19 @@ describe(__filename, () => {
     };
 
     it('dispatches push for a new anchor for the current file', async () => {
+      const path = '/file1.js';
       const anchor = 'D1';
       const _getRelativeDiff = jest.fn().mockReturnValue({ anchor });
       const currentAnchor = '';
       const diff = null;
-      const pathList = ['file1.js'];
+      const pathList = [path];
       const position = RelativePathPosition.next;
       const versionId = 123;
 
-      const store = configureStore();
+      const history = createBrowserHistory();
+      const location = createFakeLocation({ pathname: path });
+      history.push(location);
+      const store = configureStore({ history });
       store.dispatch(
         actions.loadVersionInfo({ version: { ...fakeVersion, id: versionId } }),
       );
@@ -2590,11 +2596,9 @@ describe(__filename, () => {
 
       expect(dispatch).toHaveBeenCalledWith(
         push(
-          // TODO: This is probably not good enough.
-          // We should check the location object as well, but I'm not sure how
-          // to set up a location in the router in the test.
           expect.objectContaining({
             hash: `#${anchor}`,
+            pathname: path,
           }),
         ),
       );
@@ -2691,39 +2695,9 @@ describe(__filename, () => {
         store,
       });
 
-      // TODO: This doesn't work. Maybe we cannot test for an exception in a thunk?
-      expect(async () => {
-        await thunk();
-      }).toThrow('Cannot go to relative diff without a version loaded');
-    });
-
-    it('does not call _getRelativeDiff if the version is not loaded', async () => {
-      const _getRelativeDiff = jest.fn();
-      const versionId = 123;
-
-      const store = configureStore();
-      store.dispatch(
-        actions.loadVersionInfo({ version: { ...fakeVersion, id: versionId } }),
+      await expect(thunk()).rejects.toThrow(
+        'Cannot go to relative diff without a version loaded',
       );
-
-      const { thunk } = thunkTester({
-        createThunk: () =>
-          _goToRelativeDiff({
-            _getRelativeDiff,
-            versionId: versionId + 1,
-          }),
-        store,
-      });
-
-      // TODO: Without this, the test stops because of the exception,
-      // but this doesn't seem like a good thing to do in a test.
-      try {
-        await thunk();
-      } catch (e) {
-        // No-op
-      }
-
-      expect(_getRelativeDiff).not.toHaveBeenCalled();
     });
   });
 });

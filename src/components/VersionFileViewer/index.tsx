@@ -7,7 +7,7 @@ import FileTree, { PublicProps as FileTreeProps } from '../FileTree';
 import ContentShell from '../FullscreenGrid/ContentShell';
 import KeyboardShortcuts from '../KeyboardShortcuts';
 import Loading from '../Loading';
-import { Version, VersionFile } from '../../reducers/versions';
+import { CompareInfo, Version, VersionFile } from '../../reducers/versions';
 import { AnyReactNode } from '../../typeUtils';
 import { gettext } from '../../utils';
 import styles from './styles.module.scss';
@@ -20,6 +20,7 @@ export enum ItemTitles {
 
 export type PublicProps = {
   children: AnyReactNode;
+  compareInfo?: CompareInfo | null | void;
   file: VersionFile | null | void;
   onSelectFile: FileTreeProps['onSelect'];
   showFileInfo: boolean;
@@ -28,6 +29,7 @@ export type PublicProps = {
 
 const VersionFileViewer = ({
   children,
+  compareInfo,
   file,
   onSelectFile,
   showFileInfo,
@@ -59,6 +61,7 @@ const VersionFileViewer = ({
           ) : null}
           <AccordionItem title={ItemTitles.Shortcuts}>
             <KeyboardShortcuts
+              compareInfo={compareInfo}
               currentPath={version.selectedPath}
               versionId={version.id}
             />

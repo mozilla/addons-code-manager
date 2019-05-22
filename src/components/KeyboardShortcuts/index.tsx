@@ -1,3 +1,4 @@
+import makeClassName from 'classnames';
 import log from 'loglevel';
 import * as React from 'react';
 import { connect } from 'react-redux';
@@ -14,27 +15,20 @@ import {
 import {
   CompareInfo,
   actions as versionsActions,
-  getCompareInfo,
   goToRelativeDiff,
 } from '../../reducers/versions';
 import styles from './styles.module.scss';
-import { gettext, getPathFromQueryString } from '../../utils';
+import { gettext } from '../../utils';
 
 const keys = ['k', 'j', 'e', 'o', 'c', 'n', 'p'];
 
 export type PublicProps = {
+  compareInfo: CompareInfo | null | void;
   currentPath: string;
   versionId: number;
 };
 
-type PropsFromRouter = {
-  addonId: string;
-  baseVersionId: string;
-  headVersionId: string;
-};
-
 type PropsFromState = {
-  compareInfo: CompareInfo | null | void;
   currentAnchor: string;
   pathList: FileTree['pathList'] | void;
 };
@@ -45,7 +39,7 @@ export type DefaultProps = {
   _goToRelativeFile: typeof goToRelativeFile;
 };
 
-type Props = RouteComponentProps<PropsFromRouter> &
+type Props = RouteComponentProps &
   PropsFromState &
   PublicProps &
   DefaultProps &
@@ -131,6 +125,8 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
                 versionId,
               }),
             );
+          } else {
+            log.warn('Cannot navigate to next change without diff loaded');
           }
           break;
         case 'p':
@@ -144,6 +140,8 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
                 versionId,
               }),
             );
+          } else {
+            log.warn('Cannot navigate to next change without diff loaded');
           }
           break;
         default:
@@ -164,6 +162,11 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
   }
 
   render() {
+    const { compareInfo } = this.props;
+    const disabledClassname = makeClassName({
+      [styles.disabled]: !compareInfo,
+    });
+
     return (
       <div className={styles.KeyboardShortcuts}>
         <dl className={styles.definitions}>
@@ -175,14 +178,14 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
             <kbd>j</kbd>
           </dt>
           <dd>{gettext('Down file')}</dd>
-          <dt>
-            <kbd>p</kbd>
+          <dt className={disabledClassname}>
+            <kbd className={disabledClassname}>p</kbd>
           </dt>
-          <dd>{gettext('Previous change')}</dd>
-          <dt>
-            <kbd>n</kbd>
+          <dd className={disabledClassname}>{gettext('Previous change')}</dd>
+          <dt className={disabledClassname}>
+            <kbd className={disabledClassname}>n</kbd>
           </dt>
-          <dd>{gettext('Next change')}</dd>
+          <dd className={disabledClassname}>{gettext('Next change')}</dd>
           <dt>
             <kbd>o</kbd>
           </dt>
@@ -199,26 +202,9 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
 
 const mapStateToProps = (
   state: ApplicationState,
-  ownProps: PublicProps & RouteComponentProps<PropsFromRouter>,
+  ownProps: PublicProps & RouteComponentProps,
 ): PropsFromState => {
-  const { history, location, match, versionId } = ownProps;
-
-  const addonId = parseInt(match.params.addonId, 10);
-  const baseVersionId = parseInt(match.params.baseVersionId, 10);
-  const headVersionId = parseInt(match.params.headVersionId, 10);
-  const path = getPathFromQueryString(history) || undefined;
-
-  let compareInfo = null;
-
-  if (addonId && baseVersionId && headVersionId) {
-    compareInfo = getCompareInfo(
-      state.versions,
-      addonId,
-      baseVersionId,
-      headVersionId,
-      path,
-    );
-  }
+  const { location, versionId } = ownProps;
 
   const tree = getTree(state.fileTree, versionId);
   if (!tree) {
@@ -229,7 +215,6 @@ const mapStateToProps = (
   }
 
   return {
-    compareInfo,
     currentAnchor: location.hash.replace(/^#/, ''),
     pathList: tree && tree.pathList,
   };

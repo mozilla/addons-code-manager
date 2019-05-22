@@ -1,4 +1,4 @@
-import { History } from 'history';
+import { Location } from 'history';
 import queryString from 'query-string';
 import * as React from 'react';
 import { Store } from 'redux';
@@ -11,16 +11,15 @@ import {
 import {
   actions as versionsActions,
   createInternalVersion,
-  getCompareInfo,
-  CompareInfo,
 } from '../../reducers/versions';
 import {
   CreateKeydownEventParams,
   createContextWithFakeRouter,
   createKeydownEvent,
-  createFakeHistory,
+  createFakeCompareInfo,
   createFakeLocation,
   createFakeThunk,
+  createStoreWithVersion,
   fakeVersion,
   fakeVersionEntry,
   fakeVersionWithDiff,
@@ -36,72 +35,41 @@ import KeyboardShortcuts, {
 } from '.';
 
 describe(__filename, () => {
-  type GetRouteParamsParams = {
-    addonId?: number;
-    baseVersionId?: number;
-    headVersionId?: number;
-  };
-
-  const getRouteParams = ({
-    addonId = 9999,
-    baseVersionId = 1,
-    headVersionId = 1000,
-  }: GetRouteParamsParams = {}) => {
-    return {
-      addonId: String(addonId),
-      baseVersionId: String(baseVersionId),
-      headVersionId: String(headVersionId),
-    };
-  };
-
-  const createFakeRouteComponentProps = ({
-    history = createFakeHistory(),
-    params = getRouteParams(),
-  } = {}) => {
-    return {
-      history,
-      location: history.location,
-      match: {
-        params,
-        isExact: true,
-        path: '/some-path',
-        url: '/some-url',
-      },
-    };
-  };
-
   type RenderParams = {
-    addonId?: string;
-    baseVersionId?: string;
-    headVersionId?: string;
-    history?: History;
+    location?: Location<{}>;
     store?: Store;
   } & Partial<PublicProps & DefaultProps>;
 
   const configureStoreWithFileTree = ({
     pathList = ['file1.js'],
-    store = configureStore(),
     versionId = 321,
+    externalVersion = {
+      ...fakeVersion,
+      id: versionId,
+      file: {
+        ...fakeVersion.file,
+        entries: pathList.reduce((pathMap, path: string) => {
+          return {
+            ...pathMap,
+            [path]: {
+              ...fakeVersionEntry,
+              filename: path,
+              path,
+            },
+          };
+        }, {}),
+      },
+    },
+    store = createStoreWithVersion(externalVersion),
+  }: {
+    pathList?: string[];
+    versionId?: number;
+    externalVersion?: typeof fakeVersion;
+    store?: Store;
   } = {}) => {
     store.dispatch(
       fileTreeActions.buildTree({
-        version: createInternalVersion({
-          ...fakeVersion,
-          id: versionId,
-          file: {
-            ...fakeVersion.file,
-            entries: pathList.reduce((pathMap, path: string) => {
-              return {
-                ...pathMap,
-                [path]: {
-                  ...fakeVersionEntry,
-                  filename: path,
-                  path,
-                },
-              };
-            }, {}),
-          },
-        }),
+        version: createInternalVersion(externalVersion),
       }),
     );
 
@@ -109,29 +77,22 @@ describe(__filename, () => {
   };
 
   const render = ({
-    addonId = '999',
-    baseVersionId = '1',
+    compareInfo = null,
     currentPath = 'file1.js',
-    headVersionId = '2',
-    history = createFakeHistory(),
+    location = createFakeLocation(),
     store,
     versionId = 1235,
     ...moreProps
   }: RenderParams = {}) => {
     const props = {
-      ...createFakeRouteComponentProps({
-        history,
-        params: { addonId, baseVersionId, headVersionId },
-      }),
+      compareInfo,
       currentPath,
+      location,
       versionId,
       ...moreProps,
     };
 
-    const contextWithRouter = createContextWithFakeRouter({
-      history,
-      match: props.match,
-    });
+    const contextWithRouter = createContextWithFakeRouter({ location });
     const context = {
       ...contextWithRouter,
       context: {
@@ -234,48 +195,17 @@ describe(__filename, () => {
   ])(
     'dispatches goToRelativeDiff with %s when "%s" is pressed',
     (direction, key, position) => {
-      const addonId = 1;
-      const baseVersionId = 2;
       const currentPath = fakeVersionWithDiff.file.selected_file;
       const hash = '#D1';
-      const headVersionId = 3;
       const pathList = [currentPath];
-      const versionId = headVersionId;
-      const version = {
-        ...fakeVersionWithDiff,
-        id: headVersionId,
-        file: {
-          ...fakeVersionWithDiff.file,
-          // eslint-disable-next-line @typescript-eslint/camelcase
-          selected_file: currentPath,
-        },
-      };
-      const history = createFakeHistory({
-        location: createFakeLocation({
-          search: queryString.stringify({ path: currentPath }),
-          hash,
-        }),
+      const versionId = 123;
+      const compareInfo = createFakeCompareInfo();
+      const location = createFakeLocation({
+        search: queryString.stringify({ path: currentPath }),
+        hash,
       });
 
       const store = configureStoreWithFileTree({ versionId, pathList });
-      store.dispatch(versionsActions.loadVersionInfo({ version }));
-      store.dispatch(
-        versionsActions.loadDiff({
-          addonId,
-          baseVersionId,
-          headVersionId,
-          path: currentPath,
-          version,
-        }),
-      );
-
-      const compareInfo = getCompareInfo(
-        store.getState().versions,
-        addonId,
-        baseVersionId,
-        headVersionId,
-        currentPath,
-      ) as CompareInfo;
 
       const dispatch = spyOn(store, 'dispatch');
       const fakeThunk = createFakeThunk();
@@ -285,13 +215,9 @@ describe(__filename, () => {
         { key: key as string },
         {
           _goToRelativeDiff,
-          ...getRouteParams({
-            addonId,
-            baseVersionId,
-            headVersionId,
-          }),
+          compareInfo,
           currentPath,
-          history,
+          location,
           store,
           versionId,
         },
@@ -309,40 +235,16 @@ describe(__filename, () => {
   );
 
   it.each(['p', 'n'])(
-    'does not dispatch goToRelativeDiff when "%s" is pressed if expected match params are not present',
+    'does not dispatch goToRelativeDiff when "%s" is pressed if compareInfo is falsey',
     (key) => {
-      const addonId = 1;
-      const baseVersionId = 2;
       const currentPath = fakeVersionWithDiff.file.selected_file;
-      const headVersionId = 3;
       const pathList = [currentPath];
-      const versionId = headVersionId;
-      const version = {
-        ...fakeVersionWithDiff,
-        id: headVersionId,
-        file: {
-          ...fakeVersionWithDiff.file,
-          // eslint-disable-next-line @typescript-eslint/camelcase
-          selected_file: currentPath,
-        },
-      };
-      const history = createFakeHistory({
-        location: createFakeLocation({
-          search: queryString.stringify({ path: currentPath }),
-        }),
+      const versionId = 123;
+      const location = createFakeLocation({
+        search: queryString.stringify({ path: currentPath }),
       });
 
       const store = configureStoreWithFileTree({ versionId, pathList });
-      store.dispatch(versionsActions.loadVersionInfo({ version }));
-      store.dispatch(
-        versionsActions.loadDiff({
-          addonId,
-          baseVersionId,
-          headVersionId,
-          path: currentPath,
-          version,
-        }),
-      );
 
       const dispatch = spyOn(store, 'dispatch');
       const fakeThunk = createFakeThunk();
@@ -352,72 +254,9 @@ describe(__filename, () => {
         { key: key as string },
         {
           _goToRelativeDiff,
-          addonId: undefined,
-          baseVersionId: undefined,
+          compareInfo: null,
           currentPath,
-          headVersionId: undefined,
-          history,
-          store,
-          versionId,
-        },
-      );
-
-      expect(dispatch).not.toHaveBeenCalledWith(fakeThunk.thunk);
-    },
-  );
-
-  it.each(['p', 'n'])(
-    'does not dispatch goToRelativeDiff when "%s" is pressed if the diff is not loaded',
-    (key) => {
-      const addonId = 1;
-      const baseVersionId = 2;
-      const currentPath = fakeVersionWithDiff.file.selected_file;
-      const headVersionId = 3;
-      const pathList = [currentPath];
-      const versionId = headVersionId;
-      const version = {
-        ...fakeVersionWithDiff,
-        id: headVersionId,
-        file: {
-          ...fakeVersionWithDiff.file,
-          // eslint-disable-next-line @typescript-eslint/camelcase
-          selected_file: currentPath,
-        },
-      };
-      const history = createFakeHistory({
-        location: createFakeLocation({
-          search: queryString.stringify({ path: currentPath }),
-        }),
-      });
-
-      const store = configureStoreWithFileTree({ versionId, pathList });
-      store.dispatch(versionsActions.loadVersionInfo({ version }));
-      store.dispatch(
-        versionsActions.loadDiff({
-          // Load a diff that does not match the match params.
-          addonId: addonId + 1,
-          baseVersionId,
-          headVersionId,
-          path: currentPath,
-          version,
-        }),
-      );
-
-      const dispatch = spyOn(store, 'dispatch');
-      const fakeThunk = createFakeThunk();
-      const _goToRelativeDiff = fakeThunk.createThunk;
-
-      renderAndTriggerKeyEvent(
-        { key: key as string },
-        {
-          _goToRelativeDiff,
-          ...getRouteParams({
-            addonId,
-            baseVersionId,
-            headVersionId,
-          }),
-          currentPath,
-          history,
+          location,
           store,
           versionId,
         },

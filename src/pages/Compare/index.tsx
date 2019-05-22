@@ -138,6 +138,7 @@ export class CompareBase extends React.Component<Props> {
     // https://github.com/mozilla/addons-code-manager/issues/647
     return (
       <VersionFileViewer
+        compareInfo={compareInfo}
         file={null}
         onSelectFile={this.viewVersionFile}
         showFileInfo={false}
