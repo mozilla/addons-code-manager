@@ -13,7 +13,7 @@ $expand-button-width: 40px;
   grid-template-rows: min-content 1fr 0px;
   height: 100vh;
 
-  &.mainSidePanelIsCollapsed {
+  &.hasACollapsedMainSidePanel {
     grid-template-columns: $expand-button-width 7fr 1fr;
   }
 }
@@ -26,7 +26,7 @@ $expand-button-width: 40px;
   display: flex;
   flex-direction: column;
   grid-area: FGMainSidePanel;
-  height: 100%;
+  height: auto;
   justify-content: space-between;
   margin-left: $default-padding;
 
@@ -35,10 +35,15 @@ $expand-button-width: 40px;
     margin-top: $default-padding;
     padding: $default-padding;
     width: 100%;
+
+    &:not(:global(.focus-visible)) {
+      box-shadow: none;
+    }
   }
 
   &.mainSidePanelIsCollapsed {
     background-color: $light-gray;
+    margin-top: 0;
     padding: 0;
 
     .mainSidePanelToggleButton {
@@ -65,12 +70,6 @@ $expand-button-width: 40px;
   overflow-x: hidden;
   overflow-y: auto;
   padding: $default-padding;
-}
-
-.mainSidePanel {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
 }
 
 .mainSidePanelContent {

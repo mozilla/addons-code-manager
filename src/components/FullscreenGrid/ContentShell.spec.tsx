@@ -125,7 +125,7 @@ describe(__filename, () => {
     );
   });
 
-  it('dispatches toggleMainSidePanel on the toggle button is clicked', () => {
+  it('dispatches toggleMainSidePanel when the toggle button is clicked', () => {
     const store = configureStore();
     const dispatch = spyOn(store, 'dispatch');
 

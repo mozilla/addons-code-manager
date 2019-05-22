@@ -46,7 +46,7 @@ export const FullscreenGridBase = ({
       className={makeClassName(
         styles.FullscreenGrid,
         {
-          [styles.mainSidePanelIsCollapsed]: !mainSidePanelIsExpanded,
+          [styles.hasACollapsedMainSidePanel]: !mainSidePanelIsExpanded,
         },
         className,
       )}
