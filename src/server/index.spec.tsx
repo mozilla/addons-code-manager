@@ -220,7 +220,7 @@ describe(__filename, () => {
         expect(cspReportResponse.status).toEqual(200);
       });
 
-      it('adds the sentry host to connect-src when REACT_APP_SENTRY_DSN is set', async () => {
+      it('adds the sentry host to connect-src in production when REACT_APP_SENTRY_DSN is set', async () => {
         const fakeEnv = {
           ...prodEnv,
           REACT_APP_SENTRY_DSN: 'https://token@sentry.prod.mozaws.net/425',
@@ -656,6 +656,50 @@ describe(__filename, () => {
 
         const policy = cspParser(response.header['content-security-policy']);
         expect(policy['style-src']).toEqual(["'self'", "'unsafe-inline'"]);
+      });
+
+      it('relaxes connect-src for local dev', async () => {
+        const content = '<h1>It works!</h1>';
+        fakeCreateReactAppServerApp.get('/*', (req, res) => res.send(content));
+
+        const server = request(
+          createServer({
+            env: devEnv as ServerEnvVars,
+            rootPath: fixturesPath,
+          }),
+        );
+
+        const response = await server.get('/');
+        expect(response.status).toEqual(200);
+        expect(response.header).toHaveProperty('content-security-policy');
+
+        const policy = cspParser(response.header['content-security-policy']);
+        expect(policy['connect-src']).toEqual(["'self'"]);
+      });
+
+      it('adds the sentry host to connect-src in development when REACT_APP_SENTRY_DSN is set', async () => {
+        const content = '<h1>It works!</h1>';
+        fakeCreateReactAppServerApp.get('/*', (req, res) => res.send(content));
+
+        const fakeEnv = {
+          ...devEnv,
+          REACT_APP_SENTRY_DSN: 'https://token@sentry.prod.mozaws.net/425',
+        };
+
+        const server = request(
+          createServer({
+            env: fakeEnv as ServerEnvVars,
+            rootPath: fixturesPath,
+          }),
+        );
+
+        const response = await server.get('/');
+        expect(response.status).toEqual(200);
+
+        const policy = cspParser(response.header['content-security-policy']);
+        expect(policy['connect-src']).toContain(
+          'https://sentry.prod.mozaws.net',
+        );
       });
 
       it('serves the favicon.ico file', async () => {

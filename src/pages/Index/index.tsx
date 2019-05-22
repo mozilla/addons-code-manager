@@ -41,13 +41,20 @@ export class IndexBase extends React.Component<Props> {
   logAnError = () => {
     const { _log } = this.props;
     if (this.canSimulateErrors()) {
-      _log.error('This is a simulated error message');
+      _log.error('This is a simulated error message using log.error()');
+    }
+  };
+
+  logAnErrorWithConsole = () => {
+    if (this.canSimulateErrors()) {
+      // eslint-disable-next-line no-console
+      console.error('This is a simulated error message using console.error()');
     }
   };
 
   throwAnError = () => {
     if (this.canSimulateErrors()) {
-      throw new Error('This is a simulated error');
+      throw new Error('This is a simulation of a thrown error');
     }
   };
 
@@ -129,7 +136,14 @@ export class IndexBase extends React.Component<Props> {
                 onClick={this.logAnError}
                 variant="danger"
               >
-                {gettext('Log an error')}
+                {gettext('Call logLevel.error()')}
+              </Button>
+              <Button
+                className={styles.logAnErrorWithConsoleButton}
+                onClick={this.logAnErrorWithConsole}
+                variant="danger"
+              >
+                {gettext('Call console.error()')}
               </Button>
             </div>
           </React.Fragment>

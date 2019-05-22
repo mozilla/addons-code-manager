@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { Button } from 'react-bootstrap';
 import { shallow } from 'enzyme';
 import { Link } from 'react-router-dom';
 
@@ -25,9 +24,7 @@ describe(__filename, () => {
   it('shows error simulation buttons', () => {
     const root = shallow(<Index allowErrorSimulation />);
 
-    expect(
-      root.find(`.${styles.errorSimulationButtons}`).find(Button),
-    ).toHaveLength(2);
+    expect(root.find(`.${styles.errorSimulationButtons}`)).toHaveLength(1);
   });
 
   it('hides error simulation buttons', () => {
@@ -42,7 +39,7 @@ describe(__filename, () => {
     const button = root.find(`.${styles.throwAnErrorButton}`);
 
     expect(() => button.simulate('click', createFakeEvent())).toThrow(
-      /simulated error/,
+      /simulation of a thrown error/,
     );
   });
 
@@ -56,11 +53,16 @@ describe(__filename, () => {
     const _log = createFakeLogger();
     const root = shallow(<Index allowErrorSimulation _log={_log} />);
 
-    root
-      .find(`.${styles.logAnErrorButton}`)
-      .simulate('click', createFakeEvent());
+    root.find(`.${styles.logAnErrorButton}`).simulate('click');
 
     expect(_log.error).toHaveBeenCalled();
+  });
+
+  it('logs a simulated error with console', () => {
+    const root = shallow(<Index allowErrorSimulation />);
+
+    // Make sure this doesn't throw an error.
+    root.find(`.${styles.logAnErrorWithConsoleButton}`).simulate('click');
   });
 
   it('will not log an error when simulation is not allowed', () => {
