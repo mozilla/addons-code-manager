@@ -50,8 +50,8 @@ describe(__filename, () => {
     it('renders with a default CSS class', () => {
       const root = render(<FullscreenGrid />);
 
-      expect(root).toHaveClassName(`${styles.FullscreenGrid}`);
-      expect(root).not.toHaveClassName(`${styles.hasACollapsedMainSidePanel}`);
+      expect(root).toHaveClassName(styles.FullscreenGrid);
+      expect(root).not.toHaveClassName(styles.hasACollapsedMainSidePanel);
     });
 
     it('sets an extra CSS class when the main side panel is collapsed', () => {
@@ -60,7 +60,7 @@ describe(__filename, () => {
 
       const root = render(<FullscreenGrid />, { store });
 
-      expect(root).toHaveClassName(`${styles.hasACollapsedMainSidePanel}`);
+      expect(root).toHaveClassName(styles.hasACollapsedMainSidePanel);
     });
   });
 
