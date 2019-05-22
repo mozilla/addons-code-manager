@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import fs from 'fs';
 import http from 'http';
 import path from 'path';
@@ -60,6 +61,7 @@ export const createServer = ({
   _injectAuthenticationToken = injectAuthenticationToken,
 }: CreateServerParams) => {
   const useInsecureProxy = env.REACT_APP_USE_INSECURE_PROXY === 'true';
+  const isProduction = env.NODE_ENV === 'production';
 
   const reportUri = `${getApiHost({
     apiHost: env.REACT_APP_API_HOST,
@@ -80,9 +82,11 @@ export const createServer = ({
     : "'none'";
 
   const connectSrc = [
-    // Relax the connect-src if using the proxy otherwise Use the env var or
-    // 'none' if the API host isn't set.
-    useInsecureProxy ? "'self'" : env.REACT_APP_API_HOST || "'none'",
+    // While using the proxy or while in development, relax connect-src.
+    // Otherwise, use the API host or 'none'.
+    useInsecureProxy || !isProduction
+      ? "'self'"
+      : env.REACT_APP_API_HOST || "'none'",
   ];
 
   if (env.REACT_APP_SENTRY_DSN) {
@@ -92,7 +96,9 @@ export const createServer = ({
       const { host, protocol } = url.parse(dsn);
 
       if (host && protocol) {
-        connectSrc.push(`${protocol}//${host}`);
+        const sentrySrc = `${protocol}//${host}`;
+        console.log(`Adding Sentry as "${sentrySrc}" to CSP connect-src`);
+        connectSrc.push(sentrySrc);
       } else {
         throw new Error('could not parse host or protocol');
       }
@@ -154,8 +160,7 @@ export const createServer = ({
   // We use a proxy to forward API requests to REACT_APP_API_HOST (i.e. the
   // AMO/addons-server API). This is useful for local development.
   if (useInsecureProxy) {
-    if (env.NODE_ENV === 'production') {
-      // eslint-disable-next-line no-console
+    if (isProduction) {
       console.warn(`Using an insecure proxy with NODE_ENV=production is risky`);
     }
 
@@ -203,7 +208,7 @@ export const createServer = ({
     return res.status(200).end('ok');
   });
 
-  if (env.NODE_ENV === 'production') {
+  if (isProduction) {
     // In production mode, we use a simple node server that serves all the
     // static files, including the `index.html` file in which we inject the
     // authentication token.
@@ -252,7 +257,6 @@ export const createServer = ({
           imgSrc: [...prodCSP.imgSrc, "'self'"],
           scriptSrc: ["'self'", "'unsafe-inline'"],
           styleSrc: ["'self'", "'unsafe-inline'"],
-          connectSrc: ["'self'"],
         },
       }),
     );
