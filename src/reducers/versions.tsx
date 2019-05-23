@@ -166,7 +166,7 @@ export type VersionFile = {
   version: string;
 };
 
-type VersionEntry = {
+export type VersionEntry = {
   depth: number;
   filename: string;
   mimeType: string;
@@ -547,7 +547,7 @@ export type GetRelativeDiffParams = {
   _findRelativePathWithDiff?: typeof findRelativePathWithDiff;
   _getRelativeDiffAnchor?: typeof getRelativeDiffAnchor;
   currentAnchor: string | void;
-  diff: DiffInfo;
+  diff: DiffInfo | null;
   pathList: string[];
   position: RelativePathPosition;
   version: Version;
@@ -568,7 +568,9 @@ export const getRelativeDiff = ({
   version,
 }: GetRelativeDiffParams): RelativeDiffResult => {
   const result: RelativeDiffResult = {
-    anchor: _getRelativeDiffAnchor({ currentAnchor, diff, position }),
+    anchor: diff
+      ? _getRelativeDiffAnchor({ currentAnchor, diff, position })
+      : null,
     path: null,
   };
 
@@ -885,22 +887,26 @@ export const fetchDiff = ({
 };
 
 type ViewVersionFileParams = {
-  versionId: number;
-  selectedPath: string;
   preserveHash?: boolean;
+  selectedPath: string;
+  scrollTo?: ScrollTarget;
+  versionId: number;
 };
 
 export const viewVersionFile = ({
-  versionId,
-  selectedPath,
   preserveHash = false,
+  selectedPath,
+  scrollTo,
+  versionId,
 }: ViewVersionFileParams): ThunkActionCreator => {
   return async (dispatch, getState) => {
     const { router } = getState();
     const queryParams = {
       ...queryString.parse(router.location.search),
       path: selectedPath,
+      scrollTo,
     };
+
     const newLocation = {
       ...router.location,
       search: `?${queryString.stringify(queryParams)}`,
@@ -914,6 +920,66 @@ export const viewVersionFile = ({
 
     dispatch(actions.updateSelectedPath({ versionId, selectedPath }));
     dispatch(push(newLocation));
+  };
+};
+
+type GoToRelativeDiffParams = {
+  _getRelativeDiff?: typeof getRelativeDiff;
+  _viewVersionFile?: typeof viewVersionFile;
+  currentAnchor: string | void;
+  diff: DiffInfo | null;
+  pathList: string[];
+  position: RelativePathPosition;
+  versionId: number;
+};
+
+export const goToRelativeDiff = ({
+  /* istanbul ignore next */
+  _getRelativeDiff = getRelativeDiff,
+  /* istanbul ignore next */
+  _viewVersionFile = viewVersionFile,
+  currentAnchor,
+  diff,
+  pathList,
+  position,
+  versionId,
+}: GoToRelativeDiffParams): ThunkActionCreator => {
+  return async (dispatch, getState) => {
+    const { router, versions: versionsState } = getState();
+    const version = getVersionInfo(versionsState, versionId);
+
+    if (!version) {
+      throw new Error('Cannot go to relative diff without a version loaded.');
+    }
+
+    const nextDiffInfo = _getRelativeDiff({
+      currentAnchor,
+      diff,
+      pathList,
+      position,
+      version,
+    });
+
+    if (nextDiffInfo.anchor) {
+      const newLocation = {
+        ...router.location,
+        hash: `#${nextDiffInfo.anchor}`,
+      };
+
+      dispatch(push(newLocation));
+    } else if (nextDiffInfo.path) {
+      dispatch(
+        _viewVersionFile({
+          preserveHash: false,
+          selectedPath: nextDiffInfo.path,
+          scrollTo:
+            position === RelativePathPosition.next
+              ? ScrollTarget.firstDiff
+              : ScrollTarget.lastDiff,
+          versionId,
+        }),
+      );
+    }
   };
 };
 

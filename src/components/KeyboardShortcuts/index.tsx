@@ -1,6 +1,7 @@
 import log from 'loglevel';
 import * as React from 'react';
 import { connect } from 'react-redux';
+import { RouteComponentProps, withRouter } from 'react-router-dom';
 
 import { ApplicationState } from '../../reducers';
 import { ConnectedReduxProps } from '../../configureStore';
@@ -10,37 +11,52 @@ import {
   getTree,
   goToRelativeFile,
 } from '../../reducers/fileTree';
-import { actions as versionsActions } from '../../reducers/versions';
+import {
+  CompareInfo,
+  actions as versionsActions,
+  goToRelativeDiff,
+} from '../../reducers/versions';
 import styles from './styles.module.scss';
 import { gettext } from '../../utils';
 
-const keys = ['k', 'j', 'e', 'o', 'c'];
+const keys = ['k', 'j', 'e', 'o', 'c', 'n', 'p'];
 
 export type PublicProps = {
+  compareInfo: CompareInfo | null | void;
   currentPath: string;
   versionId: number;
 };
 
 type PropsFromState = {
+  currentAnchor: string;
   pathList: FileTree['pathList'] | void;
 };
 
 export type DefaultProps = {
   _document: typeof document;
+  _goToRelativeDiff: typeof goToRelativeDiff;
   _goToRelativeFile: typeof goToRelativeFile;
 };
 
-type Props = PublicProps & PropsFromState & DefaultProps & ConnectedReduxProps;
+type Props = RouteComponentProps &
+  PropsFromState &
+  PublicProps &
+  DefaultProps &
+  ConnectedReduxProps;
 
 export class KeyboardShortcutsBase extends React.Component<Props> {
   static defaultProps: DefaultProps = {
     _document: document,
+    _goToRelativeDiff: goToRelativeDiff,
     _goToRelativeFile: goToRelativeFile,
   };
 
   keydownListener = (event: KeyboardEvent) => {
     const {
+      _goToRelativeDiff,
       _goToRelativeFile,
+      compareInfo,
+      currentAnchor,
       currentPath,
       dispatch,
       pathList,
@@ -97,6 +113,36 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
             }),
           );
           break;
+        case 'n':
+          if (compareInfo) {
+            dispatch(
+              _goToRelativeDiff({
+                currentAnchor,
+                diff: compareInfo.diff,
+                pathList,
+                position: RelativePathPosition.next,
+                versionId,
+              }),
+            );
+          } else {
+            log.warn('Cannot navigate to next change without diff loaded');
+          }
+          break;
+        case 'p':
+          if (compareInfo) {
+            dispatch(
+              _goToRelativeDiff({
+                currentAnchor,
+                diff: compareInfo.diff,
+                pathList,
+                position: RelativePathPosition.previous,
+                versionId,
+              }),
+            );
+          } else {
+            log.warn('Cannot navigate to previous change without diff loaded');
+          }
+          break;
         default:
       }
     }
@@ -115,6 +161,9 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
   }
 
   render() {
+    const { compareInfo } = this.props;
+    const diffKeysClassName = !compareInfo ? styles.disabled : '';
+
     return (
       <div className={styles.KeyboardShortcuts}>
         <dl className={styles.definitions}>
@@ -126,6 +175,14 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
             <kbd>j</kbd>
           </dt>
           <dd>{gettext('Down file')}</dd>
+          <dt className={diffKeysClassName}>
+            <kbd>p</kbd>
+          </dt>
+          <dd className={diffKeysClassName}>{gettext('Previous change')}</dd>
+          <dt className={diffKeysClassName}>
+            <kbd>n</kbd>
+          </dt>
+          <dd className={diffKeysClassName}>{gettext('Next change')}</dd>
           <dt>
             <kbd>o</kbd>
           </dt>
@@ -142,9 +199,9 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
 
 const mapStateToProps = (
   state: ApplicationState,
-  ownProps: PublicProps,
+  ownProps: PublicProps & RouteComponentProps,
 ): PropsFromState => {
-  const { versionId } = ownProps;
+  const { location, versionId } = ownProps;
 
   const tree = getTree(state.fileTree, versionId);
   if (!tree) {
@@ -154,9 +211,12 @@ const mapStateToProps = (
     log.warn(`No tree was loaded for version:`, versionId);
   }
 
-  return { pathList: tree && tree.pathList };
+  return {
+    currentAnchor: location.hash.replace(/^#/, ''),
+    pathList: tree && tree.pathList,
+  };
 };
 
-export default connect(mapStateToProps)(
-  KeyboardShortcutsBase,
+export default withRouter(
+  connect(mapStateToProps)(KeyboardShortcutsBase),
 ) as React.ComponentType<PublicProps & Partial<DefaultProps>>;

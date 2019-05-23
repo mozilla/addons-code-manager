@@ -1,3 +1,5 @@
+import { Location } from 'history';
+import queryString from 'query-string';
 import * as React from 'react';
 import { Store } from 'redux';
 
@@ -12,10 +14,15 @@ import {
 } from '../../reducers/versions';
 import {
   CreateKeydownEventParams,
+  createContextWithFakeRouter,
   createKeydownEvent,
+  createFakeCompareInfo,
+  createFakeLocation,
   createFakeThunk,
+  createStoreWithVersion,
   fakeVersion,
   fakeVersionEntry,
+  fakeVersionWithDiff,
   shallowUntilTarget,
   spyOn,
 } from '../../test-helpers';
@@ -29,33 +36,40 @@ import KeyboardShortcuts, {
 
 describe(__filename, () => {
   type RenderParams = {
+    location?: Location<{}>;
     store?: Store;
   } & Partial<PublicProps & DefaultProps>;
 
   const configureStoreWithFileTree = ({
     pathList = ['file1.js'],
-    store = configureStore(),
     versionId = 321,
+    externalVersion = {
+      ...fakeVersion,
+      id: versionId,
+      file: {
+        ...fakeVersion.file,
+        entries: pathList.reduce((pathMap, path: string) => {
+          return {
+            ...pathMap,
+            [path]: {
+              ...fakeVersionEntry,
+              filename: path,
+              path,
+            },
+          };
+        }, {}),
+      },
+    },
+    store = createStoreWithVersion(externalVersion),
+  }: {
+    pathList?: string[];
+    versionId?: number;
+    externalVersion?: typeof fakeVersion;
+    store?: Store;
   } = {}) => {
     store.dispatch(
       fileTreeActions.buildTree({
-        version: createInternalVersion({
-          ...fakeVersion,
-          id: versionId,
-          file: {
-            ...fakeVersion.file,
-            entries: pathList.reduce((pathMap, path: string) => {
-              return {
-                ...pathMap,
-                [path]: {
-                  ...fakeVersionEntry,
-                  filename: path,
-                  path,
-                },
-              };
-            }, {}),
-          },
-        }),
+        version: createInternalVersion(externalVersion),
       }),
     );
 
@@ -63,27 +77,35 @@ describe(__filename, () => {
   };
 
   const render = ({
+    compareInfo = null,
     currentPath = 'file1.js',
-    versionId = 1235,
+    location = createFakeLocation(),
     store,
+    versionId = 1235,
     ...moreProps
   }: RenderParams = {}) => {
     const props = {
-      _goToRelativeFile: jest.fn(),
+      compareInfo,
       currentPath,
+      location,
       versionId,
       ...moreProps,
+    };
+
+    const contextWithRouter = createContextWithFakeRouter({ location });
+    const context = {
+      ...contextWithRouter,
+      context: {
+        ...contextWithRouter.context,
+        store: store || configureStoreWithFileTree({ versionId }),
+      },
     };
 
     return shallowUntilTarget(
       <KeyboardShortcuts {...props} />,
       KeyboardShortcutsBase,
       {
-        shallowOptions: {
-          context: {
-            store: store || configureStoreWithFileTree({ versionId }),
-          },
-        },
+        shallowOptions: { ...context },
       },
     );
   };
@@ -164,6 +186,83 @@ describe(__filename, () => {
         position,
         versionId,
       });
+    },
+  );
+
+  it.each([
+    ['previous', 'p', RelativePathPosition.previous],
+    ['next', 'n', RelativePathPosition.next],
+  ])(
+    'dispatches goToRelativeDiff with %s when "%s" is pressed',
+    (direction, key, position) => {
+      const currentPath = fakeVersionWithDiff.file.selected_file;
+      const hash = '#D1';
+      const pathList = [currentPath];
+      const versionId = 123;
+      const compareInfo = createFakeCompareInfo();
+      const location = createFakeLocation({
+        search: queryString.stringify({ path: currentPath }),
+        hash,
+      });
+
+      const store = configureStoreWithFileTree({ versionId, pathList });
+
+      const dispatch = spyOn(store, 'dispatch');
+      const fakeThunk = createFakeThunk();
+      const _goToRelativeDiff = fakeThunk.createThunk;
+
+      renderAndTriggerKeyEvent(
+        { key: key as string },
+        {
+          _goToRelativeDiff,
+          compareInfo,
+          currentPath,
+          location,
+          store,
+          versionId,
+        },
+      );
+
+      expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+      expect(_goToRelativeDiff).toHaveBeenCalledWith({
+        currentAnchor: hash.replace(/^#/, ''),
+        diff: compareInfo.diff,
+        pathList,
+        position,
+        versionId,
+      });
+    },
+  );
+
+  it.each(['p', 'n'])(
+    'does not dispatch goToRelativeDiff when "%s" is pressed if compareInfo is falsey',
+    (key) => {
+      const currentPath = fakeVersionWithDiff.file.selected_file;
+      const pathList = [currentPath];
+      const versionId = 123;
+      const location = createFakeLocation({
+        search: queryString.stringify({ path: currentPath }),
+      });
+
+      const store = configureStoreWithFileTree({ versionId, pathList });
+
+      const dispatch = spyOn(store, 'dispatch');
+      const fakeThunk = createFakeThunk();
+      const _goToRelativeDiff = fakeThunk.createThunk;
+
+      renderAndTriggerKeyEvent(
+        { key: key as string },
+        {
+          _goToRelativeDiff,
+          compareInfo: null,
+          currentPath,
+          location,
+          store,
+          versionId,
+        },
+      );
+
+      expect(dispatch).not.toHaveBeenCalledWith(fakeThunk.thunk);
     },
   );
 

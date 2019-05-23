@@ -16,6 +16,7 @@ import {
   actions as versionsActions,
   createInternalDiff,
   createInternalVersion,
+  getCompareInfo,
 } from '../../reducers/versions';
 import DiffView from '../../components/DiffView';
 import Loading from '../../components/Loading';
@@ -180,10 +181,25 @@ describe(__filename, () => {
   });
 
   it('renders a VersionFileViewer', () => {
-    const { root, version } = loadDiffAndRender();
+    const {
+      addonId,
+      baseVersionId,
+      headVersionId,
+      root,
+      store,
+      version,
+    } = loadDiffAndRender();
+
+    const compareInfo = getCompareInfo(
+      store.getState().versions,
+      addonId,
+      baseVersionId,
+      headVersionId,
+    );
 
     const viewer = root.find(VersionFileViewer);
     expect(viewer).toHaveLength(1);
+    expect(viewer).toHaveProp('compareInfo', compareInfo);
     expect(viewer).toHaveProp('version', createInternalVersion(version));
   });
 

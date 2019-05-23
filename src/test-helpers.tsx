@@ -26,8 +26,10 @@ import {
   ExternalVersionsList,
   ExternalVersionsListItem,
   Version,
+  VersionEntry,
   VersionEntryType,
   actions as versionsActions,
+  createInternalCompareInfo,
   createInternalVersion,
   createInternalVersionEntry,
 } from './reducers/versions';
@@ -391,6 +393,30 @@ export const createFakeLinterMessagesByPath = ({
     throw new Error(`Somehow no messages were mapped to path "${path}"`);
   }
   return map[path];
+};
+
+export const createFakeCompareInfo = ({
+  baseVersionId = 1,
+  headVersionId = 2,
+  mimeType = 'mime/type',
+  entry = createInternalVersionEntry({
+    ...fakeVersionEntry,
+    mimetype: mimeType,
+  }),
+  version = fakeVersionWithDiff,
+}: {
+  baseVersionId?: number;
+  headVersionId?: number;
+  mimeType?: string;
+  entry?: VersionEntry;
+  version?: ExternalVersionWithDiff;
+} = {}) => {
+  return createInternalCompareInfo({
+    baseVersionId,
+    entry,
+    headVersionId,
+    version,
+  });
 };
 
 export const createFakeLocation = (props = {}): Location => {

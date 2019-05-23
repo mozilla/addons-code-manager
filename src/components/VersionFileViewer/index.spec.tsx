@@ -17,6 +17,7 @@ import {
   getVersionInfo,
 } from '../../reducers/versions';
 import {
+  createFakeCompareInfo,
   createFakeEntry,
   getContentShellPanel,
   fakeVersion,
@@ -175,11 +176,16 @@ describe(__filename, () => {
 
   it('renders a KeyboardShortcuts panel', () => {
     const { version } = getInternalVersionAndFile();
-    const root = renderPanel({ version }, PanelAttribs.mainSidePanel);
+    const compareInfo = createFakeCompareInfo();
+    const root = renderPanel(
+      { compareInfo, version },
+      PanelAttribs.mainSidePanel,
+    );
     const item = getItem(root, ItemTitles.Shortcuts);
 
     const shortcuts = item.find(KeyboardShortcuts);
     expect(shortcuts).toHaveLength(1);
+    expect(shortcuts).toHaveProp('compareInfo', compareInfo);
     expect(shortcuts).toHaveProp('currentPath', version.selectedPath);
     expect(shortcuts).toHaveProp('versionId', version.id);
   });
