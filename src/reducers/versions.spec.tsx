@@ -1855,11 +1855,15 @@ describe(__filename, () => {
       await thunk();
 
       expect(dispatch).toHaveBeenCalledWith(
-        push({
-          ...location,
-          search: `?path=${selectedPath}&scrollTo=${diffPosition}`,
-          hash: undefined,
-        }),
+        push(
+          expect.objectContaining({
+            pathname,
+            search: expect.urlWithTheseParams({
+              path: selectedPath,
+              scrollTo: diffPosition,
+            }),
+          }),
+        ),
       );
     });
 
