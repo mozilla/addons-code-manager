@@ -22,7 +22,6 @@ describe(__filename, () => {
 
     const button = root.find(Button);
     expect(button).toHaveLength(1);
-    expect(button).toHaveProp('title', 'Toggle this panel');
     expect(button).toHaveClassName(`${styles.ToggleButton}`);
   });
 
@@ -66,5 +65,12 @@ describe(__filename, () => {
     root.simulate('click');
 
     expect(onClick).toHaveBeenCalled();
+  });
+
+  it('accepts an HTML title', () => {
+    const title = 'Toggle this panel';
+    const root = render({ title });
+
+    expect(root).toHaveProp('title', title);
   });
 });

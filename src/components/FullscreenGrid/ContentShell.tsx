@@ -1,10 +1,16 @@
 import * as React from 'react';
 import makeClassName from 'classnames';
+import { connect } from 'react-redux';
 
+import { ConnectedReduxProps } from '../../configureStore';
+import { ApplicationState } from '../../reducers';
+import { actions } from '../../reducers/fullscreenGrid';
 import { AnyReactNode } from '../../typeUtils';
+import { gettext } from '../../utils';
+import ToggleButton from '../ToggleButton';
 import styles from './styles.module.scss';
 
-type PublicProps = {
+export type PublicProps = {
   altSidePanel?: AnyReactNode;
   altSidePanelClass?: string;
   children?: AnyReactNode;
@@ -13,22 +19,48 @@ type PublicProps = {
   mainSidePanelClass?: string;
 };
 
-type Props = PublicProps;
+type PropsFromState = {
+  mainSidePanelIsExpanded: boolean;
+};
+
+type Props = PublicProps & PropsFromState & ConnectedReduxProps;
 
 export const ContentShellBase = ({
   altSidePanel,
   altSidePanelClass,
   children,
   className,
+  dispatch,
   mainSidePanel,
   mainSidePanelClass,
+  mainSidePanelIsExpanded,
 }: Props) => {
   return (
     <React.Fragment>
       <aside
-        className={makeClassName(styles.mainSidePanel, mainSidePanelClass)}
+        aria-expanded={mainSidePanelIsExpanded ? 'true' : 'false'}
+        className={makeClassName(
+          styles.mainSidePanel,
+          {
+            [styles.mainSidePanelIsCollapsed]: !mainSidePanelIsExpanded,
+          },
+          mainSidePanelClass,
+        )}
       >
-        {mainSidePanel}
+        <div className={styles.mainSidePanelContent}>{mainSidePanel}</div>
+        <ToggleButton
+          className={styles.mainSidePanelToggleButton}
+          label={
+            mainSidePanelIsExpanded ? gettext('Collapse this panel') : null
+          }
+          onClick={() => dispatch(actions.toggleMainSidePanel())}
+          title={
+            mainSidePanelIsExpanded
+              ? gettext('Collapse this panel')
+              : gettext('Expand this panel')
+          }
+          toggleLeft={mainSidePanelIsExpanded}
+        />
       </aside>
       <main className={makeClassName(styles.content, className)}>
         {children}
@@ -40,4 +72,10 @@ export const ContentShellBase = ({
   );
 };
 
-export default ContentShellBase;
+const mapStateToProps = (state: ApplicationState): PropsFromState => {
+  return {
+    mainSidePanelIsExpanded: state.fullscreenGrid.mainSidePanelIsExpanded,
+  };
+};
+
+export default connect(mapStateToProps)(ContentShellBase);

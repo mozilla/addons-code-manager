@@ -3,13 +3,13 @@ import makeClassName from 'classnames';
 import { Button } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import { gettext } from '../../utils';
 import styles from './styles.module.scss';
 
 type Props = {
   className?: string;
-  label?: string;
+  label?: string | null;
   onClick: () => void;
+  title?: string;
   toggleLeft?: boolean;
 };
 
@@ -17,6 +17,7 @@ const ToggleButton = ({
   className,
   label,
   onClick,
+  title,
   toggleLeft = false,
 }: Props) => {
   const labelElement = label ? (
@@ -34,7 +35,7 @@ const ToggleButton = ({
         className,
       )}
       onClick={onClick}
-      title={gettext('Toggle this panel')}
+      title={title}
     >
       {!toggleLeft && labelElement}
       <FontAwesomeIcon icon={icon} />
