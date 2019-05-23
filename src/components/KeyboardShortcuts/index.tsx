@@ -1,4 +1,3 @@
-import makeClassName from 'classnames';
 import log from 'loglevel';
 import * as React from 'react';
 import { connect } from 'react-redux';
@@ -141,7 +140,7 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
               }),
             );
           } else {
-            log.warn('Cannot navigate to next change without diff loaded');
+            log.warn('Cannot navigate to previous change without diff loaded');
           }
           break;
         default:
@@ -163,9 +162,7 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
 
   render() {
     const { compareInfo } = this.props;
-    const disabledClassname = makeClassName({
-      [styles.disabled]: !compareInfo,
-    });
+    const diffKeysClassName = !compareInfo ? styles.disabled : '';
 
     return (
       <div className={styles.KeyboardShortcuts}>
@@ -178,14 +175,14 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
             <kbd>j</kbd>
           </dt>
           <dd>{gettext('Down file')}</dd>
-          <dt className={disabledClassname}>
-            <kbd className={disabledClassname}>p</kbd>
+          <dt className={diffKeysClassName}>
+            <kbd>p</kbd>
           </dt>
-          <dd className={disabledClassname}>{gettext('Previous change')}</dd>
-          <dt className={disabledClassname}>
-            <kbd className={disabledClassname}>n</kbd>
+          <dd className={diffKeysClassName}>{gettext('Previous change')}</dd>
+          <dt className={diffKeysClassName}>
+            <kbd>n</kbd>
           </dt>
-          <dd className={disabledClassname}>{gettext('Next change')}</dd>
+          <dd className={diffKeysClassName}>{gettext('Next change')}</dd>
           <dt>
             <kbd>o</kbd>
           </dt>

@@ -166,7 +166,7 @@ export type VersionFile = {
   version: string;
 };
 
-type VersionEntry = {
+export type VersionEntry = {
   depth: number;
   filename: string;
   mimeType: string;

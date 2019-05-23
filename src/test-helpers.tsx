@@ -26,9 +26,10 @@ import {
   ExternalVersionsList,
   ExternalVersionsListItem,
   Version,
+  VersionEntry,
   VersionEntryType,
   actions as versionsActions,
-  createInternalDiff,
+  createInternalCompareInfo,
   createInternalVersion,
   createInternalVersionEntry,
 } from './reducers/versions';
@@ -398,16 +399,24 @@ export const createFakeCompareInfo = ({
   baseVersionId = 1,
   headVersionId = 2,
   mimeType = 'mime/type',
+  entry = createInternalVersionEntry({
+    ...fakeVersionEntry,
+    mimetype: mimeType,
+  }),
   version = fakeVersionWithDiff,
+}: {
+  baseVersionId?: number;
+  headVersionId?: number;
+  mimeType?: string;
+  entry?: VersionEntry;
+  version?: ExternalVersionWithDiff;
 } = {}) => {
-  return {
-    diff: createInternalDiff({
-      baseVersionId,
-      headVersionId,
-      version,
-    }),
-    mimeType,
-  };
+  return createInternalCompareInfo({
+    baseVersionId,
+    entry,
+    headVersionId,
+    version,
+  });
 };
 
 export const createFakeLocation = (props = {}): Location => {
