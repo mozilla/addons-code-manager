@@ -62,7 +62,7 @@
     "redux-logger": "3.0.6",
     "redux-thunk": "2.3.0",
     "refractor": "2.9.0",
-    "ts-node": "8.1.0",
+    "ts-node": "8.2.0",
     "typesafe-actions": "4.4.0",
     "typescript": "3.4.5",
     "universal-cookie": "4.0.0",
