@@ -72,7 +72,7 @@ You can configure the app by defining environment variables in `.env` files, the
 - How to add a new environment variable
   - Add it to `.env` with the `REACT_APP_` prefix.
 - How to override an environment variable for a hosted site
-  - Define the variable in the [corresponding puppet config](https://github.com/mozilla-services/cloudops-deployment/tree/master/projects/addons-code-manager/puppet/yaml/type). To define a variable for `code.addons-dev.allizom.org`, for example, you'd update `amo.code_manager.dev.yaml`. Adding a variable to `.env.dev` **will do nothing** since that only affects the `yarn dev` command.
+  - Define the variable in the [corresponding puppet config file](https://github.com/mozilla-services/cloudops-deployment/tree/master/projects/addons-code-manager/puppet/yaml/type). To define a variable for `code.addons-dev.allizom.org`, for example, you'd update `amo.code_manager.dev.yaml`. Adding a variable to `.env.dev` **will do nothing** since that only affects the `yarn dev` command.
 
 ## All Available Commands
 
