@@ -1,9 +1,17 @@
 import log from 'loglevel';
-import Raven from 'raven-js';
+import * as Sentry from '@sentry/browser';
 
 import configureApplication, { ClientEnvVars } from './configureApplication';
 
 describe(__filename, () => {
+  const createFakeSentry = () => {
+    return {
+      ...Sentry,
+      configureScope: jest.fn(),
+      init: jest.fn(),
+    };
+  };
+
   describe('configureApplication', () => {
     it('sets the log level to DEBUG when not production', () => {
       const env = {
@@ -37,32 +45,25 @@ describe(__filename, () => {
       const env = {
         REACT_APP_SENTRY_DSN: 'a-sentry-dsn',
       };
-      const _Raven = {
-        ...Raven,
-        config: jest.fn().mockReturnThis(),
-        install: jest.fn(),
-      };
+      const _Sentry = createFakeSentry();
 
-      configureApplication({ _Raven, env: env as ClientEnvVars });
+      configureApplication({ _Sentry, env: env as ClientEnvVars });
 
-      expect(_Raven.config).toHaveBeenCalledWith(env.REACT_APP_SENTRY_DSN, {
-        logger: 'client',
-      });
-      expect(_Raven.install).toHaveBeenCalled();
+      expect(_Sentry.init).toHaveBeenCalledWith(
+        expect.objectContaining({
+          dsn: env.REACT_APP_SENTRY_DSN,
+        }),
+      );
+      expect(_Sentry.configureScope).toHaveBeenCalled();
     });
 
     it('does not configure Sentry when there is no DSN set', () => {
       const env = {};
-      const _Raven = {
-        ...Raven,
-        config: jest.fn().mockReturnThis(),
-        install: jest.fn(),
-      };
+      const _Sentry = createFakeSentry();
 
-      configureApplication({ _Raven, env: env as ClientEnvVars });
+      configureApplication({ _Sentry, env: env as ClientEnvVars });
 
-      expect(_Raven.config).not.toHaveBeenCalled();
-      expect(_Raven.install).not.toHaveBeenCalled();
+      expect(_Sentry.init).not.toHaveBeenCalled();
     });
   });
 });
