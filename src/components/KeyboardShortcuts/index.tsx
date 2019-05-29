@@ -19,7 +19,7 @@ import {
 import styles from './styles.module.scss';
 import { gettext } from '../../utils';
 
-const keys = ['k', 'j', 'e', 'o', 'c', 'n', 'p'];
+export const supportedKeys = ['k', 'j', 'e', 'o', 'c', 'n', 'p'];
 
 export type PublicProps = {
   compareInfo: CompareInfo | null | void;
@@ -73,8 +73,10 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
       !event.ctrlKey &&
       !event.metaKey &&
       !event.shiftKey &&
-      keys.includes(event.key)
+      supportedKeys.includes(event.key)
     ) {
+      event.preventDefault();
+
       switch (event.key) {
         case 'k':
           dispatch(

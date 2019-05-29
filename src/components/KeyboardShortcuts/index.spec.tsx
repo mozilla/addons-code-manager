@@ -32,6 +32,7 @@ import KeyboardShortcuts, {
   DefaultProps,
   PublicProps,
   KeyboardShortcutsBase,
+  supportedKeys,
 } from '.';
 
 describe(__filename, () => {
@@ -113,12 +114,11 @@ describe(__filename, () => {
   const renderAndTriggerKeyEvent = (
     eventProps: CreateKeydownEventParams = { key: '' },
     renderProps: Partial<RenderParams>,
+    { event = createKeydownEvent(eventProps) } = {},
   ) => {
     const root = render(renderProps);
 
     const { keydownListener } = root.instance() as KeyboardShortcutsBase;
-
-    const event = createKeydownEvent(eventProps);
 
     keydownListener(event);
   };
@@ -317,4 +317,28 @@ describe(__filename, () => {
       expect(dispatch).not.toHaveBeenCalled();
     },
   );
+
+  it.each(supportedKeys)(
+    'prevents the default event when pressing "%s"',
+    (key) => {
+      const event = createKeydownEvent({ key });
+      const preventDefault = spyOn(event, 'preventDefault');
+
+      renderAndTriggerKeyEvent({ key }, {}, { event });
+
+      expect(preventDefault).toHaveBeenCalled();
+    },
+  );
+
+  it('does not prevent the default event when pressing an unsupported key', () => {
+    const key = '_';
+    expect(supportedKeys).not.toContain(key);
+
+    const event = createKeydownEvent({ key });
+    const preventDefault = spyOn(event, 'preventDefault');
+
+    renderAndTriggerKeyEvent({ key }, {}, { event });
+
+    expect(preventDefault).not.toHaveBeenCalled();
+  });
 });
