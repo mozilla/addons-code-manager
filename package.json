@@ -22,7 +22,7 @@
     "@types/lodash.debounce": "4.0.6",
     "@types/lodash.unescape": "4.0.6",
     "@types/loglevel": "1.5.4",
-    "@types/node": "10.14.7",
+    "@types/node": "10.14.8",
     "@types/react": "16.8.19",
     "@types/react-bootstrap": "0.32.17",
     "@types/react-dom": "16.8.4",
