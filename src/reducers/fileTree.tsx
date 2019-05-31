@@ -235,10 +235,20 @@ export const findRelativePathWithDiff = ({
   );
 };
 
-type MessagePathLineAndUid = {
+type RelativeMessageInfo = {
   line: LinterMessage['line'];
   path: string;
   uid: LinterMessage['uid'];
+};
+
+const makeRelativeMessageInfo = ({
+  message,
+  path,
+}: {
+  message: LinterMessage;
+  path: string;
+}) => {
+  return { line: message.line, path, uid: message.uid };
 };
 
 const findRelativeMessage = (
@@ -246,7 +256,7 @@ const findRelativeMessage = (
   messageMap: LinterMessageMap,
   pathList: string[],
   position: RelativePathPosition,
-): MessagePathLineAndUid => {
+): RelativeMessageInfo => {
   let path = currentPath;
   const maxAttempts = pathList.length;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -263,7 +273,7 @@ const findRelativeMessage = (
 
       if (msgArray[msgIndex]) {
         const message = msgArray[msgIndex];
-        return { line: message.line, path: nextPath, uid: message.uid };
+        return makeRelativeMessageInfo({ message, path: nextPath });
       }
     }
     path = nextPath;
@@ -290,7 +300,7 @@ export const getRelativeMessage = ({
   messageMap,
   pathList,
   position,
-}: GetRelativeMessageParams): MessagePathLineAndUid | null => {
+}: GetRelativeMessageParams): RelativeMessageInfo | null => {
   if (!Object.keys(messageMap).length) {
     // There are no messages at all.
     return null;
@@ -322,7 +332,7 @@ export const getRelativeMessage = ({
 
   if (newIndex >= 0 && newIndex < messagesForPath.length) {
     const message = messagesForPath[newIndex];
-    return { line: message.line, path: currentPath, uid: message.uid };
+    return makeRelativeMessageInfo({ message, path: currentPath });
   }
   return findRelativeMessage(currentPath, messageMap, pathList, position);
 };
