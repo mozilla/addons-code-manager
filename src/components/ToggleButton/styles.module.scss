@@ -2,20 +2,6 @@
 
 $label-margin: $default-padding;
 
-.ToggleButton {
-  background-color: $light-gray;
-  border: 0;
-  color: $black;
-  text-align: center;
-
-  &:active,
-  &:global(.btn-primary:not(:disabled):not(.disabled):active),
-  &:hover {
-    background-color: darken($light-gray, 3);
-    color: $black;
-  }
-}
-
 .label {
   margin-right: $label-margin;
 
