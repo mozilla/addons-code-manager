@@ -2,6 +2,7 @@ import * as React from 'react';
 import { shallow, ShallowWrapper } from 'enzyme';
 
 import { createFakeLogger } from '../../test-helpers';
+import styles from './styles.module.scss';
 
 import ImageView, { PublicProps } from '.';
 
@@ -86,5 +87,10 @@ describe(__filename, () => {
     const svg = String(atob(contentPart));
     expect(svg).toContain('<circle');
     expect(svg).not.toContain('<script>');
+  });
+
+  it('renders responsive images', () => {
+    const root = render();
+    expect(root.find('img')).toHaveClassName(styles.responsive);
   });
 });
