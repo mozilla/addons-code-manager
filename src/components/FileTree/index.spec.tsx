@@ -187,7 +187,7 @@ describe(__filename, () => {
       const treeFold = root.find(Treefold);
       expect(treeFold).toHaveProp('onToggleExpand');
 
-      const onToggleExpand = treeFold.prop('onToggleExpand');
+      const onToggleExpand = treeFold.prop('onToggleExpand') as Function;
       onToggleExpand(node);
 
       expect(dispatch).toHaveBeenCalledWith(
@@ -226,7 +226,7 @@ describe(__filename, () => {
       const treeFold = root.find(Treefold);
       expect(treeFold).toHaveProp('isNodeExpanded');
 
-      const isNodeExpanded = treeFold.prop('isNodeExpanded');
+      const isNodeExpanded = treeFold.prop('isNodeExpanded') as Function;
       expect(isNodeExpanded(node)).toBeTruthy();
     });
 
@@ -246,7 +246,7 @@ describe(__filename, () => {
       const treeFold = root.find(Treefold);
       expect(treeFold).toHaveProp('isNodeExpanded');
 
-      const isNodeExpanded = treeFold.prop('isNodeExpanded');
+      const isNodeExpanded = treeFold.prop('isNodeExpanded') as Function;
       expect(isNodeExpanded(node)).toBeFalsy();
     });
 
