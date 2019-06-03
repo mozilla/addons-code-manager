@@ -23,6 +23,7 @@ import Loading from '../../components/Loading';
 import CodeOverview from '../../components/CodeOverview';
 import CodeView from '../../components/CodeView';
 import ImageView from '../../components/ImageView';
+import PageTitle from '../../components/PageTitle';
 import VersionFileViewer from '../../components/VersionFileViewer';
 
 import Browse, { BrowseBase, Props as BrowseProps } from '.';
@@ -476,5 +477,37 @@ describe(__filename, () => {
 
     expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
     expect(_fetchVersion).toHaveBeenCalledWith({ addonId, versionId, path });
+  });
+
+  it('sets a temporary page title without a version', () => {
+    const root = render();
+
+    expect(root.find(PageTitle)).toHaveProp('title', 'Browse add-on version');
+  });
+
+  it('sets a page title from a version', () => {
+    const name = 'AdBlockPlus';
+    const versionString = '1.0-beta';
+    const version = {
+      ...fakeVersion,
+      id: fakeVersion.id + 1,
+      addon: {
+        ...fakeVersion.addon,
+        name: {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          [(process.env as any).REACT_APP_DEFAULT_API_LANG]: name,
+        },
+      },
+      version: versionString,
+    };
+    const store = configureStore();
+    _loadVersionAndFile({ store, version });
+
+    const root = render({ store, versionId: String(version.id) });
+
+    expect(root.find(PageTitle)).toHaveProp(
+      'title',
+      `Browse ${name}@${versionString}`,
+    );
   });
 });

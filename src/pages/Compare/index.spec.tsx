@@ -20,6 +20,7 @@ import {
 } from '../../reducers/versions';
 import DiffView from '../../components/DiffView';
 import Loading from '../../components/Loading';
+import PageTitle from '../../components/PageTitle';
 import VersionFileViewer from '../../components/VersionFileViewer';
 import styles from './styles.module.scss';
 
@@ -620,5 +621,43 @@ describe(__filename, () => {
     });
 
     expect(dispatch).not.toHaveBeenCalled();
+  });
+
+  it('sets a temporary page title without a version', () => {
+    const root = render();
+
+    expect(root.find(PageTitle)).toHaveProp('title', 'Compare add-on versions');
+  });
+
+  it('configures PageTitle', () => {
+    const baseVersionId = fakeVersionWithDiff.id + 1;
+    const headVersionId = baseVersionId + 1;
+
+    const name = 'AdBlockPlus';
+    const version = {
+      ...fakeVersionWithDiff,
+      id: headVersionId,
+      addon: {
+        ...fakeVersionWithDiff.addon,
+        name: {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          [(process.env as any).REACT_APP_DEFAULT_API_LANG]: name,
+        },
+      },
+    };
+
+    const store = configureStore();
+    _loadDiff({ baseVersionId, headVersionId, store, version });
+
+    const root = render({
+      baseVersionId: String(baseVersionId),
+      headVersionId: String(headVersionId),
+      store,
+    });
+
+    expect(root.find(PageTitle)).toHaveProp(
+      'title',
+      `Compare ${name}:${baseVersionId}...${headVersionId}`,
+    );
   });
 });

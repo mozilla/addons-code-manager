@@ -6,6 +6,7 @@ import { ApplicationState } from '../../reducers';
 import { ConnectedReduxProps } from '../../configureStore';
 import DiffView from '../../components/DiffView';
 import Loading from '../../components/Loading';
+import PageTitle from '../../components/PageTitle';
 import VersionChooser from '../../components/VersionChooser';
 import VersionFileViewer from '../../components/VersionFileViewer';
 import {
@@ -16,7 +17,11 @@ import {
   getVersionInfo,
   viewVersionFile,
 } from '../../reducers/versions';
-import { gettext, getPathFromQueryString } from '../../utils';
+import {
+  getLocalizedString,
+  gettext,
+  getPathFromQueryString,
+} from '../../utils';
 import styles from './styles.module.scss';
 
 export type PublicProps = {
@@ -132,34 +137,48 @@ export class CompareBase extends React.Component<Props> {
   }
 
   render() {
-    const { addonId, compareInfo, path, version } = this.props;
+    const { addonId, compareInfo, match, path, version } = this.props;
+
+    const { baseVersionId, headVersionId } = match.params;
 
     // TODO: set showFileInfo=true when we can:
     // https://github.com/mozilla/addons-code-manager/issues/647
     return (
-      <VersionFileViewer
-        compareInfo={compareInfo}
-        file={null}
-        onSelectFile={this.viewVersionFile}
-        showFileInfo={false}
-        version={version}
+      <PageTitle
+        title={
+          version
+            ? gettext(
+                `Compare ${getLocalizedString(
+                  version.addon.name,
+                )}:${baseVersionId}...${headVersionId}`,
+              )
+            : gettext('Compare add-on versions')
+        }
       >
-        <div className={styles.diffShell}>
-          <VersionChooser addonId={addonId} />
-          {version && compareInfo ? (
-            <div key={`${version.id}:${path}`} className={styles.diffContent}>
-              {/* The key in this ^ resets scrollbars between files */}
-              <DiffView
-                diff={compareInfo.diff}
-                mimeType={compareInfo.mimeType}
-                version={version}
-              />
-            </div>
-          ) : (
-            this.renderLoadingMessageOrError(gettext('Loading diff...'))
-          )}
-        </div>
-      </VersionFileViewer>
+        <VersionFileViewer
+          compareInfo={compareInfo}
+          file={null}
+          onSelectFile={this.viewVersionFile}
+          showFileInfo={false}
+          version={version}
+        >
+          <div className={styles.diffShell}>
+            <VersionChooser addonId={addonId} />
+            {version && compareInfo ? (
+              <div key={`${version.id}:${path}`} className={styles.diffContent}>
+                {/* The key in this ^ resets scrollbars between files */}
+                <DiffView
+                  diff={compareInfo.diff}
+                  mimeType={compareInfo.mimeType}
+                  version={version}
+                />
+              </div>
+            ) : (
+              this.renderLoadingMessageOrError(gettext('Loading diff...'))
+            )}
+          </div>
+        </VersionFileViewer>
+      </PageTitle>
     );
   }
 }

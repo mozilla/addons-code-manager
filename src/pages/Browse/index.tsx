@@ -6,6 +6,7 @@ import log from 'loglevel';
 import { ApplicationState } from '../../reducers';
 import { ConnectedReduxProps } from '../../configureStore';
 import { ApiState } from '../../reducers/api';
+import PageTitle from '../../components/PageTitle';
 import VersionFileViewer from '../../components/VersionFileViewer';
 import {
   Version,
@@ -17,7 +18,11 @@ import {
   isFileLoading,
   viewVersionFile,
 } from '../../reducers/versions';
-import { gettext, getPathFromQueryString } from '../../utils';
+import {
+  getLocalizedString,
+  gettext,
+  getPathFromQueryString,
+} from '../../utils';
 import Loading from '../../components/Loading';
 import CodeView from '../../components/CodeView';
 import ImageView from '../../components/ImageView';
@@ -144,14 +149,26 @@ export class BrowseBase extends React.Component<Props> {
     const { file, version } = this.props;
 
     return (
-      <VersionFileViewer
-        file={file}
-        onSelectFile={this.viewVersionFile}
-        showFileInfo
-        version={version}
+      <PageTitle
+        title={
+          version
+            ? gettext(
+                `Browse ${getLocalizedString(version.addon.name)}@${
+                  version.version
+                }`,
+              )
+            : gettext('Browse add-on version')
+        }
       >
-        {this.getContent()}
-      </VersionFileViewer>
+        <VersionFileViewer
+          file={file}
+          onSelectFile={this.viewVersionFile}
+          showFileInfo
+          version={version}
+        >
+          {this.getContent()}
+        </VersionFileViewer>
+      </PageTitle>
     );
   }
 }
