@@ -23,7 +23,6 @@ import Loading from '../../components/Loading';
 import CodeOverview from '../../components/CodeOverview';
 import CodeView from '../../components/CodeView';
 import ImageView from '../../components/ImageView';
-import PageTitle from '../../components/PageTitle';
 import VersionFileViewer from '../../components/VersionFileViewer';
 
 import Browse, { BrowseBase, Props as BrowseProps } from '.';
@@ -482,7 +481,7 @@ describe(__filename, () => {
   it('sets a temporary page title without a version', () => {
     const root = render();
 
-    expect(root.find(PageTitle)).toHaveProp('title', 'Browse add-on version');
+    expect(root.find('title')).toHaveText('Browse add-on version');
   });
 
   it('sets a page title from a version', () => {
@@ -505,9 +504,6 @@ describe(__filename, () => {
 
     const root = render({ store, versionId: String(version.id) });
 
-    expect(root.find(PageTitle)).toHaveProp(
-      'title',
-      `Browse ${name}@${versionString}`,
-    );
+    expect(root.find('title')).toHaveText(`Browse ${name}@${versionString}`);
   });
 });

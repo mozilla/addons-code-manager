@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Helmet } from 'react-helmet';
 import { RouteComponentProps } from 'react-router-dom';
 import { connect } from 'react-redux';
 
@@ -6,7 +7,6 @@ import { ApplicationState } from '../../reducers';
 import { ConnectedReduxProps } from '../../configureStore';
 import DiffView from '../../components/DiffView';
 import Loading from '../../components/Loading';
-import PageTitle from '../../components/PageTitle';
 import VersionChooser from '../../components/VersionChooser';
 import VersionFileViewer from '../../components/VersionFileViewer';
 import {
@@ -144,17 +144,18 @@ export class CompareBase extends React.Component<Props> {
     // TODO: set showFileInfo=true when we can:
     // https://github.com/mozilla/addons-code-manager/issues/647
     return (
-      <PageTitle
-        title={
-          version
-            ? gettext(
-                `Compare ${getLocalizedString(
-                  version.addon.name,
-                )}:${baseVersionId}...${headVersionId}`,
-              )
-            : gettext('Compare add-on versions')
-        }
-      >
+      <React.Fragment>
+        <Helmet>
+          <title>
+            {version
+              ? gettext(
+                  `Compare ${getLocalizedString(
+                    version.addon.name,
+                  )}:${baseVersionId}...${headVersionId}`,
+                )
+              : gettext('Compare add-on versions')}
+          </title>
+        </Helmet>
         <VersionFileViewer
           compareInfo={compareInfo}
           file={null}
@@ -178,7 +179,7 @@ export class CompareBase extends React.Component<Props> {
             )}
           </div>
         </VersionFileViewer>
-      </PageTitle>
+      </React.Fragment>
     );
   }
 }

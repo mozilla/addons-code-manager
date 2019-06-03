@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Helmet } from 'react-helmet';
 import { RouteComponentProps } from 'react-router-dom';
 import { connect } from 'react-redux';
 import log from 'loglevel';
@@ -6,7 +7,6 @@ import log from 'loglevel';
 import { ApplicationState } from '../../reducers';
 import { ConnectedReduxProps } from '../../configureStore';
 import { ApiState } from '../../reducers/api';
-import PageTitle from '../../components/PageTitle';
 import VersionFileViewer from '../../components/VersionFileViewer';
 import {
   Version,
@@ -149,17 +149,18 @@ export class BrowseBase extends React.Component<Props> {
     const { file, version } = this.props;
 
     return (
-      <PageTitle
-        title={
-          version
-            ? gettext(
-                `Browse ${getLocalizedString(version.addon.name)}@${
-                  version.version
-                }`,
-              )
-            : gettext('Browse add-on version')
-        }
-      >
+      <React.Fragment>
+        <Helmet>
+          <title>
+            {version
+              ? gettext(
+                  `Browse ${getLocalizedString(version.addon.name)}@${
+                    version.version
+                  }`,
+                )
+              : gettext('Browse add-on version')}
+          </title>
+        </Helmet>
         <VersionFileViewer
           file={file}
           onSelectFile={this.viewVersionFile}
@@ -168,7 +169,7 @@ export class BrowseBase extends React.Component<Props> {
         >
           {this.getContent()}
         </VersionFileViewer>
-      </PageTitle>
+      </React.Fragment>
     );
   }
 }

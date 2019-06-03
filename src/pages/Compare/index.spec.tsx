@@ -20,7 +20,6 @@ import {
 } from '../../reducers/versions';
 import DiffView from '../../components/DiffView';
 import Loading from '../../components/Loading';
-import PageTitle from '../../components/PageTitle';
 import VersionFileViewer from '../../components/VersionFileViewer';
 import styles from './styles.module.scss';
 
@@ -626,10 +625,10 @@ describe(__filename, () => {
   it('sets a temporary page title without a version', () => {
     const root = render();
 
-    expect(root.find(PageTitle)).toHaveProp('title', 'Compare add-on versions');
+    expect(root.find('title')).toHaveText('Compare add-on versions');
   });
 
-  it('configures PageTitle', () => {
+  it('sets a page title from versions', () => {
     const baseVersionId = fakeVersionWithDiff.id + 1;
     const headVersionId = baseVersionId + 1;
 
@@ -655,8 +654,7 @@ describe(__filename, () => {
       store,
     });
 
-    expect(root.find(PageTitle)).toHaveProp(
-      'title',
+    expect(root.find('title')).toHaveText(
       `Compare ${name}:${baseVersionId}...${headVersionId}`,
     );
   });
