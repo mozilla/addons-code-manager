@@ -1,0 +1,12 @@
+pre[class='language-text'],
+code[class='language-text'] {
+  color: #073642; /* base02 */
+}
+
+pre[class='language-text']::selection,
+pre[class='language-text'] ::selection,
+code[class='language-text']::selection,
+code[class='language-text'] ::selection {
+  color: #eee8d5; /* base2 */
+  background: #073642; /* base02 */
+}
