@@ -130,6 +130,15 @@ describe(__filename, () => {
     return { innerRoot, root, selectedMessageMap };
   };
 
+  const renderWithFixedHeight = (
+    props: RenderParams = {},
+    { overviewHeight = 400 } = {},
+  ) => {
+    const root = render(props);
+    root.setState({ overviewHeight });
+    return renderWithLinterProvider({ root });
+  };
+
   it('configures LinterProvider', () => {
     const version = createInternalVersion(fakeVersion);
     const root = render({ version });
@@ -221,16 +230,13 @@ describe(__filename, () => {
 
   it('renders links for a code line', () => {
     const location = createFakeLocation();
-    const root = render({
+    const root = renderWithFixedHeight({
       content: generateFileLines({ count: 3 }).join('\n'),
       location,
     });
-    root.setState({ overviewHeight: 400 });
-
-    const innerRoot = renderWithLinterProvider({ root });
 
     const line = 3;
-    const link = innerRoot.find(Link).at(line - 1);
+    const link = root.find(Link).at(line - 1);
 
     expect(link).toHaveProp('to', {
       ...location,
@@ -238,6 +244,49 @@ describe(__filename, () => {
     });
 
     expect(link).toHaveProp('title', `Jump to line ${line}`);
+  });
+
+  it('scrolls a linter message into view when clicking its link', () => {
+    const fakeDOMNode = { scrollIntoView: jest.fn() };
+    const _document = {
+      ...document,
+      querySelector: jest.fn().mockReturnValue(fakeDOMNode),
+    };
+
+    const root = renderWithFixedHeight({
+      _document,
+      content: generateFileLines({ count: 3 }).join('\n'),
+    });
+
+    const line = 3;
+    root
+      .find(Link)
+      .at(line - 1)
+      .simulate('click');
+
+    expect(_document.querySelector).toHaveBeenCalledWith(
+      getCodeLineAnchor(line),
+    );
+    expect(fakeDOMNode.scrollIntoView).toHaveBeenCalled();
+  });
+
+  it('does not scroll a linter message if its anchor does not exist', () => {
+    const _document = {
+      ...document,
+      // Simulate a scenario where the anchor does not exist on the page.
+      querySelector: jest.fn().mockReturnValue(null),
+    };
+
+    const root = renderWithFixedHeight({
+      _document,
+      content: generateFileLines({ count: 3 }).join('\n'),
+    });
+
+    // Make sure this doesn't throw.
+    root
+      .find(Link)
+      .at(0)
+      .simulate('click');
   });
 
   it('links to the first line that has a linter message', () => {
@@ -302,27 +351,24 @@ describe(__filename, () => {
     const rowHeight = 10;
     const rowTopPadding = 2;
 
-    const root = render({
+    const root = renderWithFixedHeight({
       rowHeight,
       rowTopPadding,
       content: generateFileLines({ count: 3 }).join('\n'),
     });
-    root.setState({ overviewHeight: 400 });
 
-    const innerRoot = renderWithLinterProvider({ root });
-
-    const link1 = innerRoot.find(Link).at(0);
+    const link1 = root.find(Link).at(0);
 
     expect(link1).toHaveStyle('height', `${rowHeight}px`);
     // The first line should not have top padding.
     expect(link1).toHaveStyle('paddingTop', undefined);
 
-    const link2 = innerRoot.find(Link).at(1);
+    const link2 = root.find(Link).at(1);
 
     expect(link2).toHaveStyle('height', `${rowHeight}px`);
     expect(link2).toHaveStyle('paddingTop', `${rowTopPadding}px`);
 
-    const link3 = innerRoot.find(Link).at(2);
+    const link3 = root.find(Link).at(2);
 
     expect(link3).toHaveStyle('height', `${rowHeight}px`);
     expect(link3).toHaveStyle('paddingTop', `${rowTopPadding}px`);
@@ -348,13 +394,13 @@ describe(__filename, () => {
     const contentLines = ['// Example code comment'];
 
     const location = createFakeLocation();
-    const root = render({ content: contentLines.join('\n'), location });
-    root.setState({ overviewHeight: 400 });
-
-    const innerRoot = renderWithLinterProvider({ root });
+    const root = renderWithFixedHeight({
+      content: contentLines.join('\n'),
+      location,
+    });
 
     // Lines 2 and beyond will be empty. Check the first empty line.
-    const link = innerRoot.find(Link).at(1);
+    const link = root.find(Link).at(1);
 
     expect(link).toHaveProp('to', {
       ...location,
@@ -364,16 +410,26 @@ describe(__filename, () => {
     expect(link).toHaveProp('title', '');
   });
 
+  it('does not scroll when clicking an empty line', () => {
+    const _document = { ...document, querySelector: jest.fn() };
+    const root = renderWithFixedHeight({ _document, content: '' });
+
+    // Click the first empty line.
+    root
+      .find(Link)
+      .at(1)
+      .simulate('click');
+
+    expect(_document.querySelector).not.toHaveBeenCalled();
+  });
+
   it('handles empty content', () => {
     const content = '';
     const allLineShapes = generateLineShapes([content]);
 
-    const root = render({ content });
-    root.setState({ overviewHeight: 400 });
+    const root = renderWithFixedHeight({ content });
 
-    const innerRoot = renderWithLinterProvider({ root });
-
-    const lineShapes = innerRoot.find(CodeLineShapes);
+    const lineShapes = root.find(CodeLineShapes);
     expect(lineShapes.at(0)).toHaveProp('lineShapes', allLineShapes[0]);
     expect(lineShapes).toHaveLength(1);
   });
@@ -382,12 +438,9 @@ describe(__filename, () => {
     const contentLines = generateFileLines({ count: 3 });
     const allLineShapes = generateLineShapes(contentLines);
 
-    const root = render({ content: contentLines.join('\n') });
-    root.setState({ overviewHeight: 400 });
+    const root = renderWithFixedHeight({ content: contentLines.join('\n') });
 
-    const innerRoot = renderWithLinterProvider({ root });
-
-    const lineShapes = innerRoot.find(CodeLineShapes);
+    const lineShapes = root.find(CodeLineShapes);
 
     expect(lineShapes.at(0)).toHaveProp('lineShapes', allLineShapes[0]);
     expect(lineShapes.at(1)).toHaveProp('lineShapes', allLineShapes[1]);
@@ -399,12 +452,12 @@ describe(__filename, () => {
   it('renders CodeLineShapes for groups of lines that fit into the grid', () => {
     const contentLines = generateFileLines({ count: 200 });
 
-    const root = render({ content: contentLines.join('\n') });
-    root.setState({ overviewHeight: 100 });
+    const root = renderWithFixedHeight(
+      { content: contentLines.join('\n') },
+      { overviewHeight: 100 },
+    );
 
-    const innerRoot = renderWithLinterProvider({ root });
-
-    const lineShapes = innerRoot.find(CodeLineShapes);
+    const lineShapes = root.find(CodeLineShapes);
 
     // This is a quick sanity check for the integration of
     // fitLineShapesIntoOverview(), which has more extensive tests.
