@@ -8,6 +8,7 @@ import {
   createFakeHistory,
   createFakeLocation,
   createFakeThunk,
+  externallyLocalizedString,
   fakeVersion,
   fakeVersionEntry,
   fakeVersionFile,
@@ -492,10 +493,7 @@ describe(__filename, () => {
       id: fakeVersion.id + 1,
       addon: {
         ...fakeVersion.addon,
-        name: {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          [(process.env as any).REACT_APP_DEFAULT_API_LANG]: name,
-        },
+        name: externallyLocalizedString(name),
       },
       version: versionString,
     };

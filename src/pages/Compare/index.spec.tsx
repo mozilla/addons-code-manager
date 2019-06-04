@@ -7,6 +7,7 @@ import {
   createFakeHistory,
   createFakeLocation,
   createFakeThunk,
+  externallyLocalizedString,
   fakeVersionWithDiff,
   shallowUntilTarget,
   spyOn,
@@ -638,10 +639,7 @@ describe(__filename, () => {
       id: headVersionId,
       addon: {
         ...fakeVersionWithDiff.addon,
-        name: {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          [(process.env as any).REACT_APP_DEFAULT_API_LANG]: name,
-        },
+        name: externallyLocalizedString(name),
       },
     };
 
