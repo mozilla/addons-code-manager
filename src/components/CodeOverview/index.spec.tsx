@@ -270,7 +270,7 @@ describe(__filename, () => {
     expect(fakeDOMNode.scrollIntoView).toHaveBeenCalled();
   });
 
-  it('does not scroll a linter message if its anchor does not exist', () => {
+  it('handles clicking on a line when its anchor does not exist', () => {
     const _document = {
       ...document,
       // Simulate a scenario where the anchor does not exist on the page.
