@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Helmet } from 'react-helmet';
 import { RouteComponentProps } from 'react-router-dom';
 import { connect } from 'react-redux';
 import log from 'loglevel';
@@ -17,7 +18,11 @@ import {
   isFileLoading,
   viewVersionFile,
 } from '../../reducers/versions';
-import { gettext, getPathFromQueryString } from '../../utils';
+import {
+  getLocalizedString,
+  gettext,
+  getPathFromQueryString,
+} from '../../utils';
 import Loading from '../../components/Loading';
 import CodeView from '../../components/CodeView';
 import ImageView from '../../components/ImageView';
@@ -144,14 +149,27 @@ export class BrowseBase extends React.Component<Props> {
     const { file, version } = this.props;
 
     return (
-      <VersionFileViewer
-        file={file}
-        onSelectFile={this.viewVersionFile}
-        showFileInfo
-        version={version}
-      >
-        {this.getContent()}
-      </VersionFileViewer>
+      <React.Fragment>
+        <Helmet>
+          <title>
+            {version
+              ? gettext(
+                  `Browse ${getLocalizedString(version.addon.name)}@${
+                    version.version
+                  }`,
+                )
+              : gettext('Browse add-on version')}
+          </title>
+        </Helmet>
+        <VersionFileViewer
+          file={file}
+          onSelectFile={this.viewVersionFile}
+          showFileInfo
+          version={version}
+        >
+          {this.getContent()}
+        </VersionFileViewer>
+      </React.Fragment>
     );
   }
 }

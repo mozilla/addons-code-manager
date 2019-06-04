@@ -8,6 +8,7 @@ import {
   createFakeHistory,
   createFakeLocation,
   createFakeThunk,
+  externallyLocalizedString,
   fakeVersion,
   fakeVersionEntry,
   fakeVersionFile,
@@ -476,5 +477,31 @@ describe(__filename, () => {
 
     expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
     expect(_fetchVersion).toHaveBeenCalledWith({ addonId, versionId, path });
+  });
+
+  it('sets a temporary page title without a version', () => {
+    const root = render();
+
+    expect(root.find('title')).toHaveText('Browse add-on version');
+  });
+
+  it('sets a page title from a version', () => {
+    const name = 'AdBlockPlus';
+    const versionString = '1.0-beta';
+    const version = {
+      ...fakeVersion,
+      id: fakeVersion.id + 1,
+      addon: {
+        ...fakeVersion.addon,
+        name: externallyLocalizedString(name),
+      },
+      version: versionString,
+    };
+    const store = configureStore();
+    _loadVersionAndFile({ store, version });
+
+    const root = render({ store, versionId: String(version.id) });
+
+    expect(root.find('title')).toHaveText(`Browse ${name}@${versionString}`);
   });
 });

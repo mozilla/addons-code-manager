@@ -7,6 +7,7 @@ import {
   createFakeHistory,
   createFakeLocation,
   createFakeThunk,
+  externallyLocalizedString,
   fakeVersionWithDiff,
   shallowUntilTarget,
   spyOn,
@@ -620,5 +621,39 @@ describe(__filename, () => {
     });
 
     expect(dispatch).not.toHaveBeenCalled();
+  });
+
+  it('sets a temporary page title without a version', () => {
+    const root = render();
+
+    expect(root.find('title')).toHaveText('Compare add-on versions');
+  });
+
+  it('sets a page title from versions', () => {
+    const baseVersionId = fakeVersionWithDiff.id + 1;
+    const headVersionId = baseVersionId + 1;
+
+    const name = 'AdBlockPlus';
+    const version = {
+      ...fakeVersionWithDiff,
+      id: headVersionId,
+      addon: {
+        ...fakeVersionWithDiff.addon,
+        name: externallyLocalizedString(name),
+      },
+    };
+
+    const store = configureStore();
+    _loadDiff({ baseVersionId, headVersionId, store, version });
+
+    const root = render({
+      baseVersionId: String(baseVersionId),
+      headVersionId: String(headVersionId),
+      store,
+    });
+
+    expect(root.find('title')).toHaveText(
+      `Compare ${name}:${baseVersionId}...${headVersionId}`,
+    );
   });
 });

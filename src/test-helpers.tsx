@@ -720,3 +720,15 @@ export const createStoreWithVersion = (
   store.dispatch(versionsActions.loadVersionInfo({ version }));
   return store;
 };
+
+/*
+ * Returns a localized string definition just like the external API would.
+ * */
+export const externallyLocalizedString = (
+  value: string,
+  locale = process.env.REACT_APP_DEFAULT_API_LANG as string,
+) => {
+  return {
+    [locale]: value,
+  };
+};
