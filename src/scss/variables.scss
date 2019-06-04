@@ -13,7 +13,8 @@ $alert-secondary-bg-color: #e2e3e5;
 // Shared style for the CodeView and DiffView components.
 $code-font-family: Consolas, Courier, monospace;
 $code-font-size: 13px;
-$code-line-height: 1.1;
+// This needs to match line-height in src/refractor/prism.css
+$code-line-height: 1.5;
 
 // These colors were copied from react-diff-view:
 // https://github.com/otakustay/react-diff-view/blob/0f0bbc77b7a3039d5a49303969c04f01122059c6/src/Hunk/Change.css
