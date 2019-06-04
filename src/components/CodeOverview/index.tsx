@@ -1,4 +1,5 @@
 import * as React from 'react';
+import log from 'loglevel';
 import { withRouter, Link, RouteComponentProps } from 'react-router-dom';
 import makeClassName from 'classnames';
 import chunk from 'lodash.chunk';
@@ -27,6 +28,7 @@ export type PublicProps = {
 
 export type DefaultProps = {
   _debounce: typeof debounce;
+  _document: typeof document;
   _window: {
     addEventListener: typeof window.addEventListener;
     removeEventListener: typeof window.removeEventListener;
@@ -47,6 +49,7 @@ type State = {
 export class CodeOverviewBase extends React.Component<Props, State> {
   static defaultProps = {
     _debounce: debounce,
+    _document: document,
     _window: window,
     createOverviewRef: () => React.createRef<HTMLDivElement>(),
     // This is the padding of the overview container.
@@ -164,7 +167,13 @@ export class CodeOverviewBase extends React.Component<Props, State> {
   }
 
   renderOverview(selectedMessageMap: LinterProviderInfo['selectedMessageMap']) {
-    const { content, location, rowHeight, rowTopPadding } = this.props;
+    const {
+      _document,
+      content,
+      location,
+      rowHeight,
+      rowTopPadding,
+    } = this.props;
     const { overviewHeight } = this.state;
 
     if (!overviewHeight) {
@@ -198,14 +207,37 @@ export class CodeOverviewBase extends React.Component<Props, State> {
         }
       }
 
+      const codeLineAnchor = linkableLine
+        ? getCodeLineAnchor(linkableLine)
+        : null;
+
+      const scrollToLine = () => {
+        // Explicitly scroll to the linter message in case the user had
+        // scrolled it out of view.
+        // Example: https://github.com/mozilla/addons-code-manager/issues/682
+        if (!codeLineAnchor) {
+          return;
+        }
+        const domLine = _document.querySelector(codeLineAnchor);
+        if (!domLine) {
+          log.error(
+            `Anchor "${codeLineAnchor}" unexpectedly does not exist on the page`,
+          );
+          return;
+        }
+
+        domLine.scrollIntoView();
+      };
+
       overview.push(
         <Link
           className={styles.line}
           to={{
             ...location,
-            hash: linkableLine ? getCodeLineAnchor(linkableLine) : '#',
+            hash: codeLineAnchor || '#',
           }}
           key={rowIndex}
+          onClick={scrollToLine}
           style={{
             height: `${rowHeight}px`,
             paddingTop: rowIndex > 0 ? `${rowTopPadding}px` : undefined,
