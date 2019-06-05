@@ -7,6 +7,7 @@ import {
   createFakeHistory,
   createFakeLocation,
   createFakeThunk,
+  createStoreWithVersion,
   externallyLocalizedString,
   fakeVersionWithDiff,
   shallowUntilTarget,
@@ -177,8 +178,7 @@ describe(__filename, () => {
 
   it('renders a loading message when no diff has been loaded', () => {
     const version = fakeVersionWithDiff;
-    const store = configureStore();
-    store.dispatch(versionsActions.loadVersionInfo({ version }));
+    const store = createStoreWithVersion(version);
 
     const root = render({ headVersionId: String(version.id), store });
 

@@ -2,17 +2,15 @@
 import React from 'react';
 import { storiesOf } from '@storybook/react';
 
-import configureStore from '../src/configureStore';
 import FileTree, {
   PublicProps as FileTreeProps,
 } from '../src/components/FileTree';
+import { VersionEntryType } from '../src/reducers/versions';
 import {
-  Version,
-  VersionEntryType,
-  getVersionInfo,
-  actions as versionActions,
-} from '../src/reducers/versions';
-import { fakeVersion, fakeVersionEntry } from '../src/test-helpers';
+  createStoreWithVersion,
+  fakeVersion,
+  fakeVersionEntry,
+} from '../src/test-helpers';
 import { renderWithStoreAndRouter } from './utils';
 
 const version = {
@@ -73,8 +71,7 @@ const onSelectFile = (path: string) => {
 };
 
 const render = ({ ...moreProps }: Partial<FileTreeProps> = {}) => {
-  const store = configureStore();
-  store.dispatch(versionActions.loadVersionInfo({ version }));
+  const store = createStoreWithVersion(version);
 
   const props: FileTreeProps = {
     onSelect: onSelectFile,

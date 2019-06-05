@@ -2,17 +2,19 @@ import React from 'react';
 import { storiesOf } from '@storybook/react';
 
 import FileMetadata from '../src/components/FileMetadata';
-import configureStore from '../src/configureStore';
 import {
   actions as versionActions,
   getVersionFile,
   VersionFile,
 } from '../src/reducers/versions';
-import { fakeVersion, fakeVersionEntry } from '../src/test-helpers';
+import {
+  createStoreWithVersion,
+  fakeVersion,
+  fakeVersionEntry,
+} from '../src/test-helpers';
 
 const loadVersionFile = (version = fakeVersion) => {
-  const store = configureStore();
-  store.dispatch(versionActions.loadVersionInfo({ version }));
+  const store = createStoreWithVersion(version);
   store.dispatch(
     versionActions.loadVersionFile({
       path: version.file.selected_file,
