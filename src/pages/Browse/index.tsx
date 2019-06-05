@@ -154,7 +154,7 @@ export class BrowseBase extends React.Component<Props> {
           <title>
             {version
               ? gettext(
-                  `Browse ${getLocalizedString(version.addon.name)}@${
+                  `Browse ${getLocalizedString(version.addon.name)} @ ${
                     version.version
                   }`,
                 )

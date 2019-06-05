@@ -151,7 +151,7 @@ export class CompareBase extends React.Component<Props> {
               ? gettext(
                   `Compare ${getLocalizedString(
                     version.addon.name,
-                  )}:${baseVersionId}...${headVersionId}`,
+                  )}: ${baseVersionId}...${headVersionId}`,
                 )
               : gettext('Compare add-on versions')}
           </title>
