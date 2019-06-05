@@ -186,6 +186,7 @@ type VersionAddon = {
 
 export type Version = {
   addon: VersionAddon;
+  comparedToVersionId: null | number;
   entries: VersionEntry[];
   expandedPaths: string[];
   id: number;
@@ -226,6 +227,7 @@ export const actions = {
   loadVersionInfo: createAction('LOAD_VERSION_INFO', (resolve) => {
     return (payload: {
       version: ExternalVersionWithContent | ExternalVersionWithDiff;
+      comparedToVersionId?: number;
     }) => resolve(payload);
   }),
   updateSelectedPath: createAction('UPDATE_SELECTED_PATH', (resolve) => {
@@ -387,9 +389,11 @@ export const createInternalVersionAddon = (
 
 export const createInternalVersion = (
   version: ExternalVersionWithContent | ExternalVersionWithDiff,
+  { comparedToVersionId }: { comparedToVersionId?: number } = {},
 ): Version => {
   return {
     addon: createInternalVersionAddon(version.addon),
+    comparedToVersionId: comparedToVersionId || null,
     entries: Object.keys(version.file.entries).map((nodeName) => {
       return createInternalVersionEntry(version.file.entries[nodeName]);
     }),
@@ -870,8 +874,14 @@ export const fetchDiff = ({
       );
       dispatch(errorsActions.addError({ error: response.error }));
     } else {
-      if (!getVersionInfo(versionsState, response.id)) {
-        dispatch(actions.loadVersionInfo({ version: response }));
+      const versionInfo = getVersionInfo(versionsState, response.id);
+      if (!versionInfo || versionInfo.comparedToVersionId !== baseVersionId) {
+        dispatch(
+          actions.loadVersionInfo({
+            version: response,
+            comparedToVersionId: baseVersionId,
+          }),
+        );
       }
       dispatch(
         actions.loadDiff({
@@ -1000,13 +1010,13 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
       };
     }
     case getType(actions.loadVersionInfo): {
-      const { version } = action.payload;
+      const { version, comparedToVersionId } = action.payload;
 
       return {
         ...state,
         versionInfo: {
           ...state.versionInfo,
-          [version.id]: createInternalVersion(version),
+          [version.id]: createInternalVersion(version, { comparedToVersionId }),
         },
       };
     }

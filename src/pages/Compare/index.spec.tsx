@@ -108,7 +108,12 @@ describe(__filename, () => {
     store = configureStore(),
     version = fakeVersionWithDiff,
   }) => {
-    store.dispatch(versionsActions.loadVersionInfo({ version }));
+    store.dispatch(
+      versionsActions.loadVersionInfo({
+        version,
+        comparedToVersionId: baseVersionId,
+      }),
+    );
     store.dispatch(
       versionsActions.loadDiff({
         addonId,
@@ -201,7 +206,10 @@ describe(__filename, () => {
     const viewer = root.find(VersionFileViewer);
     expect(viewer).toHaveLength(1);
     expect(viewer).toHaveProp('compareInfo', compareInfo);
-    expect(viewer).toHaveProp('version', createInternalVersion(version));
+    expect(viewer).toHaveProp(
+      'version',
+      createInternalVersion(version, { comparedToVersionId: baseVersionId }),
+    );
   });
 
   it('renders a DiffView', () => {
@@ -253,7 +261,10 @@ describe(__filename, () => {
       }),
     );
     expect(diffView).toHaveProp('mimeType', mimeType);
-    expect(diffView).toHaveProp('version', createInternalVersion(version));
+    expect(diffView).toHaveProp(
+      'version',
+      createInternalVersion(version, { comparedToVersionId: baseVersionId }),
+    );
   });
 
   it('renders an error when fetching a diff has failed', () => {
