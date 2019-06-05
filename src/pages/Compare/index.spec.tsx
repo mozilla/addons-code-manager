@@ -653,7 +653,7 @@ describe(__filename, () => {
     });
 
     expect(root.find('title')).toHaveText(
-      `Compare ${name}:${baseVersionId}...${headVersionId}`,
+      `Compare ${name}: ${baseVersionId}...${headVersionId}`,
     );
   });
 });

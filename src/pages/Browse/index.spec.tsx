@@ -502,6 +502,6 @@ describe(__filename, () => {
 
     const root = render({ store, versionId: String(version.id) });
 
-    expect(root.find('title')).toHaveText(`Browse ${name}@${versionString}`);
+    expect(root.find('title')).toHaveText(`Browse ${name}: ${versionString}`);
   });
 });
