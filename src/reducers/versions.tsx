@@ -891,10 +891,11 @@ export const fetchDiff = ({
       );
       dispatch(errorsActions.addError({ error: response.error }));
     } else {
-      const version = getVersionInfo(versionsState, response.id, {
-        comparedToVersionId: baseVersionId,
-      });
-      if (!version) {
+      if (
+        !getVersionInfo(versionsState, response.id, {
+          comparedToVersionId: baseVersionId,
+        })
+      ) {
         dispatch(
           actions.loadVersionInfo({
             version: response,
