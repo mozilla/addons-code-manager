@@ -411,8 +411,25 @@ export const getVersionFiles = (versions: VersionsState, versionId: number) => {
   return versions.versionFiles[versionId];
 };
 
-export const getVersionInfo = (versions: VersionsState, versionId: number) => {
-  return versions.versionInfo[versionId];
+export const getVersionInfo = (
+  versions: VersionsState,
+  versionId: number,
+  { comparedToVersionId }: { comparedToVersionId?: number } = {},
+) => {
+  const version = versions.versionInfo[versionId];
+
+  if (version === undefined) {
+    return undefined;
+  }
+  if (
+    version &&
+    comparedToVersionId !== undefined &&
+    version.comparedToVersionId !== comparedToVersionId
+  ) {
+    return undefined;
+  }
+
+  return version;
 };
 
 export const getMostRelevantEntryStatus = (
@@ -874,8 +891,10 @@ export const fetchDiff = ({
       );
       dispatch(errorsActions.addError({ error: response.error }));
     } else {
-      const versionInfo = getVersionInfo(versionsState, response.id);
-      if (!versionInfo || versionInfo.comparedToVersionId !== baseVersionId) {
+      const version = getVersionInfo(versionsState, response.id, {
+        comparedToVersionId: baseVersionId,
+      });
+      if (!version) {
         dispatch(
           actions.loadVersionInfo({
             version: response,
@@ -1267,7 +1286,9 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
         path,
       });
 
-      const headVersion = getVersionInfo(state, headVersionId);
+      const headVersion = getVersionInfo(state, headVersionId, {
+        comparedToVersionId: baseVersionId,
+      });
       if (!headVersion) {
         throw new Error(`Version missing for headVersionId: ${headVersionId}`);
       }

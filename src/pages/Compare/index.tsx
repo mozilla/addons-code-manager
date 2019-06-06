@@ -70,6 +70,7 @@ export class CompareBase extends React.Component<Props> {
       history,
       match,
       path,
+      version,
     } = this.props;
     const { addonId, baseVersionId, headVersionId, lang } = match.params;
 
@@ -90,7 +91,7 @@ export class CompareBase extends React.Component<Props> {
       return;
     }
 
-    if (compareInfo === undefined) {
+    if (compareInfo === undefined || version === undefined) {
       dispatch(
         _fetchDiff({
           addonId: parseInt(addonId, 10),
@@ -203,7 +204,9 @@ export const mapStateToProps = (
   );
 
   // The Compare API returns the version info of the head/newest version.
-  const version = getVersionInfo(state.versions, headVersionId);
+  const version = getVersionInfo(state.versions, headVersionId, {
+    comparedToVersionId: baseVersionId,
+  });
 
   return {
     addonId,

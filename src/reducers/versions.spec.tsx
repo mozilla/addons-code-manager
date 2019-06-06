@@ -498,7 +498,10 @@ describe(__filename, () => {
 
       let versionsState = reducer(
         undefined,
-        actions.loadVersionInfo({ version }),
+        actions.loadVersionInfo({
+          version,
+          comparedToVersionId: baseVersionId,
+        }),
       );
       versionsState = reducer(
         versionsState,
@@ -547,7 +550,10 @@ describe(__filename, () => {
 
       const previousState = reducer(
         undefined,
-        actions.loadVersionInfo({ version }),
+        actions.loadVersionInfo({
+          version,
+          comparedToVersionId: baseVersionId,
+        }),
       );
 
       expect(() => {
@@ -836,6 +842,47 @@ describe(__filename, () => {
       const state = initialState;
 
       expect(getVersionInfo(state, 1)).toEqual(undefined);
+    });
+
+    it('returns null if there was an error fetching the version', () => {
+      const versionId = 1;
+      // Trigger an error with fetching the version.
+      const state = reducer(
+        undefined,
+        actions.abortFetchVersion({ versionId }),
+      );
+
+      expect(getVersionInfo(state, versionId)).toEqual(null);
+    });
+
+    it('returns undefined if the comparedToVersionId does not match', () => {
+      const comparedToVersionId = 10;
+      const version = { ...fakeVersion, id: comparedToVersionId + 1 };
+
+      const state = reducer(
+        undefined,
+        actions.loadVersionInfo({ version, comparedToVersionId }),
+      );
+
+      expect(
+        getVersionInfo(state, version.id, {
+          comparedToVersionId: comparedToVersionId - 1,
+        }),
+      ).toEqual(undefined);
+    });
+
+    it('returns a mismatched version when comparedToVersionId is undefined', () => {
+      const comparedToVersionId = 10;
+      const version = { ...fakeVersion, id: comparedToVersionId + 1 };
+
+      const state = reducer(
+        undefined,
+        actions.loadVersionInfo({ version, comparedToVersionId }),
+      );
+
+      expect(getVersionInfo(state, version.id)).toEqual(
+        createInternalVersion(version, { comparedToVersionId }),
+      );
     });
   });
 
