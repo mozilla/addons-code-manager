@@ -71,6 +71,11 @@ export class CodeViewBase extends React.Component<Props> {
     return (
       <React.Fragment>
         {selectedMessageMap &&
+          selectedMessageMap.global.length > 0 &&
+          isLineSelected(getCodeLineAnchorID(0), location) && (
+            <div id={getCodeLineAnchorID(0)} ref={_scrollToSelectedLine} />
+          )}
+        {selectedMessageMap &&
           selectedMessageMap.global.map((message) => {
             return <LinterMessage key={message.uid} message={message} />;
           })}

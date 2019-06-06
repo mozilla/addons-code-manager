@@ -176,13 +176,13 @@ describe(__filename, () => {
 
   describe('getCodeLineAnchorID', () => {
     it('gets an anchor ID', () => {
-      expect(getCodeLineAnchorID(23)).toEqual('L23');
+      expect(getCodeLineAnchorID(23)).toEqual('I23');
     });
   });
 
   describe('getCodeLineAnchor', () => {
     it('gets an anchor', () => {
-      expect(getCodeLineAnchor(23)).toEqual('#L23');
+      expect(getCodeLineAnchor(23)).toEqual('#I23');
     });
   });
 });

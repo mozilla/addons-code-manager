@@ -9,7 +9,9 @@ import FileMetadata from '../FileMetadata';
 import FileTree from '../FileTree';
 import { PanelAttribs } from '../FullscreenGrid';
 import KeyboardShortcuts from '../KeyboardShortcuts';
+import LinterProvider from '../LinterProvider';
 import Loading from '../Loading';
+import { getMessageMap } from '../../reducers/linter';
 import {
   ExternalVersionEntry,
   actions as versionsActions,
@@ -19,9 +21,12 @@ import {
 import {
   createFakeCompareInfo,
   createFakeEntry,
-  getContentShellPanel,
+  createFakeExternalLinterResult,
+  fakeExternalLinterMessage,
   fakeVersion,
   fakeVersionEntry,
+  getContentShellPanel,
+  simulateLinterProvider,
 } from '../../test-helpers';
 
 import VersionFileViewer, { ItemTitles, PublicProps } from '.';
@@ -170,6 +175,20 @@ describe(__filename, () => {
     expect(item.find(Loading)).toHaveLength(1);
   });
 
+  it('configures LinterProvider for KeyboardShortcuts', () => {
+    const { version } = getInternalVersionAndFile();
+    const compareInfo = createFakeCompareInfo();
+    const root = renderPanel(
+      { compareInfo, version },
+      PanelAttribs.mainSidePanel,
+    );
+
+    const provider = root.find(LinterProvider);
+    expect(provider).toHaveProp('versionId', version.id);
+    expect(provider).toHaveProp('validationURL', version.validationURL);
+    expect(provider).toHaveProp('selectedPath', version.selectedPath);
+  });
+
   it('renders a KeyboardShortcuts panel', () => {
     const { version } = getInternalVersionAndFile();
     const compareInfo = createFakeCompareInfo();
@@ -177,12 +196,19 @@ describe(__filename, () => {
       { compareInfo, version },
       PanelAttribs.mainSidePanel,
     );
-    const item = getItem(root, ItemTitles.Shortcuts);
 
-    const shortcuts = item.find(KeyboardShortcuts);
+    const messageMap = getMessageMap(
+      createFakeExternalLinterResult({ messages: [fakeExternalLinterMessage] }),
+    );
+
+    const shortcuts = simulateLinterProvider(root, { messageMap }).find(
+      KeyboardShortcuts,
+    );
+
     expect(shortcuts).toHaveLength(1);
     expect(shortcuts).toHaveProp('compareInfo', compareInfo);
     expect(shortcuts).toHaveProp('currentPath', version.selectedPath);
+    expect(shortcuts).toHaveProp('messageMap', messageMap);
     expect(shortcuts).toHaveProp('versionId', version.id);
   });
 

@@ -1,8 +1,10 @@
 import log from 'loglevel';
+import queryString from 'query-string';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 
+import { LinterProviderInfo } from '../LinterProvider';
 import { ApplicationState } from '../../reducers';
 import { ConnectedReduxProps } from '../../configureStore';
 import {
@@ -10,7 +12,9 @@ import {
   RelativePathPosition,
   getTree,
   goToRelativeFile,
+  goToRelativeMessage,
 } from '../../reducers/fileTree';
+import { LinterMessage } from '../../reducers/linter';
 import {
   CompareInfo,
   actions as versionsActions,
@@ -18,7 +22,7 @@ import {
 } from '../../reducers/versions';
 import { actions as fullscreenGridActions } from '../../reducers/fullscreenGrid';
 import styles from './styles.module.scss';
-import { gettext } from '../../utils';
+import { gettext, messageUidQueryParam } from '../../utils';
 
 export const supportedKeys: { [key: string]: string | null } = {
   k: gettext('Up file'),
@@ -29,16 +33,20 @@ export const supportedKeys: { [key: string]: string | null } = {
   n: gettext('Next change'),
   p: gettext('Previous change'),
   h: gettext('Toggle main side panel'),
+  a: gettext('Previous linter message'),
+  z: gettext('Next linter message'),
 };
 
 export type PublicProps = {
   compareInfo: CompareInfo | null | void;
   currentPath: string;
+  messageMap: LinterProviderInfo['messageMap'];
   versionId: number;
 };
 
 type PropsFromState = {
   currentAnchor: string;
+  messageUid: LinterMessage['uid'];
   pathList: FileTree['pathList'] | void;
 };
 
@@ -46,6 +54,7 @@ export type DefaultProps = {
   _document: typeof document;
   _goToRelativeDiff: typeof goToRelativeDiff;
   _goToRelativeFile: typeof goToRelativeFile;
+  _goToRelativeMessage: typeof goToRelativeMessage;
 };
 
 type Props = RouteComponentProps &
@@ -59,16 +68,20 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
     _document: document,
     _goToRelativeDiff: goToRelativeDiff,
     _goToRelativeFile: goToRelativeFile,
+    _goToRelativeMessage: goToRelativeMessage,
   };
 
   keydownListener = (event: KeyboardEvent) => {
     const {
       _goToRelativeDiff,
       _goToRelativeFile,
+      _goToRelativeMessage,
       compareInfo,
       currentAnchor,
       currentPath,
       dispatch,
+      messageMap,
+      messageUid,
       pathList,
       versionId,
     } = this.props;
@@ -158,6 +171,34 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
         case 'h':
           dispatch(fullscreenGridActions.toggleMainSidePanel());
           break;
+        case 'z':
+          if (messageMap) {
+            dispatch(
+              _goToRelativeMessage({
+                currentMessageUid: messageUid,
+                currentPath,
+                messageMap,
+                pathList,
+                position: RelativePathPosition.next,
+                versionId,
+              }),
+            );
+          }
+          break;
+        case 'a':
+          if (messageMap) {
+            dispatch(
+              _goToRelativeMessage({
+                currentMessageUid: messageUid,
+                currentPath,
+                messageMap,
+                pathList,
+                position: RelativePathPosition.previous,
+                versionId,
+              }),
+            );
+          }
+          break;
         default:
       }
     }
@@ -214,6 +255,7 @@ const mapStateToProps = (
   ownProps: PublicProps & RouteComponentProps,
 ): PropsFromState => {
   const { location, versionId } = ownProps;
+  const messageUid = queryString.parse(location.search)[messageUidQueryParam];
 
   const tree = getTree(state.fileTree, versionId);
   if (!tree) {
@@ -225,6 +267,7 @@ const mapStateToProps = (
 
   return {
     currentAnchor: location.hash.replace(/^#/, ''),
+    messageUid: typeof messageUid === 'string' ? messageUid : '',
     pathList: tree && tree.pathList,
   };
 };

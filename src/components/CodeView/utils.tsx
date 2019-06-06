@@ -38,7 +38,7 @@ export const getLines = (content: string) => {
 };
 
 export const getCodeLineAnchorID = (line: number) => {
-  return `L${line}`;
+  return `I${line}`;
 };
 
 export const getCodeLineAnchor = (line: number) => {

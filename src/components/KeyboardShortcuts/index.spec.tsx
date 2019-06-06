@@ -8,6 +8,7 @@ import {
   actions as fileTreeActions,
   RelativePathPosition,
 } from '../../reducers/fileTree';
+import { getMessageMap } from '../../reducers/linter';
 import {
   actions as versionsActions,
   createInternalVersion,
@@ -18,9 +19,11 @@ import {
   createContextWithFakeRouter,
   createKeydownEvent,
   createFakeCompareInfo,
+  createFakeExternalLinterResult,
   createFakeLocation,
   createFakeThunk,
   createStoreWithVersion,
+  fakeExternalLinterMessage,
   fakeVersion,
   fakeVersionEntry,
   fakeVersionWithDiff,
@@ -82,6 +85,9 @@ describe(__filename, () => {
     compareInfo = null,
     currentPath = 'file1.js',
     location = createFakeLocation(),
+    messageMap = getMessageMap(
+      createFakeExternalLinterResult({ messages: [fakeExternalLinterMessage] }),
+    ),
     store,
     versionId = 1235,
     ...moreProps
@@ -90,6 +96,7 @@ describe(__filename, () => {
       compareInfo,
       currentPath,
       location,
+      messageMap,
       versionId,
       ...moreProps,
     };
@@ -330,6 +337,55 @@ describe(__filename, () => {
       fullscreenGridActions.toggleMainSidePanel(),
     );
   });
+
+  it.each([
+    ['previous', 'a', RelativePathPosition.previous],
+    ['next', 'z', RelativePathPosition.next],
+  ])(
+    'dispatches goToRelativeMessage with %s when "%s" is pressed',
+    (direction, key, position) => {
+      const currentPath = 'file1.js';
+      const messageMap = getMessageMap(
+        createFakeExternalLinterResult({
+          messages: [fakeExternalLinterMessage],
+        }),
+      );
+      const messageUid = 'some-uid';
+      const pathList = [currentPath];
+      const versionId = 123;
+      const location = createFakeLocation({
+        search: queryString.stringify({ messageUid, path: currentPath }),
+      });
+
+      const store = configureStoreWithFileTree({ versionId, pathList });
+
+      const dispatch = spyOn(store, 'dispatch');
+      const fakeThunk = createFakeThunk();
+      const _goToRelativeMessage = fakeThunk.createThunk;
+
+      renderAndTriggerKeyEvent(
+        { key: key as string },
+        {
+          _goToRelativeMessage,
+          currentPath,
+          location,
+          messageMap,
+          store,
+          versionId,
+        },
+      );
+
+      expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+      expect(_goToRelativeMessage).toHaveBeenCalledWith({
+        currentMessageUid: messageUid,
+        currentPath,
+        messageMap,
+        pathList,
+        position,
+        versionId,
+      });
+    },
+  );
 
   it('does not listen to keyboard events without a file tree', () => {
     // Configure an empty store, one without a file tree loaded.
