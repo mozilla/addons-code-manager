@@ -855,6 +855,20 @@ describe(__filename, () => {
       expect(getVersionInfo(state, versionId)).toEqual(null);
     });
 
+    it('returns null if there was an error fetching a version with comparedToVersionId set', () => {
+      const comparedToVersionId = 1;
+      const versionId = 2;
+      // Trigger an error with fetching the version.
+      const state = reducer(
+        undefined,
+        actions.abortFetchVersion({ versionId }),
+      );
+
+      expect(getVersionInfo(state, versionId, { comparedToVersionId })).toEqual(
+        null,
+      );
+    });
+
     it('returns undefined if the comparedToVersionId does not match', () => {
       const comparedToVersionId = 10;
       const version = { ...fakeVersion, id: comparedToVersionId + 1 };
