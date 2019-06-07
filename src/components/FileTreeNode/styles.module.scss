@@ -30,7 +30,7 @@
   border-left: 10px solid transparent;
   display: flex;
   line-height: 1;
-  padding: 0.6em 1.25em 0.4em 1.25em;
+  padding: 0.6rem 1.25rem 0.4rem 1.25rem;
   width: 100%;
 }
 
@@ -44,7 +44,7 @@
   overflow: hidden;
   // This accounts for low hanging glyphs such as `g` in a way that
   // does not disrupt the icon alignment (as opposed to using line-height)
-  padding-bottom: 0.2em;
+  padding-bottom: 0.2rem;
   text-overflow: ellipsis;
   white-space: wrap;
 }

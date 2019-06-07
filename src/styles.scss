@@ -1,3 +1,7 @@
+html {
+  font-size: 13px;
+}
+
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -5,7 +9,3 @@ body {
 
 // Import Bootstrap and its default variables
 @import '~bootstrap/scss/bootstrap.scss';
-
-body {
-  font-size: 13px;
-}
