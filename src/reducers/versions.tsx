@@ -186,6 +186,7 @@ type VersionAddon = {
 
 export type Version = {
   addon: VersionAddon;
+  comparedToVersionId: null | number;
   entries: VersionEntry[];
   expandedPaths: string[];
   id: number;
@@ -226,6 +227,7 @@ export const actions = {
   loadVersionInfo: createAction('LOAD_VERSION_INFO', (resolve) => {
     return (payload: {
       version: ExternalVersionWithContent | ExternalVersionWithDiff;
+      comparedToVersionId?: number;
     }) => resolve(payload);
   }),
   updateSelectedPath: createAction('UPDATE_SELECTED_PATH', (resolve) => {
@@ -387,9 +389,11 @@ export const createInternalVersionAddon = (
 
 export const createInternalVersion = (
   version: ExternalVersionWithContent | ExternalVersionWithDiff,
+  { comparedToVersionId }: { comparedToVersionId?: number } = {},
 ): Version => {
   return {
     addon: createInternalVersionAddon(version.addon),
+    comparedToVersionId: comparedToVersionId || null,
     entries: Object.keys(version.file.entries).map((nodeName) => {
       return createInternalVersionEntry(version.file.entries[nodeName]);
     }),
@@ -407,8 +411,25 @@ export const getVersionFiles = (versions: VersionsState, versionId: number) => {
   return versions.versionFiles[versionId];
 };
 
-export const getVersionInfo = (versions: VersionsState, versionId: number) => {
-  return versions.versionInfo[versionId];
+export const getVersionInfo = (
+  versions: VersionsState,
+  versionId: number,
+  { comparedToVersionId }: { comparedToVersionId?: number } = {},
+) => {
+  const version = versions.versionInfo[versionId];
+
+  if (version === undefined) {
+    return undefined;
+  }
+  if (
+    version &&
+    comparedToVersionId !== undefined &&
+    version.comparedToVersionId !== comparedToVersionId
+  ) {
+    return undefined;
+  }
+
+  return version;
 };
 
 export const getMostRelevantEntryStatus = (
@@ -870,8 +891,17 @@ export const fetchDiff = ({
       );
       dispatch(errorsActions.addError({ error: response.error }));
     } else {
-      if (!getVersionInfo(versionsState, response.id)) {
-        dispatch(actions.loadVersionInfo({ version: response }));
+      if (
+        !getVersionInfo(versionsState, response.id, {
+          comparedToVersionId: baseVersionId,
+        })
+      ) {
+        dispatch(
+          actions.loadVersionInfo({
+            version: response,
+            comparedToVersionId: baseVersionId,
+          }),
+        );
       }
       dispatch(
         actions.loadDiff({
@@ -1000,13 +1030,13 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
       };
     }
     case getType(actions.loadVersionInfo): {
-      const { version } = action.payload;
+      const { version, comparedToVersionId } = action.payload;
 
       return {
         ...state,
         versionInfo: {
           ...state.versionInfo,
-          [version.id]: createInternalVersion(version),
+          [version.id]: createInternalVersion(version, { comparedToVersionId }),
         },
       };
     }
@@ -1257,7 +1287,9 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
         path,
       });
 
-      const headVersion = getVersionInfo(state, headVersionId);
+      const headVersion = getVersionInfo(state, headVersionId, {
+        comparedToVersionId: baseVersionId,
+      });
       if (!headVersion) {
         throw new Error(`Version missing for headVersionId: ${headVersionId}`);
       }

@@ -116,6 +116,22 @@ describe(__filename, () => {
       });
     });
 
+    it('loads version info with the comparedToVersionId property', () => {
+      const comparedToVersionId = 1;
+      const version = { ...fakeVersion, id: 2 };
+      const state = reducer(
+        undefined,
+        actions.loadVersionInfo({ version, comparedToVersionId }),
+      );
+
+      expect(state).toEqual({
+        ...initialState,
+        versionInfo: {
+          [version.id]: createInternalVersion(version, { comparedToVersionId }),
+        },
+      });
+    });
+
     it('updates a selected path for a given version', () => {
       const version = fakeVersion;
       let state = reducer(undefined, actions.loadVersionInfo({ version }));
@@ -482,7 +498,10 @@ describe(__filename, () => {
 
       let versionsState = reducer(
         undefined,
-        actions.loadVersionInfo({ version }),
+        actions.loadVersionInfo({
+          version,
+          comparedToVersionId: baseVersionId,
+        }),
       );
       versionsState = reducer(
         versionsState,
@@ -531,7 +550,10 @@ describe(__filename, () => {
 
       const previousState = reducer(
         undefined,
-        actions.loadVersionInfo({ version }),
+        actions.loadVersionInfo({
+          version,
+          comparedToVersionId: baseVersionId,
+        }),
       );
 
       expect(() => {
@@ -619,6 +641,7 @@ describe(__filename, () => {
 
       expect(createInternalVersion(version)).toEqual({
         addon: createInternalVersionAddon(version.addon),
+        comparedToVersionId: null,
         entries: [createInternalVersionEntry(entry)],
         expandedPaths: getParentFolders(version.file.selected_file),
         id: version.id,
@@ -628,6 +651,15 @@ describe(__filename, () => {
         validationURL: fakeVersion.validation_url_json,
         visibleSelectedPath: null,
       });
+    });
+
+    it('creates a Version with the comparedToVersionId property', () => {
+      const comparedToVersionId = 1;
+      const version = { ...fakeVersion, id: 2 };
+
+      expect(createInternalVersion(version, { comparedToVersionId })).toEqual(
+        expect.objectContaining({ comparedToVersionId }),
+      );
     });
 
     it('creates a Version with multiple entries', () => {
@@ -810,6 +842,61 @@ describe(__filename, () => {
       const state = initialState;
 
       expect(getVersionInfo(state, 1)).toEqual(undefined);
+    });
+
+    it('returns null if there was an error fetching the version', () => {
+      const versionId = 1;
+      // Trigger an error with fetching the version.
+      const state = reducer(
+        undefined,
+        actions.abortFetchVersion({ versionId }),
+      );
+
+      expect(getVersionInfo(state, versionId)).toEqual(null);
+    });
+
+    it('returns null if there was an error fetching a version with comparedToVersionId set', () => {
+      const comparedToVersionId = 1;
+      const versionId = 2;
+      // Trigger an error with fetching the version.
+      const state = reducer(
+        undefined,
+        actions.abortFetchVersion({ versionId }),
+      );
+
+      expect(getVersionInfo(state, versionId, { comparedToVersionId })).toEqual(
+        null,
+      );
+    });
+
+    it('returns undefined if the comparedToVersionId does not match', () => {
+      const comparedToVersionId = 10;
+      const version = { ...fakeVersion, id: comparedToVersionId + 1 };
+
+      const state = reducer(
+        undefined,
+        actions.loadVersionInfo({ version, comparedToVersionId }),
+      );
+
+      expect(
+        getVersionInfo(state, version.id, {
+          comparedToVersionId: comparedToVersionId - 1,
+        }),
+      ).toEqual(undefined);
+    });
+
+    it('returns a mismatched version when comparedToVersionId is undefined', () => {
+      const comparedToVersionId = 10;
+      const version = { ...fakeVersion, id: comparedToVersionId + 1 };
+
+      const state = reducer(
+        undefined,
+        actions.loadVersionInfo({ version, comparedToVersionId }),
+      );
+
+      expect(getVersionInfo(state, version.id)).toEqual(
+        createInternalVersion(version, { comparedToVersionId }),
+      );
     });
   });
 
@@ -1523,26 +1610,83 @@ describe(__filename, () => {
     });
 
     it('dispatches loadVersionInfo() when API response is successful and version is not already loaded', async () => {
-      const version = fakeVersionWithDiff;
+      const baseVersionId = 1;
+      const headVersionId = 2;
+      const version = { ...fakeVersionWithDiff, id: headVersionId };
 
-      const { dispatch, thunk } = _fetchDiff({ version });
+      const { dispatch, thunk } = _fetchDiff({
+        baseVersionId,
+        headVersionId,
+        version,
+      });
       await thunk();
 
       expect(dispatch).toHaveBeenCalledWith(
-        actions.loadVersionInfo({ version }),
+        actions.loadVersionInfo({
+          version,
+          comparedToVersionId: baseVersionId,
+        }),
       );
     });
 
-    it('does not dispatch loadVersionInfo() when version is already loaded', async () => {
+    it('does not dispatch loadVersionInfo() when the same version comparison exists', async () => {
       const store = configureStore();
-      const version = fakeVersionWithDiff;
-      store.dispatch(actions.loadVersionInfo({ version }));
+      const baseVersionId = 1;
+      const headVersionId = 2;
+      const version = { ...fakeVersionWithDiff, id: headVersionId };
 
-      const { dispatch, thunk } = _fetchDiff({ version, store });
+      store.dispatch(
+        actions.loadVersionInfo({
+          version,
+          comparedToVersionId: baseVersionId,
+        }),
+      );
+
+      const { dispatch, thunk } = _fetchDiff({
+        baseVersionId,
+        headVersionId,
+        version,
+        store,
+      });
       await thunk();
 
       expect(dispatch).not.toHaveBeenCalledWith(
-        actions.loadVersionInfo({ version }),
+        actions.loadVersionInfo({
+          version,
+          comparedToVersionId: baseVersionId,
+        }),
+      );
+    });
+
+    it('dispatches loadVersionInfo() when a version exists but for a different comparison', async () => {
+      const store = configureStore();
+      const baseVersionId = 10;
+      const headVersionId = 11;
+      const version = { ...fakeVersionWithDiff, id: headVersionId };
+
+      store.dispatch(
+        actions.loadVersionInfo({
+          version,
+          comparedToVersionId: baseVersionId,
+        }),
+      );
+
+      const newBaseVersionId = baseVersionId - 1;
+      const { dispatch, thunk } = _fetchDiff({
+        // Request the same version comparison but with a different baseVersionId
+        baseVersionId: newBaseVersionId,
+        headVersionId,
+        version,
+        store,
+      });
+      await thunk();
+
+      // Make sure the version for the new comparison was loaded.
+      expect(dispatch).toHaveBeenCalledWith(
+        actions.loadVersionInfo({
+          version,
+          comparedToVersionId: newBaseVersionId,
+        }),
       );
     });
 
