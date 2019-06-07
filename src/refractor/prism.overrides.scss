@@ -1,3 +1,10 @@
+@import '../scss/variables';
+
+code[class*='language-'],
+pre[class*='language-'] {
+  line-height: $code-line-height;
+}
+
 pre[class='language-text'],
 code[class='language-text'] {
   color: #073642; /* base02 */
