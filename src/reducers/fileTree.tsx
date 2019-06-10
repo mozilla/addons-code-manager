@@ -1,10 +1,18 @@
+import { push } from 'connected-react-router';
+import log from 'loglevel';
+import queryString from 'query-string';
 import { Reducer } from 'redux';
 import { ActionType, createAction, getType } from 'typesafe-actions';
 
 import { Version, viewVersionFile } from './versions';
 import { ThunkActionCreator } from '../configureStore';
-import { getLocalizedString } from '../utils';
+import {
+  getLocalizedString,
+  messageUidQueryParam,
+  pathQueryParam,
+} from '../utils';
 import { LinterMessage, LinterMessageMap, getMessagesForPath } from './linter';
+import { getCodeLineAnchor } from '../components/CodeView/utils';
 
 export const ROOT_PATH = '~root~';
 
@@ -369,6 +377,75 @@ export const goToRelativeFile = ({
         versionId,
       }),
     );
+  };
+};
+
+type GoToRelativeMessageParams = {
+  _getRelativeMessage?: typeof getRelativeMessage;
+  _viewVersionFile?: typeof viewVersionFile;
+  currentMessageUid: LinterMessage['uid'] | void;
+  currentPath: string;
+  messageMap: LinterMessageMap;
+  pathList: string[];
+  position: RelativePathPosition;
+  versionId: number;
+};
+
+export const goToRelativeMessage = ({
+  /* istanbul ignore next */
+  _getRelativeMessage = getRelativeMessage,
+  /* istanbul ignore next */
+  _viewVersionFile = viewVersionFile,
+  currentMessageUid,
+  currentPath,
+  messageMap,
+  pathList,
+  position,
+  versionId,
+}: GoToRelativeMessageParams): ThunkActionCreator => {
+  return async (dispatch, getState) => {
+    const nextRelativeMessageInfo = _getRelativeMessage({
+      currentMessageUid,
+      currentPath,
+      messageMap,
+      pathList,
+      position,
+    });
+
+    if (nextRelativeMessageInfo) {
+      const { line, path, uid } = nextRelativeMessageInfo;
+      const {
+        router: { location },
+      } = getState();
+
+      const queryParams = queryString.parse(location.search);
+      const newParams = { ...queryParams };
+      newParams[pathQueryParam] = path;
+      newParams[messageUidQueryParam] = uid;
+
+      // Update the location with the hash for the message uid.
+      const newLocation = {
+        ...location,
+        hash: getCodeLineAnchor(line || 0),
+        search: `?${queryString.stringify(newParams)}`,
+      };
+      dispatch(push(newLocation));
+
+      if (currentPath !== path) {
+        // We need a new file.
+        dispatch(
+          _viewVersionFile({
+            preserveHash: true,
+            selectedPath: path,
+            versionId,
+          }),
+        );
+      }
+    } else {
+      log.warn(
+        'goToRelativeMessage did nothing because there are no messages to which to navigate',
+      );
+    }
   };
 };
 

@@ -1,4 +1,6 @@
 /* eslint @typescript-eslint/camelcase: 0 */
+import { push } from 'connected-react-router';
+
 import reducer, {
   ROOT_PATH,
   DirectoryNode,
@@ -13,12 +15,17 @@ import reducer, {
   getRelativePath,
   getTree,
   goToRelativeFile,
+  goToRelativeMessage,
   initialState,
 } from './fileTree';
 import { createInternalVersion, createInternalVersionEntry } from './versions';
 import { getMessageMap } from './linter';
+import { getCodeLineAnchor } from '../components/CodeView/utils';
+import configureStore from '../configureStore';
 import {
   createFakeExternalLinterResult,
+  createFakeHistory,
+  createFakeLocation,
   createFakeThunk,
   createVersionWithInternalEntries,
   fakeVersion,
@@ -1062,6 +1069,247 @@ describe(__filename, () => {
           }),
         ).toEqual(expect.objectContaining({ path: file3, uid: global12 }));
       });
+    });
+  });
+
+  describe('goToRelativeMessage', () => {
+    const _goToRelativeMessage = ({
+      _getRelativeMessage = jest.fn(),
+      _viewVersionFile = jest.fn(),
+      currentMessageUid = '',
+      currentPath = 'file1.js',
+      messageMap = getMessageMap(
+        createFakeExternalLinterResult({ messages: [] }),
+      ),
+      pathList = ['file1.js'],
+      position = RelativePathPosition.next,
+      versionId = 1,
+    } = {}) => {
+      return goToRelativeMessage({
+        _getRelativeMessage,
+        _viewVersionFile,
+        currentMessageUid,
+        currentPath,
+        messageMap,
+        pathList,
+        position,
+        versionId,
+      });
+    };
+
+    it('calls getRelativeMessage', async () => {
+      const _getRelativeMessage = jest.fn();
+      const currentMessageUid = 'message-uid';
+      const currentPath = 'file1.js';
+      const messageMap = getMessageMap(
+        createFakeExternalLinterResult({ messages: [] }),
+      );
+      const pathList = [currentPath];
+      const position = RelativePathPosition.next;
+
+      const { thunk } = thunkTester({
+        createThunk: () =>
+          _goToRelativeMessage({
+            _getRelativeMessage,
+            currentMessageUid,
+            currentPath,
+            messageMap,
+            pathList,
+            position,
+          }),
+      });
+
+      await thunk();
+
+      expect(_getRelativeMessage).toHaveBeenCalledWith({
+        currentMessageUid,
+        currentPath,
+        messageMap,
+        pathList,
+        position,
+      });
+    });
+
+    it('dispatches push with the new location for the message', async () => {
+      const currentPath = 'file1.js';
+      const location = createFakeLocation({ pathname: currentPath });
+      const history = createFakeHistory({ location });
+
+      const line = 1;
+      const uid = 'some-uid';
+      const _getRelativeMessage = jest
+        .fn()
+        .mockReturnValue({ line, path: currentPath, uid });
+      const versionId = 123;
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () =>
+          _goToRelativeMessage({
+            _getRelativeMessage,
+            currentPath,
+            versionId,
+          }),
+        store: configureStore({ history }),
+      });
+
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(
+        push(
+          expect.objectContaining({
+            pathname: currentPath,
+            search: expect.urlWithTheseParams({
+              messageUid: uid,
+              path: currentPath,
+            }),
+            hash: getCodeLineAnchor(line),
+          }),
+        ),
+      );
+    });
+
+    it('uses 0 for the line number if the message is a global message', async () => {
+      const currentPath = 'file1.js';
+
+      const line = undefined;
+      const uid = 'some-uid';
+      const _getRelativeMessage = jest
+        .fn()
+        .mockReturnValue({ line, path: currentPath, uid });
+      const versionId = 123;
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () =>
+          _goToRelativeMessage({
+            _getRelativeMessage,
+            currentPath,
+            versionId,
+          }),
+      });
+
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(
+        push(
+          expect.objectContaining({
+            hash: getCodeLineAnchor(0),
+          }),
+        ),
+      );
+    });
+
+    it('preserves existing query parameters', async () => {
+      const currentPath = 'file1.js';
+      const search = '?a=b&c=d';
+      const location = createFakeLocation({ pathname: currentPath, search });
+      const history = createFakeHistory({ location });
+
+      const line = 1;
+      const uid = 'some-uid';
+      const _getRelativeMessage = jest
+        .fn()
+        .mockReturnValue({ line, path: currentPath, uid });
+      const versionId = 123;
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () =>
+          _goToRelativeMessage({
+            _getRelativeMessage,
+            currentPath,
+            versionId,
+          }),
+        store: configureStore({ history }),
+      });
+
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(
+        push(
+          expect.objectContaining({
+            search: expect.urlWithTheseParams({
+              a: 'b',
+              c: 'd',
+            }),
+          }),
+        ),
+      );
+    });
+
+    it('dispatches viewVersionFile if the next message is in a different file', async () => {
+      const currentPath = 'file1.js';
+      const line = 1;
+      const path = 'file2.js';
+      const uid = 'some-uid';
+      const _getRelativeMessage = jest
+        .fn()
+        .mockReturnValue({ line, path, uid });
+      const versionId = 123;
+
+      const fakeThunk = createFakeThunk();
+      const _viewVersionFile = fakeThunk.createThunk;
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () =>
+          _goToRelativeMessage({
+            _getRelativeMessage,
+            _viewVersionFile,
+            currentPath,
+            versionId,
+          }),
+      });
+
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+      expect(_viewVersionFile).toHaveBeenCalledWith({
+        preserveHash: true,
+        selectedPath: path,
+        versionId,
+      });
+    });
+
+    it('does not dispatch viewVersionFile if the next message is in the same file', async () => {
+      const path = 'file1.js';
+      const line = 1;
+      const uid = 'some-uid';
+      const _getRelativeMessage = jest
+        .fn()
+        .mockReturnValue({ line, path, uid });
+      const versionId = 123;
+
+      const fakeThunk = createFakeThunk();
+      const _viewVersionFile = fakeThunk.createThunk;
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () =>
+          _goToRelativeMessage({
+            _getRelativeMessage,
+            _viewVersionFile,
+            currentPath: path,
+            versionId,
+          }),
+      });
+
+      await thunk();
+
+      expect(dispatch).not.toHaveBeenCalledWith(fakeThunk.thunk);
+      expect(_viewVersionFile).not.toHaveBeenCalledWith({
+        preserveHash: true,
+        selectedPath: path,
+        versionId,
+      });
+    });
+
+    it('dispatches nothing if no relative message is found', async () => {
+      const _getRelativeMessage = jest.fn().mockReturnValue(null);
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () => _goToRelativeMessage({ _getRelativeMessage }),
+      });
+
+      await thunk();
+
+      expect(dispatch).not.toHaveBeenCalled();
     });
   });
 
