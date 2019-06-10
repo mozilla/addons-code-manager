@@ -3,6 +3,10 @@ import purify from 'dompurify';
 import { History } from 'history';
 import queryString from 'query-string';
 
+// Querystring params used by the app.
+export const messageUidQueryParam = 'messageUid';
+export const pathQueryParam = 'path';
+
 export type LocalizedStringMap = {
   [lang: string]: string;
 };
@@ -53,7 +57,7 @@ export const formatFilesize = (size: number): string => {
 };
 
 export const getPathFromQueryString = (history: History) => {
-  const { path } = queryString.parse(history.location.search);
+  const path = queryString.parse(history.location.search)[pathQueryParam];
 
   return typeof path === 'string' && path.length ? path : null;
 };

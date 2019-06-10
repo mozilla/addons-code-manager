@@ -6,7 +6,11 @@ import { ActionType, createAction, getType } from 'typesafe-actions';
 
 import { Version, viewVersionFile } from './versions';
 import { ThunkActionCreator } from '../configureStore';
-import { getLocalizedString } from '../utils';
+import {
+  getLocalizedString,
+  messageUidQueryParam,
+  pathQueryParam,
+} from '../utils';
 import { LinterMessage, LinterMessageMap, getMessagesForPath } from './linter';
 import { getCodeLineAnchor } from '../components/CodeView/utils';
 
@@ -416,14 +420,14 @@ export const goToRelativeMessage = ({
 
       const queryParams = queryString.parse(location.search);
       const newParams = { ...queryParams };
-      newParams.path = path;
-      newParams.messageUid = uid;
+      newParams[pathQueryParam] = path;
+      newParams[messageUidQueryParam] = uid;
 
       // Update the location with the hash for the message uid.
       const newLocation = {
         ...location,
         hash: getCodeLineAnchor(line || 0),
-        search: queryString.stringify(newParams),
+        search: `?${queryString.stringify(newParams)}`,
       };
       dispatch(push(newLocation));
 

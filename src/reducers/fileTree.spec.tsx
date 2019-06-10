@@ -1,6 +1,5 @@
 /* eslint @typescript-eslint/camelcase: 0 */
 import { push } from 'connected-react-router';
-import queryString from 'query-string';
 
 import reducer, {
   ROOT_PATH,
@@ -1156,11 +1155,83 @@ describe(__filename, () => {
       await thunk();
 
       expect(dispatch).toHaveBeenCalledWith(
-        push({
-          ...location,
-          search: queryString.stringify({ messageUid: uid, path: currentPath }),
-          hash: getCodeLineAnchor(line),
-        }),
+        push(
+          expect.objectContaining({
+            pathname: currentPath,
+            search: expect.urlWithTheseParams({
+              messageUid: uid,
+              path: currentPath,
+            }),
+            hash: getCodeLineAnchor(line),
+          }),
+        ),
+      );
+    });
+
+    it('uses 0 for the line number if the message is a global message', async () => {
+      const currentPath = 'file1.js';
+
+      const line = undefined;
+      const uid = 'some-uid';
+      const _getRelativeMessage = jest
+        .fn()
+        .mockReturnValue({ line, path: currentPath, uid });
+      const versionId = 123;
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () =>
+          _goToRelativeMessage({
+            _getRelativeMessage,
+            currentPath,
+            versionId,
+          }),
+      });
+
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(
+        push(
+          expect.objectContaining({
+            hash: getCodeLineAnchor(0),
+          }),
+        ),
+      );
+    });
+
+    it('preserves existing query parameters', async () => {
+      const currentPath = 'file1.js';
+      const search = '?a=b&c=d';
+      const location = createFakeLocation({ pathname: currentPath, search });
+      const history = createFakeHistory({ location });
+
+      const line = 1;
+      const uid = 'some-uid';
+      const _getRelativeMessage = jest
+        .fn()
+        .mockReturnValue({ line, path: currentPath, uid });
+      const versionId = 123;
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () =>
+          _goToRelativeMessage({
+            _getRelativeMessage,
+            currentPath,
+            versionId,
+          }),
+        store: configureStore({ history }),
+      });
+
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(
+        push(
+          expect.objectContaining({
+            search: expect.urlWithTheseParams({
+              a: 'b',
+              c: 'd',
+            }),
+          }),
+        ),
       );
     });
 
