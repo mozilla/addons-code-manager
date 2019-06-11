@@ -4,7 +4,6 @@ import makeClassName from 'classnames';
 import ToggleButton from '../ToggleButton';
 import { gettext } from '../../utils';
 import { AnyReactNode } from '../../typeUtils';
-
 import styles from './styles.module.scss';
 
 export type PublicProps = {
@@ -22,6 +21,8 @@ export const SidePanelBase = ({
   onClick,
   toggleLeft,
 }: PublicProps) => {
+  const collapseText = gettext('Collapse this panel');
+
   return (
     <aside
       aria-expanded={isExpanded ? 'true' : 'false'}
@@ -33,13 +34,9 @@ export const SidePanelBase = ({
 
       <ToggleButton
         className={styles.ToggleButton}
-        label={isExpanded ? gettext('Collapse this panel') : null}
+        label={isExpanded ? collapseText : null}
         onClick={onClick}
-        title={
-          isExpanded
-            ? gettext('Collapse this panel')
-            : gettext('Expand this panel')
-        }
+        title={isExpanded ? collapseText : gettext('Expand this panel')}
         toggleLeft={toggleLeft}
       />
     </aside>
