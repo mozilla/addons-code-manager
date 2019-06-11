@@ -30,23 +30,22 @@ $expand-button-width: 40px;
   grid-area: FGHeader;
 }
 
-.mainSidePanel {
+.mainSidePanel,
+.altSidePanel {
   display: grid;
   flex-direction: column;
-  grid-area: FGMainSidePanel;
   grid-gap: $default-padding;
   grid-template-rows: 1fr auto;
   height: auto;
+}
+
+.mainSidePanel {
+  grid-area: FGMainSidePanel;
   margin-left: $default-padding;
 }
 
 .altSidePanel {
-  display: grid;
-  flex-direction: column;
   grid-area: FGAltSidePanel;
-  grid-gap: $default-padding;
-  grid-template-rows: 1fr auto;
-  height: auto;
   margin-right: $default-padding;
 }
 
