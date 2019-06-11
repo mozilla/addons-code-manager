@@ -91,9 +91,7 @@ export const getMessageMap = (
       // possible since errors like this do exist. Let's log an
       // error to Sentry to alert us about it.
       _log.error(
-        `Unexpectedly received a message not mapped to a file: ${
-          message.message
-        }`,
+        `Unexpectedly received a message not mapped to a file: ${message.message}`,
       );
       return;
     }

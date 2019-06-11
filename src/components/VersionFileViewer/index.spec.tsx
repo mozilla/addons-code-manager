@@ -67,18 +67,14 @@ describe(__filename, () => {
     const internalVersion = getVersionInfo(versionsState, version.id);
     if (!internalVersion) {
       throw new Error(
-        `Unexpectedly could not retrieve version from state for id=${
-          version.id
-        }`,
+        `Unexpectedly could not retrieve version from state for id=${version.id}`,
       );
     }
 
     const file = getVersionFile(versionsState, version.id, path);
     if (!file) {
       throw new Error(
-        `Unexpectedly could not retrieve version file from state for id=${
-          version.id
-        }, path=${path}`,
+        `Unexpectedly could not retrieve version file from state for id=${version.id}, path=${path}`,
       );
     }
 
