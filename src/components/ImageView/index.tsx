@@ -52,7 +52,11 @@ const ImageViewBase = ({ mimeType, ...props }: PublicProps) => {
   return (
     <div className={styles.ImageView}>
       {imageData ? (
-        <img alt="" src={`data:${mimeType};base64,${imageData}`} />
+        <img
+          alt=""
+          src={`data:${mimeType};base64,${imageData}`}
+          className={styles.responsive}
+        />
       ) : (
         <p>{gettext('Unrecognized image format')}</p>
       )}
