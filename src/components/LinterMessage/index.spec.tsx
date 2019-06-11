@@ -6,14 +6,17 @@ import { createInternalMessage } from '../../reducers/linter';
 import { fakeExternalLinterMessage } from '../../test-helpers';
 import styles from './styles.module.scss';
 
-import LinterMessage, { decodeHtmlEntities } from '.';
+import LinterMessage, { PublicProps, decodeHtmlEntities } from '.';
 
 describe(__filename, () => {
   const render = ({
     message = createInternalMessage(fakeExternalLinterMessage),
     inline = false,
-  } = {}) => {
-    return shallow(<LinterMessage message={message} inline={inline} />);
+    ...props
+  }: Partial<PublicProps> = {}) => {
+    return shallow(
+      <LinterMessage message={message} inline={inline} {...props} />,
+    );
   };
 
   const renderMessage = (attributes = {}) => {
@@ -142,6 +145,18 @@ describe(__filename, () => {
     const root = render({ inline: true });
 
     expect(root).toHaveClassName(`.${styles.inline}`);
+  });
+
+  it('can be marked as highlighted', () => {
+    const root = render({ highlight: true });
+
+    expect(root).toHaveClassName(`.${styles.highlight}`);
+  });
+
+  it('is not highlighted by default', () => {
+    const root = render();
+
+    expect(root).not.toHaveClassName(`.${styles.highlight}`);
   });
 
   describe('decodeHtmlEntities', () => {

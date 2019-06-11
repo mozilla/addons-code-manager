@@ -58,18 +58,31 @@ const renderDescription = (description: LinterMessage['description']) => {
   }, []);
 };
 
-type PublicProps = {
+export type PublicProps = {
+  highlight?: boolean;
   inline?: boolean;
   message: LinterMessage;
 };
 
-const LinterMessageBase = ({ message, inline = false }: PublicProps) => {
+const LinterMessageBase = ({
+  highlight,
+  message,
+  inline = false,
+}: PublicProps) => {
   const { description, message: linterMessage, type } = message;
   const variant = getAlertVariant(type);
 
   return (
     <Alert
-      className={makeClassName(styles[variant], { [styles.inline]: inline })}
+      className={makeClassName(
+        styles[variant],
+        {
+          [styles.inline]: inline,
+        },
+        {
+          [styles.highlight]: highlight,
+        },
+      )}
       variant={variant}
     >
       <Alert.Heading>{decodeHtmlEntities(linterMessage)}</Alert.Heading>

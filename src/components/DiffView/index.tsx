@@ -1,3 +1,4 @@
+import makeClassName from 'classnames';
 import queryString from 'query-string';
 import * as React from 'react';
 import {
@@ -12,20 +13,26 @@ import {
   getChangeKey,
   tokenize,
 } from 'react-diff-view';
+import { connect } from 'react-redux';
 import { withRouter, RouteComponentProps } from 'react-router-dom';
-import makeClassName from 'classnames';
 
 import { getCodeLineAnchorID } from '../CodeView/utils';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import LinterMessage from '../LinterMessage';
 import refractor from '../../refractor';
+import { ApplicationState } from '../../reducers';
+import { LinterMessage as LinterMessageType } from '../../reducers/linter';
 import {
   ScrollTarget,
   Version,
   getDiffAnchors,
   getRelativeDiffAnchor,
 } from '../../reducers/versions';
-import { getLanguageFromMimeType, gettext } from '../../utils';
+import {
+  getLanguageFromMimeType,
+  gettext,
+  messageUidQueryParam,
+} from '../../utils';
 import styles from './styles.module.scss';
 import 'react-diff-view/style/index.css';
 
@@ -42,6 +49,10 @@ export type PublicProps = {
   version: Version;
 };
 
+type PropsFromState = {
+  messageUid: LinterMessageType['uid'];
+};
+
 export type DefaultProps = {
   _document: typeof document;
   _getDiffAnchors: typeof getDiffAnchors;
@@ -52,7 +63,7 @@ export type DefaultProps = {
 
 export type RouterProps = RouteComponentProps<{}>;
 
-export type Props = PublicProps & DefaultProps & RouterProps;
+export type Props = PublicProps & PropsFromState & DefaultProps & RouterProps;
 
 export class DiffViewBase extends React.Component<Props> {
   static defaultProps: DefaultProps = {
@@ -123,6 +134,7 @@ export class DiffViewBase extends React.Component<Props> {
   getWidgets = (
     hunks: Hunks,
     selectedMessageMap: LinterProviderInfo['selectedMessageMap'],
+    messageUid: LinterMessageType['uid'],
   ) => {
     return getAllHunkChanges(hunks).reduce((widgets, change) => {
       const changeKey = getChangeKey(change);
@@ -138,7 +150,14 @@ export class DiffViewBase extends React.Component<Props> {
         widget = (
           <div className={styles.inlineLinterMessages}>
             {messages.map((msg) => {
-              return <LinterMessage key={msg.uid} message={msg} inline />;
+              return (
+                <LinterMessage
+                  key={msg.uid}
+                  message={msg}
+                  inline
+                  highlight={msg.uid === messageUid}
+                />
+              );
             })}
           </div>
         );
@@ -196,7 +215,14 @@ export class DiffViewBase extends React.Component<Props> {
   };
 
   renderWithMessages = ({ selectedMessageMap }: LinterProviderInfo) => {
-    const { _tokenize, diff, mimeType, viewType, location } = this.props;
+    const {
+      _tokenize,
+      diff,
+      mimeType,
+      viewType,
+      location,
+      messageUid,
+    } = this.props;
 
     const options = {
       highlight: true,
@@ -210,7 +236,13 @@ export class DiffViewBase extends React.Component<Props> {
 
     const globalLinterMessages = selectedMessageMap
       ? selectedMessageMap.global.map((message) => {
-          return <LinterMessage key={message.uid} message={message} />;
+          return (
+            <LinterMessage
+              key={message.uid}
+              message={message}
+              highlight={message.uid === messageUid}
+            />
+          );
         })
       : [];
 
@@ -247,7 +279,11 @@ export class DiffViewBase extends React.Component<Props> {
               gutterType="anchor"
               generateAnchorID={getChangeKey}
               selectedChanges={selectedChanges}
-              widgets={this.getWidgets(diff.hunks, selectedMessageMap)}
+              widgets={this.getWidgets(
+                diff.hunks,
+                selectedMessageMap,
+                messageUid,
+              )}
             >
               {this.renderHunks}
             </Diff>
@@ -272,6 +308,16 @@ export class DiffViewBase extends React.Component<Props> {
   }
 }
 
-export default withRouter(DiffViewBase) as React.ComponentType<
-  PublicProps & Partial<DefaultProps>
->;
+const mapStateToProps = (
+  state: ApplicationState,
+  ownProps: RouteComponentProps,
+): PropsFromState => {
+  const { location } = ownProps;
+  const messageUid = queryString.parse(location.search)[messageUidQueryParam];
+
+  return {
+    messageUid: typeof messageUid === 'string' ? messageUid : '',
+  };
+};
+
+export default withRouter(connect(mapStateToProps)(DiffViewBase));

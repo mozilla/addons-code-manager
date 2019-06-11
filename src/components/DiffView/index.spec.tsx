@@ -10,6 +10,7 @@ import {
 } from 'react-diff-view';
 import { ShallowWrapper, shallow } from 'enzyme';
 import { History, Location } from 'history';
+import { Store } from 'redux';
 
 import basicDiff from './fixtures/basicDiff';
 import multipleDiff from './fixtures/multipleDiff';
@@ -17,7 +18,8 @@ import diffWithDeletions from './fixtures/diffWithDeletions';
 import { getCodeLineAnchorID } from '../CodeView/utils';
 import LinterMessage from '../LinterMessage';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
-import { getLanguageFromMimeType } from '../../utils';
+import configureStore from '../../configureStore';
+import { getLanguageFromMimeType, messageUidQueryParam } from '../../utils';
 import { ScrollTarget, createInternalVersion } from '../../reducers/versions';
 import {
   createContextWithFakeRouter,
@@ -38,16 +40,29 @@ import DiffView, {
 } from '.';
 
 describe(__filename, () => {
-  type RenderParams = { history?: History; location?: Location } & Partial<
-    PublicProps & DefaultProps
-  >;
+  type RenderParams = {
+    history?: History;
+    location?: Location;
+    store?: Store;
+  } & Partial<PublicProps & DefaultProps>;
 
   const render = ({
     history = createFakeHistory(),
     location = createFakeLocation(),
+    store = configureStore(),
     ...props
   }: RenderParams = {}) => {
-    const shallowOptions = createContextWithFakeRouter({ history, location });
+    const contextWithRouter = createContextWithFakeRouter({
+      history,
+      location,
+    });
+    const context = {
+      ...contextWithRouter,
+      context: {
+        ...contextWithRouter.context,
+        store,
+      },
+    };
 
     return shallowUntilTarget(
       <DiffView
@@ -57,7 +72,9 @@ describe(__filename, () => {
         {...props}
       />,
       DiffViewBase,
-      { shallowOptions },
+      {
+        shallowOptions: { ...context },
+      },
     );
   };
 
@@ -487,6 +504,31 @@ describe(__filename, () => {
     );
   });
 
+  it('highlights a selected global LinterMessage', () => {
+    const globalMessageUid1 = 'first';
+    const globalMessageUid2 = 'second';
+    const location = createFakeLocation({
+      search: queryString.stringify({
+        [messageUidQueryParam]: globalMessageUid2,
+      }),
+    });
+
+    const root = renderWithLinterProvider({
+      location,
+      selectedMessageMap: createFakeLinterMessagesByPath({
+        messages: [
+          { line: null, uid: globalMessageUid1 },
+          { line: null, uid: globalMessageUid2 },
+        ],
+      }),
+    });
+
+    const messages = root.find(LinterMessage);
+    expect(messages).toHaveLength(2);
+    expect(messages.at(0)).toHaveProp('highlight', false);
+    expect(messages.at(1)).toHaveProp('highlight', true);
+  });
+
   it('renders multiple inline messages', () => {
     const externalMessages = [
       // Add a message to line 9 in the first hunk.
@@ -522,6 +564,37 @@ describe(__filename, () => {
         uid: externalMessages[1].uid,
       }),
     );
+  });
+
+  it('highlights a "selected" LinterMessage on a line', () => {
+    const firstUid = 'first';
+    const secondUid = 'second';
+    const externalMessages = [
+      // Add a message to line 9 in the first hunk.
+      { line: 9, uid: firstUid },
+      // Add a message to line 23 in the second hunk.
+      { line: 23, uid: secondUid },
+    ];
+    const location = createFakeLocation({
+      search: queryString.stringify({ [messageUidQueryParam]: secondUid }),
+    });
+
+    const diff = parseDiff(diffWithDeletions)[0];
+    const widgets = renderAndGetWidgets({
+      diff,
+      location,
+      selectedMessageMap: createFakeLinterMessagesByPath({
+        messages: externalMessages,
+      }),
+    });
+
+    const { hunks } = diff;
+
+    const firstWidget = renderWidget(hunks, widgets, externalMessages[0].line);
+    expect(firstWidget.find(LinterMessage)).toHaveProp('highlight', false);
+
+    const secondWidget = renderWidget(hunks, widgets, externalMessages[1].line);
+    expect(secondWidget.find(LinterMessage)).toHaveProp('highlight', true);
   });
 
   it('renders just the right amount of widgets', () => {
