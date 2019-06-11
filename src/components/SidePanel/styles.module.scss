@@ -1,0 +1,33 @@
+@import '../../scss/variables';
+
+.ToggleButton {
+  height: auto;
+  overflow: hidden;
+  padding: $default-padding;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+
+  &:not(:global(.focus-visible)) {
+    box-shadow: none;
+  }
+}
+
+.isCollapsed {
+  background-color: $light-gray;
+  grid-gap: 0;
+  padding: 0;
+
+  .ToggleButton {
+    height: 100%;
+    padding: 0;
+  }
+}
+
+.content {
+  overflow-x: auto;
+
+  .isCollapsed & {
+    display: none;
+  }
+}

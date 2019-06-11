@@ -69,6 +69,7 @@ const VersionFileViewer = ({
         </AccordionMenu>
       }
       mainSidePanelClass={styles.mainSidePanel}
+      altSidePanelClass={styles.altSidePanel}
       altSidePanel={
         file ? (
           <CodeOverview

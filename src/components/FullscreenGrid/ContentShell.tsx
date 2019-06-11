@@ -6,8 +6,7 @@ import { ConnectedReduxProps } from '../../configureStore';
 import { ApplicationState } from '../../reducers';
 import { actions } from '../../reducers/fullscreenGrid';
 import { AnyReactNode } from '../../typeUtils';
-import { gettext } from '../../utils';
-import ToggleButton from '../ToggleButton';
+import SidePanel from '../SidePanel';
 import styles from './styles.module.scss';
 
 export type PublicProps = {
@@ -39,59 +38,27 @@ export const ContentShellBase = ({
 }: Props) => {
   return (
     <React.Fragment>
-      <aside
-        aria-expanded={mainSidePanelIsExpanded ? 'true' : 'false'}
-        className={makeClassName(
-          styles.mainSidePanel,
-          {
-            [styles.mainSidePanelIsCollapsed]: !mainSidePanelIsExpanded,
-          },
-          mainSidePanelClass,
-        )}
+      <SidePanel
+        className={makeClassName(styles.mainSidePanel, mainSidePanelClass)}
+        isExpanded={mainSidePanelIsExpanded}
+        onClick={() => dispatch(actions.toggleMainSidePanel())}
+        toggleLeft={mainSidePanelIsExpanded}
       >
-        <div className={styles.mainSidePanelContent}>{mainSidePanel}</div>
-        <ToggleButton
-          className={styles.mainSidePanelToggleButton}
-          label={
-            mainSidePanelIsExpanded ? gettext('Collapse this panel') : null
-          }
-          onClick={() => dispatch(actions.toggleMainSidePanel())}
-          title={
-            mainSidePanelIsExpanded
-              ? gettext('Collapse this panel')
-              : gettext('Expand this panel')
-          }
-          toggleLeft={mainSidePanelIsExpanded}
-        />
-      </aside>
+        {mainSidePanel}
+      </SidePanel>
 
       <main className={makeClassName(styles.content, className)}>
         {children}
       </main>
 
-      <aside
-        aria-expanded={altSidePanelIsExpanded ? 'true' : 'false'}
-        className={makeClassName(
-          styles.altSidePanel,
-          {
-            [styles.altSidePanelIsCollapsed]: !altSidePanelIsExpanded,
-          },
-          altSidePanelClass,
-        )}
+      <SidePanel
+        className={makeClassName(styles.altSidePanel, altSidePanelClass)}
+        isExpanded={altSidePanelIsExpanded}
+        onClick={() => dispatch(actions.toggleAltSidePanel())}
+        toggleLeft={!altSidePanelIsExpanded}
       >
-        <div className={styles.altSidePanelContent}>{altSidePanel}</div>
-        <ToggleButton
-          className={styles.altSidePanelToggleButton}
-          label={altSidePanelIsExpanded ? gettext('Collapse') : null}
-          onClick={() => dispatch(actions.toggleAltSidePanel())}
-          title={
-            altSidePanelIsExpanded
-              ? gettext('Collapse this panel')
-              : gettext('Expand this panel')
-          }
-          toggleLeft={!altSidePanelIsExpanded}
-        />
-      </aside>
+        {altSidePanel}
+      </SidePanel>
     </React.Fragment>
   );
 };

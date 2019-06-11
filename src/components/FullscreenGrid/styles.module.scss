@@ -38,27 +38,6 @@ $expand-button-width: 40px;
   grid-template-rows: 1fr auto;
   height: auto;
   margin-left: $default-padding;
-
-  .mainSidePanelToggleButton {
-    height: auto;
-    padding: $default-padding;
-    width: 100%;
-
-    &:not(:global(.focus-visible)) {
-      box-shadow: none;
-    }
-  }
-
-  &.mainSidePanelIsCollapsed {
-    background-color: $light-gray;
-    grid-gap: 0;
-    padding: 0;
-
-    .mainSidePanelToggleButton {
-      height: 100%;
-      padding: 0;
-    }
-  }
 }
 
 .altSidePanel {
@@ -69,27 +48,6 @@ $expand-button-width: 40px;
   grid-template-rows: 1fr auto;
   height: auto;
   margin-right: $default-padding;
-
-  .altSidePanelToggleButton {
-    height: auto;
-    padding: $default-padding;
-    width: 100%;
-
-    &:not(:global(.focus-visible)) {
-      box-shadow: none;
-    }
-  }
-
-  &.altSidePanelIsCollapsed {
-    background-color: $light-gray;
-    grid-gap: 0;
-    padding: 0;
-
-    .altSidePanelToggleButton {
-      height: 100%;
-      padding: 0;
-    }
-  }
 }
 
 .content {
@@ -104,20 +62,4 @@ $expand-button-width: 40px;
   overflow-x: hidden;
   overflow-y: auto;
   padding: $default-padding;
-}
-
-.mainSidePanelContent {
-  overflow-x: auto;
-
-  .mainSidePanelIsCollapsed & {
-    display: none;
-  }
-}
-
-.altSidePanelContent {
-  overflow-x: auto;
-
-  .altSidePanelIsCollapsed & {
-    display: none;
-  }
 }
