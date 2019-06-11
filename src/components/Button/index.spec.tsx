@@ -12,24 +12,30 @@ describe(__filename, () => {
       onClick: jest.fn(),
       ...overrides,
     };
-    return shallow(<Button {...props}>example-children</Button>);
+    return shallow(<Button {...props} />);
   };
 
   it('renders a button and children', () => {
+    const className = 'example-className';
+    const title = 'example-title';
+    const ariaControls = 'example-aria-controls';
+    const children = 'example-chilren';
+
     const root = render({
-      className: 'example-className',
-      title: 'example-title',
-      'aria-controls': 'example-aria-controls',
+      children,
+      className,
+      title,
+      ariaControls,
     });
     const button = root.find(BsButton);
 
     expect(button).toHaveLength(1);
     expect(button).toHaveClassName(styles.button);
-    expect(button).toHaveClassName('example-className');
-    expect(button).toHaveProp('title', 'example-title');
-    expect(button).toHaveProp('aria-controls', 'example-aria-controls');
+    expect(button).toHaveClassName(className);
+    expect(button).toHaveProp('title', title);
+    expect(button).toHaveProp('aria-controls', ariaControls);
 
-    expect(button.text()).toEqual('example-children');
+    expect(button.text()).toEqual(children);
   });
 
   it('calls the `onClick` prop when clicked', () => {

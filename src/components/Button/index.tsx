@@ -10,7 +10,7 @@ type Props = {
   children?: AnyReactNode;
   onClick: () => void;
   title?: string;
-  'aria-controls'?: string;
+  ariaControls?: string;
 };
 
 const Button = ({
@@ -18,7 +18,7 @@ const Button = ({
   children,
   onClick,
   title,
-  'aria-controls': ariaControls,
+  ariaControls,
 }: Props) => (
   <BsButton
     className={makeClassName(styles.button, className)}

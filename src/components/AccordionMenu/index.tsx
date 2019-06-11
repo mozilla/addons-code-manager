@@ -60,7 +60,7 @@ export class AccordionItemBase extends React.Component<ItemProps> {
     return (
       <React.Fragment>
         <Button
-          aria-controls={contentId}
+          ariaControls={contentId}
           onClick={this.onItemClick}
           className={makeClassName(styles.item, styles.itemButton)}
         >

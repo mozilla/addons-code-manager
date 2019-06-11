@@ -5,7 +5,6 @@ import { Store } from 'redux';
 import configureStore from '../../configureStore';
 import { actions } from '../../reducers/accordionMenu';
 import { createFakeEvent, shallowUntilTarget, spyOn } from '../../test-helpers';
-import Button from '../Button';
 import styles from './styles.module.scss';
 
 import AccordionMenu, {
@@ -71,7 +70,6 @@ describe(__filename, () => {
         children: <div className={childClass} />,
       });
 
-      expect(root.find(Button)).toHaveLength(1);
       const item = root.find(`.${styles.itemContent}`);
       expect(item).not.toHaveClassName(styles.itemExpanded);
       expect(item).toHaveProp('aria-expanded', 'false');
@@ -136,7 +134,7 @@ describe(__filename, () => {
       const button = root.find(`.${styles.itemButton}`);
       const content = root.find(`.${styles.itemContent}`);
 
-      expect(button).toHaveProp('aria-controls', contentId);
+      expect(button).toHaveProp('ariaControls', contentId);
       expect(content).toHaveProp('id', contentId);
     });
 
