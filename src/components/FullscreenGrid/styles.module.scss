@@ -13,8 +13,16 @@ $expand-button-width: 40px;
   grid-template-rows: min-content 1fr 0px;
   height: 100vh;
 
-  &.hasACollapsedMainSidePanel {
+  &.withMainSidePanelCollapsed {
     grid-template-columns: $expand-button-width 7fr 1fr;
+  }
+
+  &.withAltSidePanelCollapsed {
+    grid-template-columns: 2fr 6fr $expand-button-width;
+  }
+
+  &.withBothSidePanelsCollapsed {
+    grid-template-columns: $expand-button-width 7fr $expand-button-width;
   }
 }
 
@@ -23,34 +31,8 @@ $expand-button-width: 40px;
 }
 
 .mainSidePanel {
-  display: grid;
-  flex-direction: column;
   grid-area: FGMainSidePanel;
-  grid-gap: $default-padding;
-  grid-template-rows: 1fr auto;
-  height: auto;
   margin-left: $default-padding;
-
-  .mainSidePanelToggleButton {
-    height: auto;
-    padding: $default-padding;
-    width: 100%;
-
-    &:not(:global(.focus-visible)) {
-      box-shadow: none;
-    }
-  }
-
-  &.mainSidePanelIsCollapsed {
-    background-color: $light-gray;
-    grid-gap: 0;
-    padding: 0;
-
-    .mainSidePanelToggleButton {
-      height: 100%;
-      padding: 0;
-    }
-  }
 }
 
 .altSidePanel {
@@ -69,13 +51,8 @@ $expand-button-width: 40px;
   border: 1px solid $light-gray;
   overflow-x: hidden;
   overflow-y: auto;
-  padding: $default-padding;
 }
 
-.mainSidePanelContent {
-  overflow-x: auto;
-
-  .mainSidePanelIsCollapsed & {
-    display: none;
-  }
+.content {
+  padding: $default-padding;
 }

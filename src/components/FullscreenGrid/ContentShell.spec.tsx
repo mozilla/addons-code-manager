@@ -5,6 +5,7 @@ import configureStore from '../../configureStore';
 import { actions as fullscreenGridActions } from '../../reducers/fullscreenGrid';
 import { spyOn, shallowUntilTarget } from '../../test-helpers';
 import ContentShell, { ContentShellBase, PublicProps } from './ContentShell';
+import { PublicProps as SidePanelProps } from '../SidePanel';
 import styles from './styles.module.scss';
 
 describe(__filename, () => {
@@ -35,15 +36,12 @@ describe(__filename, () => {
   });
 
   it('renders a mainSidePanel', () => {
-    const childClass = 'ChildExample';
+    const panel = <div className="ChildExample" />;
 
-    const root = render({ mainSidePanel: <div className={childClass} /> });
+    const root = render({ mainSidePanel: panel });
 
-    const mainSidePanelContent = root.find(`.${styles.mainSidePanelContent}`);
-    expect(mainSidePanelContent).toHaveLength(1);
-    // The `mainSidePanel` is placed into a `<div />` as there is a button
-    // below to collapse it.
-    expect(mainSidePanelContent.find(`.${childClass}`)).toHaveLength(1);
+    const mainSidePanel = root.find(`.${styles.mainSidePanel}`);
+    expect(mainSidePanel).toHaveProp('children', panel);
   });
 
   it('accepts a mainSidePanelClass', () => {
@@ -55,11 +53,12 @@ describe(__filename, () => {
   });
 
   it('renders an altSidePanel', () => {
-    const childClass = 'ChildExample';
+    const panel = <div className="ChildExample" />;
 
-    const root = render({ altSidePanel: <div className={childClass} /> });
+    const root = render({ altSidePanel: panel });
 
-    expect(root.find(`.${childClass}`)).toHaveLength(1);
+    const altSidePanel = root.find(`.${styles.altSidePanel}`);
+    expect(altSidePanel).toHaveProp('children', panel);
   });
 
   it('accepts an altSidePanelClass', () => {
@@ -74,26 +73,7 @@ describe(__filename, () => {
     const root = render();
 
     expect(root.find(`.${styles.mainSidePanel}`)).toHaveProp(
-      'aria-expanded',
-      'true',
-    );
-    expect(root.find(`${styles.mainSidePanelIsCollapsed}`)).toHaveLength(0);
-  });
-
-  it('renders a ToggleButton for the main side panel', () => {
-    const root = render();
-
-    expect(root.find(`.${styles.mainSidePanelToggleButton}`)).toHaveLength(1);
-    expect(root.find(`.${styles.mainSidePanelToggleButton}`)).toHaveProp(
-      'label',
-      'Collapse this panel',
-    );
-    expect(root.find(`.${styles.mainSidePanelToggleButton}`)).toHaveProp(
-      'title',
-      'Collapse this panel',
-    );
-    expect(root.find(`.${styles.mainSidePanelToggleButton}`)).toHaveProp(
-      'toggleLeft',
+      'isExpanded',
       true,
     );
   });
@@ -104,22 +84,12 @@ describe(__filename, () => {
 
     const root = render({ store });
 
+    expect(root.find(`.${styles.mainSidePanel}`)).toHaveLength(1);
     expect(root.find(`.${styles.mainSidePanel}`)).toHaveProp(
-      'aria-expanded',
-      'false',
+      'isExpanded',
+      false,
     );
-    expect(root.find(`.${styles.mainSidePanelIsCollapsed}`)).toHaveLength(1);
-
-    expect(root.find(`.${styles.mainSidePanelToggleButton}`)).toHaveLength(1);
-    expect(root.find(`.${styles.mainSidePanelToggleButton}`)).toHaveProp(
-      'label',
-      null,
-    );
-    expect(root.find(`.${styles.mainSidePanelToggleButton}`)).toHaveProp(
-      'title',
-      'Expand this panel',
-    );
-    expect(root.find(`.${styles.mainSidePanelToggleButton}`)).toHaveProp(
+    expect(root.find(`.${styles.mainSidePanel}`)).toHaveProp(
       'toggleLeft',
       false,
     );
@@ -130,10 +100,49 @@ describe(__filename, () => {
     const dispatch = spyOn(store, 'dispatch');
 
     const root = render({ store });
-    root.find(`.${styles.mainSidePanelToggleButton}`).simulate('click');
+    const onClick = root
+      .find(`.${styles.mainSidePanel}`)
+      .prop('onClick') as SidePanelProps['onClick'];
+    onClick();
 
     expect(dispatch).toHaveBeenCalledWith(
       fullscreenGridActions.toggleMainSidePanel(),
+    );
+  });
+
+  it('renders the alt side panel expanded by default', () => {
+    const root = render();
+
+    expect(root.find(`.${styles.altSidePanel}`)).toHaveProp('isExpanded', true);
+  });
+
+  it('renders a collapsed alt side panel', () => {
+    const store = configureStore();
+    store.dispatch(fullscreenGridActions.toggleAltSidePanel());
+
+    const root = render({ store });
+
+    expect(root.find(`.${styles.altSidePanel}`)).toHaveLength(1);
+    expect(root.find(`.${styles.altSidePanel}`)).toHaveProp(
+      'isExpanded',
+      false,
+    );
+    expect(root.find(`.${styles.altSidePanel}`)).toHaveProp('toggleLeft', true);
+  });
+
+  it('dispatches toggleAltSidePanel when the toggle button is clicked', () => {
+    const store = configureStore();
+    const dispatch = spyOn(store, 'dispatch');
+
+    const root = render({ store });
+
+    const onClick = root
+      .find(`.${styles.altSidePanel}`)
+      .prop('onClick') as SidePanelProps['onClick'];
+    onClick();
+
+    expect(dispatch).toHaveBeenCalledWith(
+      fullscreenGridActions.toggleAltSidePanel(),
     );
   });
 });

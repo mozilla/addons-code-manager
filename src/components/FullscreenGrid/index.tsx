@@ -7,6 +7,7 @@ import { AnyReactNode } from '../../typeUtils';
 import styles from './styles.module.scss';
 
 type PropsFromState = {
+  altSidePanelIsExpanded: boolean;
   mainSidePanelIsExpanded: boolean;
 };
 
@@ -39,6 +40,7 @@ export const Header = ({
 export const FullscreenGridBase = ({
   children,
   className,
+  altSidePanelIsExpanded,
   mainSidePanelIsExpanded,
 }: Props) => {
   return (
@@ -46,7 +48,12 @@ export const FullscreenGridBase = ({
       className={makeClassName(
         styles.FullscreenGrid,
         {
-          [styles.hasACollapsedMainSidePanel]: !mainSidePanelIsExpanded,
+          [styles.withMainSidePanelCollapsed]:
+            !mainSidePanelIsExpanded && altSidePanelIsExpanded,
+          [styles.withAltSidePanelCollapsed]:
+            mainSidePanelIsExpanded && !altSidePanelIsExpanded,
+          [styles.withBothSidePanelsCollapsed]:
+            !mainSidePanelIsExpanded && !altSidePanelIsExpanded,
         },
         className,
       )}
@@ -58,6 +65,7 @@ export const FullscreenGridBase = ({
 
 const mapStateToProps = (state: ApplicationState): PropsFromState => {
   return {
+    altSidePanelIsExpanded: state.fullscreenGrid.altSidePanelIsExpanded,
     mainSidePanelIsExpanded: state.fullscreenGrid.mainSidePanelIsExpanded,
   };
 };

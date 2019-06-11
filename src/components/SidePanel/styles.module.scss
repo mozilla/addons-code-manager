@@ -1,0 +1,41 @@
+@import '../../scss/variables';
+
+.SidePanel {
+  display: grid;
+  grid-gap: $default-padding;
+  grid-template-rows: 1fr auto;
+  height: auto;
+  padding: $default-padding;
+}
+
+.ToggleButton {
+  height: auto;
+  overflow: hidden;
+  padding: $default-padding;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+
+  &:not(:global(.focus-visible)) {
+    box-shadow: none;
+  }
+}
+
+.content {
+  overflow-x: auto;
+}
+
+.isCollapsed {
+  background-color: $light-gray;
+  grid-gap: 0;
+  padding: 0;
+
+  .ToggleButton {
+    height: 100%;
+    padding: 0;
+  }
+
+  .content {
+    display: none;
+  }
+}
