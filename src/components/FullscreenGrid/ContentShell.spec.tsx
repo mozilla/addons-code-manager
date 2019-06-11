@@ -5,6 +5,7 @@ import configureStore from '../../configureStore';
 import { actions as fullscreenGridActions } from '../../reducers/fullscreenGrid';
 import { spyOn, shallowUntilTarget } from '../../test-helpers';
 import ContentShell, { ContentShellBase, PublicProps } from './ContentShell';
+import { PublicProps as SidePanelProps } from '../SidePanel';
 import styles from './styles.module.scss';
 
 describe(__filename, () => {
@@ -101,7 +102,7 @@ describe(__filename, () => {
     const root = render({ store });
     const onClick = root
       .find(`.${styles.mainSidePanel}`)
-      .prop('onClick') as Function;
+      .prop('onClick') as SidePanelProps['onClick'];
     onClick();
 
     expect(dispatch).toHaveBeenCalledWith(
@@ -137,7 +138,7 @@ describe(__filename, () => {
 
     const onClick = root
       .find(`.${styles.altSidePanel}`)
-      .prop('onClick') as Function;
+      .prop('onClick') as SidePanelProps['onClick'];
     onClick();
 
     expect(dispatch).toHaveBeenCalledWith(

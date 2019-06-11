@@ -1,5 +1,13 @@
 @import '../../scss/variables';
 
+.SidePanel {
+  display: grid;
+  grid-gap: $default-padding;
+  grid-template-rows: 1fr auto;
+  height: auto;
+  padding: $default-padding;
+}
+
 .ToggleButton {
   height: auto;
   overflow: hidden;
@@ -20,9 +28,7 @@
 .isCollapsed {
   background-color: $light-gray;
   grid-gap: 0;
-  // TODO: find a way to avoid the `!important` here. There is a conflict with
-  // https://github.com/mozilla/addons-code-manager/blob/38f50dfb68ee031b518fe2fb38afa6a705aec461/src/components/FullscreenGrid/styles.module.scss#L64
-  padding: 0 !important;
+  padding: 0;
 
   .ToggleButton {
     height: 100%;

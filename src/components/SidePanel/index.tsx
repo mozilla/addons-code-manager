@@ -26,7 +26,7 @@ export const SidePanelBase = ({
   return (
     <aside
       aria-expanded={isExpanded ? 'true' : 'false'}
-      className={makeClassName(className, {
+      className={makeClassName(styles.SidePanel, className, {
         [styles.isCollapsed]: !isExpanded,
       })}
     >
