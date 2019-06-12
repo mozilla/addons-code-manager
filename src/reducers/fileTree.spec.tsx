@@ -642,25 +642,6 @@ describe(__filename, () => {
       ).toEqual(null);
     });
 
-    it('throws an error if there is a current message, but no messages for the current path', () => {
-      const currentPath = 'currentPath.js';
-      const messagePath = 'notTheCurrentPath.js';
-
-      const messageMap = getMessageMap(
-        createFakeExternalLinterResult({
-          messages: [{ file: messagePath, line: line1, uid: 'line1' }],
-        }),
-      );
-
-      expect(() => {
-        _getRelativeMessage({
-          currentMessageUid: 'some-uid',
-          currentPath,
-          messageMap,
-        });
-      }).toThrow(`No messages found for current path: ${currentPath}`);
-    });
-
     it('throws an error with an empty pathList', () => {
       const messageMap = getMessageMap(
         createFakeExternalLinterResult({
@@ -928,6 +909,22 @@ describe(__filename, () => {
         expect(
           _getRelativeMessage({
             currentMessageUid: global11,
+            currentPath: file1,
+            messageMap,
+            pathList,
+            position: RelativePathPosition.next,
+          }),
+        ).toEqual(expect.objectContaining({ path: file3, uid: global12 }));
+      });
+
+      it('returns a message in the next file, if the current file has no messages', () => {
+        const messageMap = getMessageMap(
+          createFakeExternalLinterResult({
+            messages: [{ file: file3, line: null, uid: global12 }],
+          }),
+        );
+        expect(
+          _getRelativeMessage({
             currentPath: file1,
             messageMap,
             pathList,
