@@ -1225,7 +1225,7 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
           ...state.versionInfo,
           [versionId]: {
             ...version,
-            expandedPaths: [],
+            expandedPaths: [ROOT_PATH],
           },
         },
       };

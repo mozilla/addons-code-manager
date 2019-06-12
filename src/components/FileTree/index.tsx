@@ -167,7 +167,7 @@ export class FileTreeBase extends React.Component<Props> {
         </div>
         <div className={styles.treeShell}>
           <Treefold
-            nodes={[tree.nodes]}
+            nodes={tree.nodes.children}
             render={this.renderNode}
             isNodeExpanded={this.isNodeExpanded}
             onToggleExpand={this.onToggleExpand}
