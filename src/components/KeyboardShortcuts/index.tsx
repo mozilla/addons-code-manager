@@ -28,7 +28,7 @@ export const supportedKeys: { [key: string]: string | null } = {
   c: gettext('Close all folders'),
   n: gettext('Next change'),
   p: gettext('Previous change'),
-  h: gettext('Toggle side panels'),
+  h: gettext('Hide file tree'),
 };
 
 export type PublicProps = {
@@ -157,7 +157,6 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
           break;
         case 'h':
           dispatch(fullscreenGridActions.toggleMainSidePanel());
-          dispatch(fullscreenGridActions.toggleAltSidePanel());
           break;
         default:
       }
@@ -177,7 +176,7 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
   }
 
   makeClassNameForKey(key: string) {
-    // diff keys
+    // `n` and `p` are the keys for navigating a diff.
     if (['n', 'p'].includes(key) && !this.props.compareInfo) {
       return styles.disabled;
     }

@@ -138,8 +138,8 @@ describe(__filename, () => {
     );
 
     for (const key of aliasKeys) {
-      // The expression below tries to find all react components with $key as
-      // unique child, which is the case of the `kbd` components.
+      // The expression below will look for any JSX rendered with an alias key,
+      // such as a <kbd> tag.
       expect(root.find({ children: key })).toHaveLength(0);
     }
   });
@@ -318,7 +318,7 @@ describe(__filename, () => {
     );
   });
 
-  it('dispatches the toggle side panels actions when "h" is pressed', () => {
+  it('dispatches toggleMainSidePanel() when "h" is pressed', () => {
     const versionId = 723;
 
     const store = configureStoreWithFileTree({ versionId });
@@ -328,9 +328,6 @@ describe(__filename, () => {
 
     expect(dispatch).toHaveBeenCalledWith(
       fullscreenGridActions.toggleMainSidePanel(),
-    );
-    expect(dispatch).toHaveBeenCalledWith(
-      fullscreenGridActions.toggleAltSidePanel(),
     );
   });
 
