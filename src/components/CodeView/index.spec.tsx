@@ -3,12 +3,17 @@ import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import { Location } from 'history';
 import { mount } from 'enzyme';
+import { Store } from 'redux';
 
 import configureStore from '../../configureStore';
 import refractor from '../../refractor';
 import LinterMessage from '../LinterMessage';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
-import { ExternalLinterMessage, getMessageMap } from '../../reducers/linter';
+import {
+  ExternalLinterMessage,
+  actions as linterActions,
+  getMessageMap,
+} from '../../reducers/linter';
 import { createInternalVersion } from '../../reducers/versions';
 import { getCodeLineAnchor, getCodeLineAnchorID, mapWithDepth } from './utils';
 import { getLanguageFromMimeType } from '../../utils';
@@ -28,6 +33,7 @@ import CodeView, { CodeViewBase, PublicProps, scrollToSelectedLine } from '.';
 describe(__filename, () => {
   type RenderParams = Partial<PublicProps> & {
     location?: Location<{}>;
+    store?: Store;
   };
 
   const createGlobalExternalMessage = (props = {}) => {
@@ -83,6 +89,7 @@ describe(__filename, () => {
 
   const renderWithMount = ({
     location = createFakeLocation(),
+    store = configureStore(),
     ...otherProps
   }: RenderParams = {}) => {
     const options = createContextWithFakeRouter({ location });
@@ -94,18 +101,19 @@ describe(__filename, () => {
       },
       context: {
         ...options.context,
-        store: configureStore(),
+        store,
       },
     });
+  };
+
+  type RenderWithMessagesParams = RenderParams & {
+    messages: Partial<ExternalLinterMessage>[];
   };
 
   const renderWithMessages = ({
     messages,
     ...props
-  }: {
-    messages: Partial<ExternalLinterMessage>[];
-    props?: RenderParams;
-  }) => {
+  }: RenderWithMessagesParams) => {
     const file = 'scripts/content.js';
     const map = getMessageMap(
       createFakeExternalLinterResult({
@@ -227,7 +235,7 @@ describe(__filename, () => {
     });
     // This is an anchor on the table row. This is a bit confusing here because
     // `#` refers to the ID (CSS) selector and not the hash. The ID value is
-    // `L1`.
+    // `I1`.
     expect(root.find(`#${getCodeLineAnchorID(1)}`)).toHaveLength(1);
   });
 
@@ -331,6 +339,80 @@ describe(__filename, () => {
     expect(message).toHaveLength(2);
     expect(message.at(0).prop('message')).toMatchObject({ uid: firstUid });
     expect(message.at(1).prop('message')).toMatchObject({ uid: secondUid });
+  });
+
+  it('renders a scrollTo div at the top of global LinterMessage components, if line 0 is selected', () => {
+    const firstUid = 'first-uid';
+    const secondUid = 'second-uid';
+    const id = getCodeLineAnchorID(0);
+    const location = createFakeLocation({ hash: `#${id}` });
+
+    const { root } = renderWithMessages({
+      location,
+      messages: [
+        createGlobalExternalMessage({ uid: firstUid }),
+        createGlobalExternalMessage({ uid: secondUid }),
+      ],
+    });
+
+    expect(root.find(`#${id}`)).toHaveLength(1);
+  });
+
+  it('does not render a scrollTo div at the top of global LinterMessage components, if line 0 is not selected', () => {
+    const location = createFakeLocation({ hash: '#I1' });
+
+    const { root } = renderWithMessages({
+      location,
+      messages: [createGlobalExternalMessage()],
+    });
+
+    expect(root.find(`#${getCodeLineAnchorID(0)}`)).toHaveLength(0);
+  });
+
+  it('does not render a scrollTo div at the top of global LinterMessage components, if there are no global messages', () => {
+    const id = getCodeLineAnchorID(0);
+    const location = createFakeLocation({ hash: `#${id}` });
+
+    const { root } = renderWithMessages({
+      location,
+      messages: [{ line: 1 }],
+    });
+
+    expect(root.find(`#${id}`)).toHaveLength(0);
+  });
+
+  it('calls _scrollToSelectedLine() when rendering a selected global message', () => {
+    const _scrollToSelectedLine = jest.fn();
+    const location = createFakeLocation({ hash: `#${getCodeLineAnchorID(0)}` });
+    const store = configureStore();
+    const version = createInternalVersion(fakeVersion);
+
+    const linterResult = createFakeExternalLinterResult({
+      messages: [
+        createGlobalExternalMessage({
+          file: version.selectedPath,
+        }),
+      ],
+    });
+
+    store.dispatch(
+      linterActions.loadLinterResult({
+        versionId: version.id,
+        result: linterResult,
+      }),
+    );
+
+    const root = renderWithMount({
+      _scrollToSelectedLine,
+      location,
+      store,
+      version,
+    });
+
+    // We need `mount()` because `ref` is only used in a DOM environment.
+    expect(_scrollToSelectedLine).toHaveBeenCalledWith(
+      root.find(`#${getCodeLineAnchorID(0)}`).getDOMNode(),
+    );
   });
 
   describe('scrollToSelectedLine', () => {

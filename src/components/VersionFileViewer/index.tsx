@@ -6,6 +6,7 @@ import FileMetadata from '../FileMetadata';
 import FileTree, { PublicProps as FileTreeProps } from '../FileTree';
 import ContentShell from '../FullscreenGrid/ContentShell';
 import KeyboardShortcuts from '../KeyboardShortcuts';
+import LinterProvider from '../LinterProvider';
 import Loading from '../Loading';
 import { CompareInfo, Version, VersionFile } from '../../reducers/versions';
 import { AnyReactNode } from '../../typeUtils';
@@ -60,11 +61,20 @@ const VersionFileViewer = ({
             </AccordionItem>
           ) : null}
           <AccordionItem title={ItemTitles.Shortcuts}>
-            <KeyboardShortcuts
-              compareInfo={compareInfo}
-              currentPath={version.selectedPath}
+            <LinterProvider
+              selectedPath={version.selectedPath}
+              validationURL={version.validationURL}
               versionId={version.id}
-            />
+            >
+              {({ messageMap }) => (
+                <KeyboardShortcuts
+                  compareInfo={compareInfo}
+                  currentPath={version.selectedPath}
+                  messageMap={messageMap}
+                  versionId={version.id}
+                />
+              )}
+            </LinterProvider>
           </AccordionItem>
         </AccordionMenu>
       }
