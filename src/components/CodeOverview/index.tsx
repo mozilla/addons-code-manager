@@ -73,6 +73,10 @@ export class CodeOverviewBase extends React.Component<Props, State> {
     _window.addEventListener('resize', this.waitAndSetNewOverviewHeight);
   }
 
+  componentDidUpdate() {
+    this.setOverviewHeight();
+  }
+
   componentWillUnmount() {
     const { _window } = this.props;
     _window.removeEventListener('resize', this.resetOverviewHeight);
@@ -84,9 +88,14 @@ export class CodeOverviewBase extends React.Component<Props, State> {
   };
 
   setOverviewHeight = () => {
+    const { overviewHeight } = this.state;
     const ref = this.overviewRef;
+
     if (ref && ref.current) {
-      this.setState({ overviewHeight: ref.current.clientHeight });
+      const refHeight = ref.current.clientHeight;
+      if (overviewHeight !== refHeight) {
+        this.setState({ overviewHeight: refHeight });
+      }
     }
   };
 

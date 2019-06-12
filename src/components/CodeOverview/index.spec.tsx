@@ -18,6 +18,7 @@ import {
   fakeVersion,
   shallowUntilTarget,
   simulateLinterProvider,
+  spyOn,
 } from '../../test-helpers';
 import styles from './styles.module.scss';
 
@@ -183,6 +184,19 @@ describe(__filename, () => {
     expect(root.state('overviewHeight')).toEqual(fakeRef.current.clientHeight);
   });
 
+  it('sets the overview height on update', () => {
+    const initialHeight = 100;
+    const fakeRef = createFakeRef({ clientHeight: initialHeight });
+    const root = render({ createOverviewRef: () => fakeRef });
+
+    const nextHeight = initialHeight + 10;
+    fakeRef.current.clientHeight = nextHeight;
+
+    root.setProps({});
+
+    expect(root.state('overviewHeight')).toEqual(nextHeight);
+  });
+
   it('sets the overview height in waitAndSetNewOverviewHeight', () => {
     const fakeRef = createFakeRef({ clientHeight: 100 });
     const { root, instance } = renderWithInstance({
@@ -208,6 +222,22 @@ describe(__filename, () => {
     instance.setOverviewHeight();
 
     expect(root.state('overviewHeight')).toEqual(fakeRef.current.clientHeight);
+  });
+
+  it('does not set overview height if it has not changed', () => {
+    const clientHeight = 200;
+    const fakeRef = createFakeRef({ clientHeight });
+
+    const { root, instance } = renderWithInstance({
+      createOverviewRef: () => fakeRef,
+    });
+
+    root.setState({ overviewHeight: clientHeight });
+
+    const setState = spyOn(instance, 'setState');
+    instance.setOverviewHeight();
+
+    expect(setState).not.toHaveBeenCalled();
   });
 
   it('can reset the overview height', () => {
