@@ -12,6 +12,7 @@ import {
   actions as versionsActions,
   createInternalVersion,
 } from '../../reducers/versions';
+import { actions as fullscreenGridActions } from '../../reducers/fullscreenGrid';
 import {
   CreateKeydownEventParams,
   createContextWithFakeRouter,
@@ -127,6 +128,31 @@ describe(__filename, () => {
     const root = render();
 
     expect(root.find(`.${styles.KeyboardShortcuts}`)).toHaveLength(1);
+  });
+
+  it('does not render a description for alias keys', () => {
+    const root = render();
+
+    const aliasKeys = Object.keys(supportedKeys).filter(
+      (key) => supportedKeys[key] === null,
+    );
+
+    for (const key of aliasKeys) {
+      // The expression below will look for any JSX rendered with an alias key,
+      // such as a <kbd> tag.
+      expect(root.find({ children: key })).toHaveLength(0);
+    }
+  });
+
+  it('adds a disabled style to the diff keys when there is no compare info', () => {
+    const root = render({ compareInfo: null });
+
+    expect(root.find(`dt.${styles.disabled}`)).toHaveLength(2);
+    expect(root.find(`dd.${styles.disabled}`)).toHaveLength(2);
+
+    // Make sure we added the disabled style to the diff keys.
+    expect(root.find(`dt.${styles.disabled}`).at(0)).toIncludeText('n');
+    expect(root.find(`dt.${styles.disabled}`).at(1)).toIncludeText('p');
   });
 
   it('binds and unbinds keydown to the listener', () => {
@@ -292,6 +318,19 @@ describe(__filename, () => {
     );
   });
 
+  it('dispatches toggleMainSidePanel() when "h" is pressed', () => {
+    const versionId = 723;
+
+    const store = configureStoreWithFileTree({ versionId });
+    const dispatch = spyOn(store, 'dispatch');
+
+    renderAndTriggerKeyEvent({ key: 'h' }, { store, versionId });
+
+    expect(dispatch).toHaveBeenCalledWith(
+      fullscreenGridActions.toggleMainSidePanel(),
+    );
+  });
+
   it('does not listen to keyboard events without a file tree', () => {
     // Configure an empty store, one without a file tree loaded.
     const store = configureStore();
@@ -318,7 +357,7 @@ describe(__filename, () => {
     },
   );
 
-  it.each(supportedKeys)(
+  it.each(Object.keys(supportedKeys))(
     'prevents the default event when pressing "%s"',
     (key) => {
       const event = createKeydownEvent({ key });
@@ -332,7 +371,7 @@ describe(__filename, () => {
 
   it('does not prevent the default event when pressing an unsupported key', () => {
     const key = '_';
-    expect(supportedKeys).not.toContain(key);
+    expect(Object.keys(supportedKeys)).not.toContain(key);
 
     const event = createKeydownEvent({ key });
     const preventDefault = spyOn(event, 'preventDefault');

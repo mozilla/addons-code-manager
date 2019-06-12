@@ -16,10 +16,20 @@ import {
   actions as versionsActions,
   goToRelativeDiff,
 } from '../../reducers/versions';
+import { actions as fullscreenGridActions } from '../../reducers/fullscreenGrid';
 import styles from './styles.module.scss';
 import { gettext } from '../../utils';
 
-export const supportedKeys = ['k', 'j', 'e', 'o', 'c', 'n', 'p'];
+export const supportedKeys: { [key: string]: string | null } = {
+  k: gettext('Up file'),
+  j: gettext('Down file'),
+  o: gettext('Open all folders'),
+  e: null, // same as 'o'
+  c: gettext('Close all folders'),
+  n: gettext('Next change'),
+  p: gettext('Previous change'),
+  h: gettext('Toggle main side panel'),
+};
 
 export type PublicProps = {
   compareInfo: CompareInfo | null | void;
@@ -73,7 +83,7 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
       !event.ctrlKey &&
       !event.metaKey &&
       !event.shiftKey &&
-      supportedKeys.includes(event.key)
+      Object.keys(supportedKeys).includes(event.key)
     ) {
       event.preventDefault();
 
@@ -145,6 +155,9 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
             log.warn('Cannot navigate to previous change without diff loaded');
           }
           break;
+        case 'h':
+          dispatch(fullscreenGridActions.toggleMainSidePanel());
+          break;
         default:
       }
     }
@@ -162,37 +175,34 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
     _document.removeEventListener('keydown', this.keydownListener);
   }
 
-  render() {
-    const { compareInfo } = this.props;
-    const diffKeysClassName = !compareInfo ? styles.disabled : '';
+  makeClassNameForKey(key: string) {
+    // `n` and `p` are the keys for navigating a diff.
+    if (['n', 'p'].includes(key) && !this.props.compareInfo) {
+      return styles.disabled;
+    }
 
+    return '';
+  }
+
+  render() {
     return (
       <div className={styles.KeyboardShortcuts}>
         <dl className={styles.definitions}>
-          <dt>
-            <kbd>k</kbd>
-          </dt>
-          <dd>{gettext('Up file')}</dd>
-          <dt>
-            <kbd>j</kbd>
-          </dt>
-          <dd>{gettext('Down file')}</dd>
-          <dt className={diffKeysClassName}>
-            <kbd>p</kbd>
-          </dt>
-          <dd className={diffKeysClassName}>{gettext('Previous change')}</dd>
-          <dt className={diffKeysClassName}>
-            <kbd>n</kbd>
-          </dt>
-          <dd className={diffKeysClassName}>{gettext('Next change')}</dd>
-          <dt>
-            <kbd>o</kbd>
-          </dt>
-          <dd>{gettext('Open all folders')}</dd>
-          <dt>
-            <kbd>c</kbd>
-          </dt>
-          <dd>{gettext('Close all folders')}</dd>
+          {Object.keys(supportedKeys)
+            // exlude alias keys
+            .filter((key) => supportedKeys[key] !== null)
+            .map((key) => {
+              const className = this.makeClassNameForKey(key);
+
+              return (
+                <React.Fragment key={key}>
+                  <dt className={className}>
+                    <kbd>{key}</kbd>
+                  </dt>
+                  <dd className={className}>{supportedKeys[key]}</dd>
+                </React.Fragment>
+              );
+            })}
         </dl>
       </div>
     );
