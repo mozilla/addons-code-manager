@@ -28,7 +28,7 @@ export const supportedKeys: { [key: string]: string | null } = {
   c: gettext('Close all folders'),
   n: gettext('Next change'),
   p: gettext('Previous change'),
-  h: gettext('Hide file tree'),
+  h: gettext('Toggle main side panel'),
 };
 
 export type PublicProps = {
