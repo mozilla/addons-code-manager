@@ -315,32 +315,29 @@ export const getRelativeMessage = ({
   }
 
   const messages = messageMap[currentPath];
-  if (!messages) {
-    // No messages exist for the current path, which shouldn't be the case.
-    // If we have a currentMessageUid it should correspond to the current path.
-    throw new Error(`No messages found for current path: ${currentPath}`);
-  }
-  const messagesForPath = getMessagesForPath(messages);
+  if (messages) {
+    const messagesForPath = getMessagesForPath(messages);
 
-  let newIndex;
-  if (!currentMessageUid) {
-    // Since we aren't looking for a message relative to an existing one,
-    // just get the first message.
-    newIndex = 0;
-  } else {
-    const currentMessageIndex = messagesForPath.findIndex(
-      (message) => message.uid === currentMessageUid,
-    );
+    let newIndex;
+    if (!currentMessageUid) {
+      // Since we aren't looking for a message relative to an existing one,
+      // just get the first message.
+      newIndex = 0;
+    } else {
+      const currentMessageIndex = messagesForPath.findIndex(
+        (message) => message.uid === currentMessageUid,
+      );
 
-    newIndex =
-      position === RelativePathPosition.previous
-        ? currentMessageIndex - 1
-        : currentMessageIndex + 1;
-  }
+      newIndex =
+        position === RelativePathPosition.previous
+          ? currentMessageIndex - 1
+          : currentMessageIndex + 1;
+    }
 
-  if (newIndex >= 0 && newIndex < messagesForPath.length) {
-    const message = messagesForPath[newIndex];
-    return makeRelativeMessageInfo({ message, path: currentPath });
+    if (newIndex >= 0 && newIndex < messagesForPath.length) {
+      const message = messagesForPath[newIndex];
+      return makeRelativeMessageInfo({ message, path: currentPath });
+    }
   }
   return findRelativeMessage(currentPath, messageMap, pathList, position);
 };
