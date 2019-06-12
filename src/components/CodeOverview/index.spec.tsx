@@ -18,6 +18,7 @@ import {
   fakeVersion,
   shallowUntilTarget,
   simulateLinterProvider,
+  spyOn,
 } from '../../test-helpers';
 import styles from './styles.module.scss';
 
@@ -233,10 +234,10 @@ describe(__filename, () => {
 
     root.setState({ overviewHeight: clientHeight });
 
-    const _setState = jest.fn();
-    instance.setOverviewHeight({ _setState });
+    const setState = spyOn(instance, 'setState');
+    instance.setOverviewHeight();
 
-    expect(_setState).not.toHaveBeenCalled();
+    expect(setState).not.toHaveBeenCalled();
   });
 
   it('can reset the overview height', () => {

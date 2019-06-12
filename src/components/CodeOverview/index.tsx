@@ -87,14 +87,14 @@ export class CodeOverviewBase extends React.Component<Props, State> {
     this.setState({ overviewHeight: null });
   };
 
-  setOverviewHeight = ({ _setState = this.setState.bind(this) } = {}) => {
+  setOverviewHeight = () => {
     const { overviewHeight } = this.state;
     const ref = this.overviewRef;
 
     if (ref && ref.current) {
       const refHeight = ref.current.clientHeight;
       if (overviewHeight !== refHeight) {
-        _setState({ overviewHeight: refHeight });
+        this.setState({ overviewHeight: refHeight });
       }
     }
   };
