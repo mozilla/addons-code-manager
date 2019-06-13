@@ -15,40 +15,6 @@
 }
 
 .itemButton {
-  background-color: $light-gray;
-  display: flex;
-  justify-content: center;
-  overflow: hidden;
-  padding: $default-padding;
-  transition: transform 0.5s ease-out;
-  width: 100%;
-
-  // The .btn-primary overrides are to win a specificity dance off
-  // against react-bootstrap. \o\_// /o/_|/
-
-  &:focus,
-  &:global(.btn-primary:not(:disabled):not(.disabled):focus) {
-    // See: https://github.com/WICG/focus-visible
-    &:not(:global(.focus-visible)) {
-      box-shadow: none;
-    }
-  }
-
-  &,
-  &:active,
-  &:global(.btn-primary:not(:disabled):not(.disabled):active),
-  &:hover {
-    border-radius: $border-radius;
-    border: 1px solid $light-gray;
-    color: $black;
-  }
-
-  &:active,
-  &:global(.btn-primary:not(:disabled):not(.disabled):active),
-  &:hover {
-    background-color: darken($light-gray, 3);
-  }
-
   &:active {
     transform: translateY(4px);
   }

@@ -1,8 +1,8 @@
 import * as React from 'react';
 import makeClassName from 'classnames';
-import { Button } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
+import Button from '../Button';
 import styles from './styles.module.scss';
 
 type Props = {
@@ -28,7 +28,6 @@ const ToggleButton = ({
   return (
     <Button
       className={makeClassName(
-        styles.ToggleButton,
         {
           [styles.toggleLeft]: toggleLeft,
         },

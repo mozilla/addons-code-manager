@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { Button } from 'react-bootstrap';
 import { connect } from 'react-redux';
 import makeClassName from 'classnames';
 
+import Button from '../Button';
 import { ApplicationState } from '../../reducers';
 import { ConnectedReduxProps } from '../../configureStore';
 import { actions, isExpanded } from '../../reducers/accordionMenu';
@@ -60,7 +60,7 @@ export class AccordionItemBase extends React.Component<ItemProps> {
     return (
       <React.Fragment>
         <Button
-          aria-controls={contentId}
+          ariaControls={contentId}
           onClick={this.onItemClick}
           className={makeClassName(styles.item, styles.itemButton)}
         >

@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { shallow } from 'enzyme';
-import { Button } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
+import Button from '../Button';
 import styles from './styles.module.scss';
 
 import ToggleButton from '.';
@@ -22,7 +22,6 @@ describe(__filename, () => {
 
     const button = root.find(Button);
     expect(button).toHaveLength(1);
-    expect(button).toHaveClassName(`${styles.ToggleButton}`);
   });
 
   it('renders a label if supplied', () => {

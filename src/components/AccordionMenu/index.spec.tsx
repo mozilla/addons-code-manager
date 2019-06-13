@@ -134,7 +134,7 @@ describe(__filename, () => {
       const button = root.find(`.${styles.itemButton}`);
       const content = root.find(`.${styles.itemContent}`);
 
-      expect(button).toHaveProp('aria-controls', contentId);
+      expect(button).toHaveProp('ariaControls', contentId);
       expect(content).toHaveProp('id', contentId);
     });
 
