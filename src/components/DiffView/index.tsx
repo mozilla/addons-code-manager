@@ -15,6 +15,7 @@ import {
 import { withRouter, RouteComponentProps } from 'react-router-dom';
 import makeClassName from 'classnames';
 
+import { getCodeLineAnchorID } from '../CodeView/utils';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import LinterMessage from '../LinterMessage';
 import refractor from '../../refractor';
@@ -225,7 +226,10 @@ export class DiffViewBase extends React.Component<Props> {
         )}
 
         {globalLinterMessages.length ? (
-          <div className={styles.globalLinterMessages}>
+          <div
+            className={styles.globalLinterMessages}
+            id={getCodeLineAnchorID(0)}
+          >
             {globalLinterMessages}
           </div>
         ) : null}
