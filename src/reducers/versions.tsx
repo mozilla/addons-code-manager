@@ -100,7 +100,7 @@ export type ExternalChange = {
   type: 'normal' | 'delete' | 'insert';
 };
 
-type ExternalHunk = {
+export type ExternalHunk = {
   changes: ExternalChange[];
   header: string;
   new_lines: number;
