@@ -5,7 +5,10 @@ import makeClassName from 'classnames';
 import chunk from 'lodash.chunk';
 import debounce from 'lodash.debounce';
 
-import { getCodeLineAnchor, getLines } from '../CodeView/utils';
+import {
+  getCodeLineAnchor as _getCodeLineAnchor,
+  getLines,
+} from '../CodeView/utils';
 import {
   LinterMessage as LinterMessageType,
   findMostSevereType,
@@ -21,6 +24,8 @@ import {
   generateLineShapes,
 } from '../CodeLineShapes/utils';
 
+export type GetCodeLineAnchor = (line: number) => string;
+
 export type PublicProps = {
   content: string;
   version: Version;
@@ -34,6 +39,7 @@ export type DefaultProps = {
     removeEventListener: typeof window.removeEventListener;
   };
   createOverviewRef: () => React.RefObject<HTMLDivElement> | null;
+  getCodeLineAnchor: GetCodeLineAnchor;
   overviewPadding: number;
   rowTopPadding: number;
   rowHeight: number;
@@ -53,6 +59,7 @@ export class CodeOverviewBase extends React.Component<Props, State> {
     _window: window,
     createOverviewRef: () => React.createRef<HTMLDivElement>(),
     // This is the padding of the overview container.
+    getCodeLineAnchor: _getCodeLineAnchor,
     overviewPadding: 10,
     rowTopPadding: 2,
     // This is the height of the row, including rowTopPadding.
@@ -179,6 +186,7 @@ export class CodeOverviewBase extends React.Component<Props, State> {
     const {
       _document,
       content,
+      getCodeLineAnchor,
       location,
       rowHeight,
       rowTopPadding,

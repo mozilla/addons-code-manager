@@ -12,8 +12,12 @@ import VersionFileViewer from '../../components/VersionFileViewer';
 import {
   CompareInfo,
   Version,
+  VersionFile,
   fetchDiff,
+  fetchVersionFile,
+  isFileLoading,
   getCompareInfo,
+  getVersionFile,
   getVersionInfo,
   viewVersionFile,
 } from '../../reducers/versions';
@@ -22,10 +26,12 @@ import {
   gettext,
   getPathFromQueryString,
 } from '../../utils';
+import { ForwardComparisonMap } from './utils';
 import styles from './styles.module.scss';
 
 export type PublicProps = {
   _fetchDiff: typeof fetchDiff;
+  _fetchVersionFile: typeof fetchVersionFile;
   _viewVersionFile: typeof viewVersionFile;
 };
 
@@ -41,6 +47,8 @@ type PropsFromState = {
   compareInfo: CompareInfo | null | void;
   path: string | undefined;
   version: Version | void | null;
+  versionFile: VersionFile | void | null;
+  versionFileIsLoading: boolean;
 };
 
 type Props = RouteComponentProps<PropsFromRouter> &
@@ -51,6 +59,7 @@ type Props = RouteComponentProps<PropsFromRouter> &
 export class CompareBase extends React.Component<Props> {
   static defaultProps = {
     _fetchDiff: fetchDiff,
+    _fetchVersionFile: fetchVersionFile,
     _viewVersionFile: viewVersionFile,
   };
 
@@ -65,12 +74,15 @@ export class CompareBase extends React.Component<Props> {
   loadData() {
     const {
       _fetchDiff,
+      _fetchVersionFile,
       compareInfo,
       dispatch,
       history,
       match,
       path,
       version,
+      versionFile,
+      versionFileIsLoading,
     } = this.props;
     const { addonId, baseVersionId, headVersionId, lang } = match.params;
 
@@ -98,6 +110,16 @@ export class CompareBase extends React.Component<Props> {
           baseVersionId: oldVersionId,
           headVersionId: newVersionId,
           path: path || undefined,
+        }),
+      );
+    }
+
+    if (version && !versionFileIsLoading && versionFile === undefined) {
+      dispatch(
+        _fetchVersionFile({
+          addonId: parseInt(addonId, 10),
+          versionId: version.id,
+          path: version.selectedPath,
         }),
       );
     }
@@ -138,9 +160,22 @@ export class CompareBase extends React.Component<Props> {
   }
 
   render() {
-    const { addonId, compareInfo, match, path, version } = this.props;
+    const {
+      addonId,
+      compareInfo,
+      match,
+      path,
+      version,
+      versionFile,
+    } = this.props;
 
     const { baseVersionId, headVersionId } = match.params;
+
+    let getCodeLineAnchor;
+    if (compareInfo && compareInfo.diff) {
+      const map = new ForwardComparisonMap(compareInfo.diff);
+      getCodeLineAnchor = map.createCodeLineAnchorGetter();
+    }
 
     // TODO: set showFileInfo=true when we can:
     // https://github.com/mozilla/addons-code-manager/issues/647
@@ -159,7 +194,8 @@ export class CompareBase extends React.Component<Props> {
         </Helmet>
         <VersionFileViewer
           compareInfo={compareInfo}
-          file={null}
+          file={compareInfo && compareInfo.diff ? versionFile : null}
+          getCodeLineAnchor={getCodeLineAnchor}
           onSelectFile={this.viewVersionFile}
           showFileInfo={false}
           version={version}
@@ -208,11 +244,24 @@ export const mapStateToProps = (
     comparedToVersionId: baseVersionId,
   });
 
+  let versionFile;
+  if (version) {
+    versionFile = getVersionFile(
+      state.versions,
+      headVersionId,
+      version.selectedPath,
+    );
+  }
+
   return {
     addonId,
     compareInfo,
     path,
     version,
+    versionFile,
+    versionFileIsLoading: version
+      ? isFileLoading(state.versions, version.id, version.selectedPath)
+      : false,
   };
 };
 

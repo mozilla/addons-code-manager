@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import AccordionMenu, { AccordionItem } from '../AccordionMenu';
-import CodeOverview from '../CodeOverview';
+import CodeOverview, { GetCodeLineAnchor } from '../CodeOverview';
 import FileMetadata from '../FileMetadata';
 import FileTree, { PublicProps as FileTreeProps } from '../FileTree';
 import ContentShell from '../FullscreenGrid/ContentShell';
@@ -22,6 +22,7 @@ export enum ItemTitles {
 export type PublicProps = {
   children: AnyReactNode;
   compareInfo?: CompareInfo | null | void;
+  getCodeLineAnchor?: GetCodeLineAnchor;
   file: VersionFile | null | void;
   onSelectFile: FileTreeProps['onSelect'];
   showFileInfo: boolean;
@@ -32,6 +33,7 @@ const VersionFileViewer = ({
   children,
   compareInfo,
   file,
+  getCodeLineAnchor,
   onSelectFile,
   showFileInfo,
   version,
@@ -84,6 +86,7 @@ const VersionFileViewer = ({
         file ? (
           <CodeOverview
             content={file.type === 'image' ? '' : file.content}
+            getCodeLineAnchor={getCodeLineAnchor}
             version={version}
           />
         ) : null
