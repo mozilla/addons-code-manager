@@ -387,10 +387,9 @@ describe(__filename, () => {
       );
       state = reducer(state, actions.collapseTree({ versionId: version.id }));
 
-      expect(state).toHaveProperty(
-        `versionInfo.${version.id}.expandedPaths`,
-        [],
-      );
+      expect(state).toHaveProperty(`versionInfo.${version.id}.expandedPaths`, [
+        ROOT_PATH,
+      ]);
     });
 
     it('throws an error when collapseTree is called for an unknown version', () => {

@@ -131,9 +131,10 @@ describe(__filename, () => {
       const root = render({ store, versionId: version.id });
 
       expect(root.find(Treefold)).toHaveLength(1);
-      expect(root.find(Treefold)).toHaveProp('nodes', [
-        buildFileTree(version).nodes,
-      ]);
+      expect(root.find(Treefold)).toHaveProp(
+        'nodes',
+        buildFileTree(version).nodes.children,
+      );
     });
 
     it('passes the onSelect prop to FileTreeNode', () => {
