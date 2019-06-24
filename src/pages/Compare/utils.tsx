@@ -70,6 +70,10 @@ export class ForwardComparisonMap {
     });
   }
 
+  createCodeLineAnchorGetter() {
+    return this.getCodeLineAnchor.bind(this);
+  }
+
   getCodeLineAnchor(line: number) {
     const lineChanges = this.changeMap[line];
     if (!lineChanges || lineChanges.length === 0) {

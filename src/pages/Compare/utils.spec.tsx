@@ -193,5 +193,21 @@ describe(__filename, () => {
         '',
       );
     });
+
+    it('lets you create a bound getCodeLineAnchor callback', () => {
+      const line = 1;
+      const change = createFakeExternalChange({
+        old_line_number: line,
+        new_line_number: line,
+        type: 'normal',
+      });
+
+      const map = newForwardComparisonMap({ changes: [change] });
+      const getCodeLineAnchor = map.createCodeLineAnchorGetter();
+
+      expect(getCodeLineAnchor(line)).toEqual(
+        map.getCodeLineAnchor.bind(map)(line),
+      );
+    });
   });
 });
