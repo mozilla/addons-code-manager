@@ -17,7 +17,7 @@ import {
 } from '../../reducers/linter';
 import { createInternalVersion } from '../../reducers/versions';
 import { getCodeLineAnchor, getCodeLineAnchorID, mapWithDepth } from './utils';
-import { getLanguageFromMimeType, messageUidQueryParam } from '../../utils';
+import { getLanguageFromMimeType } from '../../utils';
 import {
   createContextWithFakeRouter,
   createFakeExternalLinterResult,
@@ -59,23 +59,13 @@ describe(__filename, () => {
 
   const render = ({
     location = createFakeLocation(),
-    store = configureStore(),
     ...otherProps
   }: RenderParams = {}) => {
-    const contextWithRouter = createContextWithFakeRouter({ location });
-    const context = {
-      ...contextWithRouter,
-      context: {
-        ...contextWithRouter.context,
-        store,
-      },
-    };
-
     return shallowUntilTarget(
       <CodeView {...getProps(otherProps)} />,
       CodeViewBase,
       {
-        shallowOptions: { ...context },
+        shallowOptions: createContextWithFakeRouter({ location }),
       },
     );
   };
@@ -280,26 +270,6 @@ describe(__filename, () => {
     expect(message).toHaveProp('message', selectedMessageMap.byLine[line][0]);
   });
 
-  it('highlights a "selected" LinterMessage on a line', () => {
-    const line = 2;
-    const firstUid = 'first';
-    const secondUid = 'second';
-    const location = createFakeLocation({
-      search: queryString.stringify({ [messageUidQueryParam]: secondUid }),
-    });
-
-    const { root } = renderWithMessages({
-      location,
-      messages: [{ line, uid: firstUid }, { line, uid: secondUid }],
-    });
-
-    const messages = root.find(`#line-${line}-messages`).find(LinterMessage);
-
-    expect(messages).toHaveLength(2);
-    expect(messages.at(0)).toHaveProp('highlight', false);
-    expect(messages.at(1)).toHaveProp('highlight', true);
-  });
-
   it('renders multiple LinterMessage components on one line', () => {
     const line = 2;
 
@@ -370,27 +340,6 @@ describe(__filename, () => {
     expect(message).toHaveLength(2);
     expect(message.at(0).prop('message')).toMatchObject({ uid: firstUid });
     expect(message.at(1).prop('message')).toMatchObject({ uid: secondUid });
-  });
-
-  it('highlights a selected global LinterMessage', () => {
-    const firstUid = 'first-uid';
-    const secondUid = 'second-uid';
-    const location = createFakeLocation({
-      search: queryString.stringify({ [messageUidQueryParam]: secondUid }),
-    });
-
-    const { root } = renderWithMessages({
-      location,
-      messages: [
-        createGlobalExternalMessage({ uid: firstUid }),
-        createGlobalExternalMessage({ uid: secondUid }),
-      ],
-    });
-
-    const messages = root.find(LinterMessage);
-    expect(messages).toHaveLength(2);
-    expect(messages.at(0)).toHaveProp('highlight', false);
-    expect(messages.at(1)).toHaveProp('highlight', true);
   });
 
   it('renders a scrollTo div at the top of global LinterMessage components, if line 0 is selected', () => {

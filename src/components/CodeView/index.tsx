@@ -1,8 +1,6 @@
-import makeClassName from 'classnames';
-import queryString from 'query-string';
 import * as React from 'react';
-import { connect } from 'react-redux';
 import { withRouter, Link, RouteComponentProps } from 'react-router-dom';
+import makeClassName from 'classnames';
 
 import styles from './styles.module.scss';
 import LinterMessage from '../LinterMessage';
@@ -13,9 +11,7 @@ import {
   mapWithDepth,
 } from './utils';
 import refractor from '../../refractor';
-import { getLanguageFromMimeType, messageUidQueryParam } from '../../utils';
-import { ApplicationState } from '../../reducers';
-import { LinterMessage as LinterMessageType } from '../../reducers/linter';
+import { getLanguageFromMimeType } from '../../utils';
 import { Version } from '../../reducers/versions';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 
@@ -53,11 +49,7 @@ export type PublicProps = {
   version: Version;
 };
 
-type PropsFromState = {
-  messageUid: LinterMessageType['uid'];
-};
-
-type Props = RouteComponentProps & PropsFromState & PublicProps;
+type Props = PublicProps & RouteComponentProps;
 
 type RowProps = {
   className: string;
@@ -71,7 +63,6 @@ export class CodeViewBase extends React.Component<Props> {
       _scrollToSelectedLine = scrollToSelectedLine,
       content,
       location,
-      messageUid,
       mimeType,
     } = this.props;
 
@@ -86,13 +77,7 @@ export class CodeViewBase extends React.Component<Props> {
           )}
         {selectedMessageMap &&
           selectedMessageMap.global.map((message) => {
-            return (
-              <LinterMessage
-                key={message.uid}
-                message={message}
-                highlight={message.uid === messageUid}
-              />
-            );
+            return <LinterMessage key={message.uid} message={message} />;
           })}
         <div className={styles.CodeView}>
           <table className={styles.table}>
@@ -142,7 +127,6 @@ export class CodeViewBase extends React.Component<Props> {
                           {selectedMessageMap.byLine[line].map((msg) => {
                             return (
                               <LinterMessage
-                                highlight={msg.uid === messageUid}
                                 inline
                                 key={msg.uid}
                                 message={msg}
@@ -177,16 +161,4 @@ export class CodeViewBase extends React.Component<Props> {
   }
 }
 
-const mapStateToProps = (
-  state: ApplicationState,
-  ownProps: RouteComponentProps,
-): PropsFromState => {
-  const { location } = ownProps;
-  const messageUid = queryString.parse(location.search)[messageUidQueryParam];
-
-  return {
-    messageUid: typeof messageUid === 'string' ? messageUid : '',
-  };
-};
-
-export default withRouter(connect(mapStateToProps)(CodeViewBase));
+export default withRouter(CodeViewBase);
