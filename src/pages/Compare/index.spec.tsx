@@ -420,7 +420,6 @@ describe(__filename, () => {
       }),
     );
 
-    // Simulate the beginning of a fetch.
     store.dispatch(
       versionsActions.beginFetchVersionFile({
         path: version.file.selected_file,

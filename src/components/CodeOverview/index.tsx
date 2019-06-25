@@ -24,8 +24,6 @@ import {
   generateLineShapes,
 } from '../CodeLineShapes/utils';
 
-export type GetCodeLineAnchor = (line: number) => string;
-
 export type PublicProps = {
   content: string;
   version: Version;
@@ -39,7 +37,7 @@ export type DefaultProps = {
     removeEventListener: typeof window.removeEventListener;
   };
   createOverviewRef: () => React.RefObject<HTMLDivElement> | null;
-  getCodeLineAnchor: GetCodeLineAnchor;
+  getCodeLineAnchor: typeof _getCodeLineAnchor;
   overviewPadding: number;
   rowTopPadding: number;
   rowHeight: number;

@@ -298,9 +298,9 @@ describe(__filename, () => {
       }),
     );
 
-    expect(fakeGetCodeLineAnchor).toHaveBeenCalled();
-    expect(fakeGetCodeLineAnchor.mock.calls[lineIndex]).toEqual([line]);
-    expect(fakeGetCodeLineAnchor.mock.calls[lineIndex - 1]).toEqual([line - 1]);
+    // Make sure subsequent line numbers are passed in order.
+    expect(fakeGetCodeLineAnchor).toHaveBeenNthCalledWith(line, line);
+    expect(fakeGetCodeLineAnchor).toHaveBeenNthCalledWith(line - 1, line - 1);
   });
 
   it('scrolls a linter message into view when clicking its link', () => {

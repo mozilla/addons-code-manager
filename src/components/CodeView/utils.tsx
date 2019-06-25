@@ -44,3 +44,5 @@ export const getCodeLineAnchorID = (line: number) => {
 export const getCodeLineAnchor = (line: number) => {
   return `#${getCodeLineAnchorID(line)}`;
 };
+
+export type GetCodeLineAnchor = typeof getCodeLineAnchor;

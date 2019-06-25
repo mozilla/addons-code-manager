@@ -1,7 +1,8 @@
 import * as React from 'react';
 
 import AccordionMenu, { AccordionItem } from '../AccordionMenu';
-import CodeOverview, { GetCodeLineAnchor } from '../CodeOverview';
+import CodeOverview from '../CodeOverview';
+import { GetCodeLineAnchor } from '../CodeView/utils';
 import FileMetadata from '../FileMetadata';
 import FileTree, { PublicProps as FileTreeProps } from '../FileTree';
 import ContentShell from '../FullscreenGrid/ContentShell';
