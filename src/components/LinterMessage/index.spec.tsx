@@ -1,25 +1,39 @@
+import queryString from 'query-string';
 import * as React from 'react';
-import { shallow } from 'enzyme';
 import { Alert } from 'react-bootstrap';
 
 import { createInternalMessage } from '../../reducers/linter';
-import { fakeExternalLinterMessage } from '../../test-helpers';
+import {
+  createContextWithFakeRouter,
+  createFakeLocation,
+  fakeExternalLinterMessage,
+  shallowUntilTarget,
+} from '../../test-helpers';
+import { messageUidQueryParam } from '../../utils';
 import styles from './styles.module.scss';
 
-import LinterMessage, { PublicProps, decodeHtmlEntities } from '.';
+import LinterMessage, {
+  decodeHtmlEntities,
+  Props as LinterMessageProps,
+  LinterMessageBase,
+} from '.';
 
 describe(__filename, () => {
   const render = ({
-    message = createInternalMessage(fakeExternalLinterMessage),
     inline = false,
-    ...props
-  }: Partial<PublicProps> = {}) => {
-    return shallow(
-      <LinterMessage message={message} inline={inline} {...props} />,
+    location = createFakeLocation(),
+    message = createInternalMessage(fakeExternalLinterMessage),
+  }: Partial<LinterMessageProps> = {}) => {
+    return shallowUntilTarget(
+      <LinterMessage message={message} inline={inline} />,
+      LinterMessageBase,
+      {
+        shallowOptions: createContextWithFakeRouter({ location }),
+      },
     );
   };
 
-  const renderMessage = (attributes = {}) => {
+  const renderMessage = (attributes = {}, location = createFakeLocation()) => {
     const message = createInternalMessage({
       ...fakeExternalLinterMessage,
       description: [
@@ -30,7 +44,7 @@ describe(__filename, () => {
       ...attributes,
     });
 
-    return render({ message });
+    return render({ location, message });
   };
 
   it.each([
@@ -148,13 +162,27 @@ describe(__filename, () => {
   });
 
   it('can be marked as highlighted', () => {
-    const root = render({ highlight: true });
+    const uid = 'some-uid';
+    const location = createFakeLocation({
+      search: queryString.stringify({ [messageUidQueryParam]: uid }),
+    });
+    const root = renderMessage({ uid }, location);
 
     expect(root).toHaveClassName(`.${styles.highlight}`);
   });
 
   it('is not highlighted by default', () => {
     const root = render();
+
+    expect(root).not.toHaveClassName(`.${styles.highlight}`);
+  });
+
+  it('is not highlighted if the uid in the location does not match that of the message', () => {
+    const uid = 'some-uid';
+    const location = createFakeLocation({
+      search: queryString.stringify({ [messageUidQueryParam]: uid }),
+    });
+    const root = renderMessage({ uid: `${uid}-1` }, location);
 
     expect(root).not.toHaveClassName(`.${styles.highlight}`);
   });
