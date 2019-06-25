@@ -14,6 +14,7 @@ import { History, Location } from 'history';
 import basicDiff from './fixtures/basicDiff';
 import multipleDiff from './fixtures/multipleDiff';
 import diffWithDeletions from './fixtures/diffWithDeletions';
+import { getCodeLineAnchorID } from '../CodeView/utils';
 import LinterMessage from '../LinterMessage';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import { getLanguageFromMimeType } from '../../utils';
@@ -467,7 +468,10 @@ describe(__filename, () => {
       }),
     });
 
-    const messages = root.find(LinterMessage);
+    const globalMessages = root.find(`.${styles.globalLinterMessages}`);
+    expect(globalMessages).toHaveProp('id', getCodeLineAnchorID(0));
+
+    const messages = globalMessages.find(LinterMessage);
     expect(messages).toHaveLength(2);
     expect(messages.at(0)).toHaveProp(
       'message',
