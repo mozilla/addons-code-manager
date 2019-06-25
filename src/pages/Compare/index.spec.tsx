@@ -848,6 +848,31 @@ describe(__filename, () => {
     expect(getCodeLineAnchor(1)).toEqual(map.getCodeLineAnchor(1));
   });
 
+  it('configures VersionFileViewer with a file even for empty diffs', () => {
+    const fileId = fakeVersionWithDiff.file.id + 1;
+    const headVersionId = 2;
+    const { root } = loadDiffAndRender({
+      baseVersionId: headVersionId - 1,
+      headVersionId,
+      version: {
+        ...fakeVersionWithDiff,
+        id: headVersionId,
+        file: {
+          ...fakeVersionWithDiff.file,
+          id: fileId,
+          diff: null,
+        },
+      },
+    });
+
+    expect(root.find(VersionFileViewer)).toHaveProp(
+      'file',
+      expect.objectContaining({
+        id: fileId,
+      }),
+    );
+  });
+
   it('sets a temporary page title without a version', () => {
     const root = render();
 
