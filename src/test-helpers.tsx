@@ -388,11 +388,11 @@ export const createFakeLinterMessagesByPath = ({
     }),
   );
 
-  if (!map[path]) {
+  if (!map.byPath[path]) {
     /* istanbul ignore next */
     throw new Error(`Somehow no messages were mapped to path "${path}"`);
   }
-  return map[path];
+  return map.byPath[path];
 };
 
 export const createFakeCompareInfo = ({

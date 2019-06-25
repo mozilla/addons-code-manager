@@ -75,32 +75,31 @@ export type LinterMessagesByPath = {
 };
 
 export type LinterMessageMap = {
-  // The 'path' key matches the key of ExternalVersionFile['entries']
-  [path: string]: LinterMessagesByPath;
+  byPath: {
+    // The 'path' key matches the key of ExternalVersionFile['entries']
+    [path: string]: LinterMessagesByPath;
+  };
+  universal: LinterMessage[];
 };
 
-export const getMessageMap = (
-  result: ExternalLinterResult,
-  { _log = log }: { _log?: typeof log } = {},
-) => {
-  const msgMap: LinterMessageMap = {};
+export const getMessageMap = (result: ExternalLinterResult) => {
+  const msgMap: LinterMessageMap = {
+    byPath: {},
+    universal: [],
+  };
 
   result.validation.messages.forEach((message) => {
+    const internalMessage = createInternalMessage(message);
+
     if (!message.file) {
-      // In reality, this will probably never happen but it's
-      // possible since errors like this do exist. Let's log an
-      // error to Sentry to alert us about it.
-      _log.error(
-        `Unexpectedly received a message not mapped to a file: ${message.message}`,
-      );
+      msgMap.universal.push(internalMessage);
       return;
     }
-    if (!msgMap[message.file]) {
-      msgMap[message.file] = { global: [], byLine: {} };
+    if (!msgMap.byPath[message.file]) {
+      msgMap.byPath[message.file] = { global: [], byLine: {} };
     }
 
-    const internalMessage = createInternalMessage(message);
-    const map = msgMap[message.file];
+    const map = msgMap.byPath[message.file];
 
     if (message.line) {
       if (!map.byLine[message.line]) {
@@ -253,7 +252,7 @@ const reducer: Reducer<LinterState, ActionType<typeof actions>> = (
         // TODO: when we have proper error handling, this can
         // set { messageMap: undefined } so that the component
         // knows it's OK to try fetching it again.
-        messageMap: {},
+        messageMap: { byPath: {}, universal: [] },
         isLoading: false,
       };
     case getType(actions.loadLinterResult):

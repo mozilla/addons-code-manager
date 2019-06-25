@@ -117,7 +117,7 @@ describe(__filename, () => {
       }),
     );
 
-    const selectedMessageMap = map[file];
+    const selectedMessageMap = map.byPath[file];
 
     const root = render({ ...props, content: contentLines.join('\n') });
     root.setState({ overviewHeight });

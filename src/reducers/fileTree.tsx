@@ -273,7 +273,7 @@ const findRelativeMessage = (
       pathList,
       position,
     });
-    const messages = messageMap[nextPath];
+    const messages = messageMap.byPath[nextPath];
     if (messages) {
       const msgArray = getMessagesForPath(messages);
       const msgIndex =
@@ -309,12 +309,15 @@ export const getRelativeMessage = ({
   pathList,
   position,
 }: GetRelativeMessageParams): RelativeMessageInfo | null => {
-  if (!Object.keys(messageMap).length) {
+  // TODO: support universal messages
+  // https://github.com/mozilla/addons-code-manager/issues/878
+
+  if (!Object.keys(messageMap.byPath).length) {
     // There are no messages at all.
     return null;
   }
 
-  const messages = messageMap[currentPath];
+  const messages = messageMap.byPath[currentPath];
   if (messages) {
     const messagesForPath = getMessagesForPath(messages);
 

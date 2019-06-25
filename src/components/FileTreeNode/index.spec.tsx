@@ -656,12 +656,14 @@ describe(__filename, () => {
           file: path,
           // Make this a global message.
           line: null,
+          uid: 'global-uid-example',
         },
         {
           ...fakeExternalLinterMessage,
           file: path,
           // Make this a line message.
           line: 123,
+          uid: 'line-uid-example',
         },
       ] as ExternalLinterMessage[];
       const map = _getMessageMap(messages);
@@ -673,6 +675,21 @@ describe(__filename, () => {
         createInternalMessage(messages[0]),
         createInternalMessage(messages[1]),
       ]);
+    });
+
+    it('does not check universal messages', () => {
+      const messages = [
+        {
+          ...fakeExternalLinterMessage,
+          // Make this a universal message.
+          file: null,
+          line: null,
+          uid: 'universal-uid-example',
+        },
+      ] as ExternalLinterMessage[];
+      const map = _getMessageMap(messages);
+
+      expect(findMostSevereTypeForPath(map, 'src/file-1.js')).toEqual(null);
     });
   });
 
@@ -931,10 +948,10 @@ describe(__filename, () => {
         },
       ] as ExternalLinterMessage[];
       const map = _getMessageMap(messages);
-      const _getMessagesForPath = jest.fn().mockReturnValue([map[path]]);
+      const _getMessagesForPath = jest.fn().mockReturnValue([map.byPath[path]]);
 
       isKnownLibrary(map, path, _getMessagesForPath);
-      expect(_getMessagesForPath).toHaveBeenCalledWith(map[path]);
+      expect(_getMessagesForPath).toHaveBeenCalledWith(map.byPath[path]);
     });
   });
 });

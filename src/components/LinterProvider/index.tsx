@@ -103,8 +103,8 @@ const mapStateToProps = (
   let selectedMessageMap;
   const map = selectMessageMap(state.linter, versionId);
   if (map) {
-    selectedMessageMap = map[selectedPath]
-      ? map[selectedPath]
+    selectedMessageMap = map.byPath[selectedPath]
+      ? map.byPath[selectedPath]
       : // No messages exist for this path.
         null;
   }
