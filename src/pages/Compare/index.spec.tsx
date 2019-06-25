@@ -9,12 +9,14 @@ import {
   createFakeThunk,
   createStoreWithVersion,
   externallyLocalizedString,
+  fakeVersion,
   fakeVersionWithDiff,
   shallowUntilTarget,
   spyOn,
 } from '../../test-helpers';
 import configureStore from '../../configureStore';
 import {
+  ExternalVersionWithDiff,
   actions as versionsActions,
   createInternalDiff,
   createInternalVersion,
@@ -24,6 +26,7 @@ import DiffView from '../../components/DiffView';
 import Loading from '../../components/Loading';
 import VersionFileViewer from '../../components/VersionFileViewer';
 import styles from './styles.module.scss';
+import { ForwardComparisonMap } from './utils';
 
 import Compare, { CompareBase, PublicProps, mapStateToProps } from '.';
 
@@ -67,6 +70,7 @@ describe(__filename, () => {
 
   type RenderParams = {
     _fetchDiff?: PublicProps['_fetchDiff'];
+    _fetchVersionFile?: PublicProps['_fetchVersionFile'];
     _viewVersionFile?: PublicProps['_viewVersionFile'];
     addonId?: string;
     baseVersionId?: string;
@@ -78,6 +82,7 @@ describe(__filename, () => {
 
   const render = ({
     _fetchDiff,
+    _fetchVersionFile,
     _viewVersionFile,
     addonId = '999',
     baseVersionId = '1',
@@ -92,6 +97,7 @@ describe(__filename, () => {
         params: { lang, addonId, baseVersionId, headVersionId },
       }),
       _fetchDiff,
+      _fetchVersionFile,
       _viewVersionFile,
     };
 
@@ -116,6 +122,21 @@ describe(__filename, () => {
       }),
     );
     store.dispatch(
+      versionsActions.loadVersionFile({
+        path: version.file.selected_file,
+        // Make a version with file content out of the given version
+        // diff response.
+        version: {
+          ...fakeVersion,
+          id: version.id,
+          file: {
+            ...fakeVersion.file,
+            ...version.file,
+          },
+        },
+      }),
+    );
+    store.dispatch(
       versionsActions.loadDiff({
         addonId,
         baseVersionId,
@@ -130,11 +151,10 @@ describe(__filename, () => {
     // eslint-disable-next-line @typescript-eslint/camelcase
     selected_file = fakeVersionWithDiff.file.selected_file,
     store = configureStore(),
-  } = {}) => {
-    const addonId = 1;
-    const baseVersionId = 2;
-    const headVersionId = 3;
-    const version = {
+    addonId = 1,
+    baseVersionId = 2,
+    headVersionId = 3,
+    version = {
       ...fakeVersionWithDiff,
       id: headVersionId,
       file: {
@@ -142,9 +162,19 @@ describe(__filename, () => {
         // eslint-disable-next-line @typescript-eslint/camelcase
         selected_file,
       },
-    };
+    },
+  }: {
+    history?: History;
+    store?: Store;
+    addonId?: number;
+    baseVersionId?: number;
+    headVersionId?: number;
+    selected_file?: string;
+    version?: ExternalVersionWithDiff;
+  } = {}) => {
     const fakeThunk = createFakeThunk();
     const _fetchDiff = fakeThunk.createThunk;
+    const _fetchVersionFile = fakeThunk.createThunk;
     const _viewVersionFile = fakeThunk.createThunk;
 
     _loadDiff({ addonId, baseVersionId, headVersionId, store, version });
@@ -153,6 +183,7 @@ describe(__filename, () => {
 
     const root = render({
       _fetchDiff,
+      _fetchVersionFile,
       _viewVersionFile,
       addonId: String(addonId),
       baseVersionId: String(baseVersionId),
@@ -163,6 +194,7 @@ describe(__filename, () => {
 
     return {
       _fetchDiff,
+      _fetchVersionFile,
       _viewVersionFile,
       addonId,
       baseVersionId,
@@ -322,6 +354,105 @@ describe(__filename, () => {
       baseVersionId,
       headVersionId,
     });
+  });
+
+  it('dispatches fetchVersionFile() on mount', () => {
+    const addonId = 9999;
+    const baseVersionId = 1;
+    const headVersionId = baseVersionId + 1;
+    const version = { ...fakeVersionWithDiff, id: headVersionId };
+    const store = configureStore();
+
+    store.dispatch(
+      versionsActions.loadVersionInfo({
+        version,
+        comparedToVersionId: baseVersionId,
+      }),
+    );
+
+    store.dispatch(
+      versionsActions.loadDiff({
+        addonId,
+        baseVersionId,
+        headVersionId,
+        version,
+      }),
+    );
+
+    const dispatch = spyOn(store, 'dispatch');
+    const fakeThunk = createFakeThunk();
+    const _fetchVersionFile = fakeThunk.createThunk;
+
+    render({
+      ...getRouteParams({ addonId, baseVersionId, headVersionId }),
+      _fetchVersionFile,
+      store,
+    });
+
+    expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(_fetchVersionFile).toHaveBeenCalledWith({
+      addonId,
+      versionId: version.id,
+      path: version.file.selected_file,
+    });
+  });
+
+  it('does not dispatch fetchVersionFile() when a file is loading', () => {
+    const addonId = 9999;
+    const baseVersionId = 1;
+    const headVersionId = baseVersionId + 1;
+    const version = { ...fakeVersionWithDiff, id: headVersionId };
+    const store = configureStore();
+
+    store.dispatch(
+      versionsActions.loadVersionInfo({
+        version,
+        comparedToVersionId: baseVersionId,
+      }),
+    );
+
+    store.dispatch(
+      versionsActions.loadDiff({
+        addonId,
+        baseVersionId,
+        headVersionId,
+        version,
+      }),
+    );
+
+    store.dispatch(
+      versionsActions.beginFetchVersionFile({
+        path: version.file.selected_file,
+        versionId: version.id,
+      }),
+    );
+
+    const dispatch = spyOn(store, 'dispatch');
+
+    render({
+      ...getRouteParams({ addonId, baseVersionId, headVersionId }),
+      store,
+    });
+
+    expect(dispatch).not.toHaveBeenCalled();
+  });
+
+  it('does not dispatch fetchVersionFile() when the file is already loaded', () => {
+    const addonId = 999;
+    const baseVersionId = 1;
+    const version = { ...fakeVersionWithDiff, id: baseVersionId + 1 };
+    const headVersionId = version.id;
+
+    const store = configureStore();
+    _loadDiff({ addonId, baseVersionId, headVersionId, store, version });
+    const dispatch = spyOn(store, 'dispatch');
+
+    render({
+      ...getRouteParams({ addonId, baseVersionId, headVersionId }),
+      store,
+    });
+
+    expect(dispatch).not.toHaveBeenCalled();
   });
 
   it('redirects to a new compare url when the "old" version is newer than the "new" version', () => {
@@ -678,6 +809,61 @@ describe(__filename, () => {
     });
 
     expect(dispatch).not.toHaveBeenCalled();
+  });
+
+  it('configures VersionFileViewer to show CodeOverview', () => {
+    const baseVersionId = 1;
+    const version = { ...fakeVersionWithDiff, id: baseVersionId + 1 };
+    const headVersionId = version.id;
+
+    const { root } = loadDiffAndRender({
+      baseVersionId,
+      headVersionId,
+      version,
+    });
+
+    const viewer = root.find(VersionFileViewer);
+    expect(viewer).toHaveProp('getCodeLineAnchor');
+    expect(viewer).toHaveProp(
+      'file',
+      expect.objectContaining({
+        id: version.file.id,
+        size: version.file.size,
+      }),
+    );
+
+    const diff = createInternalDiff({ baseVersionId, headVersionId, version });
+    if (!diff) {
+      throw new Error('diff was unexpectedly empty');
+    }
+    const map = new ForwardComparisonMap(diff);
+
+    const getCodeLineAnchor = viewer.prop('getCodeLineAnchor');
+    if (!getCodeLineAnchor) {
+      throw new Error('getCodeLineAnchor was unexpectedly empty');
+    }
+
+    // As a sanity check, call the configured getter to see if we get
+    // the same result as one returned by a simulated getter.
+    expect(getCodeLineAnchor(1)).toEqual(map.getCodeLineAnchor(1));
+  });
+
+  it('does not configure VersionFileViewer with a file for empty diffs', () => {
+    const headVersionId = 2;
+    const { root } = loadDiffAndRender({
+      baseVersionId: headVersionId - 1,
+      headVersionId,
+      version: {
+        ...fakeVersionWithDiff,
+        id: headVersionId,
+        file: {
+          ...fakeVersionWithDiff.file,
+          diff: null,
+        },
+      },
+    });
+
+    expect(root.find(VersionFileViewer)).toHaveProp('file', null);
   });
 
   it('sets a temporary page title without a version', () => {

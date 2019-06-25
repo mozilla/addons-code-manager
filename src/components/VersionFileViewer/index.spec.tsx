@@ -222,6 +222,20 @@ describe(__filename, () => {
     expect(overview).toHaveProp('version', version);
   });
 
+  it('passes getCodeLineAnchor to CodeOverview', () => {
+    const getCodeLineAnchor = jest.fn();
+    const { file, version } = getInternalVersionAndFile();
+    const root = renderPanel(
+      { getCodeLineAnchor, file, version },
+      PanelAttribs.altSidePanel,
+    );
+
+    expect(root.find(CodeOverview)).toHaveProp(
+      'getCodeLineAnchor',
+      getCodeLineAnchor,
+    );
+  });
+
   it('does not render CodeOverview without a file', () => {
     const root = renderPanel({ file: null }, PanelAttribs.altSidePanel);
 

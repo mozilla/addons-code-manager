@@ -276,6 +276,33 @@ describe(__filename, () => {
     expect(link).toHaveProp('title', `Jump to line ${line}`);
   });
 
+  it('renders links for a code line using a custom getCodeLineAnchor', () => {
+    const customAnchor = 'example-anchor';
+    const fakeGetCodeLineAnchor = jest.fn(() => customAnchor);
+
+    const location = createFakeLocation();
+    const root = renderWithFixedHeight({
+      getCodeLineAnchor: fakeGetCodeLineAnchor,
+      content: generateFileLines({ count: 3 }).join('\n'),
+      location,
+    });
+
+    const line = 3;
+    const lineIndex = line - 1;
+    const link = root.find(Link).at(lineIndex);
+
+    expect(link).toHaveProp(
+      'to',
+      expect.objectContaining({
+        hash: customAnchor,
+      }),
+    );
+
+    // Make sure subsequent line numbers are passed in order.
+    expect(fakeGetCodeLineAnchor).toHaveBeenNthCalledWith(line, line);
+    expect(fakeGetCodeLineAnchor).toHaveBeenNthCalledWith(line - 1, line - 1);
+  });
+
   it('scrolls a linter message into view when clicking its link', () => {
     const fakeDOMNode = { scrollIntoView: jest.fn() };
     const _document = {

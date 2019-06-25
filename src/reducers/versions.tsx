@@ -1,7 +1,12 @@
 import { Reducer } from 'redux';
 import { ActionType, createAction, getType } from 'typesafe-actions';
 import log from 'loglevel';
-import { DiffInfo, DiffInfoType, getChangeKey } from 'react-diff-view';
+import {
+  ChangeInfo,
+  DiffInfo,
+  DiffInfoType,
+  getChangeKey,
+} from 'react-diff-view';
 import { push } from 'connected-react-router';
 import queryString from 'query-string';
 
@@ -721,6 +726,24 @@ type CreateInternalDiffParams = {
   headVersionId: number;
 };
 
+export const createInternalChangeInfo = (
+  change: ExternalChange,
+): ChangeInfo => {
+  return {
+    content: change.content,
+    isDelete: change.type === 'delete',
+    isInsert: change.type === 'insert',
+    isNormal: change.type === 'normal',
+    lineNumber:
+      change.type === 'insert'
+        ? change.new_line_number
+        : change.old_line_number,
+    newLineNumber: change.new_line_number,
+    oldLineNumber: change.old_line_number,
+    type: change.type,
+  };
+};
+
 export const createInternalDiff = ({
   baseVersionId,
   headVersionId,
@@ -740,19 +763,7 @@ export const createInternalDiff = ({
       newRevision: String(headVersionId),
       oldRevision: String(baseVersionId),
       hunks: diff.hunks.map((hunk: ExternalHunk) => ({
-        changes: hunk.changes.map((change: ExternalChange) => ({
-          content: change.content,
-          isDelete: change.type === 'delete',
-          isInsert: change.type === 'insert',
-          isNormal: change.type === 'normal',
-          lineNumber:
-            change.type === 'insert'
-              ? change.new_line_number
-              : change.old_line_number,
-          newLineNumber: change.new_line_number,
-          oldLineNumber: change.old_line_number,
-          type: change.type,
-        })),
+        changes: hunk.changes.map(createInternalChangeInfo),
         content: hunk.header,
         isPlain: false,
         newLines: hunk.new_lines,
