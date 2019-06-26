@@ -94,7 +94,6 @@ describe(__filename, () => {
       children: <div />,
       file,
       onSelectFile: jest.fn(),
-      showFileInfo: true,
       version,
       ...moreProps,
     };
@@ -155,20 +154,8 @@ describe(__filename, () => {
     expect(meta).toHaveProp('file', file);
   });
 
-  it('can hide the information panel', () => {
-    const root = renderPanel(
-      { showFileInfo: false },
-      PanelAttribs.mainSidePanel,
-    );
-
-    expect(getItem(root, ItemTitles.Information)).toHaveLength(0);
-  });
-
   it('renders a placeholder in the information panel without a file', () => {
-    const root = renderPanel(
-      { file: null, showFileInfo: true },
-      PanelAttribs.mainSidePanel,
-    );
+    const root = renderPanel({ file: null }, PanelAttribs.mainSidePanel);
     const item = getItem(root, ItemTitles.Information);
 
     expect(item.find(FileMetadata)).toHaveLength(0);

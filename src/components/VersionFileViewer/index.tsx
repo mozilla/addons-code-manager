@@ -26,7 +26,6 @@ export type PublicProps = {
   getCodeLineAnchor?: GetCodeLineAnchor;
   file: VersionFile | null | void;
   onSelectFile: FileTreeProps['onSelect'];
-  showFileInfo: boolean;
   version: Version | void | null;
 };
 
@@ -36,7 +35,6 @@ const VersionFileViewer = ({
   file,
   getCodeLineAnchor,
   onSelectFile,
-  showFileInfo,
   version,
 }: PublicProps) => {
   if (!version) {
@@ -54,15 +52,13 @@ const VersionFileViewer = ({
           <AccordionItem expandedByDefault title={ItemTitles.Files}>
             <FileTree onSelect={onSelectFile} versionId={version.id} />
           </AccordionItem>
-          {showFileInfo ? (
-            <AccordionItem title={ItemTitles.Information}>
-              {file ? (
-                <FileMetadata file={file} />
-              ) : (
-                <Loading message={gettext('Loading file...')} />
-              )}
-            </AccordionItem>
-          ) : null}
+          <AccordionItem title={ItemTitles.Information}>
+            {file ? (
+              <FileMetadata file={file} />
+            ) : (
+              <Loading message={gettext('Loading file...')} />
+            )}
+          </AccordionItem>
           <AccordionItem title={ItemTitles.Shortcuts}>
             <LinterProvider
               selectedPath={version.selectedPath}

@@ -177,8 +177,6 @@ export class CompareBase extends React.Component<Props> {
       getCodeLineAnchor = map.createCodeLineAnchorGetter();
     }
 
-    // TODO: set showFileInfo=true when we can:
-    // https://github.com/mozilla/addons-code-manager/issues/647
     return (
       <React.Fragment>
         <Helmet>
@@ -194,10 +192,9 @@ export class CompareBase extends React.Component<Props> {
         </Helmet>
         <VersionFileViewer
           compareInfo={compareInfo}
-          file={compareInfo && compareInfo.diff ? versionFile : null}
+          file={versionFile}
           getCodeLineAnchor={getCodeLineAnchor}
           onSelectFile={this.viewVersionFile}
-          showFileInfo={false}
           version={version}
         >
           <div className={styles.diffShell}>

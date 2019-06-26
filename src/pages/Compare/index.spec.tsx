@@ -811,7 +811,7 @@ describe(__filename, () => {
     expect(dispatch).not.toHaveBeenCalled();
   });
 
-  it('configures VersionFileViewer to show CodeOverview', () => {
+  it('configures VersionFileViewer with a file', () => {
     const baseVersionId = 1;
     const version = { ...fakeVersionWithDiff, id: baseVersionId + 1 };
     const headVersionId = version.id;
@@ -848,7 +848,8 @@ describe(__filename, () => {
     expect(getCodeLineAnchor(1)).toEqual(map.getCodeLineAnchor(1));
   });
 
-  it('does not configure VersionFileViewer with a file for empty diffs', () => {
+  it('configures VersionFileViewer with a file even for empty diffs', () => {
+    const fileId = fakeVersionWithDiff.file.id + 1;
     const headVersionId = 2;
     const { root } = loadDiffAndRender({
       baseVersionId: headVersionId - 1,
@@ -858,12 +859,18 @@ describe(__filename, () => {
         id: headVersionId,
         file: {
           ...fakeVersionWithDiff.file,
+          id: fileId,
           diff: null,
         },
       },
     });
 
-    expect(root.find(VersionFileViewer)).toHaveProp('file', null);
+    expect(root.find(VersionFileViewer)).toHaveProp(
+      'file',
+      expect.objectContaining({
+        id: fileId,
+      }),
+    );
   });
 
   it('sets a temporary page title without a version', () => {
