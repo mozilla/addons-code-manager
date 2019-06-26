@@ -36,6 +36,7 @@ import reducer, {
   initialState,
   isCompareInfoLoading,
   isFileLoading,
+  selectCurrentVersionInfo,
   viewVersionFile,
 } from './versions';
 import { ROOT_PATH, RelativePathPosition } from './fileTree';
@@ -915,25 +916,36 @@ describe(__filename, () => {
       });
     };
 
-    it('dispatches beginFetchVersionFile', async () => {
-      const version = fakeVersion;
+    it('dispatches beginFetchVersion()', async () => {
+      const version = { ...fakeVersion, id: fakeVersion.id + 1 };
       const _getVersion = jest.fn().mockReturnValue(Promise.resolve(version));
-      const addonId = 123;
       const versionId = version.id;
 
       const { dispatch, thunk } = thunkTester({
         createThunk: () =>
-          fetchVersion({
-            _getVersion,
-            addonId,
-            versionId,
-          }),
+          fetchVersion({ _getVersion, addonId: 123, versionId }),
       });
 
       await thunk();
 
       expect(dispatch).toHaveBeenCalledWith(
         actions.beginFetchVersion({ versionId }),
+      );
+    });
+
+    it('dispatches setCurrentVersionId()', async () => {
+      const version = { ...fakeVersion, id: fakeVersion.id + 1 };
+      const _getVersion = jest.fn().mockReturnValue(Promise.resolve(version));
+      const versionId = version.id;
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () => fetchVersion({ _getVersion, addonId: 1, versionId }),
+      });
+
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(
+        actions.setCurrentVersionId({ versionId }),
       );
     });
 
@@ -1585,6 +1597,19 @@ describe(__filename, () => {
       );
     });
 
+    it('dispatches setCurrentVersionId() for headVersionId', async () => {
+      const headVersionId = 3;
+
+      const { dispatch, thunk } = _fetchDiff({ headVersionId });
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(
+        actions.setCurrentVersionId({
+          versionId: headVersionId,
+        }),
+      );
+    });
+
     it('calls getDiff()', async () => {
       const version = fakeVersionWithDiff;
       const _getDiff = jest.fn().mockReturnValue(Promise.resolve(version));
@@ -1737,6 +1762,24 @@ describe(__filename, () => {
           addonId,
           baseVersionId,
           headVersionId,
+        }),
+      );
+    });
+
+    it('dispatches abortFetchVersion() when the API call has failed', async () => {
+      const headVersionId = 2;
+      const _getDiff = jest.fn().mockReturnValue(
+        Promise.resolve({
+          error: new Error('Bad Request'),
+        }),
+      );
+
+      const { dispatch, thunk } = _fetchDiff({ _getDiff, headVersionId });
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(
+        actions.abortFetchVersion({
+          versionId: headVersionId,
         }),
       );
     });
@@ -2835,6 +2878,62 @@ describe(__filename, () => {
       await expect(thunk()).rejects.toThrow(
         'Cannot go to relative diff without a version loaded',
       );
+    });
+  });
+
+  describe('setCurrentVersionId', () => {
+    it('sets the current version ID', () => {
+      const versionId = 42;
+
+      expect(
+        reducer(undefined, actions.setCurrentVersionId({ versionId })),
+      ).toMatchObject({
+        currentVersionId: versionId,
+      });
+    });
+  });
+
+  describe('selectCurrentVersionInfo', () => {
+    it('returns the current version when set', () => {
+      const version = { ...fakeVersion, id: 42 };
+      let state;
+      state = reducer(state, actions.loadVersionInfo({ version }));
+      state = reducer(
+        state,
+        actions.setCurrentVersionId({ versionId: version.id }),
+      );
+
+      expect(selectCurrentVersionInfo(state)).toEqual(
+        createInternalVersion(version),
+      );
+    });
+
+    it('returns null when there was a fetching error', () => {
+      const version = { ...fakeVersion, id: 42 };
+      let state;
+      state = reducer(
+        state,
+        actions.abortFetchVersion({ versionId: version.id }),
+      );
+      state = reducer(
+        state,
+        actions.setCurrentVersionId({ versionId: version.id }),
+      );
+
+      expect(selectCurrentVersionInfo(state)).toEqual(null);
+    });
+
+    it('returns undefined when no current version has been set', () => {
+      expect(selectCurrentVersionInfo(initialState)).toEqual(undefined);
+    });
+
+    it('returns undefined if the version info has not loaded yet', () => {
+      const state = reducer(
+        undefined,
+        actions.setCurrentVersionId({ versionId: 42 }),
+      );
+
+      expect(selectCurrentVersionInfo(state)).toEqual(undefined);
     });
   });
 });
