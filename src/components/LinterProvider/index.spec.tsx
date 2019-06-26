@@ -246,7 +246,7 @@ describe(__filename, () => {
     const map = getMessageMap(linterResult);
     expect(children).toHaveBeenCalledWith(
       expect.objectContaining({
-        selectedMessageMap: map[path],
+        selectedMessageMap: map.byPath[path],
       }),
     );
   });

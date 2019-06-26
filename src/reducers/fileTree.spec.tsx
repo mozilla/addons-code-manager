@@ -965,7 +965,7 @@ describe(__filename, () => {
         );
 
         // Map a file without any messages. This file should be skipped.
-        messageMap[file2] = { global: [], byLine: [] };
+        messageMap.byPath[file2] = { global: [], byLine: [] };
 
         expect(
           _getRelativeMessage({

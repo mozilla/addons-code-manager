@@ -129,7 +129,7 @@ describe(__filename, () => {
       '}',
     ];
 
-    const selectedMessageMap = map[file];
+    const selectedMessageMap = map.byPath[file];
 
     const root = renderWithLinterProvider({
       messageMap: map,

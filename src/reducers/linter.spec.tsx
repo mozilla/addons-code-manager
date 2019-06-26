@@ -1,12 +1,9 @@
 /* global fetchMock */
-import log from 'loglevel';
-
 import {
   createFakeExternalLinterResult,
   createFakeLinterMessagesByPath,
   fakeExternalLinterResult,
   fakeExternalLinterMessage,
-  createFakeLogger,
   thunkTester,
 } from '../test-helpers';
 import linterReducer, {
@@ -33,11 +30,8 @@ describe(__filename, () => {
     return createFakeExternalLinterResult({ messages });
   };
 
-  const _getMessageMap = (
-    messages: Partial<ExternalLinterMessage>[],
-    { _log }: { _log?: typeof log } = {},
-  ) => {
-    return getMessageMap(createExternalLinterResult(messages), { _log });
+  const _getMessageMap = (messages: Partial<ExternalLinterMessage>[]) => {
+    return getMessageMap(createExternalLinterResult(messages));
   };
 
   describe('linterReducer', () => {
@@ -213,19 +207,21 @@ describe(__filename, () => {
           },
         ]),
       ).toMatchObject({
-        [file]: {
-          byLine: {
-            [line]: [
-              {
-                column,
-                description,
-                file,
-                line,
-                message,
-                type,
-                uid,
-              },
-            ],
+        byPath: {
+          [file]: {
+            byLine: {
+              [line]: [
+                {
+                  column,
+                  description,
+                  file,
+                  line,
+                  message,
+                  type,
+                  uid,
+                },
+              ],
+            },
           },
         },
       });
@@ -254,19 +250,58 @@ describe(__filename, () => {
           },
         ]),
       ).toMatchObject({
-        [file]: {
-          global: [
-            {
-              column,
-              description,
-              file,
-              line,
-              message,
-              type,
-              uid,
-            },
-          ],
+        byPath: {
+          [file]: {
+            global: [
+              {
+                column,
+                description,
+                file,
+                line,
+                message,
+                type,
+                uid,
+              },
+            ],
+          },
         },
+      });
+    });
+
+    it('maps a general message', () => {
+      const uid = 'example-uid';
+      const type = 'warning';
+      const message = 'This extension appears to be invalid';
+      const description = ['Longer description...'];
+
+      const file = null;
+      const line = null;
+      const column = null;
+
+      expect(
+        _getMessageMap([
+          {
+            column,
+            description,
+            file,
+            line,
+            message,
+            type,
+            uid,
+          },
+        ]),
+      ).toMatchObject({
+        general: [
+          {
+            column,
+            description,
+            file,
+            line,
+            message,
+            type,
+            uid,
+          },
+        ],
       });
     });
 
@@ -291,7 +326,9 @@ describe(__filename, () => {
           },
         ]),
       ).toMatchObject({
-        [file]: { global: [{ uid: uid1 }, { uid: uid2 }] },
+        byPath: {
+          [file]: { global: [{ uid: uid1 }, { uid: uid2 }] },
+        },
       });
     });
 
@@ -315,36 +352,14 @@ describe(__filename, () => {
           },
         ]),
       ).toMatchObject({
-        [file]: { byLine: { [line]: [{ uid: uid1 }, { uid: uid2 }] } },
+        byPath: {
+          [file]: { byLine: { [line]: [{ uid: uid1 }, { uid: uid2 }] } },
+        },
       });
     });
 
     it('maps zero messages', () => {
-      expect(_getMessageMap([])).toEqual({});
-    });
-
-    it('logs an error about messages not mapped to any file', () => {
-      const fakeLog = createFakeLogger();
-
-      const message = 'manifest.json not found';
-      const description = ['No manifest.json file was found'];
-
-      expect(
-        _getMessageMap(
-          [
-            {
-              column: null,
-              description,
-              file: null,
-              line: null,
-              message,
-            },
-          ],
-          { _log: fakeLog },
-        ),
-      ).toEqual({});
-
-      expect(fakeLog.error).toHaveBeenCalled();
+      expect(_getMessageMap([])).toEqual({ byPath: {}, general: [] });
     });
   });
 

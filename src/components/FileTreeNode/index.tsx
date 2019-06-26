@@ -46,13 +46,13 @@ export const findMostSevereTypeForPath = (
   targetPath: string,
   { _findMostSevereType = findMostSevereType } = {},
 ): MessageType | null => {
-  const allMessages = Object.keys(linterMessageMap).reduce(
+  const allMessages = Object.keys(linterMessageMap.byPath).reduce(
     (messages: LinterMessage[], path: string) => {
       if (!path.startsWith(targetPath)) {
         return messages;
       }
 
-      const map = linterMessageMap[path];
+      const map = linterMessageMap.byPath[path];
       messages.push(...map.global);
 
       Object.keys(map.byLine).forEach((key) => {
@@ -77,7 +77,7 @@ export const isKnownLibrary = (
   path: string,
   _getMessagesForPath: typeof getMessagesForPath = getMessagesForPath,
 ): boolean => {
-  const m = linterMessageMap[path];
+  const m = linterMessageMap.byPath[path];
 
   if (!m) {
     return false;
@@ -186,7 +186,7 @@ export class FileTreeNodeBase<TreeNodeType> extends React.Component<Props> {
 
     const hasLinterMessages =
       messageMap &&
-      Object.keys(messageMap).some((path) => path.startsWith(node.id));
+      Object.keys(messageMap.byPath).some((path) => path.startsWith(node.id));
 
     let nodeIcons = null;
     let linterType = null;
