@@ -677,14 +677,14 @@ describe(__filename, () => {
       ]);
     });
 
-    it('does not check universal messages', () => {
+    it('does not check overall messages', () => {
       const messages = [
         {
           ...fakeExternalLinterMessage,
-          // Make this a universal message.
+          // Make this an overall message.
           file: null,
           line: null,
-          uid: 'universal-uid-example',
+          uid: 'overall-uid-example',
         },
       ] as ExternalLinterMessage[];
       const map = _getMessageMap(messages);

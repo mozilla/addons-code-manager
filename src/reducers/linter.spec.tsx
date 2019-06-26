@@ -268,7 +268,7 @@ describe(__filename, () => {
       });
     });
 
-    it('maps a universal message', () => {
+    it('maps an overall message', () => {
       const uid = 'example-uid';
       const type = 'warning';
       const message = 'This extension appears to be invalid';
@@ -291,7 +291,7 @@ describe(__filename, () => {
           },
         ]),
       ).toMatchObject({
-        universal: [
+        overall: [
           {
             column,
             description,
@@ -359,7 +359,7 @@ describe(__filename, () => {
     });
 
     it('maps zero messages', () => {
-      expect(_getMessageMap([])).toEqual({ byPath: {}, universal: [] });
+      expect(_getMessageMap([])).toEqual({ byPath: {}, overall: [] });
     });
   });
 

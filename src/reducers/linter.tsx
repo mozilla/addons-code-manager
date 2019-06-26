@@ -80,21 +80,21 @@ export type LinterMessageMap = {
     // The 'path' key matches the key of ExternalVersionFile['entries']
     [path: string]: LinterMessagesByPath;
   };
-  // Universal messages apply to the entire add-on
-  universal: LinterMessage[];
+  // Overall messages apply to the entire add-on.
+  overall: LinterMessage[];
 };
 
 export const getMessageMap = (result: ExternalLinterResult) => {
   const msgMap: LinterMessageMap = {
     byPath: {},
-    universal: [],
+    overall: [],
   };
 
   result.validation.messages.forEach((message) => {
     const internalMessage = createInternalMessage(message);
 
     if (!message.file) {
-      msgMap.universal.push(internalMessage);
+      msgMap.overall.push(internalMessage);
       return;
     }
     if (!msgMap.byPath[message.file]) {
@@ -254,7 +254,7 @@ const reducer: Reducer<LinterState, ActionType<typeof actions>> = (
         // TODO: when we have proper error handling, this can
         // set { messageMap: undefined } so that the component
         // knows it's OK to try fetching it again.
-        messageMap: { byPath: {}, universal: [] },
+        messageMap: { byPath: {}, overall: [] },
         isLoading: false,
       };
     case getType(actions.loadLinterResult):

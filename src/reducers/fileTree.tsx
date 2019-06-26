@@ -309,7 +309,7 @@ export const getRelativeMessage = ({
   pathList,
   position,
 }: GetRelativeMessageParams): RelativeMessageInfo | null => {
-  // TODO: support universal messages
+  // TODO: support overall messages
   // https://github.com/mozilla/addons-code-manager/issues/878
 
   if (!Object.keys(messageMap.byPath).length) {
