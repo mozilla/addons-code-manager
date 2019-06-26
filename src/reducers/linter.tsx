@@ -70,6 +70,7 @@ export type LinterMessagesByLine = {
 };
 
 export type LinterMessagesByPath = {
+  // Global messages apply to the entire file.
   global: LinterMessage[];
   byLine: LinterMessagesByLine;
 };
@@ -79,6 +80,7 @@ export type LinterMessageMap = {
     // The 'path' key matches the key of ExternalVersionFile['entries']
     [path: string]: LinterMessagesByPath;
   };
+  // Universal messages apply to the entire add-on
   universal: LinterMessage[];
 };
 
