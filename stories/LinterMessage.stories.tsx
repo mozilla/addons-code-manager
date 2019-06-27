@@ -195,6 +195,26 @@ storiesOf('LinterMessage', module).addWithChapters('all variants', {
           },
         },
         {
+          title: 'Inlined error highlighted',
+          sectionFn: () => {
+            const messageUid = 'some-uid';
+            return renderWithMessageUid(
+              <LinterMessage
+                inline
+                message={createMessage({
+                  type: 'error',
+                  message: 'The value of &lt;em:id&gt; is invalid',
+                  description: [
+                    'The values supplied for &lt;em:id&gt; in the install.rdf file is not a valid UUID string.',
+                  ],
+                  uid: messageUid,
+                })}
+              />,
+              messageUid,
+            );
+          },
+        },
+        {
           title: 'Inlined warning',
           sectionFn: () => {
             return render(
