@@ -261,6 +261,40 @@ storiesOf('LinterMessage', module).addWithChapters('all variants', {
             );
           },
         },
+        {
+          title: 'Two inline messages stacked with one highlighted',
+          sectionFn: () => {
+            const messageUid = 'some-uid';
+            return renderWithMessageUid(
+              <React.Fragment>
+                <LinterMessage
+                  inline
+                  message={createMessage({
+                    type: 'notice',
+                    message: 'Known JS library detected',
+                    description: [
+                      `JavaScript libraries are discouraged for
+                simple add-ons, but are generally accepted.`,
+                    ],
+                  })}
+                />
+                <LinterMessage
+                  inline
+                  message={createMessage({
+                    type: 'error',
+                    message: 'Markup parsing error',
+                    description: [
+                      'There was an error parsing the markup document.',
+                      'malformed start tag, at line 1, column 26',
+                    ],
+                    uid: messageUid,
+                  })}
+                />
+              </React.Fragment>,
+              messageUid,
+            );
+          },
+        },
       ],
     },
   ],
