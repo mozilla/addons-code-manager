@@ -81,7 +81,9 @@ describe(__filename, () => {
 
   const render = ({
     versionId = 12349876,
-    store = createStoreWithVersion({ ...fakeVersion, id: versionId }),
+    store = createStoreWithVersion({
+      version: { ...fakeVersion, id: versionId },
+    }),
     ...props
   }: RenderParams = {}) => {
     const allProps: PublicProps = {
@@ -129,7 +131,7 @@ describe(__filename, () => {
     treefoldRenderProps = {},
   }) => {
     const externalVersion = fakeVersion;
-    const store = createStoreWithVersion(externalVersion);
+    const store = createStoreWithVersion({ version: externalVersion });
     const renderProps = getTreefoldRenderProps({
       id: externalVersion.file.selected_file,
       ...treefoldRenderProps,
@@ -149,9 +151,11 @@ describe(__filename, () => {
   ) => {
     const versionId = 321;
 
-    const store = createStoreWithVersion(
-      createExternalVersionWithEntries(partialEntries, { id: versionId }),
-    );
+    const store = createStoreWithVersion({
+      version: createExternalVersionWithEntries(partialEntries, {
+        id: versionId,
+      }),
+    });
 
     return renderWithLinterProvider({
       ...renderProps,
@@ -311,7 +315,7 @@ describe(__filename, () => {
 
   it('marks a file node as selected', () => {
     const externalVersion = fakeVersion;
-    const store = createStoreWithVersion(externalVersion);
+    const store = createStoreWithVersion({ version: externalVersion });
 
     const root = renderWithLinterProvider({
       store,
@@ -695,7 +699,7 @@ describe(__filename, () => {
 
   it('configures LinterProvider', () => {
     const externalVersion = fakeVersion;
-    const store = createStoreWithVersion(externalVersion);
+    const store = createStoreWithVersion({ version: externalVersion });
     const root = render({ store, versionId: externalVersion.id });
 
     const provider = root.find(LinterProvider);
@@ -732,7 +736,7 @@ describe(__filename, () => {
     const externalVersion = fakeVersion;
     const nodeId = externalVersion.file.selected_file;
 
-    const store = createStoreWithVersion(externalVersion);
+    const store = createStoreWithVersion({ version: externalVersion });
     const fakeRef = createFakeRef({ scrollIntoView: jest.fn() });
     // Make sure the path is not in focus.
     store.dispatch(
@@ -763,7 +767,9 @@ describe(__filename, () => {
 
   it('does not focus a node when not selected', () => {
     const versionId = 8765;
-    const store = createStoreWithVersion({ ...fakeVersion, id: versionId });
+    const store = createStoreWithVersion({
+      version: { ...fakeVersion, id: versionId },
+    });
     // Make sure the path is not in focus.
     store.dispatch(
       versionsActions.setVisibleSelectedPath({ path: null, versionId }),
@@ -784,7 +790,7 @@ describe(__filename, () => {
 
   it('does not focus a node when selected and already in focus', () => {
     const externalVersion = fakeVersion;
-    const store = createStoreWithVersion(externalVersion);
+    const store = createStoreWithVersion({ version: externalVersion });
     const nodeId = externalVersion.file.selected_file;
 
     // Focus the path.

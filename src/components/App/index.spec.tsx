@@ -68,7 +68,7 @@ describe(__filename, () => {
   ) => {
     return simulateLinterProvider(
       render({
-        store: createStoreWithVersion(undefined, { makeCurrent: true }),
+        store: createStoreWithVersion({ makeCurrent: true }),
       }),
       {
         messageMap: getMessageMap(createFakeExternalLinterResult({ messages })),
@@ -246,7 +246,7 @@ describe(__filename, () => {
 
   it('configures LinterProvider', () => {
     const version = { ...fakeVersion };
-    const store = createStoreWithVersion(version, { makeCurrent: true });
+    const store = createStoreWithVersion({ version, makeCurrent: true });
     const root = render({ store });
 
     const provider = root.find(LinterProvider);
@@ -293,9 +293,7 @@ describe(__filename, () => {
 
   it('does not render LinterMessages with an empty messageMap', () => {
     const root = simulateLinterProvider(
-      render({
-        store: createStoreWithVersion(undefined, { makeCurrent: true }),
-      }),
+      render({ store: createStoreWithVersion({ makeCurrent: true }) }),
       {
         messageMap: undefined,
       },

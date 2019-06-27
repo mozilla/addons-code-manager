@@ -712,12 +712,13 @@ export const createFakeRef = (
   };
 };
 
-export const createStoreWithVersion = (
-  // TODO: turn this all into object params
-  /* istanbul ignore next */
-  version: ExternalVersionWithDiff | ExternalVersionWithContent = fakeVersion,
-  { makeCurrent = false } = {},
-) => {
+export const createStoreWithVersion = ({
+  version = fakeVersion,
+  makeCurrent = false,
+}: {
+  version?: ExternalVersionWithDiff | ExternalVersionWithContent;
+  makeCurrent?: boolean;
+} = {}) => {
   const store = configureStore();
   store.dispatch(versionsActions.loadVersionInfo({ version }));
   if (makeCurrent) {

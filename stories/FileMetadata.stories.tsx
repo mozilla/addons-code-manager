@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/camelcase */
 import React from 'react';
 import { storiesOf } from '@storybook/react';
 
@@ -14,7 +15,7 @@ import {
 } from '../src/test-helpers';
 
 const loadVersionFile = (version = fakeVersion) => {
-  const store = createStoreWithVersion(version);
+  const store = createStoreWithVersion({ version });
   store.dispatch(
     versionActions.loadVersionFile({
       path: version.file.selected_file,
