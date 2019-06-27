@@ -712,6 +712,7 @@ export const createFakeRef = (
   };
 };
 
+/* istanbul ignore next */
 export const createStoreWithVersion = ({
   version = fakeVersion,
   makeCurrent = false,
