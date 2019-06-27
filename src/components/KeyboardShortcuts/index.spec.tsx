@@ -82,6 +82,7 @@ describe(__filename, () => {
   };
 
   const render = ({
+    _createCodeLineAnchorGetter = jest.fn(),
     compareInfo = null,
     currentPath = 'file1.js',
     location = createFakeLocation(),
@@ -93,6 +94,7 @@ describe(__filename, () => {
     ...moreProps
   }: RenderParams = {}) => {
     const props = {
+      _createCodeLineAnchorGetter,
       compareInfo,
       currentPath,
       location,
@@ -185,6 +187,21 @@ describe(__filename, () => {
       'keydown',
       keydownListener,
     );
+  });
+
+  it('generates a getCodeLineAnchor function using _createCodeLineAnchorGetter', () => {
+    const compareInfo = createFakeCompareInfo();
+    const _createCodeLineAnchorGetter = jest.fn();
+
+    renderAndTriggerKeyEvent(
+      { key: Object.keys(supportedKeys)[0] },
+      {
+        _createCodeLineAnchorGetter,
+        compareInfo,
+      },
+    );
+
+    expect(_createCodeLineAnchorGetter).toHaveBeenCalledWith({ compareInfo });
   });
 
   it.each([
@@ -356,6 +373,10 @@ describe(__filename, () => {
       const location = createFakeLocation({
         search: queryString.stringify({ messageUid, path: currentPath }),
       });
+      const getCodeLineAnchor = jest.fn();
+      const _createCodeLineAnchorGetter = jest
+        .fn()
+        .mockReturnValue(getCodeLineAnchor);
 
       const store = configureStoreWithFileTree({ versionId, pathList });
 
@@ -366,6 +387,7 @@ describe(__filename, () => {
       renderAndTriggerKeyEvent(
         { key: key as string },
         {
+          _createCodeLineAnchorGetter,
           _goToRelativeMessage,
           currentPath,
           location,
@@ -379,6 +401,7 @@ describe(__filename, () => {
       expect(_goToRelativeMessage).toHaveBeenCalledWith({
         currentMessageUid: messageUid,
         currentPath,
+        getCodeLineAnchor,
         messageMap,
         pathList,
         position,
