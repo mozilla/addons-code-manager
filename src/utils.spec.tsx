@@ -3,13 +3,31 @@ import queryString from 'query-string';
 
 import {
   formatFilesize,
+  getCodeLineAnchorGetter,
   getLanguageFromMimeType,
   getLocalizedString,
   getPathFromQueryString,
   nl2br,
   sanitizeHTML,
 } from './utils';
-import { createFakeHistory, createFakeLocation } from './test-helpers';
+import {
+  createFakeCompareInfo,
+  createFakeHistory,
+  createFakeLocation,
+} from './test-helpers';
+
+// If we don't create the mock for ForwardComparisonMap here it doesn't work!
+const mockGetterFromForwardComparisonMap = jest.fn();
+const mockCreateCodeLineAnchorGetter = jest
+  .fn()
+  .mockReturnValue(mockGetterFromForwardComparisonMap);
+jest.mock('./pages/Compare/utils', () => {
+  return jest.fn().mockImplementation(() => {
+    return {
+      createCodeLineAnchorGetter: mockCreateCodeLineAnchorGetter,
+    };
+  });
+});
 
 describe(__filename, () => {
   describe('getLocalizedString', () => {
@@ -186,6 +204,40 @@ describe(__filename, () => {
       });
 
       expect(getPathFromQueryString(history)).toEqual(null);
+    });
+  });
+
+  describe('getCodeLineAnchorGetter', () => {
+    it('returns getCodeLineAnchor if compareInfo is null', () => {
+      const _getCodeLineAnchor = jest.fn();
+      expect(
+        getCodeLineAnchorGetter({ _getCodeLineAnchor, compareInfo: null }),
+      ).toEqual(_getCodeLineAnchor);
+    });
+
+    it('returns getCodeLineAnchor if compareInfo is undefined', () => {
+      const _getCodeLineAnchor = jest.fn();
+      expect(
+        getCodeLineAnchorGetter({ _getCodeLineAnchor, compareInfo: undefined }),
+      ).toEqual(_getCodeLineAnchor);
+    });
+
+    it('returns getCodeLineAnchor if compareInfo.diff is falsey', () => {
+      const _getCodeLineAnchor = jest.fn();
+      expect(
+        getCodeLineAnchorGetter({
+          _getCodeLineAnchor,
+          compareInfo: { diff: null, mimeType: 'mime/type' },
+        }),
+      ).toEqual(_getCodeLineAnchor);
+    });
+
+    it('returns getCodeLineAnchor from ForwardComparisonMap is compareInfo.diff exists', () => {
+      expect(
+        getCodeLineAnchorGetter({
+          compareInfo: createFakeCompareInfo(),
+        }),
+      ).toEqual(mockGetterFromForwardComparisonMap);
     });
   });
 });

@@ -25,8 +25,8 @@ import {
 import DiffView from '../../components/DiffView';
 import Loading from '../../components/Loading';
 import VersionFileViewer from '../../components/VersionFileViewer';
+import { getCodeLineAnchorGetter } from '../../utils';
 import styles from './styles.module.scss';
-import { ForwardComparisonMap } from './utils';
 
 import Compare, { CompareBase, PublicProps, mapStateToProps } from '.';
 
@@ -836,7 +836,9 @@ describe(__filename, () => {
     if (!diff) {
       throw new Error('diff was unexpectedly empty');
     }
-    const map = new ForwardComparisonMap(diff);
+    const getterFromFactory = getCodeLineAnchorGetter({
+      compareInfo: { diff, mimeType: 'test' },
+    });
 
     const getCodeLineAnchor = viewer.prop('getCodeLineAnchor');
     if (!getCodeLineAnchor) {
@@ -845,7 +847,7 @@ describe(__filename, () => {
 
     // As a sanity check, call the configured getter to see if we get
     // the same result as one returned by a simulated getter.
-    expect(getCodeLineAnchor(1)).toEqual(map.getCodeLineAnchor(1));
+    expect(getCodeLineAnchor(1)).toEqual(getterFromFactory(1));
   });
 
   it('configures VersionFileViewer with a file even for empty diffs', () => {

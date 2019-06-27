@@ -24,7 +24,7 @@ const mergeChanges = (
 
 // This is a map of an old vs. new file comparison, giving preference to the
 // "forward" file, i.e. the newer file.
-export class ForwardComparisonMap {
+export default class ForwardComparisonMap {
   private changeMap: ForwardChangeMap;
 
   constructor(diff: DiffInfo) {

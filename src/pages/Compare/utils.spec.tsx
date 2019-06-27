@@ -5,7 +5,7 @@ import {
   createInternalDiff,
 } from '../../reducers/versions';
 import { fakeExternalDiff, fakeVersionWithDiff } from '../../test-helpers';
-import { ForwardComparisonMap } from './utils';
+import ForwardComparisonMap from './utils';
 
 describe(__filename, () => {
   const createFakeExternalChange = (

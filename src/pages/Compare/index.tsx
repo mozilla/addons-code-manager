@@ -22,11 +22,11 @@ import {
   viewVersionFile,
 } from '../../reducers/versions';
 import {
+  getCodeLineAnchorGetter,
   getLocalizedString,
-  gettext,
   getPathFromQueryString,
+  gettext,
 } from '../../utils';
-import { ForwardComparisonMap } from './utils';
 import styles from './styles.module.scss';
 
 export type PublicProps = {
@@ -171,12 +171,6 @@ export class CompareBase extends React.Component<Props> {
 
     const { baseVersionId, headVersionId } = match.params;
 
-    let getCodeLineAnchor;
-    if (compareInfo && compareInfo.diff) {
-      const map = new ForwardComparisonMap(compareInfo.diff);
-      getCodeLineAnchor = map.createCodeLineAnchorGetter();
-    }
-
     return (
       <React.Fragment>
         <Helmet>
@@ -193,7 +187,7 @@ export class CompareBase extends React.Component<Props> {
         <VersionFileViewer
           compareInfo={compareInfo}
           file={versionFile}
-          getCodeLineAnchor={getCodeLineAnchor}
+          getCodeLineAnchor={getCodeLineAnchorGetter({ compareInfo })}
           onSelectFile={this.viewVersionFile}
           version={version}
         >
