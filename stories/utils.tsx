@@ -4,12 +4,11 @@ import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
 
 import configureStore from '../src/configureStore';
-import { createFakeLocation } from '../src/test-helpers';
 
 export const renderWithStoreAndRouter = (
   element: JSX.Element,
   store = configureStore(),
-  initialEntries: Location<{}>[] = [createFakeLocation()],
+  initialEntries?: Location<{}>[],
 ) => {
   return (
     <Provider store={store}>
