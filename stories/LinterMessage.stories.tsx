@@ -1,9 +1,13 @@
+import queryString from 'query-string';
 import * as React from 'react';
 import { storiesOf } from '@storybook/react';
 
 import LinterMessage from '../src/components/LinterMessage';
 import { createInternalMessage } from '../src/reducers/linter';
-import { fakeExternalLinterMessage } from '../src/test-helpers';
+import {
+  createFakeLocation,
+  fakeExternalLinterMessage,
+} from '../src/test-helpers';
 import { renderWithStoreAndRouter } from './utils';
 
 const createMessage = (attributes = {}) => {
@@ -15,6 +19,14 @@ const createMessage = (attributes = {}) => {
 
 const render = (children: JSX.Element) => {
   return renderWithStoreAndRouter(children);
+};
+
+const renderWithMessageUid = (children: JSX.Element, messageUid: string) => {
+  return renderWithStoreAndRouter(children, undefined, [
+    createFakeLocation({
+      search: queryString.stringify({ messageUid }),
+    }),
+  ]);
 };
 
 storiesOf('LinterMessage', module).addWithChapters('all variants', {
@@ -38,6 +50,25 @@ storiesOf('LinterMessage', module).addWithChapters('all variants', {
           },
         },
         {
+          title: 'Error highlighted',
+          sectionFn: () => {
+            const messageUid = 'some-uid';
+            return renderWithMessageUid(
+              <LinterMessage
+                message={createMessage({
+                  type: 'error',
+                  message: 'The value of &lt;em:id&gt; is invalid',
+                  description: [
+                    'The values supplied for &lt;em:id&gt; in the install.rdf file is not a valid UUID string.',
+                  ],
+                  uid: messageUid,
+                })}
+              />,
+              messageUid,
+            );
+          },
+        },
+        {
           title: 'Warning',
           sectionFn: () => {
             return render(
@@ -55,19 +86,22 @@ storiesOf('LinterMessage', module).addWithChapters('all variants', {
           },
         },
         {
-          title: 'Notice',
+          title: 'Warning highlighted',
           sectionFn: () => {
-            return render(
+            const messageUid = 'some-uid';
+            return renderWithMessageUid(
               <LinterMessage
                 message={createMessage({
-                  type: 'notice',
-                  message: 'Known JS library detected',
+                  type: 'warning',
+                  message:
+                    'The manifest contains a dictionary but no id property.',
                   description: [
-                    `JavaScript libraries are discouraged for
-                simple add-ons, but are generally accepted.`,
+                    'A dictionary was found in the manifest, but there was no id set.',
                   ],
+                  uid: messageUid,
                 })}
               />,
+              messageUid,
             );
           },
         },
@@ -85,6 +119,26 @@ storiesOf('LinterMessage', module).addWithChapters('all variants', {
                   ],
                 })}
               />,
+            );
+          },
+        },
+        {
+          title: 'Notice highlighted',
+          sectionFn: () => {
+            const messageUid = 'some-uid';
+            return renderWithMessageUid(
+              <LinterMessage
+                message={createMessage({
+                  type: 'notice',
+                  message: 'Known JS library detected',
+                  description: [
+                    `JavaScript libraries are discouraged for
+                simple add-ons, but are generally accepted.`,
+                  ],
+                  uid: messageUid,
+                })}
+              />,
+              messageUid,
             );
           },
         },

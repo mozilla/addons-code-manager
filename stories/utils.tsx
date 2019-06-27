@@ -1,16 +1,19 @@
+import { Location } from 'history';
 import * as React from 'react';
-import { MemoryRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
+import { MemoryRouter } from 'react-router-dom';
 
 import configureStore from '../src/configureStore';
+import { createFakeLocation } from '../src/test-helpers';
 
 export const renderWithStoreAndRouter = (
   element: JSX.Element,
   store = configureStore(),
+  initialEntries: Location<{}>[] = [createFakeLocation()],
 ) => {
   return (
     <Provider store={store}>
-      <MemoryRouter>{element}</MemoryRouter>
+      <MemoryRouter initialEntries={initialEntries}>{element}</MemoryRouter>
     </Provider>
   );
 };
