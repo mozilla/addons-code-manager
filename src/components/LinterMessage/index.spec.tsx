@@ -1,4 +1,5 @@
 import queryString from 'query-string';
+import { Location } from 'history';
 import * as React from 'react';
 import { Alert } from 'react-bootstrap';
 
@@ -14,18 +15,20 @@ import styles from './styles.module.scss';
 
 import LinterMessage, {
   decodeHtmlEntities,
-  Props as LinterMessageProps,
+  PublicProps as LinterMessageProps,
   LinterMessageBase,
 } from '.';
 
 describe(__filename, () => {
   const render = ({
-    inline = false,
     location = createFakeLocation(),
     message = createInternalMessage(fakeExternalLinterMessage),
-  }: Partial<LinterMessageProps> = {}) => {
+    ...props
+  }: Partial<LinterMessageProps> & {
+    location?: Location;
+  } = {}) => {
     return shallowUntilTarget(
-      <LinterMessage message={message} inline={inline} />,
+      <LinterMessage message={message} {...props} />,
       LinterMessageBase,
       {
         shallowOptions: createContextWithFakeRouter({ location }),
@@ -33,7 +36,7 @@ describe(__filename, () => {
     );
   };
 
-  const renderMessage = (attributes = {}, location = createFakeLocation()) => {
+  const renderMessage = (attributes = {}, renderParams = {}) => {
     const message = createInternalMessage({
       ...fakeExternalLinterMessage,
       description: [
@@ -44,8 +47,15 @@ describe(__filename, () => {
       ...attributes,
     });
 
-    return render({ location, message });
+    return render({ message, ...renderParams });
   };
+
+  it('sets a custom class name', () => {
+    const className = 'ExampleClass';
+    const root = renderMessage({}, { className });
+
+    expect(root).toHaveClassName(className);
+  });
 
   it.each([
     ['danger', 'error'],
@@ -166,7 +176,7 @@ describe(__filename, () => {
     const location = createFakeLocation({
       search: queryString.stringify({ [messageUidQueryParam]: uid }),
     });
-    const root = renderMessage({ uid }, location);
+    const root = renderMessage({ uid }, { location });
 
     expect(root).toHaveClassName(`.${styles.highlight}`);
   });
@@ -182,7 +192,7 @@ describe(__filename, () => {
     const location = createFakeLocation({
       search: queryString.stringify({ [messageUidQueryParam]: uid }),
     });
-    const root = renderMessage({ uid: `${uid}-1` }, location);
+    const root = renderMessage({ uid: `${uid}-1` }, { location });
 
     expect(root).not.toHaveClassName(`.${styles.highlight}`);
   });

@@ -61,14 +61,16 @@ const renderDescription = (description: LinterMessage['description']) => {
   }, []);
 };
 
-type PublicProps = {
+export type PublicProps = {
+  className?: string;
   inline?: boolean;
   message: LinterMessage;
 };
 
-export type Props = PublicProps & RouteComponentProps;
+type Props = PublicProps & RouteComponentProps;
 
 export const LinterMessageBase = ({
+  className,
   inline = false,
   location,
   message,
@@ -81,6 +83,7 @@ export const LinterMessageBase = ({
     <Alert
       className={makeClassName(
         styles[variant],
+        className,
         {
           [styles.inline]: inline,
         },
