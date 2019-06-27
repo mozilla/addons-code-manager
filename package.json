@@ -23,7 +23,7 @@
     "@types/lodash.unescape": "4.0.6",
     "@types/node": "10.14.10",
     "@types/react": "16.8.22",
-    "@types/react-bootstrap": "0.32.17",
+    "@types/react-bootstrap": "0.32.18",
     "@types/react-dom": "16.8.4",
     "@types/react-helmet": "5.0.8",
     "@types/react-redux": "7.0.8",
