@@ -15,6 +15,7 @@
 }
 
 .itemButton {
+  transition: transform 0.5s ease-out;
   &:active {
     transform: translateY(4px);
   }
