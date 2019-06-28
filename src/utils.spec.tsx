@@ -1,9 +1,11 @@
 import filesize from 'filesize';
 import queryString from 'query-string';
 
+import { getCodeLineAnchor } from './components/CodeView/utils';
+import { ForwardComparisonMap } from './pages/Compare/utils';
 import {
   formatFilesize,
-  getCodeLineAnchorGetter,
+  createCodeLineAnchorGetter,
   getLanguageFromMimeType,
   getLocalizedString,
   getPathFromQueryString,
@@ -15,19 +17,6 @@ import {
   createFakeHistory,
   createFakeLocation,
 } from './test-helpers';
-
-// If we don't create the mock for ForwardComparisonMap here it doesn't work!
-const mockGetterFromForwardComparisonMap = jest.fn();
-const mockCreateCodeLineAnchorGetter = jest
-  .fn()
-  .mockReturnValue(mockGetterFromForwardComparisonMap);
-jest.mock('./pages/Compare/utils', () => {
-  return jest.fn().mockImplementation(() => {
-    return {
-      createCodeLineAnchorGetter: mockCreateCodeLineAnchorGetter,
-    };
-  });
-});
 
 describe(__filename, () => {
   describe('getLocalizedString', () => {
@@ -207,37 +196,45 @@ describe(__filename, () => {
     });
   });
 
-  describe('getCodeLineAnchorGetter', () => {
+  describe('createCodeLineAnchorGetter', () => {
     it('returns getCodeLineAnchor if compareInfo is null', () => {
-      const _getCodeLineAnchor = jest.fn();
-      expect(
-        getCodeLineAnchorGetter({ _getCodeLineAnchor, compareInfo: null }),
-      ).toEqual(_getCodeLineAnchor);
+      expect(createCodeLineAnchorGetter(null)).toEqual(getCodeLineAnchor);
     });
 
     it('returns getCodeLineAnchor if compareInfo is undefined', () => {
-      const _getCodeLineAnchor = jest.fn();
-      expect(
-        getCodeLineAnchorGetter({ _getCodeLineAnchor, compareInfo: undefined }),
-      ).toEqual(_getCodeLineAnchor);
+      expect(createCodeLineAnchorGetter(undefined)).toEqual(getCodeLineAnchor);
     });
 
     it('returns getCodeLineAnchor if compareInfo.diff is falsey', () => {
-      const _getCodeLineAnchor = jest.fn();
       expect(
-        getCodeLineAnchorGetter({
-          _getCodeLineAnchor,
-          compareInfo: { diff: null, mimeType: 'mime/type' },
-        }),
-      ).toEqual(_getCodeLineAnchor);
+        createCodeLineAnchorGetter({ diff: null, mimeType: 'mime/type' }),
+      ).toEqual(getCodeLineAnchor);
     });
 
     it('returns getCodeLineAnchor from ForwardComparisonMap is compareInfo.diff exists', () => {
-      expect(
-        getCodeLineAnchorGetter({
-          compareInfo: createFakeCompareInfo(),
-        }),
-      ).toEqual(mockGetterFromForwardComparisonMap);
+      const compareInfo = createFakeCompareInfo();
+      if (!compareInfo.diff) {
+        throw new Error('compareInfo.diff was unexpectedly empty');
+      }
+      const map = new ForwardComparisonMap(compareInfo.diff);
+
+      const getterFromFactory = createCodeLineAnchorGetter(compareInfo);
+      const getterFromMap = map.createCodeLineAnchorGetter();
+
+      // Generate a getter without compareInfo to verify that it returns a
+      // different result.
+      const getterFromFactoryWithoutCompareInfo = createCodeLineAnchorGetter(
+        null,
+      );
+
+      // We cannot use `toEqual` for the two getters above because they are
+      // different instances, so we check that they return the same thing.
+      expect(getterFromFactory(1)).toEqual(getterFromMap(1));
+      // And verify that a getter from the factory without compareInfo does not
+      // return the same thing.
+      expect(getterFromFactoryWithoutCompareInfo(1)).not.toEqual(
+        getterFromMap(1),
+      );
     });
   });
 });

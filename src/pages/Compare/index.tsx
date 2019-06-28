@@ -22,7 +22,7 @@ import {
   viewVersionFile,
 } from '../../reducers/versions';
 import {
-  getCodeLineAnchorGetter,
+  createCodeLineAnchorGetter,
   getLocalizedString,
   getPathFromQueryString,
   gettext,
@@ -187,7 +187,7 @@ export class CompareBase extends React.Component<Props> {
         <VersionFileViewer
           compareInfo={compareInfo}
           file={versionFile}
-          getCodeLineAnchor={getCodeLineAnchorGetter({ compareInfo })}
+          getCodeLineAnchor={createCodeLineAnchorGetter(compareInfo)}
           onSelectFile={this.viewVersionFile}
           version={version}
         >

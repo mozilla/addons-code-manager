@@ -4,7 +4,7 @@ import { History } from 'history';
 import queryString from 'query-string';
 
 import { getCodeLineAnchor } from './components/CodeView/utils';
-import ForwardComparisonMap from './pages/Compare/utils';
+import { ForwardComparisonMap } from './pages/Compare/utils';
 import { CompareInfo } from './reducers/versions';
 
 // Querystring params used by the app.
@@ -66,18 +66,12 @@ export const getPathFromQueryString = (history: History) => {
   return typeof path === 'string' && path.length ? path : null;
 };
 
-type GetCodeLineAnchorGetterParams = {
-  _getCodeLineAnchor?: typeof getCodeLineAnchor;
-  compareInfo?: CompareInfo | null | void;
-};
-
-export const getCodeLineAnchorGetter = ({
-  _getCodeLineAnchor = getCodeLineAnchor,
-  compareInfo,
-}: GetCodeLineAnchorGetterParams = {}) => {
+export const createCodeLineAnchorGetter = (
+  compareInfo: CompareInfo | null | void,
+) => {
   if (compareInfo && compareInfo.diff) {
     const map = new ForwardComparisonMap(compareInfo.diff);
     return map.createCodeLineAnchorGetter();
   }
-  return _getCodeLineAnchor;
+  return getCodeLineAnchor;
 };

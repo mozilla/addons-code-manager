@@ -25,7 +25,7 @@ import {
 import DiffView from '../../components/DiffView';
 import Loading from '../../components/Loading';
 import VersionFileViewer from '../../components/VersionFileViewer';
-import { getCodeLineAnchorGetter } from '../../utils';
+import { createCodeLineAnchorGetter } from '../../utils';
 import styles from './styles.module.scss';
 
 import Compare, { CompareBase, PublicProps, mapStateToProps } from '.';
@@ -812,11 +812,13 @@ describe(__filename, () => {
   });
 
   it('configures VersionFileViewer with a file', () => {
+    const addonId = 1;
     const baseVersionId = 1;
     const version = { ...fakeVersionWithDiff, id: baseVersionId + 1 };
     const headVersionId = version.id;
 
-    const { root } = loadDiffAndRender({
+    const { store, root } = loadDiffAndRender({
+      addonId,
       baseVersionId,
       headVersionId,
       version,
@@ -832,13 +834,14 @@ describe(__filename, () => {
       }),
     );
 
-    const diff = createInternalDiff({ baseVersionId, headVersionId, version });
-    if (!diff) {
-      throw new Error('diff was unexpectedly empty');
-    }
-    const getterFromFactory = getCodeLineAnchorGetter({
-      compareInfo: { diff, mimeType: 'test' },
-    });
+    const getterFromFactory = createCodeLineAnchorGetter(
+      getCompareInfo(
+        store.getState().versions,
+        addonId,
+        baseVersionId,
+        headVersionId,
+      ),
+    );
 
     const getCodeLineAnchor = viewer.prop('getCodeLineAnchor');
     if (!getCodeLineAnchor) {
