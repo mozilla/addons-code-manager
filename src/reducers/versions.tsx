@@ -1209,9 +1209,9 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
       return {
         ...state,
         versionInfo: {
-          ...version,
+          ...state.versionInfo,
           [versionId]: {
-            ...state.versionInfo[versionId],
+            ...version,
             expandedPaths: expandedPaths.includes(path)
               ? expandedPaths.filter((storedPath) => path !== storedPath)
               : [...expandedPaths, path],
