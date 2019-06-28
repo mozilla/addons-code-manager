@@ -239,6 +239,9 @@ export const actions = {
     return (payload: { selectedPath: string; versionId: number }) =>
       resolve(payload);
   }),
+  setCurrentVersionId: createAction('SET_CURRENT_VERSION_ID', (resolve) => {
+    return (payload: { versionId: number }) => resolve(payload);
+  }),
   setVisibleSelectedPath: createAction(
     'SET_VISIBLE_SELECTED_PATH',
     (resolve) => {
@@ -311,6 +314,7 @@ export type VersionsState = {
   compareInfoIsLoading: {
     [compareInfoKey: string]: boolean;
   };
+  currentVersionId: number | undefined;
   versionInfo: {
     [versionId: number]:
       | Version // data successfully loaded
@@ -336,6 +340,7 @@ export const initialState: VersionsState = {
   byAddonId: {},
   compareInfo: {},
   compareInfoIsLoading: {},
+  currentVersionId: undefined,
   versionFiles: {},
   versionFilesLoading: {},
   versionInfo: {},
@@ -435,6 +440,15 @@ export const getVersionInfo = (
   }
 
   return version;
+};
+
+export const selectCurrentVersionInfo = (
+  versions: VersionsState,
+): Version | null | undefined => {
+  if (!versions.currentVersionId) {
+    return undefined;
+  }
+  return getVersionInfo(versions, versions.currentVersionId);
 };
 
 export const getMostRelevantEntryStatus = (
@@ -629,6 +643,9 @@ export const fetchVersion = ({
     const { api: apiState } = getState();
 
     dispatch(actions.beginFetchVersion({ versionId }));
+    // Set this as the current version so that components can track its
+    // loading progress.
+    dispatch(actions.setCurrentVersionId({ versionId }));
 
     const response = await _getVersion({
       addonId,
@@ -887,6 +904,9 @@ export const fetchDiff = ({
     dispatch(
       actions.beginFetchDiff({ addonId, baseVersionId, headVersionId, path }),
     );
+    // Set the current version to the newer one (the head vesion) so that
+    // components can track its loading progress.
+    dispatch(actions.setCurrentVersionId({ versionId: headVersionId }));
 
     const response = await _getDiff({
       addonId,
@@ -900,6 +920,9 @@ export const fetchDiff = ({
       dispatch(
         actions.abortFetchDiff({ addonId, baseVersionId, headVersionId, path }),
       );
+      // Since the diff response loads a version, we also need to simulate
+      // aborting a version fetch.
+      dispatch(actions.abortFetchVersion({ versionId: headVersionId }));
       dispatch(errorsActions.addError({ error: response.error }));
     } else {
       if (
@@ -1327,6 +1350,13 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
           ...state.compareInfoIsLoading,
           [compareInfoKey]: false,
         },
+      };
+    }
+    case getType(actions.setCurrentVersionId): {
+      const { versionId } = action.payload;
+      return {
+        ...state,
+        currentVersionId: versionId,
       };
     }
     default:
