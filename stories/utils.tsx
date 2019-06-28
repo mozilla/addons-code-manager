@@ -1,16 +1,25 @@
+import { Location } from 'history';
 import * as React from 'react';
-import { MemoryRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
+import { MemoryRouter } from 'react-router-dom';
+import { Store } from 'redux';
 
 import configureStore from '../src/configureStore';
 
 export const renderWithStoreAndRouter = (
   element: JSX.Element,
-  store = configureStore(),
+  options: {
+    store?: Store;
+    location?: Location<{}>;
+  } = {},
 ) => {
   return (
-    <Provider store={store}>
-      <MemoryRouter>{element}</MemoryRouter>
+    <Provider store={options.store ? options.store : configureStore()}>
+      <MemoryRouter
+        initialEntries={options.location ? [options.location] : undefined}
+      >
+        {element}
+      </MemoryRouter>
     </Provider>
   );
 };

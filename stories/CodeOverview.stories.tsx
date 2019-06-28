@@ -58,7 +58,7 @@ const render = ({
       </div>
       <CodeOverview content={content} version={version} />
     </div>,
-    store,
+    { store },
   );
 };
 

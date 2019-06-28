@@ -1,11 +1,14 @@
-import * as React from 'react';
+import makeClassName from 'classnames';
 import purify from 'dompurify';
 import he from 'he';
+import queryString from 'query-string';
+import * as React from 'react';
 import { Alert } from 'react-bootstrap';
-import makeClassName from 'classnames';
+import { withRouter, RouteComponentProps } from 'react-router-dom';
 
 import styles from './styles.module.scss';
 import { LinterMessage } from '../../reducers/linter';
+import { messageUidQueryParam } from '../../utils';
 
 const getAlertVariant = (type: LinterMessage['type']) => {
   switch (type) {
@@ -63,13 +66,29 @@ type PublicProps = {
   message: LinterMessage;
 };
 
-const LinterMessageBase = ({ message, inline = false }: PublicProps) => {
+export type Props = PublicProps & RouteComponentProps;
+
+export const LinterMessageBase = ({
+  inline = false,
+  location,
+  message,
+}: Props) => {
   const { description, message: linterMessage, type } = message;
   const variant = getAlertVariant(type);
+  const messageUid = queryString.parse(location.search)[messageUidQueryParam];
 
   return (
     <Alert
-      className={makeClassName(styles[variant], { [styles.inline]: inline })}
+      className={makeClassName(
+        styles[variant],
+        {
+          [styles.inline]: inline,
+        },
+        {
+          [styles.highlight]:
+            typeof messageUid === 'string' && messageUid === message.uid,
+        },
+      )}
       variant={variant}
     >
       <Alert.Heading>{decodeHtmlEntities(linterMessage)}</Alert.Heading>
@@ -78,4 +97,4 @@ const LinterMessageBase = ({ message, inline = false }: PublicProps) => {
   );
 };
 
-export default LinterMessageBase;
+export default withRouter(LinterMessageBase);

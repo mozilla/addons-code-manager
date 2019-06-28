@@ -46,3 +46,30 @@ $top-arrow-height: 20px;
 .description {
   margin-bottom: 0;
 }
+
+.highlight {
+  border-color: $red;
+
+  $darken-level: 50;
+
+  &.danger {
+    border-color: darken(
+      theme-color-level('danger', $alert-border-level),
+      $darken-level
+    );
+  }
+
+  &.secondary {
+    border-color: darken(
+      theme-color-level('secondary', $alert-border-level),
+      $darken-level
+    );
+  }
+
+  &.warning {
+    border-color: darken(
+      theme-color-level('warning', $alert-border-level),
+      $darken-level
+    );
+  }
+}

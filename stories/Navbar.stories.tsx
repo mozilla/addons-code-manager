@@ -21,7 +21,7 @@ storiesOf('Navbar', module).addWithChapters('all variants', {
             const store = configureStore();
             store.dispatch(userActions.loadCurrentUser({ user: fakeUser }));
 
-            return renderWithStoreAndRouter(<Navbar />, store);
+            return renderWithStoreAndRouter(<Navbar />, { store });
           },
         },
       ],
