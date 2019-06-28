@@ -198,34 +198,40 @@ describe(__filename, () => {
 
   describe('createCodeLineAnchorGetter', () => {
     it('returns getCodeLineAnchor if compareInfo is null', () => {
-      expect(createCodeLineAnchorGetter(null)).toEqual(getCodeLineAnchor);
+      expect(createCodeLineAnchorGetter({ compareInfo: null })).toEqual(
+        getCodeLineAnchor,
+      );
     });
 
     it('returns getCodeLineAnchor if compareInfo is undefined', () => {
-      expect(createCodeLineAnchorGetter(undefined)).toEqual(getCodeLineAnchor);
+      expect(createCodeLineAnchorGetter({ compareInfo: undefined })).toEqual(
+        getCodeLineAnchor,
+      );
     });
 
     it('returns getCodeLineAnchor if compareInfo.diff is falsey', () => {
       expect(
-        createCodeLineAnchorGetter({ diff: null, mimeType: 'mime/type' }),
+        createCodeLineAnchorGetter({
+          compareInfo: { diff: null, mimeType: 'mime/type' },
+        }),
       ).toEqual(getCodeLineAnchor);
     });
 
-    it('returns getCodeLineAnchor from ForwardComparisonMap is compareInfo.diff exists', () => {
+    it('returns getCodeLineAnchor from ForwardComparisonMap if compareInfo.diff exists', () => {
       const compareInfo = createFakeCompareInfo();
       if (!compareInfo.diff) {
         throw new Error('compareInfo.diff was unexpectedly empty');
       }
       const map = new ForwardComparisonMap(compareInfo.diff);
 
-      const getterFromFactory = createCodeLineAnchorGetter(compareInfo);
+      const getterFromFactory = createCodeLineAnchorGetter({ compareInfo });
       const getterFromMap = map.createCodeLineAnchorGetter();
 
       // Generate a getter without compareInfo to verify that it returns a
       // different result.
-      const getterFromFactoryWithoutCompareInfo = createCodeLineAnchorGetter(
-        null,
-      );
+      const getterFromFactoryWithoutCompareInfo = createCodeLineAnchorGetter({
+        compareInfo: null,
+      });
 
       // We cannot use `toEqual` for the two getters above because they are
       // different instances, so we check that they return the same thing.

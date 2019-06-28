@@ -834,14 +834,14 @@ describe(__filename, () => {
       }),
     );
 
-    const getterFromFactory = createCodeLineAnchorGetter(
-      getCompareInfo(
+    const getterFromFactory = createCodeLineAnchorGetter({
+      compareInfo: getCompareInfo(
         store.getState().versions,
         addonId,
         baseVersionId,
         headVersionId,
       ),
-    );
+    });
 
     const getCodeLineAnchor = viewer.prop('getCodeLineAnchor');
     if (!getCodeLineAnchor) {

@@ -66,9 +66,11 @@ export const getPathFromQueryString = (history: History) => {
   return typeof path === 'string' && path.length ? path : null;
 };
 
-export const createCodeLineAnchorGetter = (
-  compareInfo: CompareInfo | null | void,
-) => {
+export const createCodeLineAnchorGetter = ({
+  compareInfo,
+}: {
+  compareInfo: CompareInfo | null | void;
+}) => {
   if (compareInfo && compareInfo.diff) {
     const map = new ForwardComparisonMap(compareInfo.diff);
     return map.createCodeLineAnchorGetter();

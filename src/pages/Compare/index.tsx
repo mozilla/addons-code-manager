@@ -187,7 +187,7 @@ export class CompareBase extends React.Component<Props> {
         <VersionFileViewer
           compareInfo={compareInfo}
           file={versionFile}
-          getCodeLineAnchor={createCodeLineAnchorGetter(compareInfo)}
+          getCodeLineAnchor={createCodeLineAnchorGetter({ compareInfo })}
           onSelectFile={this.viewVersionFile}
           version={version}
         >
