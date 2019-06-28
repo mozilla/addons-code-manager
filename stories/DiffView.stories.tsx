@@ -33,7 +33,7 @@ const render = (
     <div className="DiffViewStory-panel">
       <DiffView {...props} />
     </div>,
-    store,
+    { store },
   );
 };
 

@@ -51,7 +51,7 @@ const render = ({
     <div className="FileTreeNodeStory-shell">
       <FileTreeNode {...getProps({ versionId, ...props })} />
     </div>,
-    store,
+    { store },
   );
 };
 

@@ -70,7 +70,7 @@ const render = ({
         <CodeView {...props} />
       </ContentShell>
     </FullscreenGrid>,
-    store,
+    { store },
   );
 };
 

@@ -78,7 +78,7 @@ const render = ({ ...moreProps }: Partial<FileTreeProps> = {}) => {
     versionId: version.id,
     ...moreProps,
   };
-  return renderWithStoreAndRouter(<FileTree {...props} />, store);
+  return renderWithStoreAndRouter(<FileTree {...props} />, { store });
 };
 
 storiesOf('FileTree', module).add('default', () => render());

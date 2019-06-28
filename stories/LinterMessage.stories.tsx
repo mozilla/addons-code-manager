@@ -22,11 +22,11 @@ const render = (children: JSX.Element) => {
 };
 
 const renderWithMessageUid = (children: JSX.Element, messageUid: string) => {
-  return renderWithStoreAndRouter(children, undefined, [
-    createFakeLocation({
+  return renderWithStoreAndRouter(children, {
+    location: createFakeLocation({
       search: queryString.stringify({ messageUid }),
     }),
-  ]);
+  });
 };
 
 storiesOf('LinterMessage', module).addWithChapters('all variants', {
