@@ -643,6 +643,8 @@ export const fetchVersion = ({
     const { api: apiState } = getState();
 
     dispatch(actions.beginFetchVersion({ versionId }));
+    // Set this as the current version so that components can track its
+    // loading progress.
     dispatch(actions.setCurrentVersionId({ versionId }));
 
     const response = await _getVersion({
@@ -902,7 +904,8 @@ export const fetchDiff = ({
     dispatch(
       actions.beginFetchDiff({ addonId, baseVersionId, headVersionId, path }),
     );
-    // Set the current version to the newer one (the head vesion).
+    // Set the current version to the newer one (the head vesion) so that
+    // components can track its loading progress.
     dispatch(actions.setCurrentVersionId({ versionId: headVersionId }));
 
     const response = await _getDiff({

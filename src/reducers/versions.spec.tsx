@@ -2913,11 +2913,15 @@ describe(__filename, () => {
       let state;
       state = reducer(
         state,
-        actions.abortFetchVersion({ versionId: version.id }),
+        actions.beginFetchVersion({ versionId: version.id }),
       );
       state = reducer(
         state,
         actions.setCurrentVersionId({ versionId: version.id }),
+      );
+      state = reducer(
+        state,
+        actions.abortFetchVersion({ versionId: version.id }),
       );
 
       expect(selectCurrentVersionInfo(state)).toEqual(null);
