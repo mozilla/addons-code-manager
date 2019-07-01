@@ -47,74 +47,69 @@ const VersionFileViewer = ({
   }
 
   const renderWithLinterProvider = ({ messageMap }: LinterProviderInfo) => {
-    return messageMap
-      ? messageMap.general.map((message) => {
-          return (
-            <LinterMessage
-              className={styles.linterMessage}
-              key={message.uid}
-              message={message}
+    const topContent =
+      messageMap && messageMap.general.length
+        ? messageMap.general.map((message) => {
+            return (
+              <LinterMessage
+                className={styles.linterMessage}
+                key={message.uid}
+                message={message}
+              />
+            );
+          })
+        : null;
+
+    return (
+      <ContentShell
+        topContent={topContent}
+        mainSidePanel={
+          <AccordionMenu>
+            <AccordionItem expandedByDefault title={ItemTitles.Files}>
+              <FileTree onSelect={onSelectFile} versionId={version.id} />
+            </AccordionItem>
+            <AccordionItem title={ItemTitles.Information}>
+              {file ? (
+                <FileMetadata file={file} />
+              ) : (
+                <Loading message={gettext('Loading file...')} />
+              )}
+            </AccordionItem>
+            <AccordionItem title={ItemTitles.Shortcuts}>
+              <KeyboardShortcuts
+                compareInfo={compareInfo}
+                currentPath={version.selectedPath}
+                messageMap={messageMap}
+                versionId={version.id}
+              />
+            </AccordionItem>
+          </AccordionMenu>
+        }
+        mainSidePanelClass={styles.mainSidePanel}
+        altSidePanelClass={styles.altSidePanel}
+        altSidePanel={
+          file ? (
+            <CodeOverview
+              content={file.type === 'image' ? '' : file.content}
+              getCodeLineAnchor={getCodeLineAnchor}
+              version={version}
             />
-          );
-        })
-      : null;
+          ) : null
+        }
+      >
+        {children}
+      </ContentShell>
+    );
   };
 
   return (
-    <ContentShell
-      topContent={
-        <LinterProvider
-          versionId={version.id}
-          validationURL={version.validationURL}
-          selectedPath={version.selectedPath}
-        >
-          {renderWithLinterProvider}
-        </LinterProvider>
-      }
-      mainSidePanel={
-        <AccordionMenu>
-          <AccordionItem expandedByDefault title={ItemTitles.Files}>
-            <FileTree onSelect={onSelectFile} versionId={version.id} />
-          </AccordionItem>
-          <AccordionItem title={ItemTitles.Information}>
-            {file ? (
-              <FileMetadata file={file} />
-            ) : (
-              <Loading message={gettext('Loading file...')} />
-            )}
-          </AccordionItem>
-          <AccordionItem title={ItemTitles.Shortcuts}>
-            <LinterProvider
-              selectedPath={version.selectedPath}
-              validationURL={version.validationURL}
-              versionId={version.id}
-            >
-              {({ messageMap }) => (
-                <KeyboardShortcuts
-                  compareInfo={compareInfo}
-                  currentPath={version.selectedPath}
-                  messageMap={messageMap}
-                  versionId={version.id}
-                />
-              )}
-            </LinterProvider>
-          </AccordionItem>
-        </AccordionMenu>
-      }
-      mainSidePanelClass={styles.mainSidePanel}
-      altSidePanelClass={styles.altSidePanel}
-      altSidePanel={
-        file ? (
-          <CodeOverview
-            content={file.type === 'image' ? '' : file.content}
-            getCodeLineAnchor={getCodeLineAnchor}
-            version={version}
-          />
-        ) : null
-      }
+    <LinterProvider
+      versionId={version.id}
+      validationURL={version.validationURL}
+      selectedPath={version.selectedPath}
     >
-      {children}
-    </ContentShell>
+      {renderWithLinterProvider}
+    </LinterProvider>
   );
 };
 

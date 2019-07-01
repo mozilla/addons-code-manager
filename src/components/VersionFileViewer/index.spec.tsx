@@ -7,15 +7,12 @@ import { AccordionItem } from '../AccordionMenu';
 import CodeOverview from '../CodeOverview';
 import FileMetadata from '../FileMetadata';
 import FileTree from '../FileTree';
-import { PanelAttribs } from '../FullscreenGrid/ContentShell';
+import ContentShell, { PanelAttribs } from '../FullscreenGrid/ContentShell';
 import KeyboardShortcuts from '../KeyboardShortcuts';
 import LinterMessage from '../LinterMessage';
 import LinterProvider from '../LinterProvider';
 import Loading from '../Loading';
-import {
-  LinterMessage as LinterMessageType,
-  getMessageMap,
-} from '../../reducers/linter';
+import { getMessageMap } from '../../reducers/linter';
 import {
   ExternalVersionEntry,
   actions as versionsActions,
@@ -92,7 +89,7 @@ describe(__filename, () => {
 
   type RenderParams = Partial<PublicProps>;
 
-  const render = (moreProps: RenderParams = {}) => {
+  const renderRoot = (moreProps: RenderParams = {}) => {
     const { file, version } = getInternalVersionAndFile();
     const props = {
       children: <div />,
@@ -105,22 +102,13 @@ describe(__filename, () => {
     return shallow(<VersionFileViewer {...props} />);
   };
 
+  const render = (params: RenderParams = {}) => {
+    return simulateLinterProvider(renderRoot(params));
+  };
+
   const renderPanel = (params: RenderParams = {}, panel: PanelAttribs) => {
     const root = render(params);
     return getContentShellPanel(root, panel);
-  };
-
-  const renderTopContent = (params: RenderParams = {}) => {
-    return renderPanel(params, PanelAttribs.topContent);
-  };
-
-  const renderWithLinterMessages = (
-    root: ShallowWrapper,
-    messages: Partial<LinterMessageType>[] = [],
-  ) => {
-    return simulateLinterProvider(root, {
-      messageMap: getMessageMap(createFakeExternalLinterResult({ messages })),
-    });
   };
 
   const getItem = (root: ShallowWrapper, title: ItemTitles) => {
@@ -138,7 +126,7 @@ describe(__filename, () => {
 
   it('renders a placeholder without a version', () => {
     const childClass = 'ExampleClass';
-    const root = render({
+    const root = renderRoot({
       children: <div className={childClass} />,
       version: null,
     });
@@ -179,13 +167,10 @@ describe(__filename, () => {
     expect(item.find(Loading)).toHaveLength(1);
   });
 
-  it('configures LinterProvider for KeyboardShortcuts', () => {
+  it('configures LinterProvider', () => {
     const { version } = getInternalVersionAndFile();
     const compareInfo = createFakeCompareInfo();
-    const root = renderPanel(
-      { compareInfo, version },
-      PanelAttribs.mainSidePanel,
-    );
+    const root = renderRoot({ compareInfo, version });
 
     const provider = root.find(LinterProvider);
     expect(provider).toHaveProp('versionId', version.id);
@@ -193,21 +178,28 @@ describe(__filename, () => {
     expect(provider).toHaveProp('selectedPath', version.selectedPath);
   });
 
+  it('does not configure LinterProvider without a version', () => {
+    const root = renderRoot({ version: null });
+
+    expect(root.find(LinterProvider)).toHaveLength(0);
+  });
+
   it('renders a KeyboardShortcuts panel', () => {
     const { version } = getInternalVersionAndFile();
     const compareInfo = createFakeCompareInfo();
-    const root = renderPanel(
-      { compareInfo, version },
-      PanelAttribs.mainSidePanel,
-    );
 
     const messageMap = getMessageMap(
       createFakeExternalLinterResult({ messages: [fakeExternalLinterMessage] }),
     );
 
-    const shortcuts = simulateLinterProvider(root, { messageMap }).find(
-      KeyboardShortcuts,
-    );
+    const root = simulateLinterProvider(renderRoot({ compareInfo, version }), {
+      messageMap,
+    });
+
+    const shortcuts = getContentShellPanel(
+      root,
+      PanelAttribs.mainSidePanel,
+    ).find(KeyboardShortcuts);
 
     expect(shortcuts).toHaveLength(1);
     expect(shortcuts).toHaveProp('compareInfo', compareInfo);
@@ -262,38 +254,31 @@ describe(__filename, () => {
     expect(overview).toHaveProp('content', '');
   });
 
-  it('configures LinterProvider', () => {
-    const { version } = getInternalVersionAndFile();
-    const root = renderTopContent({ version });
-
-    const provider = root.find(LinterProvider);
-    expect(provider).toHaveProp('versionId', version.id);
-    expect(provider).toHaveProp('validationURL', version.validationURL);
-    expect(provider).toHaveProp('selectedPath', version.selectedPath);
-  });
-
-  it('does not configure LinterProvider without a version', () => {
-    const root = render();
-
-    expect(root.find(LinterProvider)).toHaveLength(0);
-  });
-
   it('renders general LinterMessages', () => {
     const uid1 = 'general-message-1';
     const uid2 = 'general-message-2';
 
-    const root = renderWithLinterMessages(renderTopContent(), [
-      {
-        file: null,
-        line: null,
-        uid: uid1,
-      },
-      {
-        file: null,
-        line: null,
-        uid: uid2,
-      },
-    ]);
+    const messageMap = getMessageMap(
+      createFakeExternalLinterResult({
+        messages: [
+          {
+            file: null,
+            line: null,
+            uid: uid1,
+          },
+          {
+            file: null,
+            line: null,
+            uid: uid2,
+          },
+        ],
+      }),
+    );
+
+    const root = getContentShellPanel(
+      simulateLinterProvider(renderRoot(), { messageMap }),
+      PanelAttribs.topContent,
+    );
 
     const messages = root.find(LinterMessage);
 
@@ -308,24 +293,29 @@ describe(__filename, () => {
     );
   });
 
-  it('does not render LinterMessages with an empty messageMap', () => {
-    const root = simulateLinterProvider(renderTopContent(), {
+  it('does not render topContent with an empty messageMap', () => {
+    const root = simulateLinterProvider(renderRoot(), {
       messageMap: undefined,
     });
 
-    expect(root.find(LinterMessage)).toHaveLength(0);
+    expect(root.find(ContentShell)).toHaveProp('topContent', null);
   });
 
-  it('ignores non-general LinterMessages', () => {
-    const root = renderWithLinterMessages(renderTopContent(), [
-      {
-        // Define a message for a file, which should be ignored.
-        file: 'some-file.js',
-        line: null,
-        uid: 'global-message-example',
-      },
-    ]);
+  it('does not render topContent for non-general LinterMessages', () => {
+    const messageMap = getMessageMap(
+      createFakeExternalLinterResult({
+        messages: [
+          {
+            // Define a message for a file, which should be ignored.
+            file: 'some-file.js',
+            line: null,
+            uid: 'global-message-example',
+          },
+        ],
+      }),
+    );
+    const root = simulateLinterProvider(renderRoot(), { messageMap });
 
-    expect(root.find(LinterMessage)).toHaveLength(0);
+    expect(root.find(ContentShell)).toHaveProp('topContent', null);
   });
 });

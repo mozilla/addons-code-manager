@@ -52,7 +52,6 @@ describe(__filename, () => {
     expect(content).toHaveLength(0);
   });
 
-
   it('renders a mainSidePanel', () => {
     const panel = <div className="ChildExample" />;
 
