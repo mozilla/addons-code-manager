@@ -87,9 +87,7 @@ const mapStateToProps = (
   return { expanded: isExpanded(state.accordionMenu, ownProps.title) };
 };
 
-export const AccordionItem = connect(mapStateToProps)(
-  AccordionItemBase,
-) as React.ComponentType<PublicItemProps & Partial<DefaultItemProps>>;
+export const AccordionItem = connect(mapStateToProps)(AccordionItemBase);
 
 const AccordionMenu = ({ children }: { children: AnyReactNode }) => {
   return <div className={styles.menu}>{children}</div>;
