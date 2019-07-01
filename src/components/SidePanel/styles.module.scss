@@ -5,7 +5,7 @@
   grid-gap: $default-padding;
   grid-template-rows: 1fr auto;
   height: auto;
-  padding: $default-padding;
+  padding: 0;
 }
 
 .ToggleButton {
@@ -22,11 +22,17 @@
 }
 
 .content {
+  border-radius: $border-radius;
+  border: 1px solid $light-gray;
+  height: 100%;
   overflow-x: auto;
 }
 
+.borderlessContent {
+  border: 0;
+}
+
 .isCollapsed {
-  background-color: $light-gray;
   grid-gap: 0;
   padding: 0;
 

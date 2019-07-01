@@ -12,6 +12,7 @@ describe(__filename, () => {
     isExpanded = true,
     onClick = jest.fn(),
     toggleLeft = false,
+    borderless = false,
   } = {}) => {
     return shallow(
       <SidePanel
@@ -19,6 +20,7 @@ describe(__filename, () => {
         isExpanded={isExpanded}
         onClick={onClick}
         toggleLeft={toggleLeft}
+        borderless={borderless}
       >
         {children}
       </SidePanel>,
@@ -44,6 +46,22 @@ describe(__filename, () => {
     const root = render({ className });
 
     expect(root).toHaveClassName(className);
+  });
+
+  it('adds className borderlessContent when borderless is true', () => {
+    const root = render({ borderless: true });
+
+    expect(root.find(`.${styles.content}`)).toHaveClassName(
+      `${styles.borderlessContent}`,
+    );
+  });
+
+  it('renders no className borderlessContent when borderless is false', () => {
+    const root = render({ borderless: false });
+
+    expect(root.find(`.${styles.content}`)).not.toHaveClassName(
+      `${styles.borderlessContent}`,
+    );
   });
 
   it('renders children', () => {

@@ -7,6 +7,7 @@ import { AnyReactNode } from '../../typeUtils';
 import styles from './styles.module.scss';
 
 export type PublicProps = {
+  borderless?: boolean;
   children: AnyReactNode;
   className: string;
   isExpanded: boolean;
@@ -15,6 +16,7 @@ export type PublicProps = {
 };
 
 export const SidePanelBase = ({
+  borderless = false,
   children,
   className,
   isExpanded,
@@ -30,7 +32,13 @@ export const SidePanelBase = ({
         [styles.isCollapsed]: !isExpanded,
       })}
     >
-      <div className={styles.content}>{children}</div>
+      <div
+        className={makeClassName(styles.content, {
+          [styles.borderlessContent]: borderless,
+        })}
+      >
+        {children}
+      </div>
 
       <ToggleButton
         className={styles.ToggleButton}

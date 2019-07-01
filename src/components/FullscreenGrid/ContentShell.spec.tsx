@@ -69,6 +69,26 @@ describe(__filename, () => {
     expect(root.find(`.${customClass}`)).toHaveLength(1);
   });
 
+  it('renders a borderless main SidePanel when mainSidePanelIsBorderless is true', () => {
+    const root = render({
+      mainSidePanelIsBorderless: true,
+    });
+
+    expect(root.find(`.${styles.mainSidePanel}`)).toHaveProp(
+      'borderless',
+      true,
+    );
+  });
+
+  it('renders the border of the main SidePanel by default', () => {
+    const root = render();
+
+    expect(root.find(`.${styles.mainSidePanel}`)).toHaveProp(
+      'borderless',
+      false,
+    );
+  });
+
   it('renders an altSidePanel', () => {
     const panel = <div className="ChildExample" />;
 

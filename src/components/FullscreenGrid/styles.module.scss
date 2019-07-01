@@ -64,11 +64,14 @@ $expand-button-width: 40px;
   padding: $default-padding;
 }
 
+.content {
+  border: 1px solid $light-gray;
+  border-radius: $border-radius;
+}
+
 .mainSidePanel,
 .altSidePanel,
 .content {
-  border-radius: $border-radius;
-  border: 1px solid $light-gray;
   overflow-x: hidden;
   overflow-y: auto;
 }
