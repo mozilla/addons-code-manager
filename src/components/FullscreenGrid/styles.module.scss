@@ -7,10 +7,11 @@ $expand-button-width: 40px;
   grid-gap: $default-padding;
   grid-template-areas:
     'FGHeader FGHeader FGHeader'
+    'FGTop FGTop FGTop'
     'FGMainSidePanel FGContent FGAltSidePanel'
     '. . .';
   grid-template-columns: 2fr 5fr 1fr;
-  grid-template-rows: min-content 1fr 0px;
+  grid-template-rows: min-content min-content 1fr 0px;
   height: 100vh;
 
   &.withMainSidePanelCollapsed {
@@ -28,6 +29,11 @@ $expand-button-width: 40px;
 
 .Header {
   grid-area: FGHeader;
+}
+
+.top {
+  grid-area: FGTop;
+  padding: 0 $default-padding;
 }
 
 .mainSidePanel {

@@ -18,7 +18,6 @@ import {
   ApplicationError,
   actions as errorsActions,
 } from '../../reducers/errors';
-import { Version, selectCurrentVersionInfo } from '../../reducers/versions';
 import {
   User,
   currentUserIsLoading,
@@ -27,8 +26,6 @@ import {
 } from '../../reducers/users';
 import ContentShell from '../FullscreenGrid/ContentShell';
 import FullscreenGrid, { Header } from '../FullscreenGrid';
-import LinterMessage from '../LinterMessage';
-import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import Navbar from '../Navbar';
 import Browse from '../../pages/Browse';
 import Compare from '../../pages/Compare';
@@ -47,7 +44,6 @@ export type DefaultProps = {
 
 type PropsFromState = {
   apiState: ApiState;
-  currentVersion: Version | null | void;
   errors: ApplicationError[];
   loading: boolean;
   user: User | null;
@@ -156,39 +152,14 @@ export class AppBase extends React.Component<Props> {
     );
   }
 
-  renderWithLinterProvider = ({ messageMap }: LinterProviderInfo) => {
-    return messageMap ? (
-      <div className={styles.linterMessagesShell}>
-        {messageMap.general.map((message) => {
-          return (
-            <LinterMessage
-              className={styles.linterMessage}
-              key={message.uid}
-              message={message}
-            />
-          );
-        })}
-      </div>
-    ) : null;
-  };
-
   render() {
-    const { currentVersion, loading } = this.props;
+    const { loading } = this.props;
 
     return (
       <FullscreenGrid>
         <Header>
           {!loading && <Navbar />}
           {this.renderErrors()}
-          {currentVersion && (
-            <LinterProvider
-              versionId={currentVersion.id}
-              validationURL={currentVersion.validationURL}
-              selectedPath={currentVersion.selectedPath}
-            >
-              {this.renderWithLinterProvider}
-            </LinterProvider>
-          )}
         </Header>
         {this.renderContent()}
       </FullscreenGrid>
@@ -199,7 +170,6 @@ export class AppBase extends React.Component<Props> {
 const mapStateToProps = (state: ApplicationState): PropsFromState => {
   return {
     apiState: state.api,
-    currentVersion: selectCurrentVersionInfo(state.versions),
     errors: state.errors.errors,
     loading: currentUserIsLoading(state.users),
     user: selectCurrentUser(state.users),

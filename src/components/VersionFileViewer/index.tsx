@@ -1,5 +1,6 @@
 import * as React from 'react';
 
+import LinterMessage from '../LinterMessage';
 import AccordionMenu, { AccordionItem } from '../AccordionMenu';
 import CodeOverview from '../CodeOverview';
 import { GetCodeLineAnchor } from '../CodeView/utils';
@@ -7,7 +8,7 @@ import FileMetadata from '../FileMetadata';
 import FileTree, { PublicProps as FileTreeProps } from '../FileTree';
 import ContentShell from '../FullscreenGrid/ContentShell';
 import KeyboardShortcuts from '../KeyboardShortcuts';
-import LinterProvider from '../LinterProvider';
+import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import Loading from '../Loading';
 import { CompareInfo, Version, VersionFile } from '../../reducers/versions';
 import { AnyReactNode } from '../../typeUtils';
@@ -45,8 +46,31 @@ const VersionFileViewer = ({
     );
   }
 
+  const renderWithLinterProvider = ({ messageMap }: LinterProviderInfo) => {
+    return messageMap
+      ? messageMap.general.map((message) => {
+          return (
+            <LinterMessage
+              className={styles.linterMessage}
+              key={message.uid}
+              message={message}
+            />
+          );
+        })
+      : null;
+  };
+
   return (
     <ContentShell
+      topContent={
+        <LinterProvider
+          versionId={version.id}
+          validationURL={version.validationURL}
+          selectedPath={version.selectedPath}
+        >
+          {renderWithLinterProvider}
+        </LinterProvider>
+      }
       mainSidePanel={
         <AccordionMenu>
           <AccordionItem expandedByDefault title={ItemTitles.Files}>

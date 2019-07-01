@@ -16,6 +16,7 @@ export type PublicProps = {
   className?: string;
   mainSidePanel?: AnyReactNode;
   mainSidePanelClass?: string;
+  topContent?: AnyReactNode;
 };
 
 type PropsFromState = {
@@ -35,9 +36,12 @@ export const ContentShellBase = ({
   mainSidePanel,
   mainSidePanelClass,
   mainSidePanelIsExpanded,
+  topContent,
 }: Props) => {
   return (
     <React.Fragment>
+      <div className={styles.top}>{topContent}</div>
+
       <SidePanel
         className={makeClassName(styles.mainSidePanel, mainSidePanelClass)}
         isExpanded={mainSidePanelIsExpanded}

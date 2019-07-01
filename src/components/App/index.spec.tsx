@@ -6,24 +6,14 @@ import { Route } from 'react-router-dom';
 import styles from './styles.module.scss';
 import configureStore from '../../configureStore';
 import ContentShell from '../FullscreenGrid/ContentShell';
-import LinterMessage from '../LinterMessage';
-import LinterProvider from '../LinterProvider';
 import { actions as apiActions } from '../../reducers/api';
 import { actions as errorsActions } from '../../reducers/errors';
-import {
-  LinterMessage as LinterMessageType,
-  getMessageMap,
-} from '../../reducers/linter';
 import { actions as userActions } from '../../reducers/users';
 import {
   createContextWithFakeRouter,
-  createFakeExternalLinterResult,
   createFakeThunk,
-  createStoreWithVersion,
-  fakeVersion,
   fakeUser,
   shallowUntilTarget,
-  simulateLinterProvider,
   spyOn,
 } from '../../test-helpers';
 import Navbar from '../Navbar';
@@ -61,19 +51,6 @@ describe(__filename, () => {
     });
 
     return root;
-  };
-
-  const renderWithLinterMessages = (
-    messages: Partial<LinterMessageType>[] = [],
-  ) => {
-    return simulateLinterProvider(
-      render({
-        store: createStoreWithVersion({ makeCurrent: true }),
-      }),
-      {
-        messageMap: getMessageMap(createFakeExternalLinterResult({ messages })),
-      },
-    );
   };
 
   it('renders without an authentication token', () => {
@@ -242,76 +219,5 @@ describe(__filename, () => {
         id: firstError.id,
       }),
     );
-  });
-
-  it('configures LinterProvider', () => {
-    const version = { ...fakeVersion };
-    const store = createStoreWithVersion({ version, makeCurrent: true });
-    const root = render({ store });
-
-    const provider = root.find(LinterProvider);
-    expect(provider).toHaveProp('versionId', version.id);
-    expect(provider).toHaveProp('validationURL', version.validation_url_json);
-    expect(provider).toHaveProp('selectedPath', version.file.selected_file);
-  });
-
-  it('does not configure LinterProvider without a version', () => {
-    const root = render();
-
-    expect(root.find(LinterProvider)).toHaveLength(0);
-  });
-
-  it('renders general LinterMessages', () => {
-    const uid1 = 'general-message-1';
-    const uid2 = 'general-message-2';
-
-    const root = renderWithLinterMessages([
-      {
-        file: null,
-        line: null,
-        uid: uid1,
-      },
-      {
-        file: null,
-        line: null,
-        uid: uid2,
-      },
-    ]);
-
-    const messages = root.find(LinterMessage);
-
-    expect(messages).toHaveLength(2);
-    expect(messages.at(0)).toHaveProp(
-      'message',
-      expect.objectContaining({ uid: uid1 }),
-    );
-    expect(messages.at(1)).toHaveProp(
-      'message',
-      expect.objectContaining({ uid: uid2 }),
-    );
-  });
-
-  it('does not render LinterMessages with an empty messageMap', () => {
-    const root = simulateLinterProvider(
-      render({ store: createStoreWithVersion({ makeCurrent: true }) }),
-      {
-        messageMap: undefined,
-      },
-    );
-
-    expect(root.find(LinterMessage)).toHaveLength(0);
-  });
-
-  it('ignores non-general LinterMessages', () => {
-    const root = renderWithLinterMessages([
-      {
-        // Define a message for a file, which should be ignored.
-        file: 'some-file.js',
-        line: null,
-        uid: 'global-message-example',
-      },
-    ]);
-
-    expect(root.find(LinterMessage)).toHaveLength(0);
   });
 });
