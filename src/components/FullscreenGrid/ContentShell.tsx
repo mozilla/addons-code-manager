@@ -26,6 +26,12 @@ type PropsFromState = {
 
 type Props = PublicProps & PropsFromState & ConnectedReduxProps;
 
+export enum PanelAttribs {
+  altSidePanel = 'altSidePanel',
+  mainSidePanel = 'mainSidePanel',
+  topContent = 'topContent',
+}
+
 export const ContentShellBase = ({
   altSidePanel,
   altSidePanelClass,

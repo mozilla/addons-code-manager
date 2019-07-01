@@ -7,7 +7,7 @@ import { AccordionItem } from '../AccordionMenu';
 import CodeOverview from '../CodeOverview';
 import FileMetadata from '../FileMetadata';
 import FileTree from '../FileTree';
-import { PanelAttribs } from '../FullscreenGrid';
+import { PanelAttribs } from '../FullscreenGrid/ContentShell';
 import KeyboardShortcuts from '../KeyboardShortcuts';
 import LinterMessage from '../LinterMessage';
 import LinterProvider from '../LinterProvider';
