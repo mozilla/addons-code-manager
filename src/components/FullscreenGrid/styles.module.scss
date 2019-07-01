@@ -4,7 +4,6 @@ $expand-button-width: 40px;
 
 .FullscreenGrid {
   display: grid;
-  grid-gap: $default-padding;
   grid-template-areas:
     'FGHeader FGHeader FGHeader'
     'FGTop FGTop FGTop'
@@ -27,22 +26,35 @@ $expand-button-width: 40px;
   }
 }
 
+.Header,
+.topContent,
+.content,
+.mainSidePanel,
+.altSidePanel {
+  // Simulate a grid-gap.
+  margin-bottom: $default-padding;
+}
+
 .Header {
   grid-area: FGHeader;
 }
 
-.top {
+.topContent {
   grid-area: FGTop;
   padding: 0 $default-padding;
 }
 
 .mainSidePanel {
   grid-area: FGMainSidePanel;
-  margin-left: $default-padding;
 }
 
 .altSidePanel {
   grid-area: FGAltSidePanel;
+}
+
+.mainSidePanel,
+.altSidePanel {
+  margin-left: $default-padding;
   margin-right: $default-padding;
 }
 

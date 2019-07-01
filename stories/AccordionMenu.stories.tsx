@@ -2,7 +2,7 @@ import React from 'react';
 import { storiesOf } from '@storybook/react';
 
 import ContentShell from '../src/components/FullscreenGrid/ContentShell';
-import FullscreenGrid from '../src/components/FullscreenGrid';
+import FullscreenGrid, { Header } from '../src/components/FullscreenGrid';
 import AccordionMenu, { AccordionItem } from '../src/components/AccordionMenu';
 import {
   generateParagraphs,
@@ -28,6 +28,7 @@ const makeText = () => {
 const render = (children: JSX.Element) => {
   return renderWithStoreAndRouter(
     <FullscreenGrid>
+      <Header />
       <ContentShell
         mainSidePanel={children}
         className="AccordionMenuStory-ContentShell"

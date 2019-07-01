@@ -4,7 +4,7 @@ import { storiesOf } from '@storybook/react';
 
 import configureStore from '../src/configureStore';
 import ContentShell from '../src/components/FullscreenGrid/ContentShell';
-import FullscreenGrid from '../src/components/FullscreenGrid';
+import FullscreenGrid, { Header } from '../src/components/FullscreenGrid';
 import CodeView, {
   PublicProps as CodeViewProps,
 } from '../src/components/CodeView';
@@ -66,6 +66,7 @@ const render = ({
   };
   return renderWithStoreAndRouter(
     <FullscreenGrid>
+      <Header />
       <ContentShell>
         <CodeView {...props} />
       </ContentShell>

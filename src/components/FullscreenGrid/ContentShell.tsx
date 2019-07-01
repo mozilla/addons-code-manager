@@ -46,7 +46,9 @@ export const ContentShellBase = ({
 }: Props) => {
   return (
     <React.Fragment>
-      <div className={styles.top}>{topContent}</div>
+      {topContent ? (
+        <div className={styles.topContent}>{topContent}</div>
+      ) : null}
 
       <SidePanel
         className={makeClassName(styles.mainSidePanel, mainSidePanelClass)}

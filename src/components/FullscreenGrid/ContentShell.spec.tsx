@@ -35,6 +35,24 @@ describe(__filename, () => {
     expect(root.find(`.${childClass}`)).toHaveLength(1);
   });
 
+  it('renders topContent', () => {
+    const topContent = <div />;
+
+    const root = render({ topContent });
+
+    const content = root.find(`.${styles.topContent}`);
+    expect(content).toHaveLength(1);
+    expect(content).toHaveProp('children', topContent);
+  });
+
+  it('does not render a topContent shell without topContent', () => {
+    const root = render({ topContent: undefined });
+
+    const content = root.find(`.${styles.topContent}`);
+    expect(content).toHaveLength(0);
+  });
+
+
   it('renders a mainSidePanel', () => {
     const panel = <div className="ChildExample" />;
 
