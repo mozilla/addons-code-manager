@@ -44,9 +44,7 @@ const getProps = ({
 
 const render = ({
   versionId = 543219,
-  store = createStoreWithVersion({
-    version: { ...fakeVersion, id: versionId },
-  }),
+  store = createStoreWithVersion({ ...fakeVersion, id: versionId }),
   ...props
 }: { store?: Store } & GetPropsParams = {}) => {
   return renderWithStoreAndRouter(
@@ -84,10 +82,8 @@ storiesOf('FileTreeNode', module).addWithChapters('all variants', {
           sectionFn: () => {
             const versionId = 921;
             const store = createStoreWithVersion({
-              version: {
-                ...fakeVersion,
-                id: versionId,
-              },
+              ...fakeVersion,
+              id: versionId,
             });
 
             return render({
@@ -115,7 +111,7 @@ storiesOf('FileTreeNode', module).addWithChapters('all variants', {
           title: 'selected node',
           sectionFn: () => {
             const externalVersion = fakeVersion;
-            const store = createStoreWithVersion({ version: externalVersion });
+            const store = createStoreWithVersion(externalVersion);
 
             return render({
               store,

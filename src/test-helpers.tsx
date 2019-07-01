@@ -712,21 +712,12 @@ export const createFakeRef = (
   };
 };
 
-/* istanbul ignore next */
-export const createStoreWithVersion = ({
-  version = fakeVersion,
-  makeCurrent = false,
-}: {
-  version?: ExternalVersionWithDiff | ExternalVersionWithContent;
-  makeCurrent?: boolean;
-} = {}) => {
+export const createStoreWithVersion = (
+  /* istanbul ignore next */
+  version: ExternalVersionWithDiff | ExternalVersionWithContent = fakeVersion,
+) => {
   const store = configureStore();
   store.dispatch(versionsActions.loadVersionInfo({ version }));
-  if (makeCurrent) {
-    store.dispatch(
-      versionsActions.setCurrentVersionId({ versionId: version.id }),
-    );
-  }
   return store;
 };
 

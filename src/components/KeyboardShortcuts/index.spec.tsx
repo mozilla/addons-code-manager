@@ -65,7 +65,7 @@ describe(__filename, () => {
         }, {}),
       },
     },
-    store = createStoreWithVersion({ version: externalVersion }),
+    store = createStoreWithVersion(externalVersion),
   }: {
     pathList?: string[];
     versionId?: number;

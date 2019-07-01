@@ -210,7 +210,7 @@ describe(__filename, () => {
 
   it('renders a loading message when no diff has been loaded', () => {
     const version = fakeVersionWithDiff;
-    const store = createStoreWithVersion({ version });
+    const store = createStoreWithVersion(version);
 
     const root = render({ headVersionId: String(version.id), store });
 
