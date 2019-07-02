@@ -1,15 +1,22 @@
 import filesize from 'filesize';
 import queryString from 'query-string';
 
+import { getCodeLineAnchor } from './components/CodeView/utils';
 import {
   formatFilesize,
+  createCodeLineAnchorGetter,
   getLanguageFromMimeType,
   getLocalizedString,
   getPathFromQueryString,
   nl2br,
   sanitizeHTML,
 } from './utils';
-import { createFakeHistory, createFakeLocation } from './test-helpers';
+import {
+  createFakeCompareInfo,
+  createFakeHistory,
+  createFakeLocation,
+  fakeVersionWithDiff,
+} from './test-helpers';
 
 describe(__filename, () => {
   describe('getLocalizedString', () => {
@@ -186,6 +193,54 @@ describe(__filename, () => {
       });
 
       expect(getPathFromQueryString(history)).toEqual(null);
+    });
+  });
+
+  describe('createCodeLineAnchorGetter', () => {
+    it('returns getCodeLineAnchor if compareInfo is null', () => {
+      expect(createCodeLineAnchorGetter({ compareInfo: null })).toEqual(
+        getCodeLineAnchor,
+      );
+    });
+
+    it('returns getCodeLineAnchor if compareInfo is undefined', () => {
+      expect(createCodeLineAnchorGetter({ compareInfo: undefined })).toEqual(
+        getCodeLineAnchor,
+      );
+    });
+
+    it('returns getCodeLineAnchor if compareInfo.diff is falsey', () => {
+      expect(
+        createCodeLineAnchorGetter({
+          compareInfo: createFakeCompareInfo({
+            version: {
+              ...fakeVersionWithDiff,
+              file: {
+                ...fakeVersionWithDiff.file,
+                diff: null,
+              },
+            },
+          }),
+        }),
+      ).toEqual(getCodeLineAnchor);
+    });
+
+    it('returns getCodeLineAnchor from ForwardComparisonMap if compareInfo.diff exists', () => {
+      const compareInfo = createFakeCompareInfo();
+      if (!compareInfo.diff) {
+        throw new Error('compareInfo.diff was unexpectedly empty');
+      }
+
+      const getterFromFactory = createCodeLineAnchorGetter({ compareInfo });
+
+      // Generate a getter without compareInfo to verify that it is different.
+      const getterFromFactoryWithoutCompareInfo = createCodeLineAnchorGetter({
+        compareInfo: null,
+      });
+
+      expect(getterFromFactory).not.toEqual(
+        getterFromFactoryWithoutCompareInfo,
+      );
     });
   });
 });

@@ -3,6 +3,10 @@ import purify from 'dompurify';
 import { History } from 'history';
 import queryString from 'query-string';
 
+import { getCodeLineAnchor } from './components/CodeView/utils';
+import { ForwardComparisonMap } from './pages/Compare/utils';
+import { CompareInfo } from './reducers/versions';
+
 // Querystring params used by the app.
 export const messageUidQueryParam = 'messageUid';
 export const pathQueryParam = 'path';
@@ -60,4 +64,16 @@ export const getPathFromQueryString = (history: History) => {
   const path = queryString.parse(history.location.search)[pathQueryParam];
 
   return typeof path === 'string' && path.length ? path : null;
+};
+
+export const createCodeLineAnchorGetter = ({
+  compareInfo,
+}: {
+  compareInfo: CompareInfo | null | void;
+}) => {
+  if (compareInfo && compareInfo.diff) {
+    const map = new ForwardComparisonMap(compareInfo.diff);
+    return map.createCodeLineAnchorGetter();
+  }
+  return getCodeLineAnchor;
 };
