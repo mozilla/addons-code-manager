@@ -12,7 +12,7 @@ import {
   pathQueryParam,
 } from '../utils';
 import { LinterMessage, LinterMessageMap, getMessagesForPath } from './linter';
-import { getCodeLineAnchor } from '../components/CodeView/utils';
+import { GetCodeLineAnchor } from '../components/CodeView/utils';
 
 export const ROOT_PATH = '~root~';
 
@@ -385,6 +385,7 @@ type GoToRelativeMessageParams = {
   _viewVersionFile?: typeof viewVersionFile;
   currentMessageUid: LinterMessage['uid'] | void;
   currentPath: string;
+  getCodeLineAnchor: GetCodeLineAnchor;
   messageMap: LinterMessageMap;
   pathList: string[];
   position: RelativePathPosition;
@@ -398,6 +399,7 @@ export const goToRelativeMessage = ({
   _viewVersionFile = viewVersionFile,
   currentMessageUid,
   currentPath,
+  getCodeLineAnchor,
   messageMap,
   pathList,
   position,

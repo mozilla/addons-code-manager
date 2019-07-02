@@ -22,7 +22,11 @@ import {
 } from '../../reducers/versions';
 import { actions as fullscreenGridActions } from '../../reducers/fullscreenGrid';
 import styles from './styles.module.scss';
-import { gettext, messageUidQueryParam } from '../../utils';
+import {
+  createCodeLineAnchorGetter,
+  gettext,
+  messageUidQueryParam,
+} from '../../utils';
 
 export const supportedKeys: { [key: string]: string | null } = {
   k: gettext('Up file'),
@@ -51,6 +55,7 @@ type PropsFromState = {
 };
 
 export type DefaultProps = {
+  _createCodeLineAnchorGetter: typeof createCodeLineAnchorGetter;
   _document: typeof document;
   _goToRelativeDiff: typeof goToRelativeDiff;
   _goToRelativeFile: typeof goToRelativeFile;
@@ -65,6 +70,7 @@ type Props = RouteComponentProps &
 
 export class KeyboardShortcutsBase extends React.Component<Props> {
   static defaultProps: DefaultProps = {
+    _createCodeLineAnchorGetter: createCodeLineAnchorGetter,
     _document: document,
     _goToRelativeDiff: goToRelativeDiff,
     _goToRelativeFile: goToRelativeFile,
@@ -73,6 +79,7 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
 
   keydownListener = (event: KeyboardEvent) => {
     const {
+      _createCodeLineAnchorGetter,
       _goToRelativeDiff,
       _goToRelativeFile,
       _goToRelativeMessage,
@@ -99,6 +106,8 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
       Object.keys(supportedKeys).includes(event.key)
     ) {
       event.preventDefault();
+
+      const getCodeLineAnchor = _createCodeLineAnchorGetter({ compareInfo });
 
       switch (event.key) {
         case 'k':
@@ -177,6 +186,7 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
               _goToRelativeMessage({
                 currentMessageUid: messageUid,
                 currentPath,
+                getCodeLineAnchor,
                 messageMap,
                 pathList,
                 position: RelativePathPosition.next,
@@ -191,6 +201,7 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
               _goToRelativeMessage({
                 currentMessageUid: messageUid,
                 currentPath,
+                getCodeLineAnchor,
                 messageMap,
                 pathList,
                 position: RelativePathPosition.previous,

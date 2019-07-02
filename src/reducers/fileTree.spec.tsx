@@ -20,7 +20,6 @@ import reducer, {
 } from './fileTree';
 import { createInternalVersion, createInternalVersionEntry } from './versions';
 import { getMessageMap } from './linter';
-import { getCodeLineAnchor } from '../components/CodeView/utils';
 import configureStore from '../configureStore';
 import {
   createFakeExternalLinterResult,
@@ -1075,6 +1074,7 @@ describe(__filename, () => {
       _viewVersionFile = jest.fn(),
       currentMessageUid = '',
       currentPath = 'file1.js',
+      getCodeLineAnchor = jest.fn(),
       messageMap = getMessageMap(
         createFakeExternalLinterResult({ messages: [] }),
       ),
@@ -1087,6 +1087,7 @@ describe(__filename, () => {
         _viewVersionFile,
         currentMessageUid,
         currentPath,
+        getCodeLineAnchor,
         messageMap,
         pathList,
         position,
@@ -1133,10 +1134,12 @@ describe(__filename, () => {
       const history = createFakeHistory({ location });
 
       const line = 1;
+      const mockAnchor = 'I1';
       const uid = 'some-uid';
       const _getRelativeMessage = jest
         .fn()
         .mockReturnValue({ line, path: currentPath, uid });
+      const mockGetCodeLineAnchor = jest.fn().mockReturnValue(mockAnchor);
       const versionId = 123;
 
       const { dispatch, thunk } = thunkTester({
@@ -1144,6 +1147,7 @@ describe(__filename, () => {
           _goToRelativeMessage({
             _getRelativeMessage,
             currentPath,
+            getCodeLineAnchor: mockGetCodeLineAnchor,
             versionId,
           }),
         store: configureStore({ history }),
@@ -1159,10 +1163,11 @@ describe(__filename, () => {
               messageUid: uid,
               path: currentPath,
             }),
-            hash: getCodeLineAnchor(line),
+            hash: mockAnchor,
           }),
         ),
       );
+      expect(mockGetCodeLineAnchor).toHaveBeenCalledWith(line);
     });
 
     it('uses 0 for the line number if the message is a global message', async () => {
@@ -1173,26 +1178,20 @@ describe(__filename, () => {
       const _getRelativeMessage = jest
         .fn()
         .mockReturnValue({ line, path: currentPath, uid });
-      const versionId = 123;
+      const mockGetCodeLineAnchor = jest.fn();
 
-      const { dispatch, thunk } = thunkTester({
+      const { thunk } = thunkTester({
         createThunk: () =>
           _goToRelativeMessage({
             _getRelativeMessage,
             currentPath,
-            versionId,
+            getCodeLineAnchor: mockGetCodeLineAnchor,
           }),
       });
 
       await thunk();
 
-      expect(dispatch).toHaveBeenCalledWith(
-        push(
-          expect.objectContaining({
-            hash: getCodeLineAnchor(0),
-          }),
-        ),
-      );
+      expect(mockGetCodeLineAnchor).toHaveBeenCalledWith(0);
     });
 
     it('preserves existing query parameters', async () => {
