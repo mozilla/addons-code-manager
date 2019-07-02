@@ -35,13 +35,20 @@ $expand-button-width: 40px;
   margin-bottom: $default-padding;
 }
 
+.mainSidePanel,
+.altSidePanel,
+.topContent {
+  // Simulate a grid-gap.
+  margin-left: $default-padding;
+  margin-right: $default-padding;
+}
+
 .Header {
   grid-area: FGHeader;
 }
 
 .topContent {
   grid-area: FGTop;
-  padding: 0 $default-padding;
 }
 
 .mainSidePanel {
@@ -52,14 +59,9 @@ $expand-button-width: 40px;
   grid-area: FGAltSidePanel;
 }
 
-.mainSidePanel,
-.altSidePanel {
-  margin-left: $default-padding;
-  margin-right: $default-padding;
-}
-
 .content {
   grid-area: FGContent;
+  padding: $default-padding;
 }
 
 .mainSidePanel,
@@ -69,8 +71,4 @@ $expand-button-width: 40px;
   border: 1px solid $light-gray;
   overflow-x: hidden;
   overflow-y: auto;
-}
-
-.content {
-  padding: $default-padding;
 }
