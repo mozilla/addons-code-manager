@@ -16,6 +16,7 @@ export type PublicProps = {
   className?: string;
   mainSidePanel?: AnyReactNode;
   mainSidePanelClass?: string;
+  topContent?: AnyReactNode;
 };
 
 type PropsFromState = {
@@ -24,6 +25,12 @@ type PropsFromState = {
 };
 
 type Props = PublicProps & PropsFromState & ConnectedReduxProps;
+
+export enum PanelAttribs {
+  altSidePanel = 'altSidePanel',
+  mainSidePanel = 'mainSidePanel',
+  topContent = 'topContent',
+}
 
 export const ContentShellBase = ({
   altSidePanel,
@@ -35,9 +42,14 @@ export const ContentShellBase = ({
   mainSidePanel,
   mainSidePanelClass,
   mainSidePanelIsExpanded,
+  topContent,
 }: Props) => {
   return (
     <React.Fragment>
+      {topContent ? (
+        <div className={styles.topContent}>{topContent}</div>
+      ) : null}
+
       <SidePanel
         className={makeClassName(styles.mainSidePanel, mainSidePanelClass)}
         isExpanded={mainSidePanelIsExpanded}

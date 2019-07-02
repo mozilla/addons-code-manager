@@ -36,8 +36,9 @@ import {
 import LinterProvider, {
   LinterProviderInfo,
 } from './components/LinterProvider';
-import ContentShell from './components/FullscreenGrid/ContentShell';
-import { PanelAttribs } from './components/FullscreenGrid';
+import ContentShell, {
+  PanelAttribs,
+} from './components/FullscreenGrid/ContentShell';
 
 /* eslint-disable @typescript-eslint/camelcase */
 

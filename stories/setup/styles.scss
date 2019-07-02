@@ -89,6 +89,13 @@ body.fullscreen {
   background-color: lighten(green, 68);
 }
 
+.FullscreenGridStory-topContent {
+  background-color: lighten(yellow, 47);
+  border-radius: $border-radius;
+  border: 1px solid $light-gray;
+  padding: $default-padding;
+}
+
 .CodeOverview-container {
   display: grid;
   grid-template-columns: 3fr 1fr;

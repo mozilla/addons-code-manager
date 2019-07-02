@@ -18,11 +18,6 @@ type PublicProps = {
 
 type Props = PublicProps & PropsFromState;
 
-export enum PanelAttribs {
-  altSidePanel = 'altSidePanel',
-  mainSidePanel = 'mainSidePanel',
-}
-
 export const Header = ({
   children,
   className,
