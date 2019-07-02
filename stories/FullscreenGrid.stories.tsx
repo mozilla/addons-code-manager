@@ -1,3 +1,4 @@
+import makeClassName from 'classnames';
 import React from 'react';
 import { storiesOf } from '@storybook/react';
 
@@ -53,6 +54,26 @@ storiesOf('FullscreenGrid', module)
         <ContentShell altSidePanel={someText} mainSidePanel={someText}>
           {someText}
         </ContentShell>,
+      );
+    },
+    getParams(),
+  )
+  .add(
+    'top content',
+    () => {
+      return renderInGrid(
+        <ContentShell
+          topContent={
+            <div
+              className={makeClassName(
+                'FullscreenGridStory-placeholder',
+                'FullscreenGridStory-topContent',
+              )}
+            >
+              Example of top content
+            </div>
+          }
+        />,
       );
     },
     getParams(),
