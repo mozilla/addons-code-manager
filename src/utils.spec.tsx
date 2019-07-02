@@ -2,7 +2,6 @@ import filesize from 'filesize';
 import queryString from 'query-string';
 
 import { getCodeLineAnchor } from './components/CodeView/utils';
-import { ForwardComparisonMap } from './pages/Compare/utils';
 import {
   formatFilesize,
   createCodeLineAnchorGetter,
@@ -16,6 +15,7 @@ import {
   createFakeCompareInfo,
   createFakeHistory,
   createFakeLocation,
+  fakeVersionWithDiff,
 } from './test-helpers';
 
 describe(__filename, () => {
@@ -212,7 +212,15 @@ describe(__filename, () => {
     it('returns getCodeLineAnchor if compareInfo.diff is falsey', () => {
       expect(
         createCodeLineAnchorGetter({
-          compareInfo: { diff: null, mimeType: 'mime/type' },
+          compareInfo: createFakeCompareInfo({
+            version: {
+              ...fakeVersionWithDiff,
+              file: {
+                ...fakeVersionWithDiff.file,
+                diff: null,
+              },
+            },
+          }),
         }),
       ).toEqual(getCodeLineAnchor);
     });
@@ -222,24 +230,16 @@ describe(__filename, () => {
       if (!compareInfo.diff) {
         throw new Error('compareInfo.diff was unexpectedly empty');
       }
-      const map = new ForwardComparisonMap(compareInfo.diff);
 
       const getterFromFactory = createCodeLineAnchorGetter({ compareInfo });
-      const getterFromMap = map.createCodeLineAnchorGetter();
 
-      // Generate a getter without compareInfo to verify that it returns a
-      // different result.
+      // Generate a getter without compareInfo to verify that it is different.
       const getterFromFactoryWithoutCompareInfo = createCodeLineAnchorGetter({
         compareInfo: null,
       });
 
-      // We cannot use `toEqual` for the two getters above because they are
-      // different instances, so we check that they return the same thing.
-      expect(getterFromFactory(1)).toEqual(getterFromMap(1));
-      // And verify that a getter from the factory without compareInfo does not
-      // return the same thing.
-      expect(getterFromFactoryWithoutCompareInfo(1)).not.toEqual(
-        getterFromMap(1),
+      expect(getterFromFactory).not.toEqual(
+        getterFromFactoryWithoutCompareInfo,
       );
     });
   });
