@@ -199,9 +199,7 @@ describe(__filename, () => {
 
     const root = renderWithLinterProvider(
       { compareInfo, version },
-      {
-        messageMap,
-      },
+      { messageMap },
     );
 
     const shortcuts = getContentShellPanel(
@@ -302,12 +300,7 @@ describe(__filename, () => {
   });
 
   it('does not render topContent with an empty messageMap', () => {
-    const root = renderWithLinterProvider(
-      {},
-      {
-        messageMap: undefined,
-      },
-    );
+    const root = renderWithLinterProvider({}, { messageMap: undefined });
 
     expect(root.find(ContentShell)).toHaveProp('topContent', null);
   });
