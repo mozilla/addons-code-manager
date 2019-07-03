@@ -23,8 +23,14 @@ describe(__filename, () => {
     return mount(<GlobalLinterMessages {...props} />, context);
   };
 
-  it('renders no linter messages', () => {
+  it('renders no linter messages when messages is an empty array', () => {
     const root = render({ messages: [] });
+
+    expect(root.type()).toEqual(null);
+  });
+
+  it('renders no linter messages when messages is undefined', () => {
+    const root = render({ messages: undefined });
 
     expect(root.type()).toEqual(null);
   });
