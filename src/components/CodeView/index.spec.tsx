@@ -9,11 +9,8 @@ import configureStore from '../../configureStore';
 import refractor from '../../refractor';
 import LinterMessage from '../LinterMessage';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
-import {
-  ExternalLinterMessage,
-  actions as linterActions,
-  getMessageMap,
-} from '../../reducers/linter';
+import GlobalLinterMessages from '../GlobalLinterMessages';
+import { ExternalLinterMessage, getMessageMap } from '../../reducers/linter';
 import { createInternalVersion } from '../../reducers/versions';
 import { getCodeLineAnchor, getCodeLineAnchorID, mapWithDepth } from './utils';
 import { getLanguageFromMimeType } from '../../utils';
@@ -319,9 +316,11 @@ describe(__filename, () => {
       messages: [externalMessage],
     });
 
-    const message = root.find(LinterMessage);
-    expect(message).toHaveLength(1);
-    expect(message).toHaveProp('message', expect.objectContaining({ uid }));
+    const globalLinterMessages = root.find(GlobalLinterMessages);
+    expect(globalLinterMessages).toHaveLength(1);
+    expect(globalLinterMessages).toHaveProp('messages', [
+      expect.objectContaining({ uid }),
+    ]);
   });
 
   it('renders all global LinterMessage components', () => {
@@ -335,13 +334,15 @@ describe(__filename, () => {
       ],
     });
 
-    const message = root.find(LinterMessage);
-    expect(message).toHaveLength(2);
-    expect(message.at(0).prop('message')).toMatchObject({ uid: firstUid });
-    expect(message.at(1).prop('message')).toMatchObject({ uid: secondUid });
+    const globalLinterMessages = root.find(GlobalLinterMessages);
+    expect(globalLinterMessages).toHaveLength(1);
+    expect(globalLinterMessages).toHaveProp('messages', [
+      expect.objectContaining({ uid: firstUid }),
+      expect.objectContaining({ uid: secondUid }),
+    ]);
   });
 
-  it('renders a scrollTo div at the top of global LinterMessage components, if line 0 is selected', () => {
+  it('renders a containerRef at GlobalLinterMessages component, if line 0 is selected', () => {
     const firstUid = 'first-uid';
     const secondUid = 'second-uid';
     const id = getCodeLineAnchorID(0);
@@ -355,10 +356,10 @@ describe(__filename, () => {
       ],
     });
 
-    expect(root.find(`#${id}`)).toHaveLength(1);
+    expect(root.find(GlobalLinterMessages).props().containerRef).toBeTruthy();
   });
 
-  it('does not render a scrollTo div at the top of global LinterMessage components, if line 0 is not selected', () => {
+  it('does not render a containerRef at GlobalLinterMessages component, if line 0 is not selected', () => {
     const location = createFakeLocation({ hash: '#I1' });
 
     const { root } = renderWithMessages({
@@ -366,10 +367,13 @@ describe(__filename, () => {
       messages: [createGlobalExternalMessage()],
     });
 
-    expect(root.find(`#${getCodeLineAnchorID(0)}`)).toHaveLength(0);
+    expect(root.find(GlobalLinterMessages)).toHaveProp(
+      'containerRef',
+      undefined,
+    );
   });
 
-  it('does not render a scrollTo div at the top of global LinterMessage components, if there are no global messages', () => {
+  it('does not render messages at GlobalLinterMessages component, if there are no global messages', () => {
     const id = getCodeLineAnchorID(0);
     const location = createFakeLocation({ hash: `#${id}` });
 
@@ -378,41 +382,7 @@ describe(__filename, () => {
       messages: [{ line: 1 }],
     });
 
-    expect(root.find(`#${id}`)).toHaveLength(0);
-  });
-
-  it('calls _scrollToSelectedLine() when rendering a selected global message', () => {
-    const _scrollToSelectedLine = jest.fn();
-    const location = createFakeLocation({ hash: `#${getCodeLineAnchorID(0)}` });
-    const store = configureStore();
-    const version = createInternalVersion(fakeVersion);
-
-    const linterResult = createFakeExternalLinterResult({
-      messages: [
-        createGlobalExternalMessage({
-          file: version.selectedPath,
-        }),
-      ],
-    });
-
-    store.dispatch(
-      linterActions.loadLinterResult({
-        versionId: version.id,
-        result: linterResult,
-      }),
-    );
-
-    const root = renderWithMount({
-      _scrollToSelectedLine,
-      location,
-      store,
-      version,
-    });
-
-    // We need `mount()` because `ref` is only used in a DOM environment.
-    expect(_scrollToSelectedLine).toHaveBeenCalledWith(
-      root.find(`#${getCodeLineAnchorID(0)}`).getDOMNode(),
-    );
+    expect(root.find(GlobalLinterMessages)).toHaveProp('messages', []);
   });
 
   describe('scrollToSelectedLine', () => {

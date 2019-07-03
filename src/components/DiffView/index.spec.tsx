@@ -14,9 +14,9 @@ import { History, Location } from 'history';
 import basicDiff from './fixtures/basicDiff';
 import multipleDiff from './fixtures/multipleDiff';
 import diffWithDeletions from './fixtures/diffWithDeletions';
-import { getCodeLineAnchorID } from '../CodeView/utils';
 import LinterMessage from '../LinterMessage';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
+import GlobalLinterMessages from '../GlobalLinterMessages';
 import { getLanguageFromMimeType } from '../../utils';
 import { ScrollTarget, createInternalVersion } from '../../reducers/versions';
 import {
@@ -468,23 +468,12 @@ describe(__filename, () => {
       }),
     });
 
-    const globalMessages = root.find(`.${styles.globalLinterMessages}`);
-    expect(globalMessages).toHaveProp('id', getCodeLineAnchorID(0));
-
-    const messages = globalMessages.find(LinterMessage);
-    expect(messages).toHaveLength(2);
-    expect(messages.at(0)).toHaveProp(
-      'message',
-      expect.objectContaining({
-        uid: globalMessageUid1,
-      }),
-    );
-    expect(messages.at(1)).toHaveProp(
-      'message',
-      expect.objectContaining({
-        uid: globalMessageUid2,
-      }),
-    );
+    const globalMessages = root.find(GlobalLinterMessages);
+    expect(globalMessages).toHaveLength(1);
+    expect(globalMessages).toHaveProp('messages', [
+      expect.objectContaining({ uid: globalMessageUid1 }),
+      expect.objectContaining({ uid: globalMessageUid2 }),
+    ]);
   });
 
   it('renders multiple inline messages', () => {

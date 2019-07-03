@@ -14,6 +14,7 @@ import refractor from '../../refractor';
 import { getLanguageFromMimeType } from '../../utils';
 import { Version } from '../../reducers/versions';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
+import GlobalLinterMessages from '../GlobalLinterMessages';
 
 // This function mimics what https://github.com/rexxars/react-refractor does,
 // but we need a different layout to inline comments so we cannot use this
@@ -36,7 +37,9 @@ const isLineSelected = (
   return `#${id}` === location.hash;
 };
 
-export const scrollToSelectedLine = (element: HTMLTableRowElement | null) => {
+export const scrollToSelectedLine = (
+  element: HTMLTableRowElement | HTMLDivElement | null,
+) => {
   if (element) {
     element.scrollIntoView();
   }
@@ -70,15 +73,15 @@ export class CodeViewBase extends React.Component<Props> {
 
     return (
       <React.Fragment>
-        {selectedMessageMap &&
-          selectedMessageMap.global.length > 0 &&
-          isLineSelected(getCodeLineAnchorID(0), location) && (
-            <div id={getCodeLineAnchorID(0)} ref={_scrollToSelectedLine} />
-          )}
-        {selectedMessageMap &&
-          selectedMessageMap.global.map((message) => {
-            return <LinterMessage key={message.uid} message={message} />;
-          })}
+        <GlobalLinterMessages
+          containerRef={
+            isLineSelected(getCodeLineAnchorID(0), location)
+              ? _scrollToSelectedLine
+              : undefined
+          }
+          messages={selectedMessageMap && selectedMessageMap.global}
+        />
+
         <div className={styles.CodeView}>
           <table className={styles.table}>
             <tbody className={styles.tableBody}>

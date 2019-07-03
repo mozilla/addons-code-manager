@@ -15,9 +15,9 @@ import {
 import { withRouter, RouteComponentProps } from 'react-router-dom';
 import makeClassName from 'classnames';
 
-import { getCodeLineAnchorID } from '../CodeView/utils';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import LinterMessage from '../LinterMessage';
+import GlobalLinterMessages from '../GlobalLinterMessages';
 import refractor from '../../refractor';
 import {
   ScrollTarget,
@@ -208,12 +208,6 @@ export class DiffViewBase extends React.Component<Props> {
       // Remove the `#` if `location.hash` is defined
       location.hash.length > 2 ? [location.hash.substring(1)] : [];
 
-    const globalLinterMessages = selectedMessageMap
-      ? selectedMessageMap.global.map((message) => {
-          return <LinterMessage key={message.uid} message={message} />;
-        })
-      : [];
-
     return (
       <div className={styles.DiffView}>
         {!diff && (
@@ -225,14 +219,10 @@ export class DiffViewBase extends React.Component<Props> {
           </React.Fragment>
         )}
 
-        {globalLinterMessages.length ? (
-          <div
-            className={styles.globalLinterMessages}
-            id={getCodeLineAnchorID(0)}
-          >
-            {globalLinterMessages}
-          </div>
-        ) : null}
+        <GlobalLinterMessages
+          className={styles.globalLinterMessages}
+          messages={selectedMessageMap && selectedMessageMap.global}
+        />
 
         {diff && (
           <React.Fragment key={`${diff.oldRevision}-${diff.newRevision}`}>
