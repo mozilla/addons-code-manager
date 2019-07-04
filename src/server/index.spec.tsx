@@ -318,6 +318,22 @@ describe(__filename, () => {
         expect(policy['style-src']).toEqual(["'none'"]);
       });
 
+      it('sets style-src, script-src and img-src to "self" when CDN URL is "/"', async () => {
+        const env = {
+          ...prodEnv,
+          PUBLIC_URL: '/',
+        } as ServerEnvVars;
+
+        const server = request(createServer({ env, rootPath: fixturesPath }));
+
+        const response = await server.get('/');
+        expect(response.status).toEqual(200);
+        const policy = cspParser(response.header['content-security-policy']);
+        expect(policy['img-src']).toEqual(["'self'", 'data:']);
+        expect(policy['script-src']).toEqual(["'self'"]);
+        expect(policy['style-src']).toEqual(["'self'"]);
+      });
+
       it('calls injectAuthenticationToken() and returns its output', async () => {
         const expectedHTML = 'content with auth token';
 
@@ -442,7 +458,7 @@ describe(__filename, () => {
           expect(policy['connect-src']).toEqual(["'self'"]);
         });
 
-        it('uses a relative for the CSP report URI', async () => {
+        it('uses a relative path for the CSP report URI', async () => {
           const response = await server.get('/');
 
           const policy = cspParser(response.header['content-security-policy']);
