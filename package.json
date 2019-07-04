@@ -67,8 +67,8 @@
     "ts-node": "8.3.0",
     "typesafe-actions": "4.4.2",
     "typescript": "3.5.2",
-    "universal-cookie": "4.0.0",
-    "universal-cookie-express": "4.0.0"
+    "universal-cookie": "4.0.1",
+    "universal-cookie-express": "4.0.1"
   },
   "devDependencies": {
     "@emotion/core": "^10.0.7",
