@@ -60,13 +60,10 @@ $expand-button-width: 40px;
 }
 
 .content {
-  grid-area: FGContent;
-  padding: $default-padding;
-}
-
-.content {
   border: 1px solid $light-gray;
   border-radius: $border-radius;
+  grid-area: FGContent;
+  padding: $default-padding;
 }
 
 .mainSidePanel,
