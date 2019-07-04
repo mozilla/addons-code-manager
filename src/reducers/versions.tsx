@@ -549,25 +549,20 @@ export type GetRelativeDiffAnchorParams = {
 };
 
 export const getRelativeDiffAnchor = ({
-  currentAnchor,
+  currentAnchor = '',
   diff,
   position = RelativePathPosition.next,
 }: GetRelativeDiffAnchorParams): string | null => {
   const anchors = getDiffAnchors(diff);
+  const currentIndex = anchors.indexOf(currentAnchor);
+
   if (anchors.length) {
     let newIndex;
-    if (!currentAnchor) {
-      // Since we aren't looking for an anchor relative to an existing one,
+    if (!currentAnchor || currentIndex < 0) {
+      // Since we do not have an anchor that corresponds to a diff in the file,
       // just get the first anchor.
       newIndex = 0;
     } else {
-      const currentIndex = anchors.indexOf(currentAnchor);
-      if (currentIndex < 0) {
-        throw new Error(
-          `Could not locate anchor: ${currentAnchor} in the diff.`,
-        );
-      }
-
       newIndex =
         position === RelativePathPosition.previous
           ? currentIndex - 1

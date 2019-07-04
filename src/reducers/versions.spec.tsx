@@ -2309,18 +2309,24 @@ describe(__filename, () => {
       },
     );
 
-    it('throws an error if the currentAnchor cannot be found', () => {
+    it('returns the first anchor if the currentAnchor cannot be found', () => {
       const diff = createFakeDiffWithChanges([
-        [{ lineNumber: 1, type: 'insert' }],
+        [
+          { lineNumber: 1, type: 'normal' },
+          { lineNumber: 2, type: 'delete' },
+          { lineNumber: 3, type: 'insert' },
+          { lineNumber: 4, type: 'normal' },
+          { lineNumber: 5, type: 'insert' },
+        ],
       ]);
-      const currentAnchor = 'D99';
-      expect(() => {
+
+      expect(
         getRelativeDiffAnchor({
-          currentAnchor,
+          currentAnchor: 'D99',
           diff,
           position: RelativePathPosition.next,
-        });
-      }).toThrow(`Could not locate anchor: ${currentAnchor} in the diff.`);
+        }),
+      ).toEqual('D2');
     });
 
     it('returns the next anchor in the diff', () => {
