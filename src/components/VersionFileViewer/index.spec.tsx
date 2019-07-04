@@ -260,6 +260,22 @@ describe(__filename, () => {
     expect(overview).toHaveProp('content', '');
   });
 
+  it('does not render CodeOverview content for binary files', () => {
+    const path = 'cose.sig';
+    const entry = createFakeEntry('binary', path, 'application/octet-stream');
+    const fileContent = 'some binary data';
+
+    const { file, version } = getInternalVersionAndFile({
+      fileContent,
+      path,
+      entry,
+    });
+    const root = renderPanel({ file, version }, PanelAttribs.altSidePanel);
+
+    const overview = root.find(CodeOverview);
+    expect(overview).toHaveProp('content', '');
+  });
+
   it('renders general LinterMessages', () => {
     const uid1 = 'general-message-1';
     const uid2 = 'general-message-2';

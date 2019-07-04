@@ -90,7 +90,9 @@ const VersionFileViewer = ({
         altSidePanel={
           file ? (
             <CodeOverview
-              content={file.type === 'image' ? '' : file.content}
+              content={
+                ['image', 'binary'].includes(file.type) ? '' : file.content
+              }
               getCodeLineAnchor={getCodeLineAnchor}
               version={version}
             />
