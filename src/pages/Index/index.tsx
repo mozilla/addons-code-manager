@@ -22,7 +22,9 @@ export class IndexBase extends React.Component<Props> {
     _log: log,
     allowErrorSimulation:
       process.env.REACT_APP_UNSAFE_ERROR_SIMULATION === 'true',
-    showLocalDevLinks: process.env.REACT_APP_IS_LOCAL_DEV === 'true',
+    showLocalDevLinks:
+      process.env.NODE_ENV === 'development' &&
+      process.env.REACT_APP_IS_LOCAL_DEV === 'true',
   };
 
   canSimulateErrors() {

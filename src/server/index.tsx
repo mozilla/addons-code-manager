@@ -77,9 +77,13 @@ export const createServer = ({
     reportUri,
   };
 
-  const staticSrc = env.PUBLIC_URL
-    ? `${env.PUBLIC_URL}${STATIC_PATH}`
-    : "'none'";
+  let staticSrc = "'none'";
+  if (env.PUBLIC_URL) {
+    staticSrc =
+      // When PUBLIC_URL is set to `/` (for local dev), we serve the statics
+      // locally hence "'self'".
+      env.PUBLIC_URL === '/' ? "'self'" : `${env.PUBLIC_URL}${STATIC_PATH}`;
+  }
 
   const connectSrc = [
     // While using the proxy or while in development, relax connect-src.
