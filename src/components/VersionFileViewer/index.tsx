@@ -63,6 +63,7 @@ const VersionFileViewer = ({
     return (
       <ContentShell
         topContent={topContent}
+        mainSidePanelIsBorderless
         mainSidePanel={
           <AccordionMenu>
             <AccordionItem expandedByDefault title={ItemTitles.Files}>
@@ -85,8 +86,6 @@ const VersionFileViewer = ({
             </AccordionItem>
           </AccordionMenu>
         }
-        mainSidePanelClass={styles.mainSidePanel}
-        altSidePanelClass={styles.altSidePanel}
         altSidePanel={
           file ? (
             <CodeOverview

@@ -32,6 +32,7 @@ const render = (children: JSX.Element) => {
       <ContentShell
         mainSidePanel={children}
         className="AccordionMenuStory-ContentShell"
+        mainSidePanelIsBorderless
       >
         This page was intentionally left blank
       </ContentShell>

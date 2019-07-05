@@ -16,6 +16,7 @@ export type PublicProps = {
   className?: string;
   mainSidePanel?: AnyReactNode;
   mainSidePanelClass?: string;
+  mainSidePanelIsBorderless?: boolean;
   topContent?: AnyReactNode;
 };
 
@@ -41,6 +42,7 @@ export const ContentShellBase = ({
   dispatch,
   mainSidePanel,
   mainSidePanelClass,
+  mainSidePanelIsBorderless = false,
   mainSidePanelIsExpanded,
   topContent,
 }: Props) => {
@@ -51,6 +53,7 @@ export const ContentShellBase = ({
       ) : null}
 
       <SidePanel
+        borderless={mainSidePanelIsBorderless}
         className={makeClassName(styles.mainSidePanel, mainSidePanelClass)}
         isExpanded={mainSidePanelIsExpanded}
         onClick={() => dispatch(actions.toggleMainSidePanel())}

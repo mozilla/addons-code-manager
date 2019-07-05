@@ -60,6 +60,8 @@ $expand-button-width: 40px;
 }
 
 .content {
+  border: 1px solid $light-gray;
+  border-radius: $border-radius;
   grid-area: FGContent;
   padding: $default-padding;
 }
@@ -67,8 +69,6 @@ $expand-button-width: 40px;
 .mainSidePanel,
 .altSidePanel,
 .content {
-  border-radius: $border-radius;
-  border: 1px solid $light-gray;
   overflow-x: hidden;
   overflow-y: auto;
 }
