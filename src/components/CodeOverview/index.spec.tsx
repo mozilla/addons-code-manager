@@ -481,14 +481,9 @@ describe(__filename, () => {
   });
 
   it('handles empty content', () => {
-    const content = '';
-    const allLineShapes = generateLineShapes([content]);
+    const root = renderWithFixedHeight({ content: '' });
 
-    const root = renderWithFixedHeight({ content });
-
-    const lineShapes = root.find(CodeLineShapes);
-    expect(lineShapes.at(0)).toHaveProp('lineShapes', allLineShapes[0]);
-    expect(lineShapes).toHaveLength(1);
+    expect(root.find(CodeLineShapes)).toHaveLength(0);
   });
 
   it('renders CodeLineShapes for all lines', () => {

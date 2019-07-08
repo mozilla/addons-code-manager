@@ -24,6 +24,10 @@ describe(__filename, () => {
 
       expect(getLines(content)).toEqual(lines);
     });
+
+    it('returns an empty array when content is blank', () => {
+      expect(getLines('')).toEqual([]);
+    });
   });
 
   describe('map functions', () => {

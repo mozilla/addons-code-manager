@@ -34,7 +34,7 @@ export const mapWithDepth = (depth: number, _mapChild = mapChild) => {
 };
 
 export const getLines = (content: string) => {
-  return content.replace('\r\n', '\n').split('\n');
+  return content ? content.replace('\r\n', '\n').split('\n') : [];
 };
 
 export const getCodeLineAnchorID = (line: number) => {
