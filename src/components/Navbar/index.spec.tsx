@@ -5,7 +5,14 @@ import { Store } from 'redux';
 import configureStore from '../../configureStore';
 import LoginButton from '../LoginButton';
 import styles from './styles.module.scss';
-import { createFakeThunk, fakeUser, spyOn } from '../../test-helpers';
+import {
+  createFakeThunk,
+  createStoreWithVersion,
+  fakeUser,
+  fakeVersion,
+  fakeVersionAddon,
+  spyOn,
+} from '../../test-helpers';
 import { actions as userActions, requestLogOut } from '../../reducers/users';
 
 import Navbar from '.';
@@ -35,6 +42,30 @@ describe(__filename, () => {
     store.dispatch(userActions.loadCurrentUser({ user }));
     return store;
   };
+
+  describe('when a version is loaded', () => {
+    it('renders addon name', () => {
+      const addonName = 'addon name example';
+      const store = createStoreWithVersion(
+        {
+          ...fakeVersion,
+          addon: { ...fakeVersionAddon, name: { 'en-US': addonName } },
+        },
+        { makeCurrent: true },
+      );
+      const root = render({ store });
+
+      expect(root.find(`.${styles.addonName}`)).toHaveText(addonName);
+    });
+  });
+
+  describe('when version is undefined', () => {
+    it('does not render addon name', () => {
+      const root = render();
+
+      expect(root.find(`.${styles.addonName}`)).toHaveLength(0);
+    });
+  });
 
   describe('when a user is provided', () => {
     it('renders a username', () => {
