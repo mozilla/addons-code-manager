@@ -2309,18 +2309,74 @@ describe(__filename, () => {
       },
     );
 
-    it('throws an error if the currentAnchor cannot be found', () => {
+    it('returns the next anchor in the diff given a non-diff anchor', () => {
       const diff = createFakeDiffWithChanges([
-        [{ lineNumber: 1, type: 'insert' }],
+        [
+          { lineNumber: 1, type: 'delete' },
+          { lineNumber: 2, type: 'insert' },
+          { lineNumber: 3, type: 'normal' },
+          { lineNumber: 4, type: 'insert' },
+        ],
       ]);
-      const currentAnchor = 'D99';
-      expect(() => {
+      expect(
         getRelativeDiffAnchor({
-          currentAnchor,
+          currentAnchor: 'N3',
           diff,
           position: RelativePathPosition.next,
-        });
-      }).toThrow(`Could not locate anchor: ${currentAnchor} in the diff.`);
+        }),
+      ).toEqual('I4');
+    });
+
+    it('returns null if there is no next anchor in the diff given a non-diff anchor', () => {
+      const diff = createFakeDiffWithChanges([
+        [
+          { lineNumber: 1, type: 'delete' },
+          { lineNumber: 2, type: 'insert' },
+          { lineNumber: 3, type: 'normal' },
+        ],
+      ]);
+      expect(
+        getRelativeDiffAnchor({
+          currentAnchor: 'I2',
+          diff,
+          position: RelativePathPosition.next,
+        }),
+      ).toEqual(null);
+    });
+
+    it('returns the previous anchor in the diff given a non-diff anchor', () => {
+      const diff = createFakeDiffWithChanges([
+        [
+          { lineNumber: 1, type: 'delete' },
+          { lineNumber: 2, type: 'insert' },
+          { lineNumber: 3, type: 'normal' },
+          { lineNumber: 4, type: 'insert' },
+        ],
+      ]);
+      expect(
+        getRelativeDiffAnchor({
+          currentAnchor: 'N3',
+          diff,
+          position: RelativePathPosition.previous,
+        }),
+      ).toEqual('D1');
+    });
+
+    it('returns null if there is no previous anchor in the diff given a non-diff anchor', () => {
+      const diff = createFakeDiffWithChanges([
+        [
+          { lineNumber: 1, type: 'normal' },
+          { lineNumber: 2, type: 'normal' },
+          { lineNumber: 3, type: 'delete' },
+        ],
+      ]);
+      expect(
+        getRelativeDiffAnchor({
+          currentAnchor: 'I2',
+          diff,
+          position: RelativePathPosition.previous,
+        }),
+      ).toEqual(null);
     });
 
     it('returns the next anchor in the diff', () => {

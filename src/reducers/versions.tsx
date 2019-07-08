@@ -12,7 +12,7 @@ import queryString from 'query-string';
 
 import { ThunkActionCreator } from '../configureStore';
 import { getDiff, getVersion, getVersionsList, isErrorResponse } from '../api';
-import { LocalizedStringMap } from '../utils';
+import { LocalizedStringMap, extractNumber } from '../utils';
 import { actions as errorsActions } from './errors';
 import {
   ROOT_PATH,
@@ -549,37 +549,62 @@ export type GetRelativeDiffAnchorParams = {
 };
 
 export const getRelativeDiffAnchor = ({
-  currentAnchor,
+  currentAnchor = '',
   diff,
   position = RelativePathPosition.next,
 }: GetRelativeDiffAnchorParams): string | null => {
   const anchors = getDiffAnchors(diff);
   if (anchors.length) {
-    let newIndex;
     if (!currentAnchor) {
       // Since we aren't looking for an anchor relative to an existing one,
       // just get the first anchor.
-      newIndex = 0;
-    } else {
-      const currentIndex = anchors.indexOf(currentAnchor);
-      if (currentIndex < 0) {
-        throw new Error(
-          `Could not locate anchor: ${currentAnchor} in the diff.`,
-        );
-      }
+      return anchors[0];
+    }
 
-      newIndex =
+    const currentIndex = anchors.indexOf(currentAnchor);
+
+    if (currentIndex >= 0) {
+      const newIndex =
         position === RelativePathPosition.previous
           ? currentIndex - 1
           : currentIndex + 1;
+
+      if (newIndex >= 0 && newIndex < anchors.length) {
+        return anchors[newIndex];
+      }
+      // The currentAnchor is the only anchor in the diff.
+      return null;
     }
 
-    if (newIndex >= 0 && newIndex < anchors.length) {
-      return anchors[newIndex];
+    // We have a currentAnchor, but is doesn't match anything in anchors, so
+    // we need to try to find the correct anchor closest to the currentAnchor.
+    let maybeAnchor;
+
+    const currentAnchorNumber = extractNumber(currentAnchor);
+    if (currentAnchorNumber) {
+      for (const anchor of anchors) {
+        const anchorNumber = extractNumber(anchor);
+        if (anchorNumber) {
+          if (
+            (position === RelativePathPosition.previous &&
+              anchorNumber <= currentAnchorNumber) ||
+            (position === RelativePathPosition.next &&
+              anchorNumber >= currentAnchorNumber)
+          ) {
+            maybeAnchor = anchor;
+          } else if (maybeAnchor) {
+            break;
+          }
+        }
+      }
+
+      if (maybeAnchor) {
+        return maybeAnchor;
+      }
     }
   }
 
-  // There is no next/previous anchor in the file, so return null.
+  // We never found a valid next/previous anchor in the file, so return null.
   return null;
 };
 

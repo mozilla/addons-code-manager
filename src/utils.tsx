@@ -77,3 +77,11 @@ export const createCodeLineAnchorGetter = ({
   }
   return getCodeLineAnchor;
 };
+
+export const extractNumber = (text: string): number | null => {
+  const matches = text.match(/\d+/);
+  if (Array.isArray(matches)) {
+    return parseInt(matches[0], 10);
+  }
+  return null;
+};
