@@ -12,11 +12,13 @@ type ForwardChangeMap = {
   [line: string]: ChangeInfo[];
 };
 
-const mergeChanges = (
+const mergeChangesInPlace = (
   changeMap: ForwardChangeMap,
   line: string,
   change: ChangeInfo,
 ) => {
+  // This destructively merges changes into each line's ChangeInfo array
+  // when it exists.
   const lineChanges = changeMap[line] || [];
   lineChanges.push(change);
   return lineChanges;
@@ -28,21 +30,19 @@ export class ForwardComparisonMap {
   private changeMap: ForwardChangeMap;
 
   constructor(diff: DiffInfo) {
-    this.changeMap = getAllHunkChanges(diff.hunks).reduce((all, change) => {
-      return {
-        ...all,
-        [String(change.oldLineNumber)]: mergeChanges(
-          all,
-          String(change.oldLineNumber),
-          change,
-        ),
-        [String(change.newLineNumber)]: mergeChanges(
-          all,
-          String(change.newLineNumber),
-          change,
-        ),
-      };
-    }, {});
+    this.changeMap = {};
+    for (const change of getAllHunkChanges(diff.hunks)) {
+      this.changeMap[String(change.oldLineNumber)] = mergeChangesInPlace(
+        this.changeMap,
+        String(change.oldLineNumber),
+        change,
+      );
+      this.changeMap[String(change.newLineNumber)] = mergeChangesInPlace(
+        this.changeMap,
+        String(change.newLineNumber),
+        change,
+      );
+    }
 
     const relevantTypes: ChangeType[] = ['insert', 'normal', 'delete'];
 
