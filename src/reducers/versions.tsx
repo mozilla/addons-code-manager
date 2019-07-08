@@ -578,11 +578,13 @@ export const getRelativeDiffAnchor = ({
 
     // We have a currentAnchor, but is doesn't match anything in anchors, so
     // we need to try to find the correct anchor closest to the currentAnchor.
-    let maybeAnchor;
-
     const currentAnchorNumber = extractNumber(currentAnchor);
+    const sortedAnchors: string[] =
+      position === RelativePathPosition.previous
+        ? [...anchors].reverse()
+        : anchors;
     if (currentAnchorNumber) {
-      for (const anchor of anchors) {
+      for (const anchor of sortedAnchors) {
         const anchorNumber = extractNumber(anchor);
         if (anchorNumber) {
           if (
@@ -591,15 +593,9 @@ export const getRelativeDiffAnchor = ({
             (position === RelativePathPosition.next &&
               anchorNumber >= currentAnchorNumber)
           ) {
-            maybeAnchor = anchor;
-          } else if (maybeAnchor) {
-            break;
+            return anchor;
           }
         }
-      }
-
-      if (maybeAnchor) {
-        return maybeAnchor;
       }
     }
   }

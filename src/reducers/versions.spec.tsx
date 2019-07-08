@@ -2315,6 +2315,8 @@ describe(__filename, () => {
           { lineNumber: 2, type: 'insert' },
           { lineNumber: 3, type: 'normal' },
           { lineNumber: 4, type: 'insert' },
+          { lineNumber: 5, type: 'normal' },
+          { lineNumber: 6, type: 'insert' },
         ],
       ]);
       expect(
@@ -2350,15 +2352,17 @@ describe(__filename, () => {
           { lineNumber: 2, type: 'insert' },
           { lineNumber: 3, type: 'normal' },
           { lineNumber: 4, type: 'insert' },
+          { lineNumber: 5, type: 'normal' },
+          { lineNumber: 6, type: 'insert' },
         ],
       ]);
       expect(
         getRelativeDiffAnchor({
-          currentAnchor: 'N3',
+          currentAnchor: 'N5',
           diff,
           position: RelativePathPosition.previous,
         }),
-      ).toEqual('D1');
+      ).toEqual('I4');
     });
 
     it('returns null if there is no previous anchor in the diff given a non-diff anchor', () => {
