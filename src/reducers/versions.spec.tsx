@@ -2301,7 +2301,6 @@ describe(__filename, () => {
         const position = pos as RelativePathPosition;
         expect(
           getRelativeDiffAnchor({
-            currentAnchor: '',
             diff,
             position,
           }),
