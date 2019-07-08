@@ -132,6 +132,7 @@ describe(__filename, () => {
           ...prodEnv,
           PUBLIC_URL: 'https://code-manager.addons.cdn.mozilla.net',
           REACT_APP_API_HOST: 'https://addons-dev.allizom.org',
+          REACT_APP_REVIEWERS_HOST: 'https://reviewers.addons-dev.allizom.org',
         };
 
         const server = request(
@@ -156,7 +157,7 @@ describe(__filename, () => {
         expect(policy['font-src']).toEqual(["'none'"]);
         expect(policy['img-src']).toEqual([
           `${fakeEnv.PUBLIC_URL}${STATIC_PATH}`,
-          'data:',
+          `${fakeEnv.REACT_APP_REVIEWERS_HOST}/en-US/reviewers/download-git-file/`,
         ]);
         expect(policy['manifest-src']).toEqual(["'none'"]);
         expect(policy['media-src']).toEqual(["'none'"]);
@@ -303,9 +304,14 @@ describe(__filename, () => {
       });
 
       it('tightens style-src, script-src and img-src if CDN URL is unset', async () => {
+        const fakeEnv = {
+          ...prodEnv,
+          REACT_APP_REVIEWERS_HOST: 'https://reviewers.addons-dev.allizom.org',
+        };
+
         const server = request(
           createServer({
-            env: prodEnv as ServerEnvVars,
+            env: fakeEnv as ServerEnvVars,
             rootPath: fixturesPath,
           }),
         );
@@ -313,7 +319,10 @@ describe(__filename, () => {
         const response = await server.get('/');
         expect(response.status).toEqual(200);
         const policy = cspParser(response.header['content-security-policy']);
-        expect(policy['img-src']).toEqual(["'none'", 'data:']);
+        expect(policy['img-src']).toEqual([
+          "'none'",
+          `${fakeEnv.REACT_APP_REVIEWERS_HOST}/en-US/reviewers/download-git-file/`,
+        ]);
         expect(policy['script-src']).toEqual(["'none'"]);
         expect(policy['style-src']).toEqual(["'none'"]);
       });
@@ -322,6 +331,7 @@ describe(__filename, () => {
         const env = {
           ...prodEnv,
           PUBLIC_URL: '/',
+          REACT_APP_REVIEWERS_HOST: 'https://reviewers.addons-dev.allizom.org',
         } as ServerEnvVars;
 
         const server = request(createServer({ env, rootPath: fixturesPath }));
@@ -329,7 +339,10 @@ describe(__filename, () => {
         const response = await server.get('/');
         expect(response.status).toEqual(200);
         const policy = cspParser(response.header['content-security-policy']);
-        expect(policy['img-src']).toEqual(["'self'", 'data:']);
+        expect(policy['img-src']).toEqual([
+          "'self'",
+          `${env.REACT_APP_REVIEWERS_HOST}/en-US/reviewers/download-git-file/`,
+        ]);
         expect(policy['script-src']).toEqual(["'self'"]);
         expect(policy['style-src']).toEqual(["'self'"]);
       });
@@ -357,14 +370,19 @@ describe(__filename, () => {
       describe('with REACT_APP_USE_INSECURE_PROXY=true', () => {
         const apiPort = '5678';
         const apiResponseBody = 'API response body';
+        const reviewersPort = '9876';
+        const reviewersResponseBody = 'Reviewers response body';
         const prodEnvWithInsecureProxy = {
           ...prodEnv,
           REACT_APP_USE_INSECURE_PROXY: 'true',
           REACT_APP_API_HOST: `http://localhost:${apiPort}`,
+          REACT_APP_REVIEWERS_HOST: `http://localhost:${reviewersPort}`,
         };
 
-        let app: express.Application;
+        let apiApp: express.Application;
+        let reviewersApp: express.Application;
         let fakeApiServer: http.Server;
+        let fakeReviewersServer: http.Server;
         let server: SuperTest<Test>;
 
         beforeEach(() => {
@@ -376,13 +394,13 @@ describe(__filename, () => {
           );
 
           // This Express app is used to simulate the API service.
-          app = express();
+          apiApp = express();
           // We create a handler to configure a response without cookies.
-          app.get('/api/no-cookie', (req, res) => {
+          apiApp.get('/api/no-cookie', (req, res) => {
             res.send(apiResponseBody);
           });
           // This is a catch-all handler for all other requests.
-          app.get('*', (req, res) => {
+          apiApp.get('*', (req, res) => {
             res.cookie('auth_token', 'secret', {
               // Cookies returned by the API are usually secure.
               secure: true,
@@ -390,15 +408,24 @@ describe(__filename, () => {
             res.send(apiResponseBody);
           });
 
-          fakeApiServer = app.listen(apiPort);
+          fakeApiServer = apiApp.listen(apiPort);
           fakeApiServer.on('error', (error) => {
             // eslint-disable-next-line no-console
             console.error('proxy error', error);
           });
+
+          // This Express app is used to simulate the reviewers service.
+          reviewersApp = express();
+          reviewersApp.get('*', (req, res) => {
+            res.send(reviewersResponseBody);
+          });
+
+          fakeReviewersServer = reviewersApp.listen(reviewersPort);
         });
 
         afterEach(() => {
           fakeApiServer.close();
+          fakeReviewersServer.close();
         });
 
         it('forwards all the /api calls to the REACT_APP_API_HOST server', async () => {
@@ -441,12 +468,12 @@ describe(__filename, () => {
 
         // The Browse/Compare APIs return a `download_url` field with the URL
         // to download the content of the selected file.
-        it('forwards the download URLs to the REACT_APP_API_HOST server', async () => {
+        it('forwards the download URLs to the REACT_APP_REVIEWERS_HOST server', async () => {
           const response = await server.get(
             '/en-US/reviewers/download-git-file/1532144/manifest.json/',
           );
 
-          expect(response.text).toEqual(apiResponseBody);
+          expect(response.text).toEqual(reviewersResponseBody);
         });
 
         it('relaxes connect-src for insecure proxying', async () => {
@@ -621,9 +648,14 @@ describe(__filename, () => {
         const content = '<h1>It works!</h1>';
         fakeCreateReactAppServerApp.get('/*', (req, res) => res.send(content));
 
+        const fakeEnv = {
+          ...devEnv,
+          REACT_APP_REVIEWERS_HOST: 'https://reviewers.addons-dev.allizom.org',
+        };
+
         const server = request(
           createServer({
-            env: devEnv as ServerEnvVars,
+            env: fakeEnv as ServerEnvVars,
             rootPath: fixturesPath,
           }),
         );
@@ -633,7 +665,11 @@ describe(__filename, () => {
         expect(response.header).toHaveProperty('content-security-policy');
 
         const policy = cspParser(response.header['content-security-policy']);
-        expect(policy['img-src']).toEqual(["'none'", 'data:', "'self'"]);
+        expect(policy['img-src']).toEqual([
+          "'none'",
+          `${fakeEnv.REACT_APP_REVIEWERS_HOST}/en-US/reviewers/download-git-file/`,
+          "'self'",
+        ]);
       });
 
       it('relaxes script-src for local dev', async () => {

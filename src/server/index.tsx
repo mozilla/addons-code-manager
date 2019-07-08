@@ -25,6 +25,7 @@ export type ServerEnvVars = {
   REACT_APP_AUTHENTICATION_COOKIE: string;
   REACT_APP_AUTH_TOKEN_PLACEHOLDER: string;
   REACT_APP_CRA_PORT: number;
+  REACT_APP_REVIEWERS_HOST: string;
   REACT_APP_SENTRY_DSN: string;
   REACT_APP_USE_INSECURE_PROXY: string;
   SERVER_HOST: string;
@@ -125,8 +126,7 @@ export const createServer = ({
     frameSrc: ["'none'"],
     imgSrc: [
       staticSrc,
-      'https://reviewers.addons-dev.allizom.org',
-      'https://*.dev.lcip.org',
+      `${env.REACT_APP_REVIEWERS_HOST}/en-US/reviewers/download-git-file/`,
     ],
     manifestSrc: ["'none'"],
     mediaSrc: ["'none'"],
@@ -173,33 +173,37 @@ export const createServer = ({
     }
 
     app.use(
-      proxy(
-        [
-          '/api/**',
-          '/**/validation.json',
-          '/**/reviewers/download-git-file/**/',
-        ],
-        {
-          target: env.REACT_APP_API_HOST,
-          autoRewrite: true,
-          changeOrigin: true,
-          cookieDomainRewrite: '',
-          protocolRewrite: 'http',
-          secure: false,
-          onProxyRes: (proxyResponse: http.IncomingMessage) => {
-            // We make cookies unsecure because local development uses http and
-            // not https. Without this change, the server code would not be able
-            // to read the cookie that stores the authentication token.
-            if (proxyResponse.headers['set-cookie']) {
-              const cookies = proxyResponse.headers['set-cookie'].map(
-                (cookie: string) => cookie.replace(/;\s*?(Secure)/i, ''),
-              );
-              // eslint-disable-next-line no-param-reassign
-              proxyResponse.headers['set-cookie'] = cookies;
-            }
-          },
+      proxy(['/api/**', '/**/validation.json'], {
+        target: env.REACT_APP_API_HOST,
+        autoRewrite: true,
+        changeOrigin: true,
+        cookieDomainRewrite: '',
+        protocolRewrite: 'http',
+        secure: false,
+        onProxyRes: (proxyResponse: http.IncomingMessage) => {
+          // We make cookies unsecure because local development uses http and
+          // not https. Without this change, the server code would not be able
+          // to read the cookie that stores the authentication token.
+          if (proxyResponse.headers['set-cookie']) {
+            const cookies = proxyResponse.headers['set-cookie'].map(
+              (cookie: string) => cookie.replace(/;\s*?(Secure)/i, ''),
+            );
+            // eslint-disable-next-line no-param-reassign
+            proxyResponse.headers['set-cookie'] = cookies;
+          }
         },
-      ),
+      }),
+    );
+
+    app.use(
+      proxy(['/**/reviewers/download-git-file/**/'], {
+        target: env.REACT_APP_REVIEWERS_HOST,
+        autoRewrite: true,
+        changeOrigin: true,
+        cookieDomainRewrite: '',
+        protocolRewrite: 'http',
+        secure: false,
+      }),
     );
   }
 

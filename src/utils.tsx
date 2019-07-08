@@ -85,3 +85,24 @@ export const extractNumber = (text: string): number | null => {
   }
   return null;
 };
+
+type MakReviewersURLParams = {
+  apiHost?: string | null;
+  reviewersHost?: string | null;
+  url: string;
+  useInsecureProxy?: boolean;
+};
+
+export const makeReviewersURL = ({
+  apiHost = process.env.REACT_APP_API_HOST,
+  reviewersHost = process.env.REACT_APP_REVIEWERS_HOST,
+  url,
+  useInsecureProxy = process.env.REACT_APP_USE_INSECURE_PROXY === 'true',
+}: MakReviewersURLParams) => {
+  if (apiHost && reviewersHost) {
+    const replacementForApiHost = useInsecureProxy ? '' : reviewersHost;
+    return url.replace(apiHost, replacementForApiHost);
+  }
+
+  return url;
+};

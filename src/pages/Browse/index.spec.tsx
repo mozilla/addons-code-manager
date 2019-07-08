@@ -3,7 +3,6 @@ import { Store } from 'redux';
 import queryString from 'query-string';
 import { History } from 'history';
 
-import { makeApiURL } from '../../api';
 import {
   createFakeEntry,
   createFakeHistory,
@@ -25,6 +24,7 @@ import Loading from '../../components/Loading';
 import CodeOverview from '../../components/CodeOverview';
 import CodeView from '../../components/CodeView';
 import VersionFileViewer from '../../components/VersionFileViewer';
+import { makeReviewersURL } from '../../utils';
 import styles from './styles.module.scss';
 
 import Browse, { BrowseBase, Props as BrowseProps } from '.';
@@ -222,7 +222,7 @@ describe(__filename, () => {
 
     const image = root.find(`.${styles.Image}`).find('img');
     expect(image).toHaveLength(1);
-    expect(image).toHaveProp('src', makeApiURL({ url: downloadUrl }));
+    expect(image).toHaveProp('src', makeReviewersURL({ url: downloadUrl }));
   });
 
   it('renders a loading message when we do not have the content of a file yet', () => {

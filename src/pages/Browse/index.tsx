@@ -4,7 +4,6 @@ import { RouteComponentProps } from 'react-router-dom';
 import { connect } from 'react-redux';
 import log from 'loglevel';
 
-import { makeApiURL } from '../../api';
 import { ApplicationState } from '../../reducers';
 import { ConnectedReduxProps } from '../../configureStore';
 import { ApiState } from '../../reducers/api';
@@ -23,6 +22,7 @@ import {
   getLocalizedString,
   gettext,
   getPathFromQueryString,
+  makeReviewersURL,
 } from '../../utils';
 import Loading from '../../components/Loading';
 import CodeView from '../../components/CodeView';
@@ -139,7 +139,7 @@ export class BrowseBase extends React.Component<Props> {
         <div className={styles.Image}>
           <img
             alt=""
-            src={makeApiURL({ url: file.downloadURL })}
+            src={makeReviewersURL({ url: file.downloadURL })}
             className={styles.responsive}
           />
         </div>

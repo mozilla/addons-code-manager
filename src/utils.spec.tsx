@@ -9,6 +9,7 @@ import {
   getLanguageFromMimeType,
   getLocalizedString,
   getPathFromQueryString,
+  makeReviewersURL,
   nl2br,
   sanitizeHTML,
 } from './utils';
@@ -242,6 +243,44 @@ describe(__filename, () => {
       expect(getterFromFactory).not.toEqual(
         getterFromFactoryWithoutCompareInfo,
       );
+    });
+  });
+
+  describe('makeReviewersURL', () => {
+    it.each(['apiHost', 'reviewersHost'])(
+      'returns an unchanged url if %s is falsey',
+      (host) => {
+        const url = 'https://example.org/foo/';
+
+        expect(makeReviewersURL({ [host]: null, url })).toEqual(url);
+      },
+    );
+
+    it('removes the host of an url when useInsecureProxy is true', () => {
+      const apiHost = 'https://example.org';
+      const path = '/foo/';
+      const url = `${apiHost}${path}`;
+
+      expect(
+        makeReviewersURL({ apiHost, url, useInsecureProxy: true }),
+      ).toEqual(path);
+    });
+
+    it('replaces apiHost with reviewersHost when useInsecureProxy is false', () => {
+      const apiHost = 'https://example.org';
+      const reviewersHost = 'https://example.com';
+      const path = '/foo/';
+      const url = `${apiHost}${path}`;
+      const expectedUrl = `${reviewersHost}${path}`;
+
+      expect(
+        makeReviewersURL({
+          apiHost,
+          reviewersHost,
+          url,
+          useInsecureProxy: false,
+        }),
+      ).toEqual(expectedUrl);
     });
   });
 });
