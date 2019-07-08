@@ -80,6 +80,17 @@ The [Snyk](https://snyk.io/) service will warn us about security vulnerabilities
 
 Occasionally, a vulnerable package won't have a patch available. If we can safely determine that the vulnerability doesn't apply to our application, we can ignore these errors. Set up an ignore rule by running `yarn snyk ignore ...` according to the [documentation](https://snyk.io/docs/cli-ignore/). The ignore rule will be added to the `.snyk` file.
 
+## Profiling performance
+
+Here are some tips for solving performance problems in addition to what's already in the [official docs](https://reactjs.org/docs/optimizing-performance.html).
+
+- First, ask yourself if there is a real performance problem. If you need to simulate a slow CPU in the profiler just to see anything dramatic, it might be too early to start profiling!
+- Try to profile against a production build, if possible, with something like `yarn start-local-dev`. The overhead of a development build could be misleading.
+- If you want to see execution timing grouped by React component, you will need a development build.
+- Use Chrome so you can get React integration, if needed. This is a [helpful guide](https://calibreapp.com/blog/react-performance-profiling-optimization/) for looking at the execution of React components in the *User Timing* section.
+- When a React component is taking a long time to render and you don't see any other components underneath it, it's time to switch away from the *User Timing* tab of the profiler to the *Main* tab so you can look at actual function executions. Clicking on a function will give you information about its source.
+- You can try using the [React devtool extension](https://reactjs.org/docs/optimizing-performance.html#profiling-components-with-the-devtools-profiler) for profiling but it doesn't provide a great timeline so it's hard to visualize overall slowness.
+
 ## All Available Commands
 
 In the project directory, you can run the following commands. There are a few commands not mentioned here (see `package.json`) but those are only used by internal processes.
