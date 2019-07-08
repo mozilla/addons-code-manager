@@ -315,6 +315,4 @@ const mapStateToProps = (
   return { version };
 };
 
-export default connect(mapStateToProps)(
-  FileTreeNodeBase,
-) as React.ComponentType<PublicProps>;
+export default connect(mapStateToProps)(FileTreeNodeBase);

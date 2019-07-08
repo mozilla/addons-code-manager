@@ -204,6 +204,4 @@ const mapStateToProps = (
   };
 };
 
-export default connect(mapStateToProps)(FileTreeBase) as React.ComponentType<
-  PublicProps & Partial<DefaultProps>
->;
+export default connect(mapStateToProps)(FileTreeBase);
