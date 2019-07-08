@@ -87,8 +87,8 @@ Here are some tips for solving performance problems in addition to what's alread
 - First, ask yourself if there is a real performance problem. If you need to simulate a slow CPU in the profiler just to see anything dramatic, it might be too early to start profiling!
 - Try to profile against a production build, if possible, with something like `yarn start-local-dev`. The overhead of a development build could be misleading.
 - If you want to see execution timing grouped by React component, you will need a development build.
-- Use Chrome so you can get React integration, if needed. This is a [helpful guide](https://calibreapp.com/blog/react-performance-profiling-optimization/) for looking at the execution of React components in the *User Timing* section.
-- When a React component is taking a long time to render and you don't see any other components underneath it, it's time to switch away from the *User Timing* tab of the profiler to the *Main* tab so you can look at actual function executions. Clicking on a function will give you information about its source.
+- Use Chrome so you can get React integration, if needed. This is a [helpful guide](https://calibreapp.com/blog/react-performance-profiling-optimization/) for looking at the execution of React components in the _User Timing_ section.
+- When a React component is taking a long time to render and you don't see any other components underneath it, it's time to switch away from the _User Timing_ tab of the profiler to the _Main_ tab so you can look at actual function executions. Clicking on a function will give you information about its source.
 - You can try using the [React devtool extension](https://reactjs.org/docs/optimizing-performance.html#profiling-components-with-the-devtools-profiler) for profiling but it doesn't provide a great timeline so it's hard to visualize overall slowness.
 
 ## All Available Commands
