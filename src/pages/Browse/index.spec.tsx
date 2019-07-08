@@ -3,6 +3,7 @@ import { Store } from 'redux';
 import queryString from 'query-string';
 import { History } from 'history';
 
+import { makeApiURL } from '../../api';
 import {
   createFakeEntry,
   createFakeHistory,
@@ -23,8 +24,8 @@ import {
 import Loading from '../../components/Loading';
 import CodeOverview from '../../components/CodeOverview';
 import CodeView from '../../components/CodeView';
-import ImageView from '../../components/ImageView';
 import VersionFileViewer from '../../components/VersionFileViewer';
+import styles from './styles.module.scss';
 
 import Browse, { BrowseBase, Props as BrowseProps } from '.';
 
@@ -199,18 +200,18 @@ describe(__filename, () => {
   });
 
   it('renders an image file', () => {
-    const mimeType = 'image/png';
     const path = 'image.png';
-    const entry = createFakeEntry('image', path, mimeType);
-    const content = 'some image data';
+    const entry = createFakeEntry('image', path);
+    const downloadUrl = '/some/download/url/';
     const version = {
       ...fakeVersion,
       file: {
         ...fakeVersionFile,
-        content,
         entries: { [path]: entry },
-        // eslint-disable-next-line @typescript-eslint/camelcase
+        /* eslint-disable @typescript-eslint/camelcase */
+        download_url: downloadUrl,
         selected_file: path,
+        /* eslint-enable @typescript-eslint/camelcase */
       },
     };
 
@@ -219,10 +220,9 @@ describe(__filename, () => {
 
     const root = render({ store, versionId: String(version.id) });
 
-    const code = root.find(ImageView);
-    expect(code).toHaveLength(1);
-    expect(code).toHaveProp('content', content);
-    expect(code).toHaveProp('mimeType', mimeType);
+    const image = root.find(`.${styles.Image}`).find('img');
+    expect(image).toHaveLength(1);
+    expect(image).toHaveProp('src', makeApiURL({ url: downloadUrl }));
   });
 
   it('renders a loading message when we do not have the content of a file yet', () => {

@@ -123,7 +123,11 @@ export const createServer = ({
     formAction: ["'none'"],
     frameAncestors: ["'none'"],
     frameSrc: ["'none'"],
-    imgSrc: [staticSrc, 'data:'],
+    imgSrc: [
+      staticSrc,
+      'https://reviewers.addons-dev.allizom.org',
+      'https://*.dev.lcip.org',
+    ],
     manifestSrc: ["'none'"],
     mediaSrc: ["'none'"],
     objectSrc: ["'none'"],
