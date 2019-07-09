@@ -1,8 +1,8 @@
 @import '../../scss/variables';
+@import '../../scss/mixins';
 
 .ImageView {
-  border-radius: $border-radius;
-  border: 1px solid $light-gray;
+  @include border-style();
   margin-bottom: $default-padding;
   padding: $default-padding;
 }

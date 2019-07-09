@@ -1,4 +1,5 @@
 @import '../../scss/variables';
+@import '../../scss/mixins';
 
 $expand-button-width: 40px;
 
@@ -60,8 +61,7 @@ $expand-button-width: 40px;
 }
 
 .content {
-  border: 1px solid $light-gray;
-  border-radius: $border-radius;
+  @include border-style();
   grid-area: FGContent;
   padding: $default-padding;
 }

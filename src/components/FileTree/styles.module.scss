@@ -1,4 +1,5 @@
 @import '../../scss/variables';
+@import '../../scss/mixins';
 
 .shell {
   display: flex;
@@ -7,8 +8,7 @@
 }
 
 .treeShell {
-  border-radius: $border-radius;
-  border: 1px solid $light-gray;
+  @include border-style();
   overflow: auto;
 }
 

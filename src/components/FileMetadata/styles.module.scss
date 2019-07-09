@@ -1,8 +1,8 @@
 @import '../../scss/variables';
+@import '../../scss/mixins';
 
 .FileMetadata {
-  border-radius: $border-radius;
-  border: 1px solid $light-gray;
+  @include border-style();
   padding: $default-padding;
 }
 
