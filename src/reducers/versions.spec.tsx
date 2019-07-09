@@ -2336,6 +2336,8 @@ describe(__filename, () => {
           { lineNumber: 3, type: 'normal' },
         ],
       ]);
+      // In the diff above, the diff anchor is created for D1, therefore I2 is
+      // a non-diff anchor.
       expect(
         getRelativeDiffAnchor({
           currentAnchor: 'I2',
