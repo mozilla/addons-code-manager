@@ -3,8 +3,9 @@ import queryString from 'query-string';
 
 import { getCodeLineAnchor } from './components/CodeView/utils';
 import {
-  formatFilesize,
   createCodeLineAnchorGetter,
+  extractNumber,
+  formatFilesize,
   getLanguageFromMimeType,
   getLocalizedString,
   getPathFromQueryString,
@@ -242,5 +243,17 @@ describe(__filename, () => {
         getterFromFactoryWithoutCompareInfo,
       );
     });
+  });
+});
+
+describe('extractNumber', () => {
+  it('returns a number from a string', () => {
+    expect(extractNumber('D12')).toEqual(12);
+  });
+  it('returns the first number from a string', () => {
+    expect(extractNumber('D12A13')).toEqual(12);
+  });
+  it('returns null if there are no numbers', () => {
+    expect(extractNumber('ABC')).toEqual(null);
   });
 });
