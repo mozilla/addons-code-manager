@@ -9,6 +9,7 @@ import {
   Hunk,
   Hunks,
   HunkInfo,
+  WidgetMap,
   getChangeKey,
   tokenize,
 } from 'react-diff-view';
@@ -124,7 +125,9 @@ export class DiffViewBase extends React.Component<Props> {
     hunks: Hunks,
     selectedMessageMap: LinterProviderInfo['selectedMessageMap'],
   ) => {
-    return getAllHunkChanges(hunks).reduce((widgets, change) => {
+    const allWidgets: WidgetMap = {};
+
+    for (const change of getAllHunkChanges(hunks)) {
       const changeKey = getChangeKey(change);
       const line = change.lineNumber;
 
@@ -144,8 +147,10 @@ export class DiffViewBase extends React.Component<Props> {
         );
       }
 
-      return { ...widgets, [changeKey]: widget };
-    }, {});
+      allWidgets[changeKey] = widget;
+    }
+
+    return allWidgets;
   };
 
   renderHeader({ hunks }: DiffInfo) {
