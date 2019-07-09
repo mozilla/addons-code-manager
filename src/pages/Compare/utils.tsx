@@ -12,16 +12,16 @@ type ForwardChangeMap = {
   [line: string]: ChangeInfo[];
 };
 
-const mergeChangesInPlace = (
+const appendChangesInPlace = (
   changeMap: ForwardChangeMap,
   line: string,
   change: ChangeInfo,
 ) => {
-  // This destructively merges changes into each line's ChangeInfo array
-  // when it exists.
-  const lineChanges = changeMap[line] || [];
-  lineChanges.push(change);
-  return lineChanges;
+  // This destructively appends changes to the line's ChangeInfo array
+  // (when it exists).
+  // eslint-disable-next-line no-param-reassign
+  changeMap[line] = changeMap[line] || [];
+  changeMap[line].push(change);
 };
 
 // This is a map of an old vs. new file comparison, giving preference to the
@@ -32,12 +32,12 @@ export class ForwardComparisonMap {
   constructor(diff: DiffInfo) {
     this.changeMap = {};
     for (const change of getAllHunkChanges(diff.hunks)) {
-      this.changeMap[String(change.oldLineNumber)] = mergeChangesInPlace(
+      appendChangesInPlace(
         this.changeMap,
         String(change.oldLineNumber),
         change,
       );
-      this.changeMap[String(change.newLineNumber)] = mergeChangesInPlace(
+      appendChangesInPlace(
         this.changeMap,
         String(change.newLineNumber),
         change,
