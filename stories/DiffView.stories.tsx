@@ -7,6 +7,7 @@ import DiffView, {
   PublicProps as DiffViewProps,
 } from '../src/components/DiffView';
 import basicDiff from '../src/components/DiffView/fixtures/basicDiff';
+import minifiedDiff from '../src/components/DiffView/fixtures/minifiedDiff';
 import diffWithDeletions from '../src/components/DiffView/fixtures/diffWithDeletions';
 import { LinterMessage, actions } from '../src/reducers/linter';
 import { createInternalVersion } from '../src/reducers/versions';
@@ -194,6 +195,36 @@ storiesOf('DiffView', module)
                   },
                 ],
                 { diff: parseDiff(diffWithDeletions)[0] },
+              );
+            },
+          },
+        ],
+      },
+    ],
+  })
+  .addWithChapters('syntax highlighting disabled', {
+    chapters: [
+      {
+        sections: [
+          {
+            title: 'warning',
+            sectionFn: () => {
+              return render({ diff: parseDiff(minifiedDiff)[0] });
+            },
+          },
+          {
+            title: 'warning with a global message',
+            sectionFn: () => {
+              return renderWithMessages(
+                [
+                  {
+                    line: null,
+                    message: 'There is a problem with this file.',
+                    description: ['This file has a problem'],
+                    type: 'warning',
+                  },
+                ],
+                { diff: parseDiff(minifiedDiff)[0] },
               );
             },
           },

@@ -618,7 +618,7 @@ describe(__filename, () => {
     expect(getWidgetNodes(widgets).length).toEqual(0);
   });
 
-  it('generates and passes in tokens for a diff that can be highlighted', () => {
+  it('enables syntax highlighting for diffs when possible', () => {
     const _tokenize = jest.fn(tokenize);
     const root = renderWithLinterProvider({
       _diffCanBeHighlighted: jest.fn(() => true),
@@ -632,9 +632,10 @@ describe(__filename, () => {
     expect(diff).toHaveProp('tokens');
     expect(diff.prop('tokens')).toBeDefined();
     expect(_tokenize).toHaveBeenCalled();
+    expect(root.find(`.${styles.highlightingDisabled}`)).toHaveLength(0);
   });
 
-  it('does not generate or pass in tokens for a diff that cannot be highlighted', () => {
+  it('disables syntax highlighting when not possible', () => {
     const _tokenize = jest.fn(tokenize);
     const root = renderWithLinterProvider({
       _diffCanBeHighlighted: jest.fn(() => false),
@@ -646,6 +647,13 @@ describe(__filename, () => {
 
     expect(root.find(Diff)).toHaveProp('tokens', undefined);
     expect(_tokenize).not.toHaveBeenCalled();
+    expect(root.find(`.${styles.highlightingDisabled}`)).toHaveLength(1);
+  });
+
+  it('does not show a message about disabled highlighting without a diff', () => {
+    const root = renderWithLinterProvider({ diff: null });
+
+    expect(root.find(`.${styles.highlightingDisabled}`)).toHaveLength(0);
   });
 
   describe('getAllHunkChanges', () => {

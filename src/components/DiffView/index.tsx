@@ -13,6 +13,7 @@ import {
   getChangeKey,
   tokenize,
 } from 'react-diff-view';
+import { Alert } from 'react-bootstrap';
 import { withRouter, RouteComponentProps } from 'react-router-dom';
 import makeClassName from 'classnames';
 
@@ -246,6 +247,13 @@ export class DiffViewBase extends React.Component<Props> {
       // Remove the `#` if `location.hash` is defined
       location.hash.length > 2 ? [location.hash.substring(1)] : [];
 
+    let tokens;
+    if (diff && _diffCanBeHighlighted(diff)) {
+      // TODO: always highlight when we can use a Web Worker.
+      // https://github.com/mozilla/addons-code-manager/issues/928
+      tokens = _tokenize(diff.hunks, options);
+    }
+
     return (
       <div className={styles.DiffView}>
         {!diff && (
@@ -262,6 +270,12 @@ export class DiffViewBase extends React.Component<Props> {
           messages={selectedMessageMap && selectedMessageMap.global}
         />
 
+        {diff && !tokens && (
+          <Alert className={styles.highlightingDisabled} variant="warning">
+            {gettext('Syntax highlighting was disabled for performance')}
+          </Alert>
+        )}
+
         {diff && (
           <React.Fragment key={`${diff.oldRevision}-${diff.newRevision}`}>
             {this.renderHeader(diff)}
@@ -269,13 +283,7 @@ export class DiffViewBase extends React.Component<Props> {
               className={styles.diff}
               diffType={diff.type}
               hunks={diff.hunks}
-              tokens={
-                // TODO: always highlight when we can use a Web Worker.
-                // https://github.com/mozilla/addons-code-manager/issues/928
-                _diffCanBeHighlighted(diff)
-                  ? _tokenize(diff.hunks, options)
-                  : undefined
-              }
+              tokens={tokens}
               viewType={viewType}
               gutterType="anchor"
               generateAnchorID={getChangeKey}
