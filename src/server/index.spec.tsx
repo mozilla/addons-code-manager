@@ -71,6 +71,7 @@ describe(__filename, () => {
     describe('NODE_ENV=production', () => {
       const prodEnv = {
         NODE_ENV: 'production',
+        REACT_APP_REVIEWERS_HOST: 'https://reviewers.addons-dev.allizom.org',
       };
 
       it('configures the host and port with default values', () => {
@@ -132,7 +133,6 @@ describe(__filename, () => {
           ...prodEnv,
           PUBLIC_URL: 'https://code-manager.addons.cdn.mozilla.net',
           REACT_APP_API_HOST: 'https://addons-dev.allizom.org',
-          REACT_APP_REVIEWERS_HOST: 'https://reviewers.addons-dev.allizom.org',
         };
 
         const server = request(
@@ -304,14 +304,9 @@ describe(__filename, () => {
       });
 
       it('tightens style-src, script-src and img-src if CDN URL is unset', async () => {
-        const fakeEnv = {
-          ...prodEnv,
-          REACT_APP_REVIEWERS_HOST: 'https://reviewers.addons-dev.allizom.org',
-        };
-
         const server = request(
           createServer({
-            env: fakeEnv as ServerEnvVars,
+            env: prodEnv as ServerEnvVars,
             rootPath: fixturesPath,
           }),
         );
@@ -321,7 +316,7 @@ describe(__filename, () => {
         const policy = cspParser(response.header['content-security-policy']);
         expect(policy['img-src']).toEqual([
           "'none'",
-          `${fakeEnv.REACT_APP_REVIEWERS_HOST}/en-US/reviewers/download-git-file/`,
+          `${prodEnv.REACT_APP_REVIEWERS_HOST}/en-US/reviewers/download-git-file/`,
         ]);
         expect(policy['script-src']).toEqual(["'none'"]);
         expect(policy['style-src']).toEqual(["'none'"]);
@@ -331,7 +326,6 @@ describe(__filename, () => {
         const env = {
           ...prodEnv,
           PUBLIC_URL: '/',
-          REACT_APP_REVIEWERS_HOST: 'https://reviewers.addons-dev.allizom.org',
         } as ServerEnvVars;
 
         const server = request(createServer({ env, rootPath: fixturesPath }));
@@ -421,6 +415,10 @@ describe(__filename, () => {
           });
 
           fakeReviewersServer = reviewersApp.listen(reviewersPort);
+          fakeReviewersServer.on('error', (error) => {
+            // eslint-disable-next-line no-console
+            console.error('proxy error', error);
+          });
         });
 
         afterEach(() => {

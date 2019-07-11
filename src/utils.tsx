@@ -1,3 +1,5 @@
+import urlUtils from 'url';
+
 import filesize from 'filesize';
 import purify from 'dompurify';
 import { History } from 'history';
@@ -94,15 +96,14 @@ type MakReviewersURLParams = {
 };
 
 export const makeReviewersURL = ({
-  apiHost = process.env.REACT_APP_API_HOST,
   reviewersHost = process.env.REACT_APP_REVIEWERS_HOST,
   url,
   useInsecureProxy = process.env.REACT_APP_USE_INSECURE_PROXY === 'true',
 }: MakReviewersURLParams) => {
-  if (apiHost && reviewersHost) {
-    const replacementForApiHost = useInsecureProxy ? '' : reviewersHost;
-    return url.replace(apiHost, replacementForApiHost);
+  const { path } = urlUtils.parse(url);
+  if (reviewersHost && !useInsecureProxy) {
+    return `${reviewersHost}${path}`;
   }
 
-  return url;
+  return path;
 };

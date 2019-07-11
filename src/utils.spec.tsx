@@ -247,35 +247,31 @@ describe(__filename, () => {
   });
 
   describe('makeReviewersURL', () => {
-    it.each(['apiHost', 'reviewersHost'])(
-      'returns an unchanged url if %s is falsey',
-      (host) => {
-        const url = 'https://example.org/foo/';
-
-        expect(makeReviewersURL({ [host]: null, url })).toEqual(url);
-      },
-    );
-
-    it('removes the host of an url when useInsecureProxy is true', () => {
-      const apiHost = 'https://example.org';
+    it('returns a relative url if reviewersHost is falsey', () => {
+      const host = 'https://example.org';
       const path = '/foo/';
-      const url = `${apiHost}${path}`;
+      const url = `${host}${path}`;
 
-      expect(
-        makeReviewersURL({ apiHost, url, useInsecureProxy: true }),
-      ).toEqual(path);
+      expect(makeReviewersURL({ reviewersHost: null, url })).toEqual(path);
     });
 
-    it('replaces apiHost with reviewersHost when useInsecureProxy is false', () => {
-      const apiHost = 'https://example.org';
+    it('returns a relative url when useInsecureProxy is true', () => {
+      const host = 'https://example.org';
+      const path = '/foo/';
+      const url = `${host}${path}`;
+
+      expect(makeReviewersURL({ url, useInsecureProxy: true })).toEqual(path);
+    });
+
+    it('replaces the host with reviewersHost when useInsecureProxy is false', () => {
+      const host = 'https://example.org';
       const reviewersHost = 'https://example.com';
       const path = '/foo/';
-      const url = `${apiHost}${path}`;
+      const url = `${host}${path}`;
       const expectedUrl = `${reviewersHost}${path}`;
 
       expect(
         makeReviewersURL({
-          apiHost,
           reviewersHost,
           url,
           useInsecureProxy: false,
