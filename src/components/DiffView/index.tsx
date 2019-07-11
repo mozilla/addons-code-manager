@@ -37,6 +37,30 @@ export const getAllHunkChanges = (hunks: Hunks): ChangeInfo[] => {
   );
 };
 
+export const diffCanBeHighlighted = (
+  diff: DiffInfo,
+  {
+    // This is a single line width that would make a diff too wide.
+    wideLineLength = 700,
+    // This is the total line count of a diff we consider too long.
+    highLineCount = 3000,
+  } = {},
+) => {
+  const allChanges = getAllHunkChanges(diff.hunks);
+
+  for (let index = 0; index < allChanges.length; index++) {
+    const change = allChanges[index];
+    if (change.content.length > wideLineLength) {
+      return false;
+    }
+    if (index >= highLineCount) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
 export type PublicProps = {
   diff: DiffInfo | null;
   mimeType: string;
@@ -44,6 +68,7 @@ export type PublicProps = {
 };
 
 export type DefaultProps = {
+  _diffCanBeHighlighted: typeof diffCanBeHighlighted;
   _document: typeof document;
   _getDiffAnchors: typeof getDiffAnchors;
   _getRelativeDiffAnchor: typeof getRelativeDiffAnchor;
@@ -57,6 +82,7 @@ export type Props = PublicProps & DefaultProps & RouterProps;
 
 export class DiffViewBase extends React.Component<Props> {
   static defaultProps: DefaultProps = {
+    _diffCanBeHighlighted: diffCanBeHighlighted,
     _document: document,
     _getDiffAnchors: getDiffAnchors,
     _getRelativeDiffAnchor: getRelativeDiffAnchor,
@@ -201,7 +227,14 @@ export class DiffViewBase extends React.Component<Props> {
   };
 
   renderWithMessages = ({ selectedMessageMap }: LinterProviderInfo) => {
-    const { _tokenize, diff, mimeType, viewType, location } = this.props;
+    const {
+      _diffCanBeHighlighted,
+      _tokenize,
+      diff,
+      mimeType,
+      viewType,
+      location,
+    } = this.props;
 
     const options = {
       highlight: true,
@@ -232,12 +265,17 @@ export class DiffViewBase extends React.Component<Props> {
         {diff && (
           <React.Fragment key={`${diff.oldRevision}-${diff.newRevision}`}>
             {this.renderHeader(diff)}
-
             <Diff
               className={styles.diff}
               diffType={diff.type}
               hunks={diff.hunks}
-              tokens={_tokenize(diff.hunks, options)}
+              tokens={
+                // TODO: always highlight when we can use a Web Worker.
+                // https://github.com/mozilla/addons-code-manager/issues/928
+                _diffCanBeHighlighted(diff)
+                  ? _tokenize(diff.hunks, options)
+                  : undefined
+              }
               viewType={viewType}
               gutterType="anchor"
               generateAnchorID={getChangeKey}
