@@ -24,6 +24,7 @@
 
 .content {
   @include border-style();
+
   height: 100%;
   overflow-x: auto;
 }

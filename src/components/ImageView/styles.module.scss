@@ -3,6 +3,7 @@
 
 .ImageView {
   @include border-style();
+
   margin-bottom: $default-padding;
   padding: $default-padding;
 }

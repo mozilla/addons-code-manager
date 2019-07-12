@@ -10,5 +10,6 @@
 
 .diffContent {
   @include border-style();
+
   overflow: auto;
 }

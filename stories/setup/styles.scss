@@ -82,6 +82,7 @@ body.fullscreen {
 
 .FullscreenGridStory-topContent {
   @include border-style();
+
   background-color: lighten(yellow, 47);
   padding: $default-padding;
 }

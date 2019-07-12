@@ -62,6 +62,7 @@ $expand-button-width: 40px;
 
 .content {
   @include border-style();
+
   grid-area: FGContent;
   padding: $default-padding;
 }

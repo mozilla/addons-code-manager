@@ -15,8 +15,9 @@
   &:active,
   &:global(.btn-primary:not(:disabled):not(.disabled):active),
   &:hover {
-    color: $black;
     @include border-style();
+
+    color: $black;
   }
 
   &:active,

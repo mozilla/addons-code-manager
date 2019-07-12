@@ -3,6 +3,7 @@
 
 .FileMetadata {
   @include border-style();
+
   padding: $default-padding;
 }
 
