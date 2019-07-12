@@ -7,6 +7,7 @@ import {
   WidgetMap,
   parseDiff,
   getChangeKey,
+  tokenize,
 } from 'react-diff-view';
 import { ShallowWrapper, shallow } from 'enzyme';
 import { History, Location } from 'history';
@@ -18,12 +19,19 @@ import LinterMessage from '../LinterMessage';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import GlobalLinterMessages from '../GlobalLinterMessages';
 import { getLanguageFromMimeType } from '../../utils';
-import { ScrollTarget, createInternalVersion } from '../../reducers/versions';
+import {
+  ExternalChange,
+  ExternalHunk,
+  ScrollTarget,
+  createInternalDiff,
+  createInternalVersion,
+} from '../../reducers/versions';
 import {
   createContextWithFakeRouter,
   createFakeHistory,
   createFakeLinterMessagesByPath,
   createFakeLocation,
+  fakeExternalDiff,
   fakeVersion,
   shallowUntilTarget,
   simulateLinterProvider,
@@ -34,6 +42,7 @@ import DiffView, {
   DefaultProps,
   DiffViewBase,
   PublicProps,
+  diffCanBeHighlighted,
   getAllHunkChanges,
 } from '.';
 
@@ -110,6 +119,43 @@ describe(__filename, () => {
   const getWidgetNodes = (widgets: WidgetMap) => {
     // Return a list of truthy React nodes in arbitrary order.
     return Object.values(widgets).filter(Boolean);
+  };
+
+  const createHunkWithChanges = (changes: Partial<ExternalChange>[]) => {
+    return {
+      ...fakeExternalDiff.hunks[0],
+      changes: changes.map((change) => {
+        return {
+          ...fakeExternalDiff.hunks[0].changes[0],
+          ...change,
+        };
+      }),
+    };
+  };
+
+  const createDiffWithHunks = (hunks: ExternalHunk[]) => {
+    const baseVersionId = 1;
+    const headVersionId = 2;
+    const version = {
+      ...fakeVersion,
+      id: headVersionId,
+      file: {
+        ...fakeVersion.file,
+        diff: {
+          ...fakeExternalDiff,
+          hunks,
+        },
+      },
+    };
+    const diff = createInternalDiff({
+      baseVersionId,
+      headVersionId,
+      version,
+    });
+    if (!diff) {
+      throw new Error('The diff was unexpectedly empty');
+    }
+    return diff;
   };
 
   it('renders with no differences', () => {
@@ -572,6 +618,44 @@ describe(__filename, () => {
     expect(getWidgetNodes(widgets).length).toEqual(0);
   });
 
+  it('enables syntax highlighting for diffs when possible', () => {
+    const _tokenize = jest.fn(tokenize);
+    const root = renderWithLinterProvider({
+      _diffCanBeHighlighted: jest.fn(() => true),
+      _tokenize,
+      diff: createDiffWithHunks([
+        createHunkWithChanges([{ content: '// example content' }]),
+      ]),
+    });
+
+    const diff = root.find(Diff);
+    expect(diff).toHaveProp('tokens');
+    expect(diff.prop('tokens')).toBeDefined();
+    expect(_tokenize).toHaveBeenCalled();
+    expect(root.find(`.${styles.highlightingDisabled}`)).toHaveLength(0);
+  });
+
+  it('disables syntax highlighting when not possible', () => {
+    const _tokenize = jest.fn(tokenize);
+    const root = renderWithLinterProvider({
+      _diffCanBeHighlighted: jest.fn(() => false),
+      _tokenize,
+      diff: createDiffWithHunks([
+        createHunkWithChanges([{ content: '// pretend this is a long line' }]),
+      ]),
+    });
+
+    expect(root.find(Diff)).toHaveProp('tokens', undefined);
+    expect(_tokenize).not.toHaveBeenCalled();
+    expect(root.find(`.${styles.highlightingDisabled}`)).toHaveLength(1);
+  });
+
+  it('does not show a message about disabled highlighting without a diff', () => {
+    const root = renderWithLinterProvider({ diff: null });
+
+    expect(root.find(`.${styles.highlightingDisabled}`)).toHaveLength(0);
+  });
+
   describe('getAllHunkChanges', () => {
     it('returns a flattened list of all changes', () => {
       const diff = parseDiff(diffWithDeletions)[0];
@@ -589,6 +673,72 @@ describe(__filename, () => {
       expect(changes.filter((c) => c.lineNumber === 50)[0].content).toEqual(
         '          </Diff>',
       );
+    });
+  });
+
+  describe('diffCanBeHighlighted', () => {
+    it('returns true for a diff with short line lengths', () => {
+      expect(
+        diffCanBeHighlighted(
+          createDiffWithHunks([
+            createHunkWithChanges([{ content: '// example of short line' }]),
+            createHunkWithChanges([
+              { content: '// example of short line' },
+              { content: '// example of short line' },
+            ]),
+          ]),
+          { wideLineLength: 80 },
+        ),
+      ).toEqual(true);
+    });
+
+    it('returns false for a diff with wide line lengths', () => {
+      const wideLine = '// example of a really wide line';
+      expect(
+        diffCanBeHighlighted(
+          createDiffWithHunks([
+            createHunkWithChanges([{ content: '// short line' }]),
+            createHunkWithChanges([
+              { content: '// short line' },
+              { content: wideLine },
+            ]),
+          ]),
+          { wideLineLength: wideLine.length - 1 },
+        ),
+      ).toEqual(false);
+    });
+
+    it('returns true for a diff with a low line count', () => {
+      const highLineCount = 8;
+      expect(
+        diffCanBeHighlighted(
+          createDiffWithHunks([
+            createHunkWithChanges(
+              new Array(highLineCount - 1).fill({
+                content: '// example content',
+              }),
+            ),
+          ]),
+          { highLineCount },
+        ),
+      ).toEqual(true);
+    });
+
+    it('returns false for a diff with a high line count', () => {
+      expect(
+        diffCanBeHighlighted(
+          createDiffWithHunks([
+            createHunkWithChanges([
+              { content: '// example content' },
+              { content: '// example content' },
+              { content: '// example content' },
+              { content: '// example content' },
+            ]),
+            createHunkWithChanges([{ content: '// example content' }]),
+          ]),
+          { highLineCount: 4 },
+        ),
+      ).toEqual(false);
     });
   });
 });

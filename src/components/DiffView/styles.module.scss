@@ -46,6 +46,10 @@
   }
 }
 
+.highlightingDisabled {
+  margin: $default-padding;
+}
+
 .globalLinterMessages {
   padding: $default-padding $default-padding 0 $default-padding;
 }
