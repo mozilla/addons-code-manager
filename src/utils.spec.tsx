@@ -278,6 +278,14 @@ describe(__filename, () => {
         }),
       ).toEqual(expectedUrl);
     });
+
+    it('maintains query parameters', () => {
+      const host = 'https://example.org';
+      const path = '/foo/?abc=def';
+      const url = `${host}${path}`;
+
+      expect(makeReviewersURL({ url, useInsecureProxy: true })).toEqual(path);
+    });
   });
 });
 
