@@ -22,10 +22,11 @@ import {
   getLocalizedString,
   gettext,
   getPathFromQueryString,
+  makeReviewersURL,
 } from '../../utils';
 import Loading from '../../components/Loading';
 import CodeView from '../../components/CodeView';
-import ImageView from '../../components/ImageView';
+import styles from './styles.module.scss';
 
 export type PublicProps = {};
 
@@ -133,8 +134,16 @@ export class BrowseBase extends React.Component<Props> {
     if (!file || !version) {
       return <Loading message={gettext('Loading content...')} />;
     }
-    if (file.type === 'image') {
-      return <ImageView content={file.content} mimeType={file.mimeType} />;
+    if (file.type === 'image' && file.downloadURL) {
+      return (
+        <div className={styles.Image}>
+          <img
+            alt=""
+            src={makeReviewersURL({ url: file.downloadURL })}
+            className={styles.responsive}
+          />
+        </div>
+      );
     }
     return (
       <CodeView

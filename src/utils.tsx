@@ -1,3 +1,5 @@
+import urlUtils from 'url';
+
 import filesize from 'filesize';
 import purify from 'dompurify';
 import { History } from 'history';
@@ -84,4 +86,24 @@ export const extractNumber = (text: string): number | null => {
     return parseInt(matches[0], 10);
   }
   return null;
+};
+
+type MakReviewersURLParams = {
+  apiHost?: string | null;
+  reviewersHost?: string | null;
+  url: string;
+  useInsecureProxy?: boolean;
+};
+
+export const makeReviewersURL = ({
+  reviewersHost = process.env.REACT_APP_REVIEWERS_HOST,
+  url,
+  useInsecureProxy = process.env.REACT_APP_USE_INSECURE_PROXY === 'true',
+}: MakReviewersURLParams) => {
+  const { path } = urlUtils.parse(url);
+  if (reviewersHost && !useInsecureProxy) {
+    return `${reviewersHost}${path}`;
+  }
+
+  return path;
 };

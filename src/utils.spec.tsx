@@ -9,6 +9,7 @@ import {
   getLanguageFromMimeType,
   getLocalizedString,
   getPathFromQueryString,
+  makeReviewersURL,
   nl2br,
   sanitizeHTML,
 } from './utils';
@@ -242,6 +243,48 @@ describe(__filename, () => {
       expect(getterFromFactory).not.toEqual(
         getterFromFactoryWithoutCompareInfo,
       );
+    });
+  });
+
+  describe('makeReviewersURL', () => {
+    it('returns a relative url if reviewersHost is falsey', () => {
+      const host = 'https://example.org';
+      const path = '/foo/';
+      const url = `${host}${path}`;
+
+      expect(makeReviewersURL({ reviewersHost: null, url })).toEqual(path);
+    });
+
+    it('returns a relative url when useInsecureProxy is true', () => {
+      const host = 'https://example.org';
+      const path = '/foo/';
+      const url = `${host}${path}`;
+
+      expect(makeReviewersURL({ url, useInsecureProxy: true })).toEqual(path);
+    });
+
+    it('replaces the host with reviewersHost when useInsecureProxy is false', () => {
+      const host = 'https://example.org';
+      const reviewersHost = 'https://example.com';
+      const path = '/foo/';
+      const url = `${host}${path}`;
+      const expectedUrl = `${reviewersHost}${path}`;
+
+      expect(
+        makeReviewersURL({
+          reviewersHost,
+          url,
+          useInsecureProxy: false,
+        }),
+      ).toEqual(expectedUrl);
+    });
+
+    it('maintains query parameters', () => {
+      const host = 'https://example.org';
+      const path = '/foo/?abc=def';
+      const url = `${host}${path}`;
+
+      expect(makeReviewersURL({ url, useInsecureProxy: true })).toEqual(path);
     });
   });
 });

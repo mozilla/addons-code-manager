@@ -1,9 +1,8 @@
 @import '../../scss/variables';
 @import '../../scss/mixins';
 
-.ImageView {
+.Image {
   @include border-style();
-
   margin-bottom: $default-padding;
   padding: $default-padding;
 }
