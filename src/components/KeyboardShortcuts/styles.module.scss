@@ -1,8 +1,9 @@
 @import '../../scss/variables';
+@import '../../scss/mixins';
 
 .KeyboardShortcuts {
-  border-radius: $border-radius;
-  border: 1px solid $light-gray;
+  @include border-style();
+
   padding: $default-padding;
 }
 

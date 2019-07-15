@@ -1,4 +1,5 @@
 @import '../../scss/variables';
+@import '../../scss/mixins';
 
 .diffShell {
   display: flex;
@@ -8,7 +9,7 @@
 }
 
 .diffContent {
-  border-radius: $border-radius;
-  border: 1px solid $light-gray;
+  @include border-style();
+
   overflow: auto;
 }

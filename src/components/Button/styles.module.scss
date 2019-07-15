@@ -1,8 +1,9 @@
 @import '../../scss/variables';
+@import '../../scss/mixins';
 
 .button {
   background-color: $light-gray;
-  text-algin: center;
+  text-align: center;
   overflow: hidden;
   padding: $default-padding;
   width: 100%;
@@ -14,9 +15,9 @@
   &:active,
   &:global(.btn-primary:not(:disabled):not(.disabled):active),
   &:hover {
+    @include border-style();
+
     color: $black;
-    border-radius: $border-radius;
-    border: 1px solid $light-gray;
   }
 
   &:active,

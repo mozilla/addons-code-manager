@@ -1,4 +1,5 @@
 @import '../../src/scss/variables';
+@import '../../src/scss/mixins';
 
 body {
   padding: 24px;
@@ -49,13 +50,11 @@ body.fullscreen {
 }
 
 .FileTreeNodeStory-shell {
-  border-radius: $border-radius;
-  border: 1px solid $light-gray;
+  @include border-style();
 }
 
 .DiffViewStory-panel {
-  border-radius: $border-radius;
-  border: 1px solid $light-gray;
+  @include border-style();
 }
 
 .FullscreenGridStory-Header,
@@ -82,9 +81,9 @@ body.fullscreen {
 }
 
 .FullscreenGridStory-topContent {
+  @include border-style();
+
   background-color: lighten(yellow, 47);
-  border-radius: $border-radius;
-  border: 1px solid $light-gray;
   padding: $default-padding;
 }
 
