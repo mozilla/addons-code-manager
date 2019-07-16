@@ -168,11 +168,9 @@ describe(__filename, () => {
   });
 
   it('handles empty content', () => {
-    const content = '';
-    const mimeType = 'text/css';
-    const root = renderWithLinterProvider({ mimeType, content });
+    const root = renderWithLinterProvider({ content: '' });
 
-    expect(root.find('.language-css')).toHaveProp('children', content);
+    expect(root.find(`.${styles.tableBody}`)).toHaveProp('children', []);
   });
 
   it('renders multiple lines of code', () => {
