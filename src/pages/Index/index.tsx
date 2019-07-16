@@ -26,11 +26,11 @@ export class IndexBase extends React.Component<Props> {
       process.env.NODE_ENV === 'development' &&
       process.env.REACT_APP_IS_LOCAL_DEV === 'true',
   };
-  
+
   componentWillMount() {
-    document.title = 'Addons Code Manager'
+    document.title = 'Addons Code Manager';
   }
-  
+
   canSimulateErrors() {
     const { _log, allowErrorSimulation } = this.props;
 
