@@ -170,7 +170,7 @@ describe(__filename, () => {
   it('handles empty content', () => {
     const root = renderWithLinterProvider({ content: '' });
 
-    expect(root.find('.tableBody')).toHaveProp('children', []);
+    expect(root.find(`.${styles.tableBody}`)).toHaveProp('children', []);
   });
 
   it('renders multiple lines of code', () => {
