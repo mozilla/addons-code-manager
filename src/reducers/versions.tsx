@@ -5,6 +5,7 @@ import {
   ChangeInfo,
   DiffInfo,
   DiffInfoType,
+  HunkInfo,
   getChangeKey,
 } from 'react-diff-view';
 import { push } from 'connected-react-router';
@@ -785,6 +786,18 @@ export const createInternalChangeInfo = (
   };
 };
 
+export const createInternalHunk = (hunk: ExternalHunk): HunkInfo => {
+  return {
+    changes: hunk.changes.map(createInternalChangeInfo),
+    content: hunk.header,
+    isPlain: false,
+    newLines: hunk.new_lines,
+    newStart: hunk.new_start,
+    oldLines: hunk.old_lines,
+    oldStart: hunk.old_start,
+  };
+};
+
 export const createInternalDiff = ({
   baseVersionId,
   headVersionId,
@@ -803,15 +816,7 @@ export const createInternalDiff = ({
     return {
       newRevision: String(headVersionId),
       oldRevision: String(baseVersionId),
-      hunks: diff.hunks.map((hunk: ExternalHunk) => ({
-        changes: hunk.changes.map(createInternalChangeInfo),
-        content: hunk.header,
-        isPlain: false,
-        newLines: hunk.new_lines,
-        newStart: hunk.new_start,
-        oldLines: hunk.old_lines,
-        oldStart: hunk.old_start,
-      })),
+      hunks: diff.hunks.map(createInternalHunk),
       type: GIT_STATUS_TO_TYPE[diff.mode] || GIT_STATUS_TO_TYPE.M,
       newEndingNewLine: diff.new_ending_new_line,
       oldEndingNewLine: diff.old_ending_new_line,

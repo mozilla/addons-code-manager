@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/camelcase */
 import queryString from 'query-string';
 import React from 'react';
+import { Alert } from 'react-bootstrap';
 import {
   Diff,
+  HunkInfo,
   Hunks,
   WidgetMap,
   parseDiff,
@@ -15,15 +17,18 @@ import { History, Location } from 'history';
 import basicDiff from './fixtures/basicDiff';
 import multipleDiff from './fixtures/multipleDiff';
 import diffWithDeletions from './fixtures/diffWithDeletions';
+import FadableContent from '../FadableContent';
 import LinterMessage from '../LinterMessage';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import GlobalLinterMessages from '../GlobalLinterMessages';
-import { getLanguageFromMimeType } from '../../utils';
+import SlowPageAlert from '../SlowPageAlert';
+import { allowSlowPagesParam, getLanguageFromMimeType } from '../../utils';
 import {
   ExternalChange,
   ExternalHunk,
   ScrollTarget,
   createInternalDiff,
+  createInternalHunk,
   createInternalVersion,
 } from '../../reducers/versions';
 import {
@@ -44,6 +49,7 @@ import DiffView, {
   PublicProps,
   diffCanBeHighlighted,
   getAllHunkChanges,
+  trimHunkChanges,
 } from '.';
 
 describe(__filename, () => {
@@ -121,7 +127,9 @@ describe(__filename, () => {
     return Object.values(widgets).filter(Boolean);
   };
 
-  const createHunkWithChanges = (changes: Partial<ExternalChange>[]) => {
+  const createHunkWithChanges = (
+    changes: Partial<ExternalChange>[],
+  ): ExternalHunk => {
     return {
       ...fakeExternalDiff.hunks[0],
       changes: changes.map((change) => {
@@ -131,6 +139,12 @@ describe(__filename, () => {
         };
       }),
     };
+  };
+
+  const createInternalHunkWithChanges = (
+    changes: Partial<ExternalChange>[],
+  ): HunkInfo => {
+    return createInternalHunk(createHunkWithChanges(changes));
   };
 
   const createDiffWithHunks = (hunks: ExternalHunk[]) => {
@@ -635,7 +649,7 @@ describe(__filename, () => {
     expect(root.find(`.${styles.highlightingDisabled}`)).toHaveLength(0);
   });
 
-  it('disables syntax highlighting when not possible', () => {
+  it('disables syntax highlighting when it is not possible', () => {
     const _tokenize = jest.fn(tokenize);
     const root = renderWithLinterProvider({
       _diffCanBeHighlighted: jest.fn(() => false),
@@ -647,13 +661,112 @@ describe(__filename, () => {
 
     expect(root.find(Diff)).toHaveProp('tokens', undefined);
     expect(_tokenize).not.toHaveBeenCalled();
-    expect(root.find(`.${styles.highlightingDisabled}`)).toHaveLength(1);
+
+    const message = root.find(Alert);
+    expect(message).toHaveLength(1);
+    expect(message).toHaveText(
+      'Syntax highlighting was disabled for performance',
+    );
   });
 
   it('does not show a message about disabled highlighting without a diff', () => {
     const root = renderWithLinterProvider({ diff: null });
 
     expect(root.find(`.${styles.highlightingDisabled}`)).toHaveLength(0);
+  });
+
+  it('trims diffs that are too large to display', () => {
+    const change1 = { content: '// example 1' };
+    const change2 = { content: '// example 2' };
+    const change3 = { content: '// example 3' };
+
+    const diff = createDiffWithHunks([
+      createHunkWithChanges([change1]),
+      createHunkWithChanges([change2, change3]),
+    ]);
+
+    const root = renderWithLinterProvider({ diff, _slowDiffChangeCount: 2 });
+
+    const fadableShell = root.find(FadableContent);
+    expect(fadableShell).toHaveProp('fade', true);
+
+    const diffView = fadableShell.find(Diff);
+    expect(diffView).toHaveProp(
+      'hunks',
+      createDiffWithHunks([
+        createHunkWithChanges([change1]),
+        createHunkWithChanges([change2]),
+      ]).hunks,
+    );
+
+    const message = root.find(SlowPageAlert);
+    // There should be a warning at the top and bottom.
+    expect(message).toHaveLength(2);
+  });
+
+  it('lets you override diff trimming', () => {
+    const change1 = { content: '// example 1' };
+    const change2 = { content: '// example 2' };
+    const change3 = { content: '// example 3' };
+
+    const diff = createDiffWithHunks([
+      createHunkWithChanges([change1]),
+      createHunkWithChanges([change2, change3]),
+    ]);
+
+    const location = createFakeLocation({
+      search: queryString.stringify({ [allowSlowPagesParam]: true }),
+    });
+    const root = renderWithLinterProvider({
+      diff,
+      location,
+      _slowDiffChangeCount: 2,
+    });
+
+    expect(root.find(FadableContent)).toHaveProp('fade', false);
+
+    const diffView = root.find(Diff);
+    expect(diffView).toHaveProp('hunks', diff.hunks);
+
+    const message = root.find(SlowPageAlert);
+    // There should only be one warning at the top.
+    expect(message).toHaveLength(1);
+  });
+
+  it('configures SlowPageAlert', () => {
+    const diff = createDiffWithHunks([
+      createHunkWithChanges([
+        { content: '// example 1' },
+        { content: '// example 2' },
+      ]),
+    ]);
+
+    const location = createFakeLocation();
+    const root = renderWithLinterProvider({
+      diff,
+      location,
+      _slowDiffChangeCount: 1,
+    });
+
+    const message = root.find(SlowPageAlert).at(0);
+
+    expect(message).toHaveProp('location', location);
+
+    expect(message).toHaveProp('getMessage');
+    const getMessage = message.prop('getMessage');
+
+    expect(message).toHaveProp('getLinkText');
+    const getLinkText = message.prop('getLinkText');
+
+    // Pass in allowSlowPages=true|false to test messaging.
+
+    expect(getMessage(true)).toEqual('This diff will load slowly.');
+    expect(getMessage(false)).toEqual(
+      'This diff was shortened to load faster.',
+    );
+
+    expect(getLinkText(true)).toEqual('Shorten the diff.');
+    expect(getLinkText(false)).toEqual('Show the original diff.');
   });
 
   describe('getAllHunkChanges', () => {
@@ -739,6 +852,47 @@ describe(__filename, () => {
           { highLineCount: 4 },
         ),
       ).toEqual(false);
+    });
+  });
+
+  describe('trimHunkChanges', () => {
+    it('does not trim when not necessary', () => {
+      const hunks = [
+        createInternalHunkWithChanges([{ content: '// example content 1' }]),
+        createInternalHunkWithChanges([{ content: '// example content 2' }]),
+      ];
+
+      expect(trimHunkChanges(hunks, { maxLength: 2 })).toEqual(hunks);
+    });
+
+    it('trims the hunk changes when too long', () => {
+      const hunks = [
+        createInternalHunkWithChanges([{ content: '// example content 1' }]),
+        createInternalHunkWithChanges([{ content: '// example content 2' }]),
+        createInternalHunkWithChanges([{ content: '// example content 3' }]),
+      ];
+
+      expect(
+        getAllHunkChanges(trimHunkChanges(hunks, { maxLength: 2 })),
+      ).toHaveLength(2);
+    });
+
+    it('slices the last change set when trimming', () => {
+      const change1 = { content: '// example content 1' };
+      const change2 = { content: '// example content 2' };
+      const change3 = { content: '// example content 3' };
+      const change4 = { content: '// example content 4' };
+
+      const hunks = [
+        createInternalHunkWithChanges([change1]),
+        createInternalHunkWithChanges([change2, change3, change4]),
+      ];
+
+      const trimmed = trimHunkChanges(hunks, { maxLength: 3 });
+
+      expect(trimmed[1].changes).toEqual(
+        createInternalHunkWithChanges([change2, change3]).changes,
+      );
     });
   });
 });

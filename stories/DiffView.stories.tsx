@@ -1,3 +1,5 @@
+import { Location } from 'history';
+import queryString from 'query-string';
 import React from 'react';
 import { storiesOf } from '@storybook/react';
 import { parseDiff } from 'react-diff-view';
@@ -9,32 +11,37 @@ import DiffView, {
 import basicDiff from '../src/components/DiffView/fixtures/basicDiff';
 import minifiedDiff from '../src/components/DiffView/fixtures/minifiedDiff';
 import diffWithDeletions from '../src/components/DiffView/fixtures/diffWithDeletions';
+import largeDiff from '../src/components/DiffView/fixtures/largeDiff';
 import { LinterMessage, actions } from '../src/reducers/linter';
 import { createInternalVersion } from '../src/reducers/versions';
 import {
   createFakeExternalLinterResult,
+  createFakeLocation,
   fakeVersion,
   fakeVersionEntry,
   fakeVersionFile,
 } from '../src/test-helpers';
+import { allowSlowPagesParam } from '../src/utils';
 import { newLinterMessageUID, renderWithStoreAndRouter } from './utils';
 
 const render = (
-  moreProps: Partial<DiffViewProps> = {},
+  moreProps: Partial<DiffViewProps> & { location?: Location } = {},
   store = configureStore(),
 ) => {
+  const { location, ...remainingProps } = moreProps;
+
   const props: DiffViewProps = {
     diff: parseDiff(basicDiff)[0],
     mimeType: 'application/javascript',
     version: createInternalVersion(fakeVersion),
-    ...moreProps,
+    ...remainingProps,
   };
 
   return renderWithStoreAndRouter(
     <div className="DiffViewStory-panel">
       <DiffView {...props} />
     </div>,
-    { store },
+    { store, location },
   );
 };
 
@@ -231,4 +238,15 @@ storiesOf('DiffView', module)
         ],
       },
     ],
+  })
+  .add('slow diff warning', () => {
+    return render({ diff: parseDiff(largeDiff)[0] });
+  })
+  .add('slow diff warning (overridden)', () => {
+    return render({
+      diff: parseDiff(largeDiff)[0],
+      location: createFakeLocation({
+        search: queryString.stringify({ [allowSlowPagesParam]: true }),
+      }),
+    });
   });

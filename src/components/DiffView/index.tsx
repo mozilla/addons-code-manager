@@ -17,9 +17,11 @@ import { Alert } from 'react-bootstrap';
 import { withRouter, RouteComponentProps } from 'react-router-dom';
 import makeClassName from 'classnames';
 
+import FadableContent from '../FadableContent';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import LinterMessage from '../LinterMessage';
 import GlobalLinterMessages from '../GlobalLinterMessages';
+import SlowPageAlert from '../SlowPageAlert';
 import refractor from '../../refractor';
 import {
   ScrollTarget,
@@ -27,9 +29,17 @@ import {
   getDiffAnchors,
   getRelativeDiffAnchor,
 } from '../../reducers/versions';
-import { getLanguageFromMimeType, gettext } from '../../utils';
+import {
+  getLanguageFromMimeType,
+  gettext,
+  shouldAllowSlowPages,
+} from '../../utils';
 import styles from './styles.module.scss';
 import 'react-diff-view/style/index.css';
+
+// This is the number of changes for which a diff starts loading slowly,
+// even when syntax highlighting is disabled.
+const SLOW_DIFF_CHANGE_COUNT = 1000;
 
 export const getAllHunkChanges = (hunks: Hunks): ChangeInfo[] => {
   return hunks.reduce(
@@ -62,6 +72,28 @@ export const diffCanBeHighlighted = (
   return true;
 };
 
+export const trimHunkChanges = (
+  hunks: Hunks,
+  { maxLength = SLOW_DIFF_CHANGE_COUNT } = {},
+): Hunks => {
+  let lengthSoFar = 0;
+  const trimmed = [];
+
+  for (const hunk of hunks) {
+    const length = maxLength - lengthSoFar;
+    if (length > 0) {
+      trimmed.push({
+        ...hunk,
+        changes: hunk.changes.slice(0, length),
+      });
+    }
+
+    lengthSoFar += hunk.changes.length;
+  }
+
+  return trimmed;
+};
+
 export type PublicProps = {
   diff: DiffInfo | null;
   mimeType: string;
@@ -73,6 +105,7 @@ export type DefaultProps = {
   _document: typeof document;
   _getDiffAnchors: typeof getDiffAnchors;
   _getRelativeDiffAnchor: typeof getRelativeDiffAnchor;
+  _slowDiffChangeCount: number;
   _tokenize: typeof tokenize;
   viewType: DiffProps['viewType'];
 };
@@ -87,6 +120,7 @@ export class DiffViewBase extends React.Component<Props> {
     _document: document,
     _getDiffAnchors: getDiffAnchors,
     _getRelativeDiffAnchor: getRelativeDiffAnchor,
+    _slowDiffChangeCount: SLOW_DIFF_CHANGE_COUNT,
     _tokenize: tokenize,
     viewType: 'unified',
   };
@@ -227,9 +261,14 @@ export class DiffViewBase extends React.Component<Props> {
     return hunks.map(this.renderHunk);
   };
 
+  renderExtraMessages = (messages: React.ReactNode) => {
+    return <div className={styles.extraMessages}>{messages}</div>;
+  };
+
   renderWithMessages = ({ selectedMessageMap }: LinterProviderInfo) => {
     const {
       _diffCanBeHighlighted,
+      _slowDiffChangeCount,
       _tokenize,
       diff,
       mimeType,
@@ -254,6 +293,51 @@ export class DiffViewBase extends React.Component<Props> {
       tokens = _tokenize(diff.hunks, options);
     }
 
+    const extraMessages = [];
+
+    let hunks;
+    let diffWasTrimmed = false;
+    let diffIsSlowAlert;
+
+    if (diff) {
+      let changeCount = 0;
+      hunks = diff.hunks.map((hunk) => {
+        changeCount += hunk.changes.length;
+        return hunk;
+      });
+
+      if (changeCount >= _slowDiffChangeCount) {
+        if (!shouldAllowSlowPages(location)) {
+          hunks = trimHunkChanges(hunks, { maxLength: _slowDiffChangeCount });
+          diffWasTrimmed = true;
+        }
+        diffIsSlowAlert = (
+          <SlowPageAlert
+            location={location}
+            getMessage={(allowSlowPages: boolean) => {
+              return allowSlowPages
+                ? gettext('This diff will load slowly.')
+                : gettext('This diff was shortened to load faster.');
+            }}
+            getLinkText={(allowSlowPages: boolean) => {
+              return allowSlowPages
+                ? gettext('Shorten the diff.')
+                : gettext('Show the original diff.');
+            }}
+          />
+        );
+        extraMessages.push(diffIsSlowAlert);
+      }
+    }
+
+    if (diff && !tokens) {
+      extraMessages.push(
+        <Alert variant="warning">
+          {gettext('Syntax highlighting was disabled for performance')}
+        </Alert>,
+      );
+    }
+
     return (
       <div className={styles.DiffView}>
         {!diff && (
@@ -270,30 +354,33 @@ export class DiffViewBase extends React.Component<Props> {
           messages={selectedMessageMap && selectedMessageMap.global}
         />
 
-        {diff && !tokens && (
-          <Alert className={styles.highlightingDisabled} variant="warning">
-            {gettext('Syntax highlighting was disabled for performance')}
-          </Alert>
-        )}
+        {extraMessages.length ? this.renderExtraMessages(extraMessages) : null}
 
-        {diff && (
+        {diff && hunks && (
           <React.Fragment key={`${diff.oldRevision}-${diff.newRevision}`}>
             {this.renderHeader(diff)}
-            <Diff
-              className={styles.diff}
-              diffType={diff.type}
-              hunks={diff.hunks}
-              tokens={tokens}
-              viewType={viewType}
-              gutterType="anchor"
-              generateAnchorID={getChangeKey}
-              selectedChanges={selectedChanges}
-              widgets={this.getWidgets(diff.hunks, selectedMessageMap)}
-            >
-              {this.renderHunks}
-            </Diff>
+            <FadableContent fade={diffWasTrimmed}>
+              <Diff
+                className={styles.diff}
+                diffType={diff.type}
+                hunks={hunks}
+                tokens={tokens}
+                viewType={viewType}
+                gutterType="anchor"
+                generateAnchorID={getChangeKey}
+                selectedChanges={selectedChanges}
+                widgets={this.getWidgets(diff.hunks, selectedMessageMap)}
+              >
+                {this.renderHunks}
+              </Diff>
+            </FadableContent>
           </React.Fragment>
         )}
+
+        {/* Only show a slow alert at the bottom if the diff was trimmed */}
+        {diffWasTrimmed &&
+          diffIsSlowAlert &&
+          this.renderExtraMessages(diffIsSlowAlert)}
       </div>
     );
   };
