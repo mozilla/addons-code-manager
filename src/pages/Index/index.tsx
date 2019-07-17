@@ -27,7 +27,7 @@ export class IndexBase extends React.Component<Props> {
       process.env.REACT_APP_IS_LOCAL_DEV === 'true',
   };
 
-  componentWillMount() {
+  componentDidMount() {
     document.title = 'Addons Code Manager';
   }
 
