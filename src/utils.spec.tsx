@@ -254,6 +254,17 @@ describe(__filename, () => {
         amountOfAwesome: String(amountOfAwesome),
       });
     });
+
+    it('handles undefined values', () => {
+      const location = createFakeLocation();
+
+      const adjusted = createAdjustedQueryString(location, {
+        color: undefined,
+      });
+
+      // Undefined values should not be added to the query string.
+      expect(adjusted).toEqual('?');
+    });
   });
 
   describe('createCodeLineAnchorGetter', () => {

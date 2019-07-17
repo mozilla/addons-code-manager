@@ -73,7 +73,7 @@ export const getPathFromQueryString = (history: History) => {
  */
 export const createAdjustedQueryString = (
   location: Location,
-  newParams: { [key: string]: string | number | boolean },
+  newParams: { [key: string]: string | number | boolean | undefined },
 ) => {
   const query = queryString.parse(location.search);
   return `?${queryString.stringify({ ...query, ...newParams })}`;

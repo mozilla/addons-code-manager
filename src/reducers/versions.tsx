@@ -8,11 +8,14 @@ import {
   getChangeKey,
 } from 'react-diff-view';
 import { push } from 'connected-react-router';
-import queryString from 'query-string';
 
 import { ThunkActionCreator } from '../configureStore';
 import { getDiff, getVersion, getVersionsList, isErrorResponse } from '../api';
-import { LocalizedStringMap, extractNumber } from '../utils';
+import {
+  LocalizedStringMap,
+  createAdjustedQueryString,
+  extractNumber,
+} from '../utils';
 import { actions as errorsActions } from './errors';
 import {
   ROOT_PATH,
@@ -986,15 +989,13 @@ export const viewVersionFile = ({
 }: ViewVersionFileParams): ThunkActionCreator => {
   return async (dispatch, getState) => {
     const { router } = getState();
-    const queryParams = {
-      ...queryString.parse(router.location.search),
-      path: selectedPath,
-      scrollTo,
-    };
 
     const newLocation = {
       ...router.location,
-      search: `?${queryString.stringify(queryParams)}`,
+      search: createAdjustedQueryString(router.location, {
+        path: selectedPath,
+        scrollTo,
+      }),
     };
 
     // We do not want to preserve the hash when we select a new file for
