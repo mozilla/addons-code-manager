@@ -40,7 +40,7 @@ export class NavbarBase extends React.Component<Props> {
         <Navbar.Brand className={styles.brand}>
           {currentVersion && (
             <span className={styles.addonName}>
-              {gettext(`${getLocalizedString(currentVersion.addon.name)}`)}
+              {getLocalizedString(currentVersion.addon.name)}
             </span>
           )}
         </Navbar.Brand>
