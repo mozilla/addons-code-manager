@@ -4,6 +4,8 @@ import { storiesOf } from '@storybook/react';
 
 import { LinterMessage, actions } from '../src/reducers/linter';
 import longFileSample from './fixtures/long-file-sample';
+import ContentShell from '../src/components/FullscreenGrid/ContentShell';
+import FullscreenGrid, { Header } from '../src/components/FullscreenGrid';
 import CodeOverview from '../src/components/CodeOverview';
 import CodeView from '../src/components/CodeView';
 import configureStore from '../src/configureStore';
@@ -15,7 +17,11 @@ import {
   fakeVersionFile,
   fakeVersionEntry,
 } from '../src/test-helpers';
-import { newLinterMessageUID, renderWithStoreAndRouter } from './utils';
+import {
+  newLinterMessageUID,
+  renderWithStoreAndRouter,
+  rootAttributeParams,
+} from './utils';
 
 const render = ({
   content = JS_SAMPLE,
@@ -48,51 +54,67 @@ const render = ({
   }
 
   return renderWithStoreAndRouter(
-    <div className="CodeOverview-container">
-      <div>
+    <FullscreenGrid>
+      <Header />
+      <ContentShell
+        altSidePanel={<CodeOverview content={content} version={version} />}
+      >
         <CodeView
           content={content}
           mimeType="application/javascript"
           version={version}
         />
-      </div>
-      <CodeOverview content={content} version={version} />
-    </div>,
+      </ContentShell>
+    </FullscreenGrid>,
     { store },
   );
 };
 
+const getParams = () => rootAttributeParams({ fullscreen: true });
+
 storiesOf('CodeOverview', module)
-  .add('short file', () => {
-    return render({ content: JS_SAMPLE });
-  })
-  .add('long file', () => {
-    return render({ content: longFileSample });
-  })
-  .add('long file with messages', () => {
-    return render({
-      content: longFileSample,
-      messages: [
-        {
-          line: 27,
-          type: 'warning',
-          message: 'Use of console.log() detected',
-          description: ['This call to console.log() is pretty much Okay.'],
-        },
-        {
-          line: 66,
-          type: 'notice',
-          message: 'Bizarre use of undefined',
-          description: ["...but I guess it's fine"],
-        },
-        {
-          line: 151,
-          type: 'error',
-          message: 'Use of queryTabs() is not permitted',
-          description: [
-            'Calls to queryTabs() will not work in a future version',
-          ],
-        },
-      ],
-    });
-  });
+  .add(
+    'short file',
+    () => {
+      return render({ content: JS_SAMPLE });
+    },
+    getParams(),
+  )
+  .add(
+    'long file',
+    () => {
+      return render({ content: longFileSample });
+    },
+    getParams(),
+  )
+  .add(
+    'long file with messages',
+    () => {
+      return render({
+        content: longFileSample,
+        messages: [
+          {
+            line: 27,
+            type: 'warning',
+            message: 'Use of console.log() detected',
+            description: ['This call to console.log() is pretty much Okay.'],
+          },
+          {
+            line: 66,
+            type: 'notice',
+            message: 'Bizarre use of undefined',
+            description: ["...but I guess it's fine"],
+          },
+          {
+            line: 151,
+            type: 'error',
+            message: 'Use of queryTabs() is not permitted',
+            description: [
+              'Calls to queryTabs() will not work in a future version',
+            ],
+          },
+        ],
+      });
+    },
+    getParams(),
+  );
