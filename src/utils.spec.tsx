@@ -3,6 +3,7 @@ import queryString from 'query-string';
 
 import { getCodeLineAnchor } from './components/CodeView/utils';
 import {
+  createAdjustedQueryString,
   createCodeLineAnchorGetter,
   extractNumber,
   formatFilesize,
@@ -195,6 +196,74 @@ describe(__filename, () => {
       });
 
       expect(getPathFromQueryString(history)).toEqual(null);
+    });
+  });
+
+  describe('createAdjustedQueryString', () => {
+    it('adds a param to an empty query string', () => {
+      const location = createFakeLocation({ search: '' });
+
+      const newQuery = { color: 'red' };
+      const adjusted = createAdjustedQueryString(location, newQuery);
+
+      expect(adjusted).urlWithTheseParams(newQuery);
+    });
+
+    it('adds a param to an existing query string', () => {
+      const existing = { count: '1' };
+      const newQuery = { color: 'red' };
+
+      const location = createFakeLocation({
+        search: queryString.stringify(existing),
+      });
+
+      const adjusted = createAdjustedQueryString(location, newQuery);
+
+      expect(adjusted).urlWithTheseParams({
+        ...existing,
+        ...newQuery,
+      });
+    });
+
+    it('replaces a param in an existing query string', () => {
+      const location = createFakeLocation({
+        search: queryString.stringify({ color: 'red' }),
+      });
+
+      const newColor = 'purple';
+      const adjusted = createAdjustedQueryString(location, { color: newColor });
+
+      expect(adjusted).urlWithTheseParams({ color: newColor });
+    });
+
+    it('handles booleans', () => {
+      const location = createFakeLocation();
+
+      const adjusted = createAdjustedQueryString(location, { awesome: true });
+
+      expect(adjusted).urlWithTheseParams({ awesome: 'true' });
+    });
+
+    it('handles numbers', () => {
+      const location = createFakeLocation();
+
+      const amountOfAwesome = 100000;
+      const adjusted = createAdjustedQueryString(location, { amountOfAwesome });
+
+      expect(adjusted).urlWithTheseParams({
+        amountOfAwesome: String(amountOfAwesome),
+      });
+    });
+
+    it('handles undefined values', () => {
+      const location = createFakeLocation();
+
+      const adjusted = createAdjustedQueryString(location, {
+        color: undefined,
+      });
+
+      // Undefined values should not be added to the query string.
+      expect(adjusted).toEqual('?');
     });
   });
 

@@ -1,12 +1,12 @@
 import { push } from 'connected-react-router';
 import log from 'loglevel';
-import queryString from 'query-string';
 import { Reducer } from 'redux';
 import { ActionType, createAction, getType } from 'typesafe-actions';
 
 import { Version, viewVersionFile } from './versions';
 import { ThunkActionCreator } from '../configureStore';
 import {
+  createAdjustedQueryString,
   getLocalizedString,
   messageUidQueryParam,
   pathQueryParam,
@@ -420,16 +420,14 @@ export const goToRelativeMessage = ({
         router: { location },
       } = getState();
 
-      const queryParams = queryString.parse(location.search);
-      const newParams = { ...queryParams };
-      newParams[pathQueryParam] = path;
-      newParams[messageUidQueryParam] = uid;
-
       // Update the location with the hash for the message uid.
       const newLocation = {
         ...location,
         hash: getCodeLineAnchor(line || 0),
-        search: `?${queryString.stringify(newParams)}`,
+        search: createAdjustedQueryString(location, {
+          [pathQueryParam]: path,
+          [messageUidQueryParam]: uid,
+        }),
       };
       dispatch(push(newLocation));
 

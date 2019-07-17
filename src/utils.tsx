@@ -2,7 +2,7 @@ import urlUtils from 'url';
 
 import filesize from 'filesize';
 import purify from 'dompurify';
-import { History } from 'history';
+import { History, Location } from 'history';
 import queryString from 'query-string';
 
 import { getCodeLineAnchor } from './components/CodeView/utils';
@@ -66,6 +66,17 @@ export const getPathFromQueryString = (history: History) => {
   const path = queryString.parse(history.location.search)[pathQueryParam];
 
   return typeof path === 'string' && path.length ? path : null;
+};
+
+/*
+ * This adds a param to an existing location and return a new query string.
+ */
+export const createAdjustedQueryString = (
+  location: Location,
+  newParams: { [key: string]: string | number | boolean | undefined },
+) => {
+  const query = queryString.parse(location.search);
+  return `?${queryString.stringify({ ...query, ...newParams })}`;
 };
 
 export const createCodeLineAnchorGetter = ({
