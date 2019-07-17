@@ -87,12 +87,6 @@ body.fullscreen {
   padding: $default-padding;
 }
 
-.CodeOverview-container {
-  display: grid;
-  grid-template-columns: 3fr 1fr;
-  grid-gap: 10px;
-}
-
 .AccordionMenuStory-ContentShell {
   align-items: center;
   display: flex;
