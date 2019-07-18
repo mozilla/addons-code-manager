@@ -12,6 +12,7 @@ import { CompareInfo } from './reducers/versions';
 // Querystring params used by the app.
 export const messageUidQueryParam = 'messageUid';
 export const pathQueryParam = 'path';
+export const allowSlowPagesParam = 'allowSlowPages';
 
 export type LocalizedStringMap = {
   [lang: string]: string;
@@ -117,4 +118,8 @@ export const makeReviewersURL = ({
   }
 
   return path;
+};
+
+export const shouldAllowSlowPages = (location: Location) => {
+  return queryString.parse(location.search)[allowSlowPagesParam] === 'true';
 };

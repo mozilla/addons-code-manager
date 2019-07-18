@@ -3,6 +3,7 @@ import queryString from 'query-string';
 
 import { getCodeLineAnchor } from './components/CodeView/utils';
 import {
+  allowSlowPagesParam,
   createAdjustedQueryString,
   createCodeLineAnchorGetter,
   extractNumber,
@@ -13,6 +14,7 @@ import {
   makeReviewersURL,
   nl2br,
   sanitizeHTML,
+  shouldAllowSlowPages,
 } from './utils';
 import {
   createFakeCompareInfo,
@@ -367,5 +369,33 @@ describe('extractNumber', () => {
   });
   it('returns null if there are no numbers', () => {
     expect(extractNumber('ABC')).toEqual(null);
+  });
+});
+
+describe('shouldAllowSlowPages', () => {
+  it('returns false without any query param', () => {
+    expect(shouldAllowSlowPages(createFakeLocation({ search: '' }))).toEqual(
+      false,
+    );
+  });
+
+  it('returns true with a true query param', () => {
+    expect(
+      shouldAllowSlowPages(
+        createFakeLocation({
+          search: queryString.stringify({ [allowSlowPagesParam]: true }),
+        }),
+      ),
+    ).toEqual(true);
+  });
+
+  it('returns false with a false query param', () => {
+    expect(
+      shouldAllowSlowPages(
+        createFakeLocation({
+          search: queryString.stringify({ [allowSlowPagesParam]: false }),
+        }),
+      ),
+    ).toEqual(false);
   });
 });
