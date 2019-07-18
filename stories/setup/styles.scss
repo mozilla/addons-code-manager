@@ -49,12 +49,15 @@ body.fullscreen {
   }
 }
 
-.FileTreeNodeStory-shell {
+.DiffViewStory-panel,
+.FadableContent-shell,
+.FileTreeNodeStory-shell,
+.FullscreenGridStory-topContent {
   @include border-style();
 }
 
-.DiffViewStory-panel {
-  @include border-style();
+.FadableContent-shell {
+  padding: $default-padding;
 }
 
 .FullscreenGridStory-Header,
@@ -81,8 +84,6 @@ body.fullscreen {
 }
 
 .FullscreenGridStory-topContent {
-  @include border-style();
-
   background-color: lighten(yellow, 47);
   padding: $default-padding;
 }
