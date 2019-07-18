@@ -1,4 +1,5 @@
 import log from 'loglevel';
+import { Helmet } from 'react-helmet';
 import * as React from 'react';
 import { Button } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
@@ -26,10 +27,6 @@ export class IndexBase extends React.Component<Props> {
       process.env.NODE_ENV === 'development' &&
       process.env.REACT_APP_IS_LOCAL_DEV === 'true',
   };
-
-  componentDidMount() {
-    document.title = 'Addons Code Manager';
-  }
 
   canSimulateErrors() {
     const { _log, allowErrorSimulation } = this.props;
@@ -78,6 +75,9 @@ export class IndexBase extends React.Component<Props> {
 
     return (
       <ContentShell>
+        <Helmet>
+          <title>{gettext('Addon Code Manager')}</title>
+        </Helmet>
         <p>
           {gettext(
             'This is a tool for managing add-on source code that is used with the',
