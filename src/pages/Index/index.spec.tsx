@@ -73,4 +73,10 @@ describe(__filename, () => {
 
     expect(_log.error).not.toHaveBeenCalled();
   });
+
+  it('shows the correct page title when browsing back to home page', () => {
+    const root = shallow(<Index />);
+
+    expect(root.find('title')).toHaveText('Addons Code Manager');
+  });
 });

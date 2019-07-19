@@ -76,7 +76,7 @@ export class IndexBase extends React.Component<Props> {
     return (
       <ContentShell>
         <Helmet>
-          <title>{gettext('Addon Code Manager')}</title>
+          <title>{gettext('Addons Code Manager')}</title>
         </Helmet>
         <p>
           {gettext(
