@@ -1,0 +1,16 @@
+@import '../../scss/variables';
+
+.shell {
+  position: relative;
+
+  &::after {
+    // This uses rgba() instead of "transparent" because Safari
+    // doesn't handle that keyword well.
+    background-image: linear-gradient(rgba(255, 255, 255, 0), $white);
+    bottom: 0;
+    content: '';
+    height: 50vh;
+    position: absolute;
+    width: 100%;
+  }
+}
