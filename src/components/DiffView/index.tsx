@@ -369,7 +369,7 @@ export class DiffViewBase extends React.Component<Props> {
                 gutterType="anchor"
                 generateAnchorID={getChangeKey}
                 selectedChanges={selectedChanges}
-                widgets={this.getWidgets(diff.hunks, selectedMessageMap)}
+                widgets={this.getWidgets(hunks, selectedMessageMap)}
               >
                 {this.renderHunks}
               </Diff>
