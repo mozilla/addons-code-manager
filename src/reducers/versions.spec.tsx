@@ -13,6 +13,7 @@ import reducer, {
   VersionEntryType,
   actions,
   createInternalDiff,
+  createInternalHunk,
   createInternalVersion,
   createInternalVersionAddon,
   createInternalVersionEntry,
@@ -1322,29 +1323,6 @@ describe(__filename, () => {
       }) as DiffInfo;
     };
 
-    const createVersionWithChange = (change = {}) => {
-      return {
-        ...fakeVersion,
-        file: {
-          ...fakeVersion.file,
-          diff: {
-            ...fakeExternalDiff,
-            hunks: [
-              {
-                ...fakeExternalDiff.hunks[0],
-                changes: [
-                  {
-                    ...fakeExternalDiff.hunks[0].changes[0],
-                    ...change,
-                  },
-                ],
-              },
-            ],
-          },
-        },
-      };
-    };
-
     it('creates a DiffInfo object from a version with diff', () => {
       const baseVersionId = 132;
       const headVersionId = 133;
@@ -1439,36 +1417,46 @@ describe(__filename, () => {
       expect(diff.hunks).toHaveLength(fakeExternalDiff.hunks.length);
       diff.hunks.forEach((hunk, index) => {
         const externalHunk = fakeExternalDiff.hunks[index];
-
-        expect(hunk).toHaveProperty('content', externalHunk.header);
-        expect(hunk).toHaveProperty('isPlain', false);
-        expect(hunk).toHaveProperty('oldLines', externalHunk.old_lines);
-        expect(hunk).toHaveProperty('newLines', externalHunk.new_lines);
-        expect(hunk).toHaveProperty('oldStart', externalHunk.old_start);
-        expect(hunk).toHaveProperty('newStart', externalHunk.new_start);
-
-        // This prop will be tested in a different test case below.
-        expect(hunk).toHaveProperty('changes');
+        expect(hunk).toEqual(createInternalHunk(externalHunk));
       });
     });
+  });
 
-    it('creates changes from external diff changes', () => {
-      const version = {
-        ...fakeVersion,
-        file: {
-          ...fakeVersion.file,
-          diff: fakeExternalDiff,
-        },
+  describe('createInternalHunk', () => {
+    const createExternalHunkWithChange = (change = {}) => {
+      return {
+        ...fakeExternalDiff.hunks[0],
+        changes: [
+          {
+            ...fakeExternalDiff.hunks[0].changes[0],
+            ...change,
+          },
+        ],
       };
+    };
 
-      const diff = _createInternalDiff({ version });
+    it('creates an internal hunk', () => {
+      const externalHunk = fakeExternalDiff.hunks[0];
+      const hunk = createInternalHunk(externalHunk);
 
-      const firstHunk = diff.hunks[0];
-      const firstExternalHunk = fakeExternalDiff.hunks[0];
+      expect(hunk).toHaveProperty('content', externalHunk.header);
+      expect(hunk).toHaveProperty('isPlain', false);
+      expect(hunk).toHaveProperty('oldLines', externalHunk.old_lines);
+      expect(hunk).toHaveProperty('newLines', externalHunk.new_lines);
+      expect(hunk).toHaveProperty('oldStart', externalHunk.old_start);
+      expect(hunk).toHaveProperty('newStart', externalHunk.new_start);
 
-      expect(firstHunk.changes).toHaveLength(firstExternalHunk.changes.length);
-      firstHunk.changes.forEach((change, index) => {
-        const externalChange = firstExternalHunk.changes[index];
+      // This prop will be tested in a different test case below.
+      expect(hunk).toHaveProperty('changes');
+    });
+
+    it('creates changes from the external hunk', () => {
+      const externalHunk = fakeExternalDiff.hunks[0];
+      const hunk = createInternalHunk(externalHunk);
+
+      expect(hunk.changes).toHaveLength(externalHunk.changes.length);
+      hunk.changes.forEach((change, index) => {
+        const externalChange = externalHunk.changes[index];
 
         expect(change).toHaveProperty('content', externalChange.content);
         expect(change).toHaveProperty('type', externalChange.type);
@@ -1492,16 +1480,17 @@ describe(__filename, () => {
     it('creates "delete" changes', () => {
       const type = 'delete';
       const oldLineNumber = 123;
-      const version = createVersionWithChange({
-        // eslint-disable-next-line @typescript-eslint/camelcase
-        old_line_number: oldLineNumber,
-        // eslint-disable-next-line @typescript-eslint/camelcase
-        new_line_number: oldLineNumber + 1,
-        type,
-      });
+      const hunk = createInternalHunk(
+        createExternalHunkWithChange({
+          // eslint-disable-next-line @typescript-eslint/camelcase
+          old_line_number: oldLineNumber,
+          // eslint-disable-next-line @typescript-eslint/camelcase
+          new_line_number: oldLineNumber + 1,
+          type,
+        }),
+      );
 
-      const diff = _createInternalDiff({ version });
-      const change = diff.hunks[0].changes[0];
+      const change = hunk.changes[0];
 
       expect(change).toHaveProperty('type', type);
       expect(change).toHaveProperty('isDelete', true);
@@ -1513,16 +1502,17 @@ describe(__filename, () => {
     it('creates "insert" changes', () => {
       const type = 'insert';
       const newLineNumber = 123;
-      const version = createVersionWithChange({
-        // eslint-disable-next-line @typescript-eslint/camelcase
-        old_line_number: newLineNumber - 1,
-        // eslint-disable-next-line @typescript-eslint/camelcase
-        new_line_number: newLineNumber,
-        type,
-      });
+      const hunk = createInternalHunk(
+        createExternalHunkWithChange({
+          // eslint-disable-next-line @typescript-eslint/camelcase
+          old_line_number: newLineNumber - 1,
+          // eslint-disable-next-line @typescript-eslint/camelcase
+          new_line_number: newLineNumber,
+          type,
+        }),
+      );
 
-      const diff = _createInternalDiff({ version });
-      const change = diff.hunks[0].changes[0];
+      const change = hunk.changes[0];
 
       expect(change).toHaveProperty('type', type);
       expect(change).toHaveProperty('isDelete', false);
@@ -1534,16 +1524,17 @@ describe(__filename, () => {
     it('creates "normal" changes', () => {
       const type = 'normal';
       const oldLineNumber = 123;
-      const version = createVersionWithChange({
-        // eslint-disable-next-line @typescript-eslint/camelcase
-        old_line_number: oldLineNumber,
-        // eslint-disable-next-line @typescript-eslint/camelcase
-        new_line_number: oldLineNumber + 1,
-        type,
-      });
+      const hunk = createInternalHunk(
+        createExternalHunkWithChange({
+          // eslint-disable-next-line @typescript-eslint/camelcase
+          old_line_number: oldLineNumber,
+          // eslint-disable-next-line @typescript-eslint/camelcase
+          new_line_number: oldLineNumber + 1,
+          type,
+        }),
+      );
 
-      const diff = _createInternalDiff({ version });
-      const change = diff.hunks[0].changes[0];
+      const change = hunk.changes[0];
 
       expect(change).toHaveProperty('type', type);
       expect(change).toHaveProperty('isDelete', false);
