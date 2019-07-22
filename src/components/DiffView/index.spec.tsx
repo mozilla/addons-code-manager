@@ -866,15 +866,23 @@ describe(__filename, () => {
     });
 
     it('trims the hunk changes when too long', () => {
-      const hunks = [
-        createInternalHunkWithChanges([{ content: '// example content 1' }]),
-        createInternalHunkWithChanges([{ content: '// example content 2' }]),
-        createInternalHunkWithChanges([{ content: '// example content 3' }]),
-      ];
+      const hunk1 = createInternalHunkWithChanges([
+        { content: '// example content 1' },
+      ]);
+      const hunk2 = createInternalHunkWithChanges([
+        { content: '// example content 2' },
+      ]);
+      const hunk3 = createInternalHunkWithChanges([
+        { content: '// example content 3' },
+      ]);
 
-      expect(
-        getAllHunkChanges(trimHunkChanges(hunks, { maxLength: 2 })),
-      ).toHaveLength(2);
+      const hunks = [hunk1, hunk2, hunk3];
+
+      const trimmed = trimHunkChanges(hunks, { maxLength: 2 });
+      expect(getAllHunkChanges(trimmed)).toHaveLength(2);
+
+      expect(trimmed[0].changes[0].content).toEqual(hunk1.changes[0].content);
+      expect(trimmed[1].changes[0].content).toEqual(hunk2.changes[0].content);
     });
 
     it('slices the last change set when trimming', () => {
