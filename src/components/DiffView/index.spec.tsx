@@ -675,7 +675,7 @@ describe(__filename, () => {
     expect(root.find(`.${styles.highlightingDisabled}`)).toHaveLength(0);
   });
 
-  it('trims diffs that are too large to display', () => {
+  it('trims, fades, and warns about diffs too large to display', () => {
     const change1 = { content: '// example 1' };
     const change2 = { content: '// example 2' };
     const change3 = { content: '// example 3' };
