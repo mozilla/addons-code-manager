@@ -63,7 +63,7 @@
     "redux-devtools-extension": "2.13.8",
     "redux-logger": "3.0.6",
     "redux-thunk": "2.3.0",
-    "refractor": "2.9.0",
+    "refractor": "2.10.0",
     "ts-node": "8.3.0",
     "typesafe-actions": "4.4.2",
     "typescript": "3.5.3",
