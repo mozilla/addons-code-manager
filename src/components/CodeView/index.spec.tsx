@@ -149,23 +149,21 @@ describe(__filename, () => {
 
   const renderSlowLoadingCode = ({
     _slowLoadingLineCount = 3,
-    content,
     contentLineCount,
+    content = new Array(
+      contentLineCount !== undefined
+        ? contentLineCount
+        : // Simulate a long file (which will load slowly) by exceeding the
+          // line limit.
+          _slowLoadingLineCount + 1,
+    )
+      .fill('// example code')
+      .join('\n'),
     ...moreProps
   }: RenderParams & { contentLineCount?: number } = {}) => {
     return renderWithLinterProvider({
       _slowLoadingLineCount,
-      content:
-        content ||
-        // Simulate a long file (which will load slowly) by exceeding the
-        // line limit.
-        new Array(
-          contentLineCount !== undefined
-            ? contentLineCount
-            : _slowLoadingLineCount + 1,
-        )
-          .fill('// example code')
-          .join('\n'),
+      content,
       ...moreProps,
     });
   };
