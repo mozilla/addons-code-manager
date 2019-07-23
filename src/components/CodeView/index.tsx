@@ -91,14 +91,14 @@ export class CodeViewBase extends React.Component<Props> {
     const language = getLanguageFromMimeType(mimeType);
     let codeLines = getLines(content);
     let codeWasTrimmed = false;
-    let codeIsSlowAlert;
+    let slowAlert;
 
     if (codeLines.length >= _slowLoadingLineCount) {
       if (!shouldAllowSlowPages(location)) {
         codeLines = codeLines.slice(0, _slowLoadingLineCount);
         codeWasTrimmed = true;
       }
-      codeIsSlowAlert = (
+      slowAlert = (
         <SlowPageAlert
           location={location}
           getMessage={(allowSlowPages: boolean) => {
@@ -126,7 +126,7 @@ export class CodeViewBase extends React.Component<Props> {
           messages={selectedMessageMap && selectedMessageMap.global}
         />
 
-        {codeIsSlowAlert}
+        {slowAlert}
 
         <FadableContent fade={codeWasTrimmed}>
           <div className={styles.CodeView}>
@@ -194,7 +194,7 @@ export class CodeViewBase extends React.Component<Props> {
           </div>
         </FadableContent>
         {/* Only show a slow alert at the bottom if the code was trimmed. */}
-        {codeWasTrimmed && codeIsSlowAlert}
+        {codeWasTrimmed && slowAlert}
       </React.Fragment>
     );
   };
