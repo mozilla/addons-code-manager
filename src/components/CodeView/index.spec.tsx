@@ -1,3 +1,4 @@
+import queryString from 'query-string';
 import * as React from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
@@ -7,13 +8,15 @@ import { Store } from 'redux';
 
 import configureStore from '../../configureStore';
 import refractor from '../../refractor';
+import FadableContent from '../FadableContent';
 import LinterMessage from '../LinterMessage';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import GlobalLinterMessages from '../GlobalLinterMessages';
+import SlowPageAlert from '../SlowPageAlert';
 import { ExternalLinterMessage, getMessageMap } from '../../reducers/linter';
 import { createInternalVersion } from '../../reducers/versions';
 import { getCodeLineAnchor, getCodeLineAnchorID, mapWithDepth } from './utils';
-import { getLanguageFromMimeType } from '../../utils';
+import { allowSlowPagesParam, getLanguageFromMimeType } from '../../utils';
 import {
   createContextWithFakeRouter,
   createFakeExternalLinterResult,
@@ -25,13 +28,19 @@ import {
 } from '../../test-helpers';
 import styles from './styles.module.scss';
 
-import CodeView, { CodeViewBase, PublicProps, scrollToSelectedLine } from '.';
+import CodeView, {
+  CodeViewBase,
+  DefaultProps,
+  PublicProps,
+  scrollToSelectedLine,
+} from '.';
 
 describe(__filename, () => {
-  type RenderParams = Partial<PublicProps> & {
-    location?: Location<{}>;
-    store?: Store;
-  };
+  type RenderParams = Partial<PublicProps> &
+    Partial<DefaultProps> & {
+      location?: Location<{}>;
+      store?: Store;
+    };
 
   const createGlobalExternalMessage = (props = {}) => {
     return {
@@ -136,6 +145,27 @@ describe(__filename, () => {
     });
 
     return { root, selectedMessageMap };
+  };
+
+  const renderSlowLoadingCode = ({
+    _slowLoadingLineCount = 3,
+    contentLineCount,
+    content = new Array(
+      contentLineCount !== undefined
+        ? contentLineCount
+        : // Simulate a long file (which will load slowly) by exceeding the
+          // line limit.
+          _slowLoadingLineCount + 1,
+    )
+      .fill('// example code')
+      .join('\n'),
+    ...moreProps
+  }: RenderParams & { contentLineCount?: number } = {}) => {
+    return renderWithLinterProvider({
+      _slowLoadingLineCount,
+      content,
+      ...moreProps,
+    });
   };
 
   it('renders plain text code when mime type is not supported', () => {
@@ -381,6 +411,64 @@ describe(__filename, () => {
     });
 
     expect(root.find(GlobalLinterMessages)).toHaveProp('messages', []);
+  });
+
+  it('trims the code when too long', () => {
+    const _slowLoadingLineCount = 2;
+    const root = renderSlowLoadingCode({ _slowLoadingLineCount });
+
+    const fadable = root.find(FadableContent);
+    expect(fadable).toHaveProp('fade', true);
+
+    expect(fadable.find(`.${styles.line}`)).toHaveLength(_slowLoadingLineCount);
+
+    // Show the warning twice: top and bottom.
+    expect(root.find(SlowPageAlert)).toHaveLength(2);
+  });
+
+  it('does not trim code when slow pages are allowed', () => {
+    const contentLineCount = 3;
+    const location = createFakeLocation({
+      search: queryString.stringify({ [allowSlowPagesParam]: true }),
+    });
+    const root = renderSlowLoadingCode({
+      _slowLoadingLineCount: contentLineCount - 1,
+      contentLineCount,
+      location,
+    });
+
+    const fadable = root.find(FadableContent);
+    expect(fadable).toHaveProp('fade', false);
+
+    expect(fadable.find(`.${styles.line}`)).toHaveLength(contentLineCount);
+
+    // The warning should only be shown once, at the top.
+    expect(root.find(SlowPageAlert)).toHaveLength(1);
+  });
+
+  it('configures SlowPageAlert', () => {
+    const location = createFakeLocation();
+    const root = renderSlowLoadingCode({ location });
+
+    const message = root.find(SlowPageAlert).at(0);
+
+    expect(message).toHaveProp('location', location);
+
+    expect(message).toHaveProp('getMessage');
+    expect(message).toHaveProp('getLinkText');
+
+    const getMessage = message.prop('getMessage');
+    const getLinkText = message.prop('getLinkText');
+
+    // Pass in allowSlowPages=true|false to test messaging.
+
+    expect(getMessage(true)).toEqual('This file is loading slowly.');
+    expect(getMessage(false)).toEqual(
+      'This file has been shortened to load faster.',
+    );
+
+    expect(getLinkText(true)).toEqual('View a shortened file.');
+    expect(getLinkText(false)).toEqual('View the original file.');
   });
 
   describe('scrollToSelectedLine', () => {
