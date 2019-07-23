@@ -3,10 +3,13 @@ import { Helmet } from 'react-helmet';
 import * as React from 'react';
 import { Button } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
+import { connect } from 'react-redux';
 
 import ContentShell from '../../components/FullscreenGrid/ContentShell';
 import { gettext } from '../../utils';
 import styles from './styles.module.scss';
+import { ConnectedReduxProps } from '../../configureStore';
+import { actions as versionsActions } from '../../reducers/versions';
 
 export type PublicProps = {};
 
@@ -16,7 +19,7 @@ export type DefaultProps = {
   showLocalDevLinks: boolean;
 };
 
-type Props = PublicProps & DefaultProps;
+type Props = PublicProps & DefaultProps & ConnectedReduxProps;
 
 export class IndexBase extends React.Component<Props> {
   static defaultProps = {
@@ -66,6 +69,11 @@ export class IndexBase extends React.Component<Props> {
       throw new Error('This is a simulation of a thrown error');
     }
   };
+
+  componentDidMount() {
+    const { dispatch } = this.props;
+    dispatch(versionsActions.unsetCurrentVersionId());
+  }
 
   render() {
     const { allowErrorSimulation, showLocalDevLinks } = this.props;
@@ -165,4 +173,4 @@ export class IndexBase extends React.Component<Props> {
   }
 }
 
-export default IndexBase;
+export default connect()(IndexBase);

@@ -16,7 +16,7 @@ type PublicProps = {
 
 type PropsFromState = {
   user: User | null;
-  currentVersion: Version | null | undefined;
+  currentVersion: Version | null | undefined | false;
 };
 
 type Props = PublicProps & PropsFromState & ConnectedReduxProps;
