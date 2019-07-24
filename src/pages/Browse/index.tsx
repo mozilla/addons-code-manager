@@ -17,6 +17,7 @@ import {
   getVersionInfo,
   isFileLoading,
   viewVersionFile,
+  actions as versionsActions,
 } from '../../reducers/versions';
 import {
   getLocalizedString,
@@ -47,6 +48,7 @@ type PropsFromState = {
   file: VersionFile | null | void;
   fileIsLoading: boolean;
   version: Version | void | null;
+  currentVersionId: number | null | undefined | false;
 };
 
 export type Props = RouteComponentProps<PropsFromRouter> &
@@ -75,6 +77,7 @@ export class BrowseBase extends React.Component<Props> {
     const {
       _fetchVersion,
       _fetchVersionFile,
+      currentVersionId,
       dispatch,
       file,
       fileIsLoading,
@@ -100,6 +103,11 @@ export class BrowseBase extends React.Component<Props> {
           path: path || undefined,
         }),
       );
+      return;
+    }
+
+    if (version && !currentVersionId) {
+      dispatch(versionsActions.setCurrentVersionId({ versionId: version.id }));
       return;
     }
 
@@ -189,6 +197,9 @@ const mapStateToProps = (
   const { match } = ownProps;
   const versionId = parseInt(match.params.versionId, 10);
   const version = getVersionInfo(state.versions, versionId);
+  const currentVersionId = version
+    ? state.versions.currentVersionId
+    : undefined;
 
   return {
     apiState: state.api,
@@ -199,6 +210,7 @@ const mapStateToProps = (
       ? isFileLoading(state.versions, versionId, version.selectedPath)
       : false,
     version,
+    currentVersionId,
   };
 };
 

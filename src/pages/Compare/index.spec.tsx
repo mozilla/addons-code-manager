@@ -114,6 +114,7 @@ describe(__filename, () => {
     headVersionId = 3,
     store = configureStore(),
     version = fakeVersionWithDiff,
+    setCurrentVersionId = true,
   }) => {
     store.dispatch(
       versionsActions.loadVersionInfo({
@@ -144,6 +145,11 @@ describe(__filename, () => {
         version,
       }),
     );
+    if (setCurrentVersionId) {
+      store.dispatch(
+        versionsActions.setCurrentVersionId({ versionId: headVersionId }),
+      );
+    }
   };
 
   const loadDiffAndRender = ({
@@ -379,6 +385,10 @@ describe(__filename, () => {
       }),
     );
 
+    store.dispatch(
+      versionsActions.setCurrentVersionId({ versionId: version.id }),
+    );
+
     const dispatch = spyOn(store, 'dispatch');
     const fakeThunk = createFakeThunk();
     const _fetchVersionFile = fakeThunk.createThunk;
@@ -395,6 +405,32 @@ describe(__filename, () => {
       versionId: version.id,
       path: version.file.selected_file,
     });
+  });
+
+  it('dispatches an action to set current version id if currentVersionId is unset', () => {
+    const addonId = 9999;
+    const baseVersionId = 1;
+    const headVersionId = baseVersionId + 1;
+    const version = { ...fakeVersionWithDiff, id: headVersionId };
+    const store = configureStore();
+    _loadDiff({
+      addonId,
+      baseVersionId,
+      headVersionId,
+      store,
+      version,
+      setCurrentVersionId: false,
+    });
+    const dispatch = spyOn(store, 'dispatch');
+
+    render({
+      ...getRouteParams({ addonId, baseVersionId, headVersionId }),
+      store,
+    });
+
+    expect(dispatch).toHaveBeenCalledWith(
+      versionsActions.setCurrentVersionId({ versionId: headVersionId }),
+    );
   });
 
   it('does not dispatch fetchVersionFile() when a file is loading', () => {
@@ -417,6 +453,12 @@ describe(__filename, () => {
         baseVersionId,
         headVersionId,
         version,
+      }),
+    );
+
+    store.dispatch(
+      versionsActions.setCurrentVersionId({
+        versionId: headVersionId,
       }),
     );
 
