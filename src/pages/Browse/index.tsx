@@ -106,9 +106,8 @@ export class BrowseBase extends React.Component<Props> {
       return;
     }
 
-    if (version && !currentVersionId) {
+    if (version && currentVersionId !== version.id) {
       dispatch(versionsActions.setCurrentVersionId({ versionId: version.id }));
-      return;
     }
 
     if (version.selectedPath && !fileIsLoading && file === undefined) {
