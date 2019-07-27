@@ -2863,7 +2863,9 @@ describe(__filename, () => {
         const fakeThunk = createFakeThunk();
         const _viewVersionFile = fakeThunk.createThunk;
 
-        const store = createStoreWithVersion({ ...fakeVersion, id: versionId });
+        const store = createStoreWithVersion({
+          version: { ...fakeVersion, id: versionId },
+        });
 
         const typedPosition = position as RelativePathPosition;
 
@@ -2899,7 +2901,9 @@ describe(__filename, () => {
         .mockReturnValue({ anchor: null, path: null });
       const versionId = 123;
 
-      const store = createStoreWithVersion({ ...fakeVersion, id: versionId });
+      const store = createStoreWithVersion({
+        version: { ...fakeVersion, id: versionId },
+      });
 
       const { dispatch, thunk } = thunkTester({
         createThunk: () =>
@@ -2917,7 +2921,9 @@ describe(__filename, () => {
 
     it('throws an exception if the version is not loaded', async () => {
       const versionId = 123;
-      const store = createStoreWithVersion({ ...fakeVersion, id: versionId });
+      const store = createStoreWithVersion({
+        version: { ...fakeVersion, id: versionId },
+      });
 
       const { thunk } = thunkTester({
         createThunk: () =>
