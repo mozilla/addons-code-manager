@@ -131,7 +131,7 @@ describe(__filename, () => {
     treefoldRenderProps = {},
   }) => {
     const externalVersion = fakeVersion;
-    const store = createStoreWithVersion({ makeCurrent: true });
+    const store = createStoreWithVersion({ version: externalVersion });
     const renderProps = getTreefoldRenderProps({
       id: externalVersion.file.selected_file,
       ...treefoldRenderProps,
@@ -315,7 +315,7 @@ describe(__filename, () => {
 
   it('marks a file node as selected', () => {
     const externalVersion = fakeVersion;
-    const store = createStoreWithVersion({ makeCurrent: true });
+    const store = createStoreWithVersion({ version: externalVersion });
 
     const root = renderWithLinterProvider({
       store,
@@ -699,7 +699,7 @@ describe(__filename, () => {
 
   it('configures LinterProvider', () => {
     const externalVersion = fakeVersion;
-    const store = createStoreWithVersion({ makeCurrent: true });
+    const store = createStoreWithVersion({ version: externalVersion });
     const root = render({ store, versionId: externalVersion.id });
 
     const provider = root.find(LinterProvider);
@@ -736,7 +736,7 @@ describe(__filename, () => {
     const externalVersion = fakeVersion;
     const nodeId = externalVersion.file.selected_file;
 
-    const store = createStoreWithVersion({ makeCurrent: true });
+    const store = createStoreWithVersion({ version: externalVersion });
     const fakeRef = createFakeRef({ scrollIntoView: jest.fn() });
     // Make sure the path is not in focus.
     store.dispatch(
@@ -790,7 +790,7 @@ describe(__filename, () => {
 
   it('does not focus a node when selected and already in focus', () => {
     const externalVersion = fakeVersion;
-    const store = createStoreWithVersion({ makeCurrent: true });
+    const store = createStoreWithVersion({ version: externalVersion });
     const nodeId = externalVersion.file.selected_file;
 
     // Focus the path.
