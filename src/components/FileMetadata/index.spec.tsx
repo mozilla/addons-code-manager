@@ -16,7 +16,7 @@ import FileMetadata from '.';
 describe(__filename, () => {
   const _getVersionFile = (props = {}) => {
     const version = fakeVersion;
-    const store = createStoreWithVersion({ makeCurrent: true });
+    const store = createStoreWithVersion({ version });
     store.dispatch(
       versionActions.loadVersionFile({
         path: version.file.selected_file,
