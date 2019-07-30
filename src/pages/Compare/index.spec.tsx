@@ -433,6 +433,40 @@ describe(__filename, () => {
     );
   });
 
+  it('dispatches an action to set current version id when switching head versions', () => {
+    const addonId = 9999;
+    const baseVersionId = 1;
+    const newHeadVersionId = baseVersionId + 1;
+    const oldHeadVersionId = baseVersionId + 2;
+    const version = { ...fakeVersionWithDiff, id: newHeadVersionId };
+    const store = configureStore();
+    store.dispatch(
+      versionsActions.setCurrentVersionId({ versionId: oldHeadVersionId }),
+    );
+    _loadDiff({
+      addonId,
+      baseVersionId,
+      headVersionId: newHeadVersionId,
+      store,
+      version,
+      setCurrentVersionId: false,
+    });
+    const dispatch = spyOn(store, 'dispatch');
+
+    render({
+      ...getRouteParams({
+        addonId,
+        baseVersionId,
+        headVersionId: newHeadVersionId,
+      }),
+      store,
+    });
+
+    expect(dispatch).toHaveBeenCalledWith(
+      versionsActions.setCurrentVersionId({ versionId: newHeadVersionId }),
+    );
+  });
+
   it('does not dispatch fetchVersionFile() when a file is loading', () => {
     const addonId = 9999;
     const baseVersionId = 1;

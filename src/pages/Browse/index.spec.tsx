@@ -193,6 +193,24 @@ describe(__filename, () => {
     );
   });
 
+  it('dispatches setCurrentVersionId when switching versions', () => {
+    const newVersionId = 789;
+    const oldVersionId = 987;
+    const version = { ...fakeVersion, id: newVersionId };
+    const store = configureStore();
+    store.dispatch(
+      versionsActions.setCurrentVersionId({ versionId: oldVersionId }),
+    );
+    _loadVersionAndFile({ store, version, setCurrentVersionId: false });
+    const dispatch = spyOn(store, 'dispatch');
+
+    render({ store, versionId: String(newVersionId) });
+
+    expect(dispatch).toHaveBeenCalledWith(
+      versionsActions.setCurrentVersionId({ versionId: newVersionId }),
+    );
+  });
+
   it('renders a VersionFileViewer', () => {
     const version = {
       ...fakeVersion,
