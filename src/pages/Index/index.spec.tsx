@@ -93,9 +93,11 @@ describe(__filename, () => {
   });
 
   it('renders an HTML title', () => {
-    const root = shallow(<Index />);
+    const store = configureStore();
+    const root = render({ store });
 
     expect(root.find('title')).toHaveText('Addons Code Manager');
+  });
 
   it('dispatches an action to unset current version id', () => {
     const store = configureStore();
