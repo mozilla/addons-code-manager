@@ -73,4 +73,10 @@ describe(__filename, () => {
 
     expect(_log.error).not.toHaveBeenCalled();
   });
+
+  it('renders an HTML title', () => {
+    const root = shallow(<Index />);
+
+    expect(root.find('title')).toHaveText('Addons Code Manager');
+  });
 });
