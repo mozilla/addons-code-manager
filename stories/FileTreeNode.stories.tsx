@@ -87,7 +87,8 @@ storiesOf('FileTreeNode', module).addWithChapters('all variants', {
               version: {
                 ...fakeVersion,
                 id: versionId,
-              }});
+              },
+            });
 
             return render({
               versionId,
