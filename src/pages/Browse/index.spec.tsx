@@ -91,6 +91,7 @@ describe(__filename, () => {
   const _loadVersionAndFile = ({
     store = configureStore(),
     version = fakeVersion,
+    setCurrentVersionId = true,
   }) => {
     store.dispatch(versionsActions.loadVersionInfo({ version }));
     store.dispatch(
@@ -99,6 +100,12 @@ describe(__filename, () => {
         version,
       }),
     );
+
+    if (setCurrentVersionId) {
+      store.dispatch(
+        versionsActions.setCurrentVersionId({ versionId: version.id }),
+      );
+    }
   };
 
   const setUpVersionFileUpdate = ({
@@ -171,6 +178,37 @@ describe(__filename, () => {
 
     expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
     expect(_fetchVersion).toHaveBeenCalledWith({ addonId, versionId });
+  });
+
+  it('dispatches setCurrentVersionId on mount if the currentVersionId is unset', () => {
+    const version = fakeVersion;
+    const store = configureStore();
+    _loadVersionAndFile({ store, version, setCurrentVersionId: false });
+    const dispatch = spyOn(store, 'dispatch');
+
+    render({ store });
+
+    expect(dispatch).toHaveBeenCalledWith(
+      versionsActions.setCurrentVersionId({ versionId: version.id }),
+    );
+  });
+
+  it('dispatches setCurrentVersionId when switching versions', () => {
+    const newVersionId = 789;
+    const oldVersionId = 987;
+    const version = { ...fakeVersion, id: newVersionId };
+    const store = configureStore();
+    store.dispatch(
+      versionsActions.setCurrentVersionId({ versionId: oldVersionId }),
+    );
+    _loadVersionAndFile({ store, version, setCurrentVersionId: false });
+    const dispatch = spyOn(store, 'dispatch');
+
+    render({ store, versionId: String(newVersionId) });
+
+    expect(dispatch).toHaveBeenCalledWith(
+      versionsActions.setCurrentVersionId({ versionId: newVersionId }),
+    );
   });
 
   it('renders a VersionFileViewer', () => {

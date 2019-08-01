@@ -246,6 +246,9 @@ export const actions = {
   setCurrentVersionId: createAction('SET_CURRENT_VERSION_ID', (resolve) => {
     return (payload: { versionId: number }) => resolve(payload);
   }),
+  unsetCurrentVersionId: createAction('UNSET_CURRENT_VERSION_ID', (resolve) => {
+    return () => resolve();
+  }),
   setVisibleSelectedPath: createAction(
     'SET_VISIBLE_SELECTED_PATH',
     (resolve) => {
@@ -318,7 +321,7 @@ export type VersionsState = {
   compareInfoIsLoading: {
     [compareInfoKey: string]: boolean;
   };
-  currentVersionId: number | undefined;
+  currentVersionId: number | undefined | false;
   versionInfo: {
     [versionId: number]:
       | Version // data successfully loaded
@@ -448,9 +451,9 @@ export const getVersionInfo = (
 
 export const selectCurrentVersionInfo = (
   versions: VersionsState,
-): Version | null | undefined => {
+): Version | null | undefined | false => {
   if (!versions.currentVersionId) {
-    return undefined;
+    return versions.currentVersionId === undefined ? undefined : false;
   }
   return getVersionInfo(versions, versions.currentVersionId);
 };
@@ -1384,6 +1387,12 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
       return {
         ...state,
         currentVersionId: versionId,
+      };
+    }
+    case getType(actions.unsetCurrentVersionId): {
+      return {
+        ...state,
+        currentVersionId: false,
       };
     }
     default:

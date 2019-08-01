@@ -20,6 +20,7 @@ import {
   getVersionFile,
   getVersionInfo,
   viewVersionFile,
+  actions as versionsActions,
 } from '../../reducers/versions';
 import {
   createCodeLineAnchorGetter,
@@ -49,6 +50,7 @@ type PropsFromState = {
   version: Version | void | null;
   versionFile: VersionFile | void | null;
   versionFileIsLoading: boolean;
+  currentVersionId: number | null | undefined | false;
 };
 
 type Props = RouteComponentProps<PropsFromRouter> &
@@ -76,6 +78,7 @@ export class CompareBase extends React.Component<Props> {
       _fetchDiff,
       _fetchVersionFile,
       compareInfo,
+      currentVersionId,
       dispatch,
       history,
       match,
@@ -112,6 +115,11 @@ export class CompareBase extends React.Component<Props> {
           path: path || undefined,
         }),
       );
+      return;
+    }
+
+    if (version && currentVersionId !== version.id) {
+      dispatch(versionsActions.setCurrentVersionId({ versionId: version.id }));
     }
 
     if (version && !versionFileIsLoading && versionFile === undefined) {
@@ -235,6 +243,10 @@ export const mapStateToProps = (
     comparedToVersionId: baseVersionId,
   });
 
+  const currentVersionId = version
+    ? state.versions.currentVersionId
+    : undefined;
+
   let versionFile;
   if (version) {
     versionFile = getVersionFile(
@@ -247,6 +259,7 @@ export const mapStateToProps = (
   return {
     addonId,
     compareInfo,
+    currentVersionId,
     path,
     version,
     versionFile,

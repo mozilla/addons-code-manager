@@ -2951,6 +2951,16 @@ describe(__filename, () => {
     });
   });
 
+  describe('unsetCurrentVersionId', () => {
+    it('unsets the current version id', () => {
+      expect(reducer(undefined, actions.unsetCurrentVersionId())).toMatchObject(
+        {
+          currentVersionId: false,
+        },
+      );
+    });
+  });
+
   describe('selectCurrentVersionInfo', () => {
     it('returns the current version when set', () => {
       const version = { ...fakeVersion, id: 42 };
@@ -2996,6 +3006,12 @@ describe(__filename, () => {
       );
 
       expect(selectCurrentVersionInfo(state)).toEqual(undefined);
+    });
+
+    it('returns false if the current version id is unset', () => {
+      const state = reducer(undefined, actions.unsetCurrentVersionId());
+
+      expect(selectCurrentVersionInfo(state)).toEqual(false);
     });
   });
 });
