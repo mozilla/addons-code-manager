@@ -68,7 +68,8 @@
     "typesafe-actions": "4.4.2",
     "typescript": "3.5.3",
     "universal-cookie": "4.0.2",
-    "universal-cookie-express": "4.0.1"
+    "universal-cookie-express": "4.0.1",
+    "snyk": "^1.208.0"
   },
   "devDependencies": {
     "@emotion/core": "^10.0.7",
@@ -94,7 +95,6 @@
     "prettier": "1.18.2",
     "pretty-quick": "^1.8.1",
     "react-storybook-addon-chapters": "^3.1.1",
-    "snyk": "^1.181.0",
     "stmux": "^1.6.1",
     "storybook-addon-root-attribute": "^0.2.0",
     "supertest": "^4.0.0",
@@ -134,7 +134,9 @@
     "test": "react-scripts test --reporters=default --reporters='<rootDir>/src/jest-reporters/eslint-check.js'",
     "test-ci": "yarn test --coverage && codecov",
     "type-coverage": "type-coverage",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
   "browserslist": [
     ">0.2%",
@@ -156,5 +158,6 @@
       "!src/jest-reporters/eslint-check.js",
       "!src/index.tsx"
     ]
-  }
+  },
+  "snyk": true
 }
