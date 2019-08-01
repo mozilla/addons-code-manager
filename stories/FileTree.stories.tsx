@@ -71,7 +71,7 @@ const onSelectFile = (path: string) => {
 };
 
 const render = ({ ...moreProps }: Partial<FileTreeProps> = {}) => {
-  const store = createStoreWithVersion(version);
+  const store = createStoreWithVersion({ version });
 
   const props: FileTreeProps = {
     onSelect: onSelectFile,

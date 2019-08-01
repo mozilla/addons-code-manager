@@ -46,13 +46,13 @@ describe(__filename, () => {
   describe('when a version is loaded', () => {
     it('renders addon name', () => {
       const addonName = 'addon name example';
-      const store = createStoreWithVersion(
-        {
+      const store = createStoreWithVersion({
+        version: {
           ...fakeVersion,
           addon: { ...fakeVersionAddon, name: { 'en-US': addonName } },
         },
-        { makeCurrent: true },
-      );
+        makeCurrent: true,
+      });
       const root = render({ store });
 
       expect(root.find(`.${styles.addonName}`)).toHaveText(addonName);
