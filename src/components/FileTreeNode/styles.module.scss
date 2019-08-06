@@ -54,6 +54,11 @@
   justify-content: flex-end;
 }
 
+.folderAndFileIcons {
+  flex-shrink: 0;
+  width: 1.1em;
+}
+
 .selected {
   background-color: $light-gray;
 }
