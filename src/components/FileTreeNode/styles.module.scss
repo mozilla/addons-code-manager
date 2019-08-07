@@ -54,6 +54,12 @@
   justify-content: flex-end;
 }
 
+.folderAndFileIcons {
+  flex-shrink: 0;
+  // This is intended to be wider than the widest icon to prevent the UI from jumping.
+  width: 1.125em;
+}
+
 .selected {
   background-color: $light-gray;
 }

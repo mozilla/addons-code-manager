@@ -257,11 +257,13 @@ export class FileTreeNodeBase<TreeNodeType> extends React.Component<Props> {
             })}
             style={{ paddingLeft: `${adjustedLevel * 10}px` }}
           >
-            {isFolder ? (
-              <FontAwesomeIcon icon={isExpanded ? 'folder-open' : 'folder'} />
-            ) : (
-              <FontAwesomeIcon icon="file" />
-            )}
+            <span className={styles.folderAndFileIcons}>
+              {isFolder ? (
+                <FontAwesomeIcon icon={isExpanded ? 'folder-open' : 'folder'} />
+              ) : (
+                <FontAwesomeIcon icon="file" />
+              )}
+            </span>
             <span title={nodeTitle} className={styles.nodeName}>
               {node.name}
             </span>
