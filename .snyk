@@ -17,5 +17,5 @@ ignore:
   SNYK-JS-LODASH-450202:
     - '*':
         reason: While developers / XPIs do have the ability to inject JSON into our system, nothing that depends on this exact version of lodash is handling incoming JSON data
-        expires: 2019-08-01T00:00:00.000Z
+        expires: 2019-10-01T00:00:00.000Z
 patch: {}
