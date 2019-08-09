@@ -3,12 +3,9 @@ import Textarea from 'react-textarea-autosize';
 import { Button, Form } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
+import { Comment } from '../../reducers/comments';
 import { gettext, sanitizeHTML, nl2br } from '../../utils';
 import styles from './styles.module.scss';
-
-type Comment = {
-  content: string;
-};
 
 export type PublicProps = {
   comment: Comment | null;

@@ -2,15 +2,12 @@ import * as React from 'react';
 import { shallow } from 'enzyme';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
+import { createFakeComment } from '../../test-helpers';
 import styles from './styles.module.scss';
 
 import Comment, { PublicProps } from '.';
 
 describe(__filename, () => {
-  const fakeComment = {
-    content: 'This is a review comment',
-  };
-
   const render = ({
     comment = null,
     readOnly = true,
@@ -26,7 +23,7 @@ describe(__filename, () => {
   });
 
   it('renders a comment when provided', () => {
-    const comment = fakeComment;
+    const comment = createFakeComment();
 
     const root = render({ comment });
 
@@ -37,7 +34,7 @@ describe(__filename, () => {
   });
 
   it('sanitizes the content of a comment', () => {
-    const comment = { ...fakeComment, content: '<span>foo</span>' };
+    const comment = createFakeComment({ content: '<span>foo</span>' });
 
     const root = render({ comment });
 
@@ -49,7 +46,7 @@ describe(__filename, () => {
   });
 
   it('renders a form to edit a comment when the readOnly prop is false', () => {
-    const comment = fakeComment;
+    const comment = createFakeComment();
     const root = render({ comment, readOnly: false });
 
     expect(root.find(`.${styles.form}`)).toHaveLength(1);
