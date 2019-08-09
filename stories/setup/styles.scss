@@ -93,3 +93,15 @@ body.fullscreen {
   display: flex;
   justify-content: center;
 }
+
+.CommentableStory-row {
+  align-items: center;
+  display: grid;
+  grid-gap: 5px;
+  grid-template-columns: min-content auto;
+}
+
+.CommentableStory-addComment,
+.CommentableStory-content {
+  cursor: pointer;
+}

@@ -1,0 +1,46 @@
+@import '../../scss/variables';
+
+$shellSize: 1.3rem;
+// Using rem (a percentage) seemed to be a bit glitchy in
+// Firefox. A fixed pixel size works better.
+$size: 6px;
+
+.button {
+  align-items: center;
+  display: flex;
+  height: $shellSize;
+  justify-content: center;
+  line-height: 0;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  width: $shellSize;
+
+  &::before,
+  &::after {
+    content: '';
+    flex-shrink: 0;
+    position: absolute;
+    background: #000;
+  }
+
+  // This draws the vertical bar of the plus sign.
+  &::before {
+    height: $size;
+    width: 1px;
+  }
+
+  // This draws the horizontal bar of the plus sign.
+  &::after {
+    height: 1px;
+    width: $size;
+  }
+}
+
+// Only show the button when hovering over the container
+// (such as a line of code).
+.commentable:not(:hover) {
+  .button {
+    visibility: hidden;
+  }
+}
