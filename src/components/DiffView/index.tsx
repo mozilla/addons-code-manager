@@ -341,12 +341,12 @@ export class DiffViewBase extends React.Component<Props> {
     return (
       <div className={styles.DiffView}>
         {!diff && (
-          <React.Fragment>
+          <>
             <div className={styles.header} />
             <div className={makeClassName(styles.diff, styles.noDiffs)}>
               {gettext('No differences')}
             </div>
-          </React.Fragment>
+          </>
         )}
 
         <GlobalLinterMessages

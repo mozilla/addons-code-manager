@@ -1,4 +1,4 @@
-/* eslint react/no-multi-comp: 0 */
+/* eslint react/no-multi-comp: 0, max-classes-per-file: 0 */
 
 declare module 'react-diff-view' {
   type ChangeType = 'delete' | 'insert' | 'normal';

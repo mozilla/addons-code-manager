@@ -7,9 +7,9 @@ type PublicProps = {
 
 const LoadingBase = ({ message }: PublicProps) => {
   return (
-    <React.Fragment>
+    <>
       <FontAwesomeIcon icon="spinner" spin /> {message}
-    </React.Fragment>
+    </>
   );
 };
 

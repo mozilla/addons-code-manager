@@ -165,7 +165,7 @@ export class BrowseBase extends React.Component<Props> {
     const { file, version } = this.props;
 
     return (
-      <React.Fragment>
+      <>
         <Helmet>
           <title>
             {version
@@ -184,7 +184,7 @@ export class BrowseBase extends React.Component<Props> {
         >
           {this.getContent()}
         </VersionFileViewer>
-      </React.Fragment>
+      </>
     );
   }
 }

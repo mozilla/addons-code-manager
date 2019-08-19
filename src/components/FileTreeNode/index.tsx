@@ -247,7 +247,7 @@ export class FileTreeNodeBase<TreeNodeType> extends React.Component<Props> {
     }
 
     return (
-      <React.Fragment>
+      <>
         <ListGroup.Item as={ItemElement} {...listGroupItemProps}>
           <span
             className={makeClassName(styles.nodeItem, {
@@ -282,7 +282,7 @@ export class FileTreeNodeBase<TreeNodeType> extends React.Component<Props> {
               {gettext('This folder is empty')}
             </ListGroup.Item>
           ))}
-      </React.Fragment>
+      </>
     );
   };
 

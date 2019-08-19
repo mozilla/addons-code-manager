@@ -110,7 +110,7 @@ export class IndexBase extends React.Component<Props> {
           </li>
         </ul>
         {showLocalDevLinks && (
-          <React.Fragment>
+          <>
             <hr />
             <p>{gettext('Dev links (only shown in local dev):')}</p>
             <ul>
@@ -130,10 +130,10 @@ export class IndexBase extends React.Component<Props> {
                 </Link>
               </li>
             </ul>
-          </React.Fragment>
+          </>
         )}
         {allowErrorSimulation && (
-          <React.Fragment>
+          <>
             <hr />
             <p>
               {gettext(
@@ -166,7 +166,7 @@ export class IndexBase extends React.Component<Props> {
                 {gettext('Call console.error()')}
               </Button>
             </div>
-          </React.Fragment>
+          </>
         )}
       </ContentShell>
     );

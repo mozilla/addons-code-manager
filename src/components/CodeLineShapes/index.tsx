@@ -11,7 +11,7 @@ type Props = PublicProps;
 
 const CodeLineShapes = ({ lineShapes }: Props) => {
   return (
-    <React.Fragment>
+    <>
       {lineShapes.tokens.map((shape, shapeIndex) => {
         let className;
         if (shape.token === Token.whitespace) {
@@ -33,7 +33,7 @@ const CodeLineShapes = ({ lineShapes }: Props) => {
           />
         );
       })}
-    </React.Fragment>
+    </>
   );
 };
 
