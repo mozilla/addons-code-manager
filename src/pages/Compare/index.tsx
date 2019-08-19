@@ -180,7 +180,7 @@ export class CompareBase extends React.Component<Props> {
     const { baseVersionId, headVersionId } = match.params;
 
     return (
-      <React.Fragment>
+      <>
         <Helmet>
           <title>
             {version
@@ -215,7 +215,7 @@ export class CompareBase extends React.Component<Props> {
             )}
           </div>
         </VersionFileViewer>
-      </React.Fragment>
+      </>
     );
   }
 }

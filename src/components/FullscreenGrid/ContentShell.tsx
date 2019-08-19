@@ -47,7 +47,7 @@ export const ContentShellBase = ({
   topContent,
 }: Props) => {
   return (
-    <React.Fragment>
+    <>
       {topContent ? (
         <div className={styles.topContent}>{topContent}</div>
       ) : null}
@@ -74,7 +74,7 @@ export const ContentShellBase = ({
       >
         {altSidePanel}
       </SidePanel>
-    </React.Fragment>
+    </>
   );
 };
 

@@ -1,3 +1,4 @@
+/* eslint max-classes-per-file: 0 */
 import React, { Component } from 'react';
 import { shallow } from 'enzyme';
 import { compose } from 'redux';
@@ -14,6 +15,7 @@ describe(__filename, () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (WrappedComponent: any) => {
         return (props: object) => {
+          // eslint-disable-next-line react/jsx-props-no-spreading
           return <WrappedComponent {...props} />;
         };
       };

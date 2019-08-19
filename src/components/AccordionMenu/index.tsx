@@ -58,7 +58,7 @@ export class AccordionItemBase extends React.Component<ItemProps> {
     const contentId = makeItemContentId(title);
 
     return (
-      <React.Fragment>
+      <>
         <Button
           ariaControls={contentId}
           onClick={this.onItemClick}
@@ -75,7 +75,7 @@ export class AccordionItemBase extends React.Component<ItemProps> {
         >
           {children}
         </div>
-      </React.Fragment>
+      </>
     );
   }
 }

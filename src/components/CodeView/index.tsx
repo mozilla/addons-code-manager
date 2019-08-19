@@ -116,7 +116,7 @@ export class CodeViewBase extends React.Component<Props> {
     }
 
     return (
-      <React.Fragment>
+      <>
         <GlobalLinterMessages
           containerRef={
             isLineSelected(getCodeLineAnchorID(0), location)
@@ -195,7 +195,7 @@ export class CodeViewBase extends React.Component<Props> {
         </FadableContent>
         {/* Only show a slow alert at the bottom if the code was trimmed. */}
         {codeWasTrimmed && slowAlert}
-      </React.Fragment>
+      </>
     );
   };
 

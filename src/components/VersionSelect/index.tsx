@@ -62,7 +62,7 @@ class VersionSelectBase extends React.Component<PublicProps> {
     } = this.props;
 
     return (
-      <React.Fragment>
+      <>
         <Form.Group
           as={Col}
           className={makeClassName(className, styles.formGroup)}
@@ -102,7 +102,7 @@ class VersionSelectBase extends React.Component<PublicProps> {
             </Form.Control>
           )}
         </Form.Group>
-      </React.Fragment>
+      </>
     );
   }
 }

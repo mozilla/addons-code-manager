@@ -64,9 +64,14 @@ export class CodeOverviewBase extends React.Component<Props, State> {
     rowHeight: 10,
   };
 
-  public state = { overviewHeight: null };
+  private overviewRef: React.RefObject<HTMLDivElement> | null;
 
-  private overviewRef = this.props.createOverviewRef();
+  constructor(props: Props) {
+    super(props);
+
+    this.state = { overviewHeight: null };
+    this.overviewRef = this.props.createOverviewRef();
+  }
 
   componentDidMount() {
     const { _window } = this.props;
