@@ -6263,10 +6263,10 @@ eslint-config-airbnb@18.0.1:
     object.assign "^4.1.0"
     object.entries "^1.1.0"
 
-eslint-config-amo@^1.19.0:
-  version "1.19.0"
-  resolved "https://registry.yarnpkg.com/eslint-config-amo/-/eslint-config-amo-1.19.0.tgz#35f6ec7bbc733f1eb78f9290667494dfaf72ae9d"
-  integrity sha512-HLY9cASBeFQKSF5mh4S84C1BRQz2TH8PSyo9fBpreQO+3QKIsC6bKCGJffNwwT+iXlaPRitpx02O1/dKxHKXHw==
+eslint-config-amo@^1.19.1:
+  version "1.19.1"
+  resolved "https://registry.yarnpkg.com/eslint-config-amo/-/eslint-config-amo-1.19.1.tgz#5a14fb75c9f17e695ff0a4eac803c329e46e3717"
+  integrity sha512-BW6N38OoK5ch3gU3PBv/1bZzTyiLLMvlKxD153FbdGwaUJ0tmpboqnBfySVnb3JS54enSPzdNNUrNDCNDeL/9Q==
   dependencies:
     eslint-config-airbnb "18.0.1"
     eslint-plugin-import "2.18.2"
