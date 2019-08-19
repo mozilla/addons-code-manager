@@ -1,4 +1,3 @@
-/* eslint @typescript-eslint/no-object-literal-type-assertion: 0 */
 import fs from 'fs';
 import http from 'http';
 import path from 'path';
@@ -281,6 +280,7 @@ describe(__filename, () => {
         expect(() => {
           request(
             createServer({
+              // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
               // @ts-ignore
               env: fakeEnv,
               rootPath: fixturesPath,

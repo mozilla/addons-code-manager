@@ -125,7 +125,6 @@ export class CodeOverviewBase extends React.Component<Props, State> {
     }
 
     const availableHeight =
-      // @ts-ignore: this looks like a bug because `overviewHeight` cannot be `null` at this point
       overviewHeight -
       // Remove the top and bottom div padding.
       overviewPadding * 2 -

@@ -60,7 +60,7 @@ export const fakeVersionEntry: ExternalVersionEntry = Object.freeze({
 export const createFakeEntry = (
   mime_category: VersionEntryType,
   path: string,
-  mimetype: string = 'application/json',
+  mimetype = 'application/json',
 ): ExternalVersionEntry => {
   return {
     ...fakeVersionEntry,
