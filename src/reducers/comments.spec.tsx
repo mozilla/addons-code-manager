@@ -1,7 +1,7 @@
 import reducer, {
   CommentInfo,
   actions,
-  createCommentsKey,
+  createCommentKey,
   createEmptyCommentInfo,
   createInternalComment,
 } from './comments';
@@ -28,7 +28,7 @@ describe(__filename, () => {
       );
 
       expect(
-        state.byKey[createCommentsKey({ versionId, fileName, line })],
+        state.byKey[createCommentKey({ versionId, fileName, line })],
       ).toEqual(createCommentInfo({ beginNewComment: true }));
     });
   });
@@ -45,7 +45,7 @@ describe(__filename, () => {
       );
 
       expect(
-        state.byKey[createCommentsKey({ versionId, fileName, line })],
+        state.byKey[createCommentKey({ versionId, fileName, line })],
       ).toEqual(createCommentInfo({ beginNewComment: false }));
     });
   });
@@ -65,7 +65,7 @@ describe(__filename, () => {
       expect(state.byId[comment.id]).toEqual(createInternalComment(comment));
 
       expect(
-        state.byKey[createCommentsKey({ fileName, line, versionId })],
+        state.byKey[createCommentKey({ fileName, line, versionId })],
       ).toMatchObject({
         commentIds: [comment.id],
       });
@@ -90,20 +90,23 @@ describe(__filename, () => {
       );
 
       expect(
-        state.byKey[createCommentsKey({ fileName, line, versionId })],
+        state.byKey[createCommentKey({ fileName, line, versionId })],
       ).toMatchObject({
         commentIds: [comment1.id, comment2.id],
       });
+
+      expect(state.byId[comment1.id]).toEqual(createInternalComment(comment1));
+      expect(state.byId[comment2.id]).toEqual(createInternalComment(comment2));
     });
   });
 
-  describe('createCommentsKey', () => {
+  describe('createCommentKey', () => {
     it('creates a key from versionId, fileName, line', () => {
       const versionId = 1;
       const fileName = 'manifest.json';
       const line = 321;
 
-      expect(createCommentsKey({ versionId, fileName, line })).toEqual(
+      expect(createCommentKey({ versionId, fileName, line })).toEqual(
         `version:${versionId};file:${fileName};line:${line}`,
       );
     });
@@ -112,7 +115,7 @@ describe(__filename, () => {
       const versionId = 1;
       const fileName = 'manifest.json';
 
-      expect(createCommentsKey({ versionId, fileName, line: null })).toEqual(
+      expect(createCommentKey({ versionId, fileName, line: null })).toEqual(
         `version:${versionId};file:${fileName}`,
       );
     });
@@ -121,8 +124,14 @@ describe(__filename, () => {
       const versionId = 1;
 
       expect(
-        createCommentsKey({ versionId, fileName: null, line: null }),
+        createCommentKey({ versionId, fileName: null, line: null }),
       ).toEqual(`version:${versionId}`);
+    });
+
+    it('cannot create a key from just versionId and line', () => {
+      expect(() =>
+        createCommentKey({ versionId: 1, fileName: null, line: 2 }),
+      ).toThrow(/Cannot create key/);
     });
   });
 

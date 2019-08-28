@@ -81,18 +81,24 @@ type CommentKeyParams = {
   versionId: number;
 };
 
-export const createCommentsKey = ({
+export const createCommentKey = ({
   versionId,
   fileName,
   line,
 }: CommentKeyParams) => {
-  return [
+  const key = [
     `version:${versionId}`,
     fileName && `file:${fileName}`,
     line && `line:${line}`,
   ]
     .filter(Boolean)
     .join(';');
+
+  if (line !== null && fileName === null) {
+    throw new Error(`Cannot create key "${key}" because fileName is empty`);
+  }
+
+  return key;
 };
 
 export const actions = {
@@ -117,9 +123,7 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
 ): CommentsState => {
   switch (action.type) {
     case getType(actions.beginComment): {
-      const { versionId, fileName, line } = action.payload;
-
-      const key = createCommentsKey({ fileName, line, versionId });
+      const key = createCommentKey(action.payload);
       const info = state.byKey[key] || createEmptyCommentInfo();
 
       return {
@@ -134,9 +138,7 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
       };
     }
     case getType(actions.finishComment): {
-      const { versionId, fileName, line } = action.payload;
-
-      const key = createCommentsKey({ fileName, line, versionId });
+      const key = createCommentKey(action.payload);
       const info = state.byKey[key] || createEmptyCommentInfo();
 
       return {
@@ -151,9 +153,9 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
       };
     }
     case getType(actions.setComment): {
-      const { comment, fileName, line, versionId } = action.payload;
+      const { comment, ...keyParams } = action.payload;
 
-      const key = createCommentsKey({ fileName, line, versionId });
+      const key = createCommentKey(keyParams);
       const info = state.byKey[key] || createEmptyCommentInfo();
 
       return {
