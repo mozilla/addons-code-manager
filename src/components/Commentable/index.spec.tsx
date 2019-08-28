@@ -10,14 +10,14 @@ describe(__filename, () => {
     return shallow(<Commentable as="span" {...moreProps} />);
   };
 
-  it('passes through configuration of a custom component', () => {
-    const hostElement = 'div';
+  it('lets you configure the custom element', () => {
+    const customElement = 'div';
     const className = 'example-class';
     const id = 'example-id';
 
-    const root = render({ as: hostElement, className, id });
+    const root = render({ as: customElement, className, id });
 
-    expect(root.type()).toEqual(hostElement);
+    expect(root.type()).toEqual(customElement);
     expect(root).toHaveClassName(className);
     expect(root).toHaveProp('id', id);
   });
