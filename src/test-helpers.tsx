@@ -10,6 +10,11 @@ import log from 'loglevel';
 import configureStore, { ThunkActionCreator } from './configureStore';
 import { ApplicationState } from './reducers';
 import {
+  Comment,
+  ExternalComment,
+  createInternalComment,
+} from './reducers/comments';
+import {
   ExternalLinterResult,
   ExternalLinterMessage,
   LinterMessagesByPath,
@@ -742,5 +747,31 @@ export const externallyLocalizedString = (
 ) => {
   return {
     [locale]: value,
+  };
+};
+
+export const createFakeExternalComment = (
+  comment: Partial<ExternalComment> = {},
+) => {
+  return {
+    comment: 'Example comment about some code',
+    id: 1,
+    lineno: null,
+    filename: null,
+    user: {
+      id: 1,
+      name: null,
+      url: null,
+      username: 'some_user',
+    },
+    version: fakeVersion,
+    ...comment,
+  };
+};
+
+export const createFakeComment = (comment: Partial<Comment> = {}) => {
+  return {
+    ...createInternalComment(createFakeExternalComment()),
+    ...comment,
   };
 };

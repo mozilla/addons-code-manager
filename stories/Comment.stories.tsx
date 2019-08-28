@@ -2,15 +2,16 @@ import * as React from 'react';
 import { storiesOf } from '@storybook/react';
 
 import Comment from '../src/components/Comment';
+import { createFakeComment } from '../src/test-helpers';
 
-const fakeComment = {
+const fakeComment = createFakeComment({
   content: [
     'The use of `eval()` is dangerous. ',
     "It looks like you don't even need it here.",
     '\n',
     'Maybe you could remove it?',
   ].join(''),
-};
+});
 
 storiesOf('Comment', module).addWithChapters('all variants', {
   chapters: [
