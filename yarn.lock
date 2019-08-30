@@ -4444,7 +4444,7 @@ core-js@^2.4.0, core-js@^2.6.5:
   resolved "https://registry.yarnpkg.com/core-js/-/core-js-2.6.9.tgz#6b4b214620c834152e179323727fc19741b084f2"
   integrity sha512-HOpZf6eXmnl7la+cUdMnLvUxKNqLUzJvgIziQ0DiF3JwSImNphIqdGqzj6hIKyX04MmV0poclQ7+wjWvxQyR2A==
 
-core-js@^3.0.1, core-js@^3.0.4:
+core-js@^3.0.1, core-js@^3.0.4, core-js@^3.1.4:
   version "3.2.1"
   resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.2.1.tgz#cd41f38534da6cc59f7db050fe67307de9868b09"
   integrity sha512-Qa5XSVefSVPRxy2XfUC13WbvqkxhkwB3ve+pgCQveNgYzbM/UxZeu1dcOX/xr4UmfUd+muuvsaxilQzCyUurMw==
@@ -12209,15 +12209,16 @@ react-dev-utils@^9.0.0, react-dev-utils@^9.0.3:
     strip-ansi "5.2.0"
     text-table "0.2.0"
 
-react-diff-view@2.1.4:
-  version "2.1.4"
-  resolved "https://registry.yarnpkg.com/react-diff-view/-/react-diff-view-2.1.4.tgz#556926eab30f6d47cbd074f23f7e9a81b11c6326"
-  integrity sha512-l1e9SPQdf8BgzRZQOzfeR14t0RScwstGArA/GF6vriRi0ip4+Aia0XZdg5qDb28mx57VnFgPHbkgCfyaeIOvPQ==
+react-diff-view@2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/react-diff-view/-/react-diff-view-2.2.0.tgz#b5b10126c9d24e462a296fdeb94e612e477ea1bb"
+  integrity sha512-1Oq0lhkjE3pitgyH2Mwpufm5Gu/8dMILIpEgjSsDvt4shcrfR12+BgyugZ+lyHA2Qhbmu7UByNEnsd/nYeU8fA==
   dependencies:
     classnames "^2.2.6"
+    core-js "^3.1.4"
     diff-match-patch "^1.0.4"
     recompose "^0.30.0"
-    shallow-equal "^1.0.0"
+    shallow-equal "^1.2.0"
     warning "^4.0.2"
 
 react-docgen@^4.1.0:
@@ -13437,7 +13438,7 @@ shallow-copy@~0.0.1:
   resolved "https://registry.yarnpkg.com/shallow-copy/-/shallow-copy-0.0.1.tgz#415f42702d73d810330292cc5ee86eae1a11a170"
   integrity sha1-QV9CcC1z2BAzApLMXuhurhoRoXA=
 
-shallow-equal@^1.0.0, shallow-equal@^1.1.0:
+shallow-equal@^1.1.0, shallow-equal@^1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/shallow-equal/-/shallow-equal-1.2.0.tgz#fd828d2029ff4e19569db7e19e535e94e2d1f5cc"
   integrity sha512-Z21pVxR4cXsfwpMKMhCEIO1PCi5sp7KEp+CmOpBQ+E8GpHwKOw2sEzk7sgblM3d/j4z4gakoWEoPcjK0VJQogA==
