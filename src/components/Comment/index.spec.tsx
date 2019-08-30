@@ -2,7 +2,7 @@ import * as React from 'react';
 import { shallow } from 'enzyme';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import { createFakeComment } from '../../test-helpers';
+import { createFakeComment, createFakeEvent } from '../../test-helpers';
 import styles from './styles.module.scss';
 
 import Comment, { PublicProps } from '.';
@@ -70,7 +70,7 @@ describe(__filename, () => {
       };
     };
 
-    it('stops propagation of keydown events on mount', () => {
+    it('adds keydown listeners on mount', () => {
       const fakeRef = createFakeTextareaRef();
       const root = render({ createTextareaRef: () => fakeRef });
 
@@ -78,6 +78,19 @@ describe(__filename, () => {
         'keydown',
         (root.instance() as Comment).keydownListener,
       );
+    });
+
+    it('stops propagating keydown events', () => {
+      const fakeRef = createFakeTextareaRef();
+      render({ createTextareaRef: () => fakeRef });
+
+      expect(fakeRef.current.addEventListener).toHaveBeenCalled();
+      const listenToKeydown = fakeRef.current.addEventListener.mock.calls[0][1];
+
+      const fakeEvent = createFakeEvent();
+      listenToKeydown(fakeEvent);
+
+      expect(fakeEvent.stopPropagation).toHaveBeenCalled();
     });
 
     it('removes keydown event listeners on unmount', () => {
