@@ -7,12 +7,43 @@ import { Comment } from '../../reducers/comments';
 import { gettext, sanitizeHTML, nl2br } from '../../utils';
 import styles from './styles.module.scss';
 
+type TextareaRef = React.RefObject<HTMLTextAreaElement> | undefined;
+
 export type PublicProps = {
   comment: Comment | null;
+  createTextareaRef?: () => TextareaRef;
   readOnly: boolean;
 };
 
 export class CommentBase extends React.Component<PublicProps> {
+  private textareaRef: TextareaRef = this.props.createTextareaRef
+    ? this.props.createTextareaRef()
+    : React.createRef();
+
+  keydownListener = (event: KeyboardEvent) => {
+    // Stop keydown events from propagating to the <KeyboardShortcuts>
+    // component.
+    event.stopPropagation();
+  };
+
+  componentDidMount() {
+    if (this.textareaRef && this.textareaRef.current) {
+      this.textareaRef.current.addEventListener(
+        'keydown',
+        this.keydownListener,
+      );
+    }
+  }
+
+  componentWillUnmount() {
+    if (this.textareaRef && this.textareaRef.current) {
+      this.textareaRef.current.removeEventListener(
+        'keydown',
+        this.keydownListener,
+      );
+    }
+  }
+
   renderComment() {
     const comment = this.props.comment as Comment;
 
@@ -39,7 +70,12 @@ export class CommentBase extends React.Component<PublicProps> {
 
     return (
       <Form className={styles.form}>
-        <Textarea className={styles.textarea} minRows={3} value={value} />
+        <Textarea
+          inputRef={this.textareaRef}
+          className={styles.textarea}
+          minRows={3}
+          value={value}
+        />
         <Button type="submit">{gettext('Save')}</Button>
       </Form>
     );
