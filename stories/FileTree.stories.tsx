@@ -7,14 +7,28 @@ import FileTree, {
 } from '../src/components/FileTree';
 import { VersionEntryType } from '../src/reducers/versions';
 import {
+  ExternalLinterMessage,
+  actions as linterActions,
+} from '../src/reducers/linter';
+import {
   createStoreWithVersion,
+  createFakeExternalLinterResult,
+  fakeExternalLinterMessage,
   fakeVersion,
   fakeVersionEntry,
 } from '../src/test-helpers';
 import { renderWithStoreAndRouter } from './utils';
 
+const versionId = 456;
+
+const fakeDirectoryEntry = {
+  ...fakeVersionEntry,
+  mime_category: 'directory' as VersionEntryType,
+};
+
 const version = {
   ...fakeVersion,
+  id: versionId,
   file: {
     ...fakeVersion.file,
     entries: {
@@ -24,10 +38,9 @@ const version = {
         path: 'manifest.json',
       },
       'background-scripts': {
-        ...fakeVersionEntry,
+        ...fakeDirectoryEntry,
         filename: 'background-scripts',
         path: 'background-scripts',
-        mime_category: 'directory' as VersionEntryType,
       },
       'background-scripts/index.js': {
         ...fakeVersionEntry,
@@ -36,10 +49,9 @@ const version = {
         path: 'background-scripts/index.js',
       },
       'background-scripts/libs': {
-        ...fakeVersionEntry,
+        ...fakeDirectoryEntry,
         depth: 1,
         filename: 'libs',
-        mime_category: 'directory' as VersionEntryType,
         path: 'background-scripts/libs',
       },
       'background-scripts/libs/jquery.min.js': {
@@ -49,10 +61,9 @@ const version = {
         path: 'background-scripts/libs/jquery.min.js',
       },
       'background-scripts/extra': {
-        ...fakeVersionEntry,
+        ...fakeDirectoryEntry,
         depth: 1,
         filename: 'extra',
-        mime_category: 'directory' as VersionEntryType,
         path: 'background-scripts/extra',
       },
       'styles.css': {
@@ -60,9 +71,79 @@ const version = {
         filename: 'styles.css',
         path: 'styles.css',
       },
+      'jquery-ui': {
+        ...fakeDirectoryEntry,
+        depth: 0,
+        filename: 'jquery-ui',
+        path: 'jquery-ui',
+      },
+      'jquery-ui/css': {
+        ...fakeDirectoryEntry,
+        depth: 1,
+        filename: 'css',
+        path: 'jquery-ui/css',
+      },
+      'jquery-ui/js': {
+        ...fakeDirectoryEntry,
+        depth: 1,
+        filename: 'js',
+        path: 'jquery-ui/js',
+      },
+      'jquery-ui/js/jquery-1.7.1.min.js': {
+        ...fakeVersionEntry,
+        depth: 2,
+        filename: 'jquery-1.7.1.min.js',
+        path: 'jquery-ui/js/jquery-1.7.1.min.js',
+      },
+      'jquery-ui/js/jquery-ui-1.8.16.custom.min.js': {
+        ...fakeVersionEntry,
+        depth: 2,
+        filename: 'jquery-ui-1.8.16.custom.min.js',
+        path: 'jquery-ui/js/jquery-ui-1.8.16.custom.min.js',
+      },
+      lib: {
+        ...fakeDirectoryEntry,
+        depth: 0,
+        filename: 'lib',
+        path: 'lib',
+      },
+      'lib/adblockplus.js': {
+        ...fakeVersionEntry,
+        depth: 1,
+        filename: 'adblockplus.js',
+        path: 'lib/adblockplus.js',
+      },
+      'lib/compat.js': {
+        ...fakeVersionEntry,
+        depth: 1,
+        filename: 'compat.js',
+        path: 'lib/compat.js',
+      },
+      'lib/info.js': {
+        ...fakeVersionEntry,
+        depth: 1,
+        filename: 'info.js',
+        path: 'lib/info.js',
+      },
+      'lib/publicSuffixList.js': {
+        ...fakeVersionEntry,
+        depth: 1,
+        filename: 'publicSuffixList.js',
+        path: 'lib/publicSuffixList.js',
+      },
     },
   },
 };
+
+const messages: ExternalLinterMessage[] = [
+  {
+    ...fakeExternalLinterMessage,
+    type: 'error',
+    file: 'jquery-ui/js/jquery-1.7.1.min.js',
+  },
+  { ...fakeExternalLinterMessage, type: 'warning', file: 'lib/compat.js' },
+  { ...fakeExternalLinterMessage, type: 'notice', file: 'lib/info.js' },
+];
 
 // We display an alert when a file has been selected.
 const onSelectFile = (path: string) => {
@@ -72,6 +153,12 @@ const onSelectFile = (path: string) => {
 
 const render = ({ ...moreProps }: Partial<FileTreeProps> = {}) => {
   const store = createStoreWithVersion({ version });
+  store.dispatch(
+    linterActions.loadLinterResult({
+      versionId,
+      result: createFakeExternalLinterResult({ messages }),
+    }),
+  );
 
   const props: FileTreeProps = {
     onSelect: onSelectFile,
@@ -81,4 +168,8 @@ const render = ({ ...moreProps }: Partial<FileTreeProps> = {}) => {
   return renderWithStoreAndRouter(<FileTree {...props} />, { store });
 };
 
-storiesOf('FileTree', module).add('default', () => render());
+storiesOf('FileTree', module)
+  .add('fluid width', () => render())
+  .add('small width', () => (
+    <div className="FileTreeStory-smallWidth"> {render()}</div>
+  ));
