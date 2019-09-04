@@ -293,26 +293,6 @@ type CommentRequest = {
   lineno?: number | null;
 };
 
-type CreateOrUpdateCommentParamsBase = {
-  _callApi?: typeof callApi;
-  addonId: number;
-  apiState: ApiState;
-  commentId: number | void;
-  fileName: string | null;
-  line: number | null;
-  versionId: number;
-};
-
-type CreateOrUpdateCommentParams = CreateOrUpdateCommentParamsBase & {
-  cannedResponseId?: undefined;
-  comment: string;
-};
-
-type CreateOrUpdateCannedCommentParams = CreateOrUpdateCommentParamsBase & {
-  cannedResponseId: number;
-  comment?: undefined;
-};
-
 export const createOrUpdateComment = async ({
   /* istanbul ignore next */
   _callApi = callApi,
@@ -324,7 +304,17 @@ export const createOrUpdateComment = async ({
   fileName,
   line,
   versionId,
-}: CreateOrUpdateCommentParams | CreateOrUpdateCannedCommentParams) => {
+}: {
+  _callApi?: typeof callApi;
+  addonId: number;
+  apiState: ApiState;
+  cannedResponseId?: number;
+  comment?: string;
+  commentId: number | void;
+  fileName: string | null;
+  line: number | null;
+  versionId: number;
+}) => {
   if (cannedResponseId === undefined && comment === undefined) {
     throw new Error('Either cannedResponseId or comment must be specified');
   }
