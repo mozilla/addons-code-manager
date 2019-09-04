@@ -1,13 +1,16 @@
+/* eslint @typescript-eslint/camelcase: 0 */
 /* global fetchMock */
 import configureStore from '../configureStore';
 import {
   actions as apiActions,
   initialState as defaultApiState,
 } from '../reducers/api';
+import { createFakeExternalComment } from '../test-helpers';
 
 import {
   HttpMethod,
   callApi,
+  createOrUpdateComment,
   getApiHost,
   getCurrentUser,
   getDiff,
@@ -231,6 +234,21 @@ describe(__filename, () => {
         expect.any(String),
         expect.objectContaining({
           credentials: undefined,
+        }),
+      );
+    });
+
+    it('can send bodyData', async () => {
+      const bodyData = { example: 'value' };
+      await callApiWithDefaultApiState({ bodyData, endpoint: '/' });
+
+      expect(fetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          body: JSON.stringify(bodyData),
+          headers: {
+            'Content-Type': 'application/json',
+          },
         }),
       );
     });
@@ -548,6 +566,133 @@ describe(__filename, () => {
     it('handles true values', () => {
       const query = makeQueryString({ flag: true });
       expect(query).toEqual(expect.urlWithTheseParams({ flag: 'true' }));
+    });
+  });
+
+  describe('createOrUpdateComment', () => {
+    const _createOrUpdateComment = (params = {}) => {
+      return createOrUpdateComment({
+        _callApi: jest.fn(),
+        addonId: 123,
+        apiState: defaultApiState,
+        cannedResponseId: undefined,
+        comment: 'Example comment',
+        commentId: undefined,
+        fileName: null,
+        line: null,
+        versionId: 321,
+        ...params,
+      });
+    };
+
+    it('can create a comment', async () => {
+      const _callApi = jest.fn();
+      const addonId = 999;
+      const apiState = defaultApiState;
+      const cannedResponseId = undefined;
+      const comment = 'A comment about this code';
+      const fileName = null;
+      const line = null;
+      const versionId = 123;
+
+      await _createOrUpdateComment({
+        _callApi,
+        addonId,
+        apiState,
+        cannedResponseId,
+        comment,
+        fileName,
+        line,
+        versionId,
+      });
+
+      expect(_callApi).toHaveBeenCalledWith({
+        apiState,
+        bodyData: {
+          canned_response: cannedResponseId,
+          comment,
+          filename: fileName,
+          lineno: line,
+        },
+        endpoint: `reviewers/addon/${addonId}/versions/${versionId}/draft_comments`,
+        method: HttpMethod.POST,
+      });
+    });
+
+    it('can update a comment', async () => {
+      const _callApi = jest.fn();
+      const addonId = 999;
+      const apiState = defaultApiState;
+      const cannedResponseId = undefined;
+      const comment = 'An updated comment about this code';
+      const commentId = 456;
+      const fileName = null;
+      const line = null;
+      const versionId = 123;
+
+      await _createOrUpdateComment({
+        _callApi,
+        addonId,
+        apiState,
+        cannedResponseId,
+        comment,
+        commentId,
+        fileName,
+        line,
+        versionId,
+      });
+
+      expect(_callApi).toHaveBeenCalledWith({
+        apiState,
+        bodyData: {
+          canned_response: cannedResponseId,
+          comment,
+          filename: fileName,
+          lineno: line,
+        },
+        endpoint: `reviewers/addon/${addonId}/versions/${versionId}/draft_comments/${commentId}`,
+        method: HttpMethod.PATCH,
+      });
+    });
+
+    it('returns the API response', async () => {
+      const fakeComment = createFakeExternalComment();
+      const _callApi = jest.fn().mockResolvedValue(fakeComment);
+
+      const result = await _createOrUpdateComment({ _callApi });
+
+      expect(result).toEqual(fakeComment);
+    });
+
+    it('requires either cannedResponseId or comment', async () => {
+      await expect(
+        _createOrUpdateComment({
+          cannedResponseId: undefined,
+          comment: undefined,
+        }),
+      ).rejects.toThrow(/cannedResponseId or comment must be specified/);
+    });
+
+    it('does not accept both cannedResponseId and comment', async () => {
+      await expect(
+        _createOrUpdateComment({
+          cannedResponseId: 432,
+          comment: 'Some comment',
+        }),
+      ).rejects.toThrow(
+        /cannedResponseId and comment cannot both be specified/,
+      );
+    });
+
+    it('does not accept both cannedResponseId and a blank comment', async () => {
+      await expect(
+        _createOrUpdateComment({
+          cannedResponseId: 432,
+          comment: '',
+        }),
+      ).rejects.toThrow(
+        /cannedResponseId and comment cannot both be specified/,
+      );
     });
   });
 });

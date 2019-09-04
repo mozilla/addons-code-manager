@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/camelcase */
 import urllib from 'url';
 
 import log from 'loglevel';
 
 import { ApiState } from '../reducers/api';
+import { ExternalComment } from '../reducers/comments';
 import { ExternalUser } from '../reducers/users';
 import {
   ExternalVersionWithContent,
@@ -102,9 +104,10 @@ export enum HttpMethod {
   PUT = 'PUT',
 }
 
-type CallApiParams = {
+type CallApiParams<BodyDataType extends void | {}> = {
   _makeQueryString?: typeof makeQueryString;
   apiState: ApiState;
+  bodyData?: BodyDataType;
   endpoint: string;
   includeCredentials?: boolean;
   lang?: string;
@@ -134,18 +137,29 @@ type Headers = {
   [name: string]: string;
 };
 
-// For the `extends {}` part, please see:
-// https://github.com/Microsoft/TypeScript/issues/4922
-export const callApi = async <SuccessResponseType extends {}>({
+type GetResource<SuccessfulResponse> = {
+  requestData: void;
+  successfulResponse: SuccessfulResponse;
+};
+
+export const callApi = async <
+  T extends {
+    requestData: void | {};
+    successfulResponse: {};
+  }
+>({
   _makeQueryString = makeQueryString,
   apiState,
+  bodyData,
   endpoint,
   includeCredentials = false,
   lang = process.env.REACT_APP_DEFAULT_API_LANG,
   method = HttpMethod.GET,
   query = {},
   version = process.env.REACT_APP_DEFAULT_API_VERSION,
-}: CallApiParams): Promise<CallApiResponse<SuccessResponseType>> => {
+}: CallApiParams<T['requestData']>): Promise<
+  CallApiResponse<T['successfulResponse']>
+> => {
   let path = endpoint;
   if (!path.startsWith('/')) {
     path = `/${path}`;
@@ -159,6 +173,12 @@ export const callApi = async <SuccessResponseType extends {}>({
     headers.Authorization = `Bearer ${apiState.authToken}`;
   }
 
+  let body;
+  if (bodyData) {
+    headers['Content-Type'] = 'application/json';
+    body = JSON.stringify(bodyData);
+  }
+
   type QueryWithLang = {
     [key: string]: string;
   };
@@ -170,6 +190,7 @@ export const callApi = async <SuccessResponseType extends {}>({
 
   try {
     const response = await fetch(makeApiURL({ path, version }), {
+      body,
       credentials: includeCredentials ? 'include' : undefined,
       headers,
       method,
@@ -185,9 +206,7 @@ export const callApi = async <SuccessResponseType extends {}>({
   } catch (error) {
     log.debug('Error caught in callApi():', error);
 
-    return {
-      error,
-    };
+    return { error };
   }
 };
 
@@ -204,7 +223,7 @@ export const getVersion = async ({
   addonId,
   versionId,
 }: GetVersionParams) => {
-  return callApi<ExternalVersionWithContent>({
+  return callApi<GetResource<ExternalVersionWithContent>>({
     apiState,
     endpoint: `reviewers/addon/${addonId}/versions/${versionId}`,
     query: path ? { file: path } : undefined,
@@ -220,14 +239,14 @@ export const getVersionsList = async ({
   apiState,
   addonId,
 }: GetVersionsListParams) => {
-  return callApi<ExternalVersionsList>({
+  return callApi<GetResource<ExternalVersionsList>>({
     apiState,
     endpoint: `reviewers/addon/${addonId}/versions/`,
   });
 };
 
 export const logOutFromServer = async (apiState: ApiState) => {
-  return callApi<{}>({
+  return callApi<GetResource<{}>>({
     apiState,
     // We need to send the credentials (cookies) because the API will return
     // new `Set-Cookie` headers to clear the cookies in the client. Without
@@ -239,7 +258,7 @@ export const logOutFromServer = async (apiState: ApiState) => {
 };
 
 export const getCurrentUser = async (apiState: ApiState) => {
-  return callApi<ExternalUser>({
+  return callApi<GetResource<ExternalUser>>({
     apiState,
     endpoint: '/accounts/profile/',
   });
@@ -260,9 +279,76 @@ export const getDiff = async ({
   headVersionId,
   path,
 }: GetDiffParams) => {
-  return callApi<ExternalVersionWithDiff>({
+  return callApi<GetResource<ExternalVersionWithDiff>>({
     apiState,
     endpoint: `reviewers/addon/${addonId}/versions/${baseVersionId}/compare_to/${headVersionId}`,
     query: path ? { file: path } : undefined,
+  });
+};
+
+type CommentRequest = {
+  canned_response?: number;
+  comment?: string;
+  filename?: string | null;
+  lineno?: number | null;
+};
+
+type CreateOrUpdateCommentParamsBase = {
+  _callApi?: typeof callApi;
+  addonId: number;
+  apiState: ApiState;
+  commentId: number | void;
+  fileName: string | null;
+  line: number | null;
+  versionId: number;
+};
+
+type CreateOrUpdateCommentParams = CreateOrUpdateCommentParamsBase & {
+  cannedResponseId?: undefined;
+  comment: string;
+};
+
+type CreateOrUpdateCannedCommentParams = CreateOrUpdateCommentParamsBase & {
+  cannedResponseId: number;
+  comment?: undefined;
+};
+
+export const createOrUpdateComment = async ({
+  /* istanbul ignore next */
+  _callApi = callApi,
+  addonId,
+  apiState,
+  cannedResponseId,
+  comment,
+  commentId,
+  fileName,
+  line,
+  versionId,
+}: CreateOrUpdateCommentParams | CreateOrUpdateCannedCommentParams) => {
+  if (cannedResponseId === undefined && comment === undefined) {
+    throw new Error('Either cannedResponseId or comment must be specified');
+  }
+  if (cannedResponseId !== undefined && comment !== undefined) {
+    throw new Error('cannedResponseId and comment cannot both be specified');
+  }
+
+  let endpoint = `reviewers/addon/${addonId}/versions/${versionId}/draft_comments`;
+  if (commentId) {
+    endpoint = `${endpoint}/${commentId}`;
+  }
+
+  return _callApi<{
+    requestData: CommentRequest;
+    successfulResponse: ExternalComment;
+  }>({
+    apiState,
+    bodyData: {
+      canned_response: cannedResponseId,
+      comment,
+      filename: fileName,
+      lineno: line,
+    },
+    endpoint,
+    method: commentId ? HttpMethod.PATCH : HttpMethod.POST,
   });
 };

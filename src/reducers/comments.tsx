@@ -13,8 +13,16 @@ type CommentBase = {
   lineno: number | null;
 };
 
+export type ExternalCannedResponse = {
+  id: number;
+  title: string;
+  response: string;
+  category: string;
+};
+
 export type ExternalComment = CommentBase & {
-  comment: string;
+  canned_response: ExternalCannedResponse | null;
+  comment: string | null;
   user: {
     id: number;
     name: string | null;
@@ -25,7 +33,7 @@ export type ExternalComment = CommentBase & {
 };
 
 export type Comment = CommentBase & {
-  content: string;
+  content: string | null;
   userId: number;
   userName: string | null;
   userUrl: string | null;
