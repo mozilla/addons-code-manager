@@ -1,3 +1,4 @@
+/* eslint @typescript-eslint/camelcase: 0 */
 import pathLib from 'path';
 
 import * as React from 'react';
@@ -44,8 +45,6 @@ import LinterProvider, {
 import ContentShell, {
   PanelAttribs,
 } from './components/FullscreenGrid/ContentShell';
-
-/* eslint-disable @typescript-eslint/camelcase */
 
 export const fakeVersionEntry: ExternalVersionEntry = Object.freeze({
   depth: 0,
@@ -754,6 +753,7 @@ export const createFakeExternalComment = (
   comment: Partial<ExternalComment> = {},
 ) => {
   return {
+    canned_response: null,
     comment: 'Example comment about some code',
     id: 1,
     lineno: null,

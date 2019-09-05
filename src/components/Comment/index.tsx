@@ -66,7 +66,7 @@ export class CommentBase extends React.Component<PublicProps> {
 
   renderForm() {
     const { comment } = this.props;
-    const value = comment ? comment.content : undefined;
+    const value = (comment && comment.content) || undefined;
 
     return (
       <Form className={styles.form}>

@@ -1,3 +1,4 @@
+/* eslint @typescript-eslint/camelcase: 0 */
 import reducer, {
   CommentInfo,
   actions,
@@ -149,6 +150,7 @@ describe(__filename, () => {
 
       expect(
         createInternalComment({
+          canned_response: null,
           comment,
           id,
           lineno,
