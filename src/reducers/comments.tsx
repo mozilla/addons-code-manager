@@ -60,6 +60,7 @@ export const createInternalComment = (comment: ExternalComment): Comment => {
 
 export type CommentInfo = {
   beginNewComment: boolean;
+  pendingCommentText: string | null;
   savingComment: boolean;
   commentIds: number[];
 };
@@ -83,6 +84,7 @@ export const initialState: CommentsState = {
 export const createEmptyCommentInfo = (): CommentInfo => {
   return {
     beginNewComment: false,
+    pendingCommentText: null,
     savingComment: false,
     commentIds: [],
   };
@@ -122,7 +124,11 @@ export const actions = {
     return (payload: CommentKeyParams) => resolve(payload);
   }),
   beginSaveComment: createAction('BEGIN_SAVE_COMMENT', (resolve) => {
-    return (payload: CommentKeyParams) => resolve(payload);
+    return (
+      payload: CommentKeyParams & {
+        pendingCommentText: string | null;
+      },
+    ) => resolve(payload);
   }),
   finishComment: createAction('FINISH_COMMENT', (resolve) => {
     return (payload: CommentKeyParams) => resolve(payload);
@@ -159,7 +165,14 @@ export const manageComment = ({
   return async (dispatch, getState) => {
     const { api: apiState } = getState();
 
-    dispatch(actions.beginSaveComment({ versionId, fileName, line }));
+    dispatch(
+      actions.beginSaveComment({
+        versionId,
+        fileName,
+        line,
+        pendingCommentText: comment || null,
+      }),
+    );
 
     const response = await _createOrUpdateComment({
       addonId,
@@ -205,13 +218,15 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
           [key]: {
             ...info,
             beginNewComment: true,
+            pendingCommentText: null,
             savingComment: false,
           },
         },
       };
     }
     case getType(actions.beginSaveComment): {
-      const { key, info } = getKeyAndInfo(state, action.payload);
+      const { pendingCommentText, ...keyParams } = action.payload;
+      const { key, info } = getKeyAndInfo(state, keyParams);
 
       return {
         ...state,
@@ -219,6 +234,7 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
           ...state.byKey,
           [key]: {
             ...info,
+            pendingCommentText,
             savingComment: true,
           },
         },
@@ -248,6 +264,7 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
           [key]: {
             ...info,
             beginNewComment: false,
+            pendingCommentText: null,
             savingComment: false,
           },
         },

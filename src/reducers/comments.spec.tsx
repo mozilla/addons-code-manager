@@ -38,15 +38,22 @@ describe(__filename, () => {
       );
     });
 
-    it('aborts saving a comment by key', () => {
+    it('resets historic info', () => {
       let state;
 
       // Imagine that this happened some time in the past.
-      state = reducer(state, actions.beginSaveComment(keyParams));
+      state = reducer(
+        state,
+        actions.beginSaveComment({
+          ...keyParams,
+          pendingCommentText: 'Example',
+        }),
+      );
       // Imagine that the user opened a comment form again.
       state = reducer(state, actions.beginComment(keyParams));
 
       expect(state.byKey[createCommentKey(keyParams)]).toMatchObject({
+        pendingCommentText: null,
         savingComment: false,
       });
     });
@@ -54,23 +61,32 @@ describe(__filename, () => {
 
   describe('beginSaveComment', () => {
     it('begins saving a comment by key', () => {
-      const state = reducer(undefined, actions.beginSaveComment(keyParams));
+      const pendingCommentText = 'Example comment';
+      const state = reducer(
+        undefined,
+        actions.beginSaveComment({ pendingCommentText, ...keyParams }),
+      );
 
       expect(state.byKey[createCommentKey(keyParams)]).toEqual(
-        createCommentInfo({ savingComment: true }),
+        createCommentInfo({ pendingCommentText, savingComment: true }),
       );
     });
   });
 
   describe('abortSaveComment', () => {
     it('aborts saving a comment by key', () => {
+      const pendingCommentText = 'Example of a comment';
       let state;
 
-      state = reducer(state, actions.beginSaveComment(keyParams));
+      state = reducer(
+        state,
+        actions.beginSaveComment({ ...keyParams, pendingCommentText }),
+      );
       state = reducer(state, actions.abortSaveComment(keyParams));
 
       expect(state.byKey[createCommentKey(keyParams)]).toEqual(
-        createCommentInfo({ savingComment: false }),
+        // This should make sure pendingCommentText is preserved.
+        createCommentInfo({ pendingCommentText, savingComment: false }),
       );
     });
   });
@@ -84,13 +100,20 @@ describe(__filename, () => {
       );
     });
 
-    it('finishes saving a comment', () => {
+    it('resets comment info', () => {
       let state;
 
-      state = reducer(state, actions.beginSaveComment(keyParams));
+      state = reducer(
+        state,
+        actions.beginSaveComment({
+          ...keyParams,
+          pendingCommentText: 'Example',
+        }),
+      );
       state = reducer(state, actions.finishComment(keyParams));
 
       expect(state.byKey[createCommentKey(keyParams)]).toMatchObject({
+        pendingCommentText: null,
         savingComment: false,
       });
     });
@@ -279,14 +302,35 @@ describe(__filename, () => {
     });
 
     it('dispatches beginSaveComment()', async () => {
+      const comment = 'Example of a comment';
+
       const { dispatch, thunk } = thunkTester({
-        createThunk: () => _manageComment(keyParams),
+        createThunk: () => _manageComment({ comment, ...keyParams }),
       });
 
       await thunk();
 
       expect(dispatch).toHaveBeenCalledWith(
-        actions.beginSaveComment(keyParams),
+        actions.beginSaveComment({
+          pendingCommentText: comment,
+          ...keyParams,
+        }),
+      );
+    });
+
+    it('can dispatch beginSaveComment() with empty pendingCommentText', async () => {
+      const { dispatch, thunk } = thunkTester({
+        // The comment value might be undefined when performing a PATCH request.
+        createThunk: () => _manageComment({ comment: undefined, ...keyParams }),
+      });
+
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(
+        actions.beginSaveComment({
+          ...keyParams,
+          pendingCommentText: null,
+        }),
       );
     });
 

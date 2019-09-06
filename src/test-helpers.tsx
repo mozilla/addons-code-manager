@@ -631,6 +631,7 @@ export const createFakeEvent = (extraProps = {}) => {
     currentTarget: jest.fn(),
     preventDefault: jest.fn(),
     stopPropagation: jest.fn(),
+    target: jest.fn(),
     ...extraProps,
   };
 };
