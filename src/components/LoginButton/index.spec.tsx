@@ -30,7 +30,7 @@ describe(__filename, () => {
         ...window.location,
         href,
       },
-    };
+    } as typeof window;
 
     const root = render({ fxaConfig, _window });
 
@@ -55,7 +55,7 @@ describe(__filename, () => {
         href,
         origin,
       },
-    };
+    } as typeof window;
 
     const root = render({ fxaConfig, _window, isLocalDev: true });
 
