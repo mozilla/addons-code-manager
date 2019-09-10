@@ -23,6 +23,7 @@ import {
   createFakeLocation,
   createFakeThunk,
   createStoreWithVersion,
+  fakeAction,
   fakeExternalLinterMessage,
   fakeVersion,
   fakeVersionEntry,
@@ -83,6 +84,9 @@ describe(__filename, () => {
 
   const render = ({
     _createCodeLineAnchorGetter = jest.fn(),
+    _goToRelativeDiff = jest.fn(),
+    _goToRelativeFile = jest.fn().mockReturnValue(fakeAction),
+    _goToRelativeMessage = jest.fn().mockReturnValue(fakeAction),
     compareInfo = null,
     currentPath = 'file1.js',
     location = createFakeLocation(),
@@ -95,6 +99,9 @@ describe(__filename, () => {
   }: RenderParams = {}) => {
     const props = {
       _createCodeLineAnchorGetter,
+      _goToRelativeDiff,
+      _goToRelativeFile,
+      _goToRelativeMessage,
       compareInfo,
       currentPath,
       location,
