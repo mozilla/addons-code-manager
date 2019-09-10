@@ -7,6 +7,7 @@ import { History, Location } from 'history';
 import { ShallowWrapper, shallow } from 'enzyme';
 import { Store } from 'redux';
 import log from 'loglevel';
+import { createAction } from 'typesafe-actions';
 
 import configureStore, { ThunkActionCreator } from './configureStore';
 import { ApplicationState } from './reducers';
@@ -775,3 +776,5 @@ export const createFakeComment = (comment: Partial<Comment> = {}) => {
     ...comment,
   };
 };
+
+export const fakeAction = createAction('FAKE_ACTION');
