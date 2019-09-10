@@ -1,11 +1,14 @@
 import { Reducer } from 'redux';
 import { ActionType, createAction, getType } from 'typesafe-actions';
 
+import { ThunkActionCreator } from '../configureStore';
+import { actions as errorsActions } from './errors';
 import {
   ExternalVersionWithContent,
   Version,
   createInternalVersion,
 } from './versions';
+import { createOrUpdateComment, isErrorResponse } from '../api';
 
 type CommentBase = {
   filename: string | null;
@@ -57,6 +60,7 @@ export const createInternalComment = (comment: ExternalComment): Comment => {
 
 export type CommentInfo = {
   beginNewComment: boolean;
+  savingComment: boolean;
   commentIds: number[];
 };
 
@@ -79,6 +83,7 @@ export const initialState: CommentsState = {
 export const createEmptyCommentInfo = (): CommentInfo => {
   return {
     beginNewComment: false,
+    savingComment: false,
     commentIds: [],
   };
 };
@@ -110,7 +115,13 @@ export const createCommentKey = ({
 };
 
 export const actions = {
+  abortSaveComment: createAction('ABORT_SAVE_COMMENT', (resolve) => {
+    return (payload: CommentKeyParams) => resolve(payload);
+  }),
   beginComment: createAction('BEGIN_COMMENT', (resolve) => {
+    return (payload: CommentKeyParams) => resolve(payload);
+  }),
+  beginSaveComment: createAction('BEGIN_SAVE_COMMENT', (resolve) => {
     return (payload: CommentKeyParams) => resolve(payload);
   }),
   finishComment: createAction('FINISH_COMMENT', (resolve) => {
@@ -125,14 +136,67 @@ export const actions = {
   }),
 };
 
+export const manageComment = ({
+  /* istanbul ignore next */
+  _createOrUpdateComment = createOrUpdateComment,
+  addonId,
+  cannedResponseId,
+  comment,
+  commentId,
+  fileName,
+  line,
+  versionId,
+}: {
+  _createOrUpdateComment?: typeof createOrUpdateComment;
+  addonId: number;
+  cannedResponseId?: number;
+  comment?: string;
+  commentId: number | void;
+  fileName: string | null;
+  line: number | null;
+  versionId: number;
+}): ThunkActionCreator => {
+  return async (dispatch, getState) => {
+    const { api: apiState } = getState();
+
+    dispatch(actions.beginSaveComment({ versionId, fileName, line }));
+
+    const response = await _createOrUpdateComment({
+      addonId,
+      apiState,
+      cannedResponseId,
+      comment,
+      commentId,
+      fileName,
+      line,
+      versionId,
+    });
+
+    if (isErrorResponse(response)) {
+      dispatch(actions.abortSaveComment({ versionId, fileName, line }));
+      dispatch(errorsActions.addError({ error: response.error }));
+    } else {
+      dispatch(actions.finishComment({ versionId, fileName, line }));
+      dispatch(
+        actions.setComment({ versionId, fileName, line, comment: response }),
+      );
+    }
+  };
+};
+
+const getKeyAndInfo = (state: CommentsState, keyParams: CommentKeyParams) => {
+  const key = createCommentKey(keyParams);
+  const info = state.byKey[key] || createEmptyCommentInfo();
+  return { key, info };
+};
+
 const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
   state = initialState,
   action,
 ): CommentsState => {
   switch (action.type) {
     case getType(actions.beginComment): {
-      const key = createCommentKey(action.payload);
-      const info = state.byKey[key] || createEmptyCommentInfo();
+      const { key, info } = getKeyAndInfo(state, action.payload);
 
       return {
         ...state,
@@ -141,13 +205,41 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
           [key]: {
             ...info,
             beginNewComment: true,
+            savingComment: false,
+          },
+        },
+      };
+    }
+    case getType(actions.beginSaveComment): {
+      const { key, info } = getKeyAndInfo(state, action.payload);
+
+      return {
+        ...state,
+        byKey: {
+          ...state.byKey,
+          [key]: {
+            ...info,
+            savingComment: true,
+          },
+        },
+      };
+    }
+    case getType(actions.abortSaveComment): {
+      const { key, info } = getKeyAndInfo(state, action.payload);
+
+      return {
+        ...state,
+        byKey: {
+          ...state.byKey,
+          [key]: {
+            ...info,
+            savingComment: false,
           },
         },
       };
     }
     case getType(actions.finishComment): {
-      const key = createCommentKey(action.payload);
-      const info = state.byKey[key] || createEmptyCommentInfo();
+      const { key, info } = getKeyAndInfo(state, action.payload);
 
       return {
         ...state,
@@ -156,15 +248,14 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
           [key]: {
             ...info,
             beginNewComment: false,
+            savingComment: false,
           },
         },
       };
     }
     case getType(actions.setComment): {
       const { comment, ...keyParams } = action.payload;
-
-      const key = createCommentKey(keyParams);
-      const info = state.byKey[key] || createEmptyCommentInfo();
+      const { key, info } = getKeyAndInfo(state, keyParams);
 
       return {
         ...state,
