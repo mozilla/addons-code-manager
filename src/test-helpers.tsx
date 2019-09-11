@@ -636,6 +636,16 @@ export const createFakeEvent = (extraProps = {}) => {
   };
 };
 
+export const createFakeChangeEvent = ({
+  name,
+  value,
+}: {
+  name: string;
+  value: string;
+}) => {
+  return createFakeEvent({ target: { name, value } });
+};
+
 export type CreateKeydownEventParams = {
   altKey?: boolean;
   ctrlKey?: boolean;

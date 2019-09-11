@@ -53,7 +53,7 @@ export class CommentBase extends React.Component<Props, State> {
     if (!commentText) {
       commentText = initialCommentText || undefined;
     }
-    this.state = { commentText: commentText || undefined };
+    this.state = { commentText };
   }
 
   private textareaRef: TextareaRef = this.props.createTextareaRef
@@ -109,7 +109,7 @@ export class CommentBase extends React.Component<Props, State> {
         // TODO: support canned responses.
         // https://github.com/mozilla/addons-code-manager/issues/113
         cannedResponseId: undefined,
-        comment: this.state.commentText || undefined,
+        comment: this.state.commentText,
         commentId: initialComment ? initialComment.id : undefined,
         fileName,
         line,

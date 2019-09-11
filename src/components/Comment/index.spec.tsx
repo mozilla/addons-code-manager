@@ -7,6 +7,7 @@ import configureStore from '../../configureStore';
 import { actions } from '../../reducers/comments';
 import {
   createFakeExternalComment,
+  createFakeChangeEvent,
   createFakeEvent,
   createFakeThunk,
   shallowUntilTarget,
@@ -48,16 +49,6 @@ describe(__filename, () => {
   } = {}) => {
     store.dispatch(actions.setComment({ fileName, line, versionId, comment }));
     return { store };
-  };
-
-  const createFakeChangeEvent = ({
-    name,
-    value,
-  }: {
-    name: string;
-    value: string;
-  }) => {
-    return createFakeEvent({ target: { name, value } });
   };
 
   const createFakeTextareaRef = (currentProps = {}) => {
@@ -111,12 +102,27 @@ describe(__filename, () => {
     expect(root.find(`.${styles.comment}`).html()).toContain('foo');
   });
 
+  it('converts new lines within a comment to breaks', () => {
+    const firstLine = 'Example comment spanning';
+    const secondLine = 'multiple lines';
+    const comment = createFakeExternalComment({
+      comment: `${firstLine}\n${secondLine}`,
+    });
+    const { store } = dispatchComment({ comment });
+
+    const root = render({ commentId: comment.id, store, readOnly: true });
+
+    const html = root.find(`.${styles.comment}`).html();
+    expect(html).toContain(`${firstLine}<br>${secondLine}`);
+  });
+
   it('renders a form to edit a comment when readOnly=false', () => {
     const comment = createFakeExternalComment({ comment: 'Example' });
     const { store } = dispatchComment({ comment });
     const root = render({ commentId: comment.id, store, readOnly: false });
 
     expect(root.find(`.${styles.form}`)).toHaveLength(1);
+    expect(root.find(`.${styles.comment}`)).toHaveLength(0);
     const textarea = root.find(`.${styles.textarea}`);
     expect(textarea).toHaveLength(1);
     expect(textarea).toHaveProp('disabled', false);
@@ -205,26 +211,10 @@ describe(__filename, () => {
       comment: commentText,
     });
     const { store } = dispatchComment({ comment });
-    const dispatchSpy = spyOn(store, 'dispatch');
 
-    const fakeThunk = createFakeThunk();
-    const _manageComment = fakeThunk.createThunk;
+    const root = render({ commentId, store });
 
-    const root = render({
-      _manageComment,
-      commentId,
-      store,
-    });
-
-    root.find(`.${styles.form}`).simulate('submit', createFakeEvent());
-
-    expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
-    expect(_manageComment).toHaveBeenCalledWith(
-      expect.objectContaining({
-        comment: commentText,
-        commentId: comment.id,
-      }),
-    );
+    expect(root.find(`.${styles.textarea}`)).toHaveProp('value', commentText);
   });
 
   it('seeds the form with initialCommentText', () => {
@@ -234,36 +224,23 @@ describe(__filename, () => {
     store.dispatch(
       actions.beginSaveComment({ ...keyParams, pendingCommentText }),
     );
-    const dispatchSpy = spyOn(store, 'dispatch');
 
-    const fakeThunk = createFakeThunk();
-    const _manageComment = fakeThunk.createThunk;
+    const root = render({ store, ...keyParams });
 
-    const root = render({
-      _manageComment,
-      store,
-      ...keyParams,
-    });
-
-    root.find(`.${styles.form}`).simulate('submit', createFakeEvent());
-
-    expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
-    expect(_manageComment).toHaveBeenCalledWith(
-      expect.objectContaining({
-        comment: pendingCommentText,
-        commentId: undefined,
-      }),
+    expect(root.find(`.${styles.textarea}`)).toHaveProp(
+      'value',
+      pendingCommentText,
     );
   });
 
   it('lets you update a previously saved comment', () => {
     const commentId = 1;
-    const store = configureStore();
+    const previousCommentText = 'Example of a previously saved comment';
     const comment = createFakeExternalComment({
       id: commentId,
-      comment: 'Example of a previously saved comment',
+      comment: previousCommentText,
     });
-    dispatchComment({ store, comment });
+    const { store } = dispatchComment({ comment });
     const dispatchSpy = spyOn(store, 'dispatch');
 
     const commentText = 'Example of an edited comment';
@@ -277,7 +254,10 @@ describe(__filename, () => {
       store,
     });
 
-    root.find(`.${styles.textarea}`).simulate(
+    const textarea = root.find(`.${styles.textarea}`);
+    expect(textarea).toHaveProp('value', previousCommentText);
+
+    textarea.simulate(
       'change',
       createFakeChangeEvent({
         name: 'input',
