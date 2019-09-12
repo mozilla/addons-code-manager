@@ -632,8 +632,19 @@ export const createFakeEvent = (extraProps = {}) => {
     currentTarget: jest.fn(),
     preventDefault: jest.fn(),
     stopPropagation: jest.fn(),
+    target: jest.fn(),
     ...extraProps,
   };
+};
+
+export const createFakeChangeEvent = ({
+  name,
+  value,
+}: {
+  name: string;
+  value: string;
+}) => {
+  return createFakeEvent({ target: { name, value } });
 };
 
 export type CreateKeydownEventParams = {

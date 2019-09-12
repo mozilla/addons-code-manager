@@ -1,21 +1,61 @@
 import * as React from 'react';
+import { connect } from 'react-redux';
 import Textarea from 'react-textarea-autosize';
 import { Button, Form } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import { Comment } from '../../reducers/comments';
+import { ConnectedReduxProps } from '../../configureStore';
+import { ApplicationState } from '../../reducers';
+import {
+  Comment,
+  createCommentKey,
+  manageComment,
+} from '../../reducers/comments';
 import { gettext, sanitizeHTML, nl2br } from '../../utils';
 import styles from './styles.module.scss';
 
 type TextareaRef = React.RefObject<HTMLTextAreaElement> | undefined;
 
 export type PublicProps = {
-  comment: Comment | null;
-  createTextareaRef?: () => TextareaRef;
+  addonId: number;
+  commentId: number | null;
+  fileName: string | null;
+  line: number | null;
   readOnly: boolean;
+  versionId: number;
 };
 
-export class CommentBase extends React.Component<PublicProps> {
+export type DefaultProps = {
+  _manageComment: typeof manageComment;
+  createTextareaRef?: () => TextareaRef;
+};
+
+type PropsFromState = {
+  initialComment: Comment | null;
+  initialCommentText: string | null;
+  savingComment: boolean;
+};
+
+type Props = PublicProps & DefaultProps & PropsFromState & ConnectedReduxProps;
+
+type State = { commentText: string | undefined };
+
+export class CommentBase extends React.Component<Props, State> {
+  static defaultProps = {
+    _manageComment: manageComment,
+  };
+
+  constructor(props: Props) {
+    super(props);
+    const { initialComment, initialCommentText } = props;
+
+    let commentText = initialComment ? initialComment.content : undefined;
+    if (!commentText) {
+      commentText = initialCommentText || undefined;
+    }
+    this.state = { commentText };
+  }
+
   private textareaRef: TextareaRef = this.props.createTextareaRef
     ? this.props.createTextareaRef()
     : React.createRef();
@@ -28,6 +68,7 @@ export class CommentBase extends React.Component<PublicProps> {
 
   componentDidMount() {
     if (this.textareaRef && this.textareaRef.current) {
+      this.textareaRef.current.focus();
       this.textareaRef.current.addEventListener(
         'keydown',
         this.keydownListener,
@@ -44,9 +85,46 @@ export class CommentBase extends React.Component<PublicProps> {
     }
   }
 
-  renderComment() {
-    const comment = this.props.comment as Comment;
+  onCommentChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    event.preventDefault();
 
+    this.setState({ commentText: event.target.value });
+  };
+
+  onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    const {
+      _manageComment,
+      addonId,
+      dispatch,
+      fileName,
+      initialComment,
+      line,
+      versionId,
+    } = this.props;
+    event.preventDefault();
+
+    dispatch(
+      _manageComment({
+        addonId,
+        // TODO: support canned responses.
+        // https://github.com/mozilla/addons-code-manager/issues/113
+        cannedResponseId: undefined,
+        comment: this.state.commentText,
+        commentId: initialComment ? initialComment.id : undefined,
+        fileName,
+        line,
+        versionId,
+      }),
+    );
+  };
+
+  renderComment() {
+    const { commentId, initialComment } = this.props;
+    if (!initialComment) {
+      throw new Error(
+        `initialComment for commentId=${commentId} cannot be empty when readOnly=true`,
+      );
+    }
     return (
       <div className={styles.comment}>
         <FontAwesomeIcon
@@ -58,38 +136,64 @@ export class CommentBase extends React.Component<PublicProps> {
 
         <div
           // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={sanitizeHTML(nl2br(comment.content), ['br'])}
+          dangerouslySetInnerHTML={sanitizeHTML(nl2br(initialComment.content), [
+            'br',
+          ])}
         />
       </div>
     );
   }
 
   renderForm() {
-    const { comment } = this.props;
-    const value = (comment && comment.content) || undefined;
+    const { savingComment } = this.props;
+    const { commentText } = this.state;
 
     return (
-      <Form className={styles.form}>
+      <Form className={styles.form} onSubmit={this.onSubmit}>
         <Textarea
+          disabled={savingComment}
+          onChange={this.onCommentChange}
           inputRef={this.textareaRef}
           className={styles.textarea}
           minRows={3}
-          value={value}
+          value={commentText}
         />
-        <Button type="submit">{gettext('Save')}</Button>
+        <Button disabled={savingComment} type="submit">
+          {savingComment ? gettext('Saving…') : gettext('Save')}
+        </Button>
       </Form>
     );
   }
 
   render() {
-    const { comment, readOnly } = this.props;
-
+    const { readOnly } = this.props;
     return (
       <div className={styles.container}>
-        {comment && readOnly ? this.renderComment() : this.renderForm()}
+        {readOnly ? this.renderComment() : this.renderForm()}
       </div>
     );
   }
 }
 
-export default CommentBase;
+const mapStateToProps = (
+  state: ApplicationState,
+  { commentId, fileName, line, versionId }: PublicProps,
+): PropsFromState => {
+  let initialComment;
+  if (commentId) {
+    initialComment = state.comments.byId[commentId];
+    if (!initialComment) {
+      throw new Error(`No comment was mapped for commentId=${commentId}`);
+    }
+  }
+
+  const info =
+    state.comments.byKey[createCommentKey({ fileName, line, versionId })];
+  return {
+    initialComment: initialComment || null,
+    initialCommentText: info && info.pendingCommentText,
+    savingComment: info ? info.savingComment : false,
+  };
+};
+
+export default connect(mapStateToProps)(CommentBase);
