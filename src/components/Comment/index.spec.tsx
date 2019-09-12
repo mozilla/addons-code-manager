@@ -10,6 +10,7 @@ import {
   createFakeChangeEvent,
   createFakeEvent,
   createFakeThunk,
+  dispatchComments,
   shallowUntilTarget,
   spyOn,
 } from '../../test-helpers';
@@ -40,17 +41,6 @@ describe(__filename, () => {
     });
   };
 
-  const dispatchComment = ({
-    store = configureStore(),
-    comment = createFakeExternalComment(),
-    fileName = null,
-    line = null,
-    versionId = 1,
-  } = {}) => {
-    store.dispatch(actions.setComment({ fileName, line, versionId, comment }));
-    return { store };
-  };
-
   const createFakeTextareaRef = (currentProps = {}) => {
     return {
       ...React.createRef(),
@@ -63,6 +53,13 @@ describe(__filename, () => {
       },
     };
   };
+
+  it('lets you set a custom class', () => {
+    const className = 'ExampleClass';
+    const root = render({ className });
+
+    expect(root).toHaveClassName(className);
+  });
 
   it('requires a comment when readOnly=true', () => {
     expect(() => render({ readOnly: true, commentId: null })).toThrow(
@@ -79,7 +76,7 @@ describe(__filename, () => {
   it('renders a comment when readOnly=true', () => {
     const content = 'Example of a comment';
     const comment = createFakeExternalComment({ comment: content });
-    const { store } = dispatchComment({ comment });
+    const { store } = dispatchComments({ comments: [comment] });
 
     const root = render({ commentId: comment.id, store, readOnly: true });
 
@@ -91,7 +88,7 @@ describe(__filename, () => {
 
   it('sanitizes the content of a comment', () => {
     const comment = createFakeExternalComment({ comment: '<span>foo</span>' });
-    const { store } = dispatchComment({ comment });
+    const { store } = dispatchComments({ comments: [comment] });
 
     const root = render({ commentId: comment.id, store, readOnly: true });
 
@@ -108,7 +105,7 @@ describe(__filename, () => {
     const comment = createFakeExternalComment({
       comment: `${firstLine}\n${secondLine}`,
     });
-    const { store } = dispatchComment({ comment });
+    const { store } = dispatchComments({ comments: [comment] });
 
     const root = render({ commentId: comment.id, store, readOnly: true });
 
@@ -118,7 +115,7 @@ describe(__filename, () => {
 
   it('renders a form to edit a comment when readOnly=false', () => {
     const comment = createFakeExternalComment({ comment: 'Example' });
-    const { store } = dispatchComment({ comment });
+    const { store } = dispatchComments({ comments: [comment] });
     const root = render({ commentId: comment.id, store, readOnly: false });
 
     expect(root.find(`.${styles.form}`)).toHaveLength(1);
@@ -210,7 +207,7 @@ describe(__filename, () => {
       id: commentId,
       comment: commentText,
     });
-    const { store } = dispatchComment({ comment });
+    const { store } = dispatchComments({ comments: [comment] });
 
     const root = render({ commentId, store });
 
@@ -240,7 +237,7 @@ describe(__filename, () => {
       id: commentId,
       comment: previousCommentText,
     });
-    const { store } = dispatchComment({ comment });
+    const { store } = dispatchComments({ comments: [comment] });
     const dispatchSpy = spyOn(store, 'dispatch');
 
     const commentText = 'Example of an edited comment';
