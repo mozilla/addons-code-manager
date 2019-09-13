@@ -104,3 +104,8 @@ body.fullscreen {
 .FileTreeStory-smallWidth {
   width: 200px;
 }
+
+.CommentListStory p {
+  margin: 0;
+  padding: 0 $default-padding;
+}

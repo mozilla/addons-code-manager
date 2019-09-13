@@ -14,6 +14,7 @@ import { ApplicationState } from './reducers';
 import {
   Comment,
   ExternalComment,
+  actions as commentsActions,
   createInternalComment,
 } from './reducers/comments';
 import {
@@ -789,3 +790,27 @@ export const createFakeComment = (comment: Partial<Comment> = {}) => {
 };
 
 export const fakeAction = createAction('FAKE_ACTION');
+
+export const dispatchComments = ({
+  store = configureStore(),
+  /* istanbul ignore next */
+  comments = [createFakeExternalComment()],
+  fileName = null,
+  line = null,
+  versionId = 1,
+} = {}) => {
+  for (const comment of comments) {
+    store.dispatch(
+      commentsActions.setComment({ fileName, line, versionId, comment }),
+    );
+  }
+  return { store };
+};
+
+export const dispatchComment = ({
+  /* istanbul ignore next */
+  comment = createFakeExternalComment(),
+  ...params
+} = {}) => {
+  return dispatchComments({ comments: [comment], ...params });
+};

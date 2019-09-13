@@ -10,6 +10,7 @@ import {
   createFakeChangeEvent,
   createFakeEvent,
   createFakeThunk,
+  dispatchComment,
   shallowUntilTarget,
   spyOn,
 } from '../../test-helpers';
@@ -40,17 +41,6 @@ describe(__filename, () => {
     });
   };
 
-  const dispatchComment = ({
-    store = configureStore(),
-    comment = createFakeExternalComment(),
-    fileName = null,
-    line = null,
-    versionId = 1,
-  } = {}) => {
-    store.dispatch(actions.setComment({ fileName, line, versionId, comment }));
-    return { store };
-  };
-
   const createFakeTextareaRef = (currentProps = {}) => {
     return {
       ...React.createRef(),
@@ -63,6 +53,13 @@ describe(__filename, () => {
       },
     };
   };
+
+  it('lets you set a custom class', () => {
+    const className = 'ExampleClass';
+    const root = render({ className });
+
+    expect(root).toHaveClassName(className);
+  });
 
   it('requires a comment when readOnly=true', () => {
     expect(() => render({ readOnly: true, commentId: null })).toThrow(

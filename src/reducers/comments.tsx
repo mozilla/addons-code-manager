@@ -90,7 +90,7 @@ export const createEmptyCommentInfo = (): CommentInfo => {
   };
 };
 
-type CommentKeyParams = {
+export type CommentKeyParams = {
   fileName: string | null;
   line: number | null;
   versionId: number;

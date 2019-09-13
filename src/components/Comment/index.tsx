@@ -1,4 +1,5 @@
 import * as React from 'react';
+import makeClassName from 'classnames';
 import { connect } from 'react-redux';
 import Textarea from 'react-textarea-autosize';
 import { Button, Form } from 'react-bootstrap';
@@ -18,6 +19,7 @@ type TextareaRef = React.RefObject<HTMLTextAreaElement> | undefined;
 
 export type PublicProps = {
   addonId: number;
+  className?: string;
   commentId: number | null;
   fileName: string | null;
   line: number | null;
@@ -166,9 +168,9 @@ export class CommentBase extends React.Component<Props, State> {
   }
 
   render() {
-    const { readOnly } = this.props;
+    const { className, readOnly } = this.props;
     return (
-      <div className={styles.container}>
+      <div className={makeClassName(styles.container, className)}>
         {readOnly ? this.renderComment() : this.renderForm()}
       </div>
     );
