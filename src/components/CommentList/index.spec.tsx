@@ -40,9 +40,7 @@ describe(__filename, () => {
     });
   };
 
-  const createKeyParams = () => {
-    return { fileName: null, line: null, versionId: 1 };
-  };
+  const keyParams = Object.freeze({ fileName: null, line: null, versionId: 1 });
 
   const renderComments = ({
     comments = [createFakeExternalComment()],
@@ -58,7 +56,6 @@ describe(__filename, () => {
     ) {
       throw new Error('Defining custom key parameters is not supported');
     }
-    const keyParams = createKeyParams();
     const { store } = dispatchComments({ ...keyParams, comments });
 
     return render({ ...keyParams, store, ...props });
@@ -77,7 +74,6 @@ describe(__filename, () => {
 
   it('renders saved comments', () => {
     const addonId = 3214;
-    const keyParams = createKeyParams();
     const comments = [
       createFakeExternalComment({ id: 1 }),
       createFakeExternalComment({ id: 2 }),
@@ -102,7 +98,6 @@ describe(__filename, () => {
 
   it('renders a comment entry form', () => {
     const addonId = 3214;
-    const keyParams = createKeyParams();
     const store = configureStore();
     store.dispatch(commentsActions.beginComment(keyParams));
 
@@ -120,7 +115,6 @@ describe(__filename, () => {
   });
 
   it('renders a comment entry form and comments', () => {
-    const keyParams = createKeyParams();
     const savedCommentId1 = 1;
     const savedCommentId2 = 2;
     const store = configureStore();
@@ -187,10 +181,10 @@ describe(__filename, () => {
 
     const store = configureStore();
 
-    const keyParams = { ...keyBase, versionId: versionId1 };
-    store.dispatch(commentsActions.beginComment(keyParams));
+    const otherKeyParams = { ...keyBase, versionId: versionId1 };
+    store.dispatch(commentsActions.beginComment(otherKeyParams));
     dispatchComments({
-      ...keyParams,
+      ...otherKeyParams,
       comments: [
         createFakeExternalComment({ id: 1 }),
         createFakeExternalComment({ id: 2 }),

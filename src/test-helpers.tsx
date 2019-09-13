@@ -806,3 +806,11 @@ export const dispatchComments = ({
   }
   return { store };
 };
+
+export const dispatchComment = ({
+  /* istanbul ignore next */
+  comment = createFakeExternalComment(),
+  ...params
+} = {}) => {
+  return dispatchComments({ comments: [comment], ...params });
+};

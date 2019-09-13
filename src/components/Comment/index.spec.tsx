@@ -10,7 +10,7 @@ import {
   createFakeChangeEvent,
   createFakeEvent,
   createFakeThunk,
-  dispatchComments,
+  dispatchComment,
   shallowUntilTarget,
   spyOn,
 } from '../../test-helpers';
@@ -76,7 +76,7 @@ describe(__filename, () => {
   it('renders a comment when readOnly=true', () => {
     const content = 'Example of a comment';
     const comment = createFakeExternalComment({ comment: content });
-    const { store } = dispatchComments({ comments: [comment] });
+    const { store } = dispatchComment({ comment });
 
     const root = render({ commentId: comment.id, store, readOnly: true });
 
@@ -88,7 +88,7 @@ describe(__filename, () => {
 
   it('sanitizes the content of a comment', () => {
     const comment = createFakeExternalComment({ comment: '<span>foo</span>' });
-    const { store } = dispatchComments({ comments: [comment] });
+    const { store } = dispatchComment({ comment });
 
     const root = render({ commentId: comment.id, store, readOnly: true });
 
@@ -105,7 +105,7 @@ describe(__filename, () => {
     const comment = createFakeExternalComment({
       comment: `${firstLine}\n${secondLine}`,
     });
-    const { store } = dispatchComments({ comments: [comment] });
+    const { store } = dispatchComment({ comment });
 
     const root = render({ commentId: comment.id, store, readOnly: true });
 
@@ -115,7 +115,7 @@ describe(__filename, () => {
 
   it('renders a form to edit a comment when readOnly=false', () => {
     const comment = createFakeExternalComment({ comment: 'Example' });
-    const { store } = dispatchComments({ comments: [comment] });
+    const { store } = dispatchComment({ comment });
     const root = render({ commentId: comment.id, store, readOnly: false });
 
     expect(root.find(`.${styles.form}`)).toHaveLength(1);
@@ -207,7 +207,7 @@ describe(__filename, () => {
       id: commentId,
       comment: commentText,
     });
-    const { store } = dispatchComments({ comments: [comment] });
+    const { store } = dispatchComment({ comment });
 
     const root = render({ commentId, store });
 
@@ -237,7 +237,7 @@ describe(__filename, () => {
       id: commentId,
       comment: previousCommentText,
     });
-    const { store } = dispatchComments({ comments: [comment] });
+    const { store } = dispatchComment({ comment });
     const dispatchSpy = spyOn(store, 'dispatch');
 
     const commentText = 'Example of an edited comment';
