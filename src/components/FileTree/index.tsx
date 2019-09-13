@@ -40,8 +40,8 @@ export type DefaultProps = {
 };
 
 type PropsFromState = {
-  tree: FileTree | void;
-  version: Version | void | null;
+  tree: FileTree | undefined;
+  version: Version | undefined | null;
 };
 
 type Props = PublicProps & DefaultProps & PropsFromState & ConnectedReduxProps;

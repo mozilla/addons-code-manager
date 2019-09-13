@@ -83,7 +83,7 @@ export const createAdjustedQueryString = (
 export const createCodeLineAnchorGetter = ({
   compareInfo,
 }: {
-  compareInfo: CompareInfo | null | void;
+  compareInfo: CompareInfo | null | undefined;
 }) => {
   if (compareInfo && compareInfo.diff) {
     const map = new ForwardComparisonMap(compareInfo.diff);

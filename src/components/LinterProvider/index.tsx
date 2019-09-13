@@ -12,9 +12,9 @@ import {
 } from '../../reducers/linter';
 
 export type LinterProviderInfo = {
-  messageMap: LinterMessageMap | void;
+  messageMap: LinterMessageMap | undefined;
   messagesAreLoading: boolean;
-  selectedMessageMap: LinterMessagesByPath | null | void;
+  selectedMessageMap: LinterMessagesByPath | null | undefined;
 };
 
 type LoadData = () => void;

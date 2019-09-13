@@ -47,11 +47,11 @@ type PropsFromRouter = {
 
 type PropsFromState = {
   addonId: number;
-  compareInfo: CompareInfo | null | void;
+  compareInfo: CompareInfo | null | undefined;
   entryStatusMap: EntryStatusMap | undefined;
   path: string | undefined;
-  version: Version | void | null;
-  versionFile: VersionFile | void | null;
+  version: Version | undefined | null;
+  versionFile: VersionFile | undefined | null;
   versionFileIsLoading: boolean;
   currentVersionId: number | null | undefined | false;
 };

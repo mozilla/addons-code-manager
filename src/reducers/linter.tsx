@@ -160,7 +160,7 @@ export const getMessagesForPath = (
 };
 
 export type LinterState = {
-  forVersionId: void | number;
+  forVersionId: undefined | number;
   isLoading: boolean;
   messageMap: undefined | LinterMessageMap;
 };

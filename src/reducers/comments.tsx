@@ -157,7 +157,7 @@ export const manageComment = ({
   addonId: number;
   cannedResponseId?: number;
   comment?: string;
-  commentId: number | void;
+  commentId: number | undefined;
   fileName: string | null;
   line: number | null;
   versionId: number;

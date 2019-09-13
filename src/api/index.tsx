@@ -104,7 +104,7 @@ export enum HttpMethod {
   PUT = 'PUT',
 }
 
-type CallApiParams<BodyDataType extends void | {}> = {
+type CallApiParams<BodyDataType extends undefined | {}> = {
   _makeQueryString?: typeof makeQueryString;
   apiState: ApiState;
   bodyData?: BodyDataType;
@@ -138,13 +138,13 @@ type Headers = {
 };
 
 type GetResource<SuccessfulResponse> = {
-  requestData: void;
+  requestData: undefined;
   successfulResponse: SuccessfulResponse;
 };
 
 export const callApi = async <
   T extends {
-    requestData: void | {};
+    requestData: undefined | {};
     successfulResponse: {};
   }
 >({
@@ -310,7 +310,7 @@ export const createOrUpdateComment = async ({
   apiState: ApiState;
   cannedResponseId?: number;
   comment?: string;
-  commentId: number | void;
+  commentId: number | undefined;
   fileName: string | null;
   line: number | null;
   versionId: number;

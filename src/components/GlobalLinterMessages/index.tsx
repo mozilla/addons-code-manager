@@ -6,7 +6,7 @@ import { getCodeLineAnchorID } from '../CodeView/utils';
 
 export type PublicProps = {
   className?: string;
-  messages: LinterMessageType[] | null | void;
+  messages: LinterMessageType[] | null | undefined;
   containerRef?: (element: HTMLDivElement | null) => void;
 };
 

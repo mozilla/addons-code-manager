@@ -149,7 +149,7 @@ export class CodeOverviewBase extends React.Component<Props, State> {
     selectedMessageMap: LinterProviderInfo['selectedMessageMap'],
     rowIndex: number,
     shapeIndex: number,
-    groupOflineShapes: LineShapes[] | void,
+    groupOflineShapes: LineShapes[] | undefined,
   ) {
     if (!groupOflineShapes) {
       return null;

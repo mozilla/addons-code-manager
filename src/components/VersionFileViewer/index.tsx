@@ -24,11 +24,11 @@ export enum ItemTitles {
 export type PublicProps = {
   children: AnyReactNode;
   comparedToVersionId: number | null;
-  compareInfo?: CompareInfo | null | void;
+  compareInfo?: CompareInfo | null | undefined;
+  file: VersionFile | null | undefined;
   getCodeLineAnchor?: GetCodeLineAnchor;
-  file: VersionFile | null | void;
   onSelectFile: FileTreeProps['onSelect'];
-  version: Version | void | null;
+  version: Version | undefined | null;
 };
 
 const VersionFileViewer = ({

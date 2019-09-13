@@ -5,13 +5,13 @@ declare global {
   namespace jest {
     interface Matchers<R> {
       urlWithTheseParams(params: {
-        [key: string]: string | void;
+        [key: string]: string | undefined;
       }): CustomMatcherResult;
     }
 
     interface Expect {
       urlWithTheseParams(params: {
-        [key: string]: string | void;
+        [key: string]: string | undefined;
       }): CustomMatcherResult;
     }
   }
