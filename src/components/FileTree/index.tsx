@@ -30,6 +30,7 @@ export type TreefoldRenderPropsForFileTree = TreefoldRenderProps<TreeNode>;
 
 export type PublicProps = {
   _loadData?: LoadData;
+  comparedToVersionId: number | null;
   onSelect: FileTreeNodeProps['onSelect'];
   versionId: number;
 };
@@ -75,11 +76,16 @@ export class FileTreeBase extends React.Component<Props> {
   };
 
   renderNode = (props: TreefoldRenderPropsForFileTree) => {
-    const { onSelect, version } = this.props;
+    const { comparedToVersionId, onSelect, version } = this.props;
 
     if (version) {
       return (
-        <FileTreeNode {...props} onSelect={onSelect} versionId={version.id} />
+        <FileTreeNode
+          {...props}
+          comparedToVersionId={comparedToVersionId}
+          onSelect={onSelect}
+          versionId={version.id}
+        />
       );
     }
     return <Loading message={gettext('Loading version...')} />;

@@ -39,6 +39,7 @@ const getProps = ({
     renderChildNodes,
     onSelect: () => {},
     versionId,
+    comparedToVersionId: null,
   };
 };
 

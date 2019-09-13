@@ -163,6 +163,7 @@ const render = ({ ...moreProps }: Partial<FileTreeProps> = {}) => {
   const props: FileTreeProps = {
     onSelect: onSelectFile,
     versionId: version.id,
+    comparedToVersionId: null,
     ...moreProps,
   };
   return renderWithStoreAndRouter(<FileTree {...props} />, { store });

@@ -119,6 +119,11 @@ describe(__filename, () => {
     store.dispatch(
       versionsActions.loadVersionInfo({
         version,
+      }),
+    );
+    store.dispatch(
+      versionsActions.loadEntryStatusMap({
+        version,
         comparedToVersionId: baseVersionId,
       }),
     );
@@ -244,10 +249,7 @@ describe(__filename, () => {
     const viewer = root.find(VersionFileViewer);
     expect(viewer).toHaveLength(1);
     expect(viewer).toHaveProp('compareInfo', compareInfo);
-    expect(viewer).toHaveProp(
-      'version',
-      createInternalVersion(version, { comparedToVersionId: baseVersionId }),
-    );
+    expect(viewer).toHaveProp('version', createInternalVersion(version));
   });
 
   it('renders a DiffView', () => {
@@ -299,10 +301,7 @@ describe(__filename, () => {
       }),
     );
     expect(diffView).toHaveProp('mimeType', mimeType);
-    expect(diffView).toHaveProp(
-      'version',
-      createInternalVersion(version, { comparedToVersionId: baseVersionId }),
-    );
+    expect(diffView).toHaveProp('version', createInternalVersion(version));
   });
 
   it('renders an error when fetching a diff has failed', () => {
@@ -371,6 +370,12 @@ describe(__filename, () => {
 
     store.dispatch(
       versionsActions.loadVersionInfo({
+        version,
+      }),
+    );
+
+    store.dispatch(
+      versionsActions.loadEntryStatusMap({
         version,
         comparedToVersionId: baseVersionId,
       }),
@@ -476,6 +481,12 @@ describe(__filename, () => {
 
     store.dispatch(
       versionsActions.loadVersionInfo({
+        version,
+      }),
+    );
+
+    store.dispatch(
+      versionsActions.loadEntryStatusMap({
         version,
         comparedToVersionId: baseVersionId,
       }),
@@ -747,52 +758,6 @@ describe(__filename, () => {
       versionId: headVersionId,
       preserveHash: false,
     });
-  });
-
-  it('dispatches fetchDiff() when switching between base versions', () => {
-    const addonId = 2;
-    const headVersionId = 10;
-    const firstBaseVersion = 9;
-    const secondBaseVersion = 8;
-    const version = { ...fakeVersionWithDiff, id: headVersionId };
-
-    const store = configureStore();
-
-    _loadDiff({
-      addonId,
-      baseVersionId: firstBaseVersion,
-      headVersionId,
-      store,
-      version,
-    });
-
-    // Load a comparison for the same head version but a different base
-    // version
-    _loadDiff({
-      addonId,
-      baseVersionId: secondBaseVersion,
-      headVersionId,
-      store,
-      version,
-    });
-
-    const dispatch = spyOn(store, 'dispatch');
-
-    const fakeThunk = createFakeThunk();
-    const _fetchDiff = fakeThunk.createThunk;
-
-    render({
-      _fetchDiff,
-      addonId: String(addonId),
-      // "Go back" to the first comparison view. This will cause the
-      // previously stored comparison to load but should force the
-      // version to get reloaded since it will be out of date.
-      baseVersionId: String(firstBaseVersion),
-      headVersionId: String(headVersionId),
-      store,
-    });
-
-    expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
   });
 
   it('does not dispatch fetchDiff() when the diff is already loaded', () => {

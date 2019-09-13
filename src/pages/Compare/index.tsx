@@ -11,12 +11,14 @@ import VersionChooser from '../../components/VersionChooser';
 import VersionFileViewer from '../../components/VersionFileViewer';
 import {
   CompareInfo,
+  EntryStatusMap,
   Version,
   VersionFile,
   fetchDiff,
   fetchVersionFile,
   isFileLoading,
   getCompareInfo,
+  getEntryStatusMap,
   getVersionFile,
   getVersionInfo,
   viewVersionFile,
@@ -46,6 +48,7 @@ type PropsFromRouter = {
 type PropsFromState = {
   addonId: number;
   compareInfo: CompareInfo | null | void;
+  entryStatusMap: EntryStatusMap | undefined;
   path: string | undefined;
   version: Version | void | null;
   versionFile: VersionFile | void | null;
@@ -79,6 +82,7 @@ export class CompareBase extends React.Component<Props> {
       _fetchVersionFile,
       compareInfo,
       currentVersionId,
+      entryStatusMap,
       dispatch,
       history,
       match,
@@ -106,7 +110,11 @@ export class CompareBase extends React.Component<Props> {
       return;
     }
 
-    if (compareInfo === undefined || version === undefined) {
+    if (
+      compareInfo === undefined ||
+      version === undefined ||
+      entryStatusMap === undefined
+    ) {
       dispatch(
         _fetchDiff({
           addonId: parseInt(addonId, 10),
@@ -178,6 +186,7 @@ export class CompareBase extends React.Component<Props> {
     } = this.props;
 
     const { baseVersionId, headVersionId } = match.params;
+    const comparedToVersionId = parseInt(baseVersionId, 10);
 
     return (
       <>
@@ -194,6 +203,7 @@ export class CompareBase extends React.Component<Props> {
         </Helmet>
         <VersionFileViewer
           compareInfo={compareInfo}
+          comparedToVersionId={comparedToVersionId}
           file={versionFile}
           getCodeLineAnchor={createCodeLineAnchorGetter({ compareInfo })}
           onSelectFile={this.viewVersionFile}
@@ -225,6 +235,7 @@ export const mapStateToProps = (
   ownProps: RouteComponentProps<PropsFromRouter>,
 ): PropsFromState => {
   const { history, match } = ownProps;
+  const { versions } = state;
   const addonId = parseInt(match.params.addonId, 10);
   const baseVersionId = parseInt(match.params.baseVersionId, 10);
   const headVersionId = parseInt(match.params.headVersionId, 10);
@@ -239,7 +250,11 @@ export const mapStateToProps = (
   );
 
   // The Compare API returns the version info of the head/newest version.
-  const version = getVersionInfo(state.versions, headVersionId, {
+  const version = getVersionInfo(state.versions, headVersionId);
+
+  const entryStatusMap = getEntryStatusMap({
+    versions,
+    versionId: headVersionId,
     comparedToVersionId: baseVersionId,
   });
 
@@ -260,6 +275,7 @@ export const mapStateToProps = (
     addonId,
     compareInfo,
     currentVersionId,
+    entryStatusMap,
     path,
     version,
     versionFile,

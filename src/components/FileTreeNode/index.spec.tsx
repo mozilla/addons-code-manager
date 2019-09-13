@@ -81,6 +81,7 @@ describe(__filename, () => {
 
   const render = ({
     versionId = 12349876,
+    comparedToVersionId = 123,
     store = createStoreWithVersion({
       version: { ...fakeVersion, id: versionId },
     }),
@@ -89,6 +90,7 @@ describe(__filename, () => {
     const allProps: PublicProps = {
       onSelect: () => undefined,
       versionId,
+      comparedToVersionId,
       ...getTreefoldRenderProps(),
       ...props,
     };
@@ -131,7 +133,14 @@ describe(__filename, () => {
     treefoldRenderProps = {},
   }) => {
     const externalVersion = fakeVersion;
+    const comparedToVersionId = 22;
     const store = createStoreWithVersion({ version: externalVersion });
+    store.dispatch(
+      versionsActions.loadEntryStatusMap({
+        version: externalVersion,
+        comparedToVersionId,
+      }),
+    );
     const renderProps = getTreefoldRenderProps({
       id: externalVersion.file.selected_file,
       ...treefoldRenderProps,
@@ -142,6 +151,7 @@ describe(__filename, () => {
       ...renderProps,
       store,
       versionId: externalVersion.id,
+      comparedToVersionId,
     });
   };
 
@@ -150,17 +160,23 @@ describe(__filename, () => {
     renderProps: RenderParams = {},
   ) => {
     const versionId = 321;
-
-    const store = createStoreWithVersion({
-      version: createExternalVersionWithEntries(partialEntries, {
-        id: versionId,
-      }),
+    const comparedToVersionId = 12;
+    const externalVersion = createExternalVersionWithEntries(partialEntries, {
+      id: versionId,
     });
+    const store = createStoreWithVersion({ version: externalVersion });
+    store.dispatch(
+      versionsActions.loadEntryStatusMap({
+        version: externalVersion,
+        comparedToVersionId,
+      }),
+    );
 
     return renderWithLinterProvider({
       ...renderProps,
       store,
       versionId,
+      comparedToVersionId,
     });
   };
 

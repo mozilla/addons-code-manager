@@ -38,17 +38,20 @@ describe(__filename, () => {
     };
 
     type RenderParams = {
+      comparedToVersionId?: number | null;
       store?: Store;
       versionId?: number;
     } & Partial<PublicProps & DefaultProps>;
 
     const render = ({
+      comparedToVersionId = null,
       store = configureStore(),
       versionId = 1234,
       ...moreProps
     }: RenderParams = {}) => {
       const props = {
         _log: createFakeLogger(),
+        comparedToVersionId,
         onSelect: jest.fn(),
         versionId,
         ...moreProps,
@@ -157,17 +160,22 @@ describe(__filename, () => {
     it('configures FileTreeNode', () => {
       const store = configureStore();
       const version = getVersion({ store });
+      const comparedToVersionId = 4;
 
-      const root = render({ store, versionId: version.id });
+      const root = render({
+        store,
+        versionId: version.id,
+        comparedToVersionId,
+      });
 
       const node = (root.instance() as FileTreeBase).renderNode(
         getTreefoldRenderProps(),
       );
 
-      expect(shallow(<div>{node}</div>).find(FileTreeNode)).toHaveProp(
-        'versionId',
-        version.id,
-      );
+      expect(shallow(<div>{node}</div>).find(FileTreeNode)).toHaveProp({
+        versionId: version.id,
+        comparedToVersionId,
+      });
     });
 
     it('dispatches toggleExpandedPath when onToggleExpand is called', () => {

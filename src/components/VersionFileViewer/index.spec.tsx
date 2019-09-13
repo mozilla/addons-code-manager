@@ -93,6 +93,7 @@ describe(__filename, () => {
     const { file, version } = getInternalVersionAndFile();
     const props = {
       children: <div />,
+      comparedToVersionId: null,
       file,
       onSelectFile: jest.fn(),
       version,
@@ -143,9 +144,10 @@ describe(__filename, () => {
   it('renders a FileTree component', () => {
     const onSelectFile = jest.fn();
     const { version } = getInternalVersionAndFile();
+    const comparedToVersionId = 11;
 
     const root = renderPanel(
-      { onSelectFile, version },
+      { onSelectFile, version, comparedToVersionId },
       PanelAttribs.mainSidePanel,
     );
 
@@ -153,6 +155,7 @@ describe(__filename, () => {
     expect(tree).toHaveLength(1);
     expect(tree).toHaveProp('onSelect', onSelectFile);
     expect(tree).toHaveProp('versionId', version.id);
+    expect(tree).toHaveProp('comparedToVersionId', comparedToVersionId);
   });
 
   it('shows an information panel by default', () => {

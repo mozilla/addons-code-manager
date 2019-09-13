@@ -178,6 +178,7 @@ export class BrowseBase extends React.Component<Props> {
           </title>
         </Helmet>
         <VersionFileViewer
+          comparedToVersionId={null}
           file={file}
           onSelectFile={this.viewVersionFile}
           version={version}
