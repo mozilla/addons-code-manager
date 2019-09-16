@@ -20,6 +20,7 @@ import {
   actions as versionsActions,
   createInternalVersion,
 } from '../../reducers/versions';
+import { actions as fileTreeActions } from '../../reducers/fileTree';
 import Loading from '../../components/Loading';
 import CodeOverview from '../../components/CodeOverview';
 import CodeView from '../../components/CodeView';
@@ -92,15 +93,17 @@ describe(__filename, () => {
     store = configureStore(),
     version = fakeVersion,
     setCurrentVersionId = true,
+    loadVersionFile = true,
   }) => {
     store.dispatch(versionsActions.loadVersionInfo({ version }));
-    store.dispatch(
-      versionsActions.loadVersionFile({
-        path: version.file.selected_file,
-        version,
-      }),
-    );
-
+    if (loadVersionFile) {
+      store.dispatch(
+        versionsActions.loadVersionFile({
+          path: version.file.selected_file,
+          version,
+        }),
+      );
+    }
     if (setCurrentVersionId) {
       store.dispatch(
         versionsActions.setCurrentVersionId({ versionId: version.id }),
@@ -109,14 +112,16 @@ describe(__filename, () => {
   };
 
   const setUpVersionFileUpdate = ({
+    addonId = 9876,
     extraFileEntries = {},
     initialPath = 'manifest.json',
     loadVersionAndFile = true,
+    loadVersionFile = true,
+    versionId = 1234,
   } = {}) => {
-    const addonId = 9876;
     const version = {
       ...fakeVersion,
-      id: 1234,
+      id: versionId,
       file: {
         ...fakeVersion.file,
         entries: {
@@ -130,7 +135,7 @@ describe(__filename, () => {
     const store = configureStore();
 
     if (loadVersionAndFile) {
-      _loadVersionAndFile({ store, version });
+      _loadVersionAndFile({ loadVersionFile, store, version });
     }
 
     const fakeThunk = createFakeThunk();
@@ -541,5 +546,133 @@ describe(__filename, () => {
     const root = render({ store, versionId: String(version.id) });
 
     expect(root.find('title')).toHaveText(`Browse ${name}: ${versionString}`);
+  });
+
+  describe('preloading', () => {
+    const setUpFilesAndRender = ({
+      addonId = 987,
+      beginFetchNextFile = false,
+      buildTree = true,
+      currentPath = 'currentPath.js',
+      loadNextFile = false,
+      loadVersionFile = true,
+      nextPath = 'nextPath.js',
+      versionId = 777,
+    } = {}) => {
+      const extraFileEntries = {
+        [currentPath]: { ...fakeVersionEntry, path: currentPath },
+        [nextPath]: { ...fakeVersionEntry, path: nextPath },
+      };
+      const {
+        _fetchVersionFile,
+        fakeThunk,
+        store,
+        version,
+      } = setUpVersionFileUpdate({
+        addonId,
+        extraFileEntries,
+        initialPath: currentPath,
+        loadVersionFile,
+        versionId,
+      });
+      if (buildTree) {
+        store.dispatch(
+          fileTreeActions.buildTree({
+            version: createInternalVersion(version),
+          }),
+        );
+      }
+      if (beginFetchNextFile) {
+        store.dispatch(
+          versionsActions.beginFetchVersionFile({
+            path: nextPath,
+            versionId,
+          }),
+        );
+      }
+      if (loadNextFile) {
+        store.dispatch(
+          versionsActions.loadVersionFile({ path: nextPath, version }),
+        );
+      }
+      const dispatchSpy = spyOn(store, 'dispatch');
+
+      render({
+        _fetchVersionFile,
+        addonId: String(addonId),
+        store,
+        versionId: String(versionId),
+      });
+
+      return {
+        _fetchVersionFile,
+        addonId,
+        dispatchSpy,
+        fakeThunk,
+        store,
+        version,
+      };
+    };
+
+    it('dispatches fetchVersionFile for the next file', () => {
+      const addonId = 5;
+      const nextPath = 'next.js';
+      const versionId = 1;
+      const { _fetchVersionFile, fakeThunk, dispatchSpy } = setUpFilesAndRender(
+        { addonId, nextPath, versionId },
+      );
+
+      expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
+      expect(_fetchVersionFile).toHaveBeenCalledWith({
+        addonId,
+        path: nextPath,
+        versionId,
+      });
+    });
+
+    it('does not dispatch fetchVersionFile for the next file if the current version file is not loaded', () => {
+      const currentPath = 'current.js';
+      const nextPath = 'next.js';
+      const { _fetchVersionFile } = setUpFilesAndRender({
+        currentPath,
+        loadVersionFile: false,
+        nextPath,
+      });
+
+      expect(_fetchVersionFile).not.toHaveBeenCalledWith(
+        expect.objectContaining({ path: nextPath }),
+      );
+    });
+
+    it('does not dispatch fetchVersionFile when fileTree is not built', () => {
+      const { _fetchVersionFile, dispatchSpy, fakeThunk } = setUpFilesAndRender(
+        {
+          buildTree: false,
+        },
+      );
+
+      expect(dispatchSpy).not.toHaveBeenCalledWith(fakeThunk.thunk);
+      expect(_fetchVersionFile).not.toHaveBeenCalled();
+    });
+
+    it('does not dispatch fetchVersionFile when the next file is loading', () => {
+      const { _fetchVersionFile, dispatchSpy, fakeThunk } = setUpFilesAndRender(
+        { beginFetchNextFile: true },
+      );
+
+      expect(dispatchSpy).not.toHaveBeenCalledWith(fakeThunk.thunk);
+      expect(_fetchVersionFile).not.toHaveBeenCalled();
+    });
+
+    it('does not dispatch fetchVersionFile when the next file is already loaded', () => {
+      const { _fetchVersionFile, dispatchSpy, fakeThunk } = setUpFilesAndRender(
+        {
+          loadNextFile: true,
+        },
+      );
+
+      expect(dispatchSpy).not.toHaveBeenCalledWith(fakeThunk.thunk);
+      expect(_fetchVersionFile).not.toHaveBeenCalled();
+    });
   });
 });

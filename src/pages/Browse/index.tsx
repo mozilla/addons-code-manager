@@ -20,6 +20,11 @@ import {
   actions as versionsActions,
 } from '../../reducers/versions';
 import {
+  getRelativePath,
+  getTree,
+  RelativePathPosition,
+} from '../../reducers/fileTree';
+import {
   getLocalizedString,
   gettext,
   getPathFromQueryString,
@@ -47,6 +52,9 @@ type PropsFromState = {
   apiState: ApiState;
   file: VersionFile | null | undefined;
   fileIsLoading: boolean;
+  nextFilePath: string | undefined;
+  nextFile: VersionFile | null | undefined;
+  nextFileIsLoading: boolean;
   version: Version | undefined | null;
   currentVersionId: number | null | undefined | false;
 };
@@ -83,10 +91,14 @@ export class BrowseBase extends React.Component<Props> {
       fileIsLoading,
       history,
       match,
+      nextFile,
+      nextFileIsLoading,
+      nextFilePath,
       version,
     } = this.props;
 
     const path = getPathFromQueryString(history);
+    const addonId = parseInt(match.params.addonId, 10);
 
     if (version === null) {
       // An error has occured when fetching the version.
@@ -94,11 +106,11 @@ export class BrowseBase extends React.Component<Props> {
     }
 
     if (version === undefined) {
-      const { addonId, versionId } = match.params;
+      const { versionId } = match.params;
 
       dispatch(
         _fetchVersion({
-          addonId: parseInt(addonId, 10),
+          addonId,
           versionId: parseInt(versionId, 10),
           path: path || undefined,
         }),
@@ -113,9 +125,19 @@ export class BrowseBase extends React.Component<Props> {
     if (version.selectedPath && !fileIsLoading && file === undefined) {
       dispatch(
         _fetchVersionFile({
-          addonId: parseInt(match.params.addonId, 10),
+          addonId,
           versionId: version.id,
           path: version.selectedPath,
+        }),
+      );
+    }
+
+    if (file && nextFilePath && !nextFileIsLoading && nextFile === undefined) {
+      dispatch(
+        _fetchVersionFile({
+          addonId,
+          versionId: version.id,
+          path: nextFilePath,
         }),
       );
     }
@@ -201,6 +223,17 @@ const mapStateToProps = (
     ? state.versions.currentVersionId
     : undefined;
 
+  const tree = getTree(state.fileTree, versionId);
+
+  const nextFilePath =
+    version && tree
+      ? getRelativePath({
+          currentPath: version.selectedPath,
+          pathList: tree.pathList,
+          position: RelativePathPosition.next,
+        })
+      : undefined;
+
   return {
     apiState: state.api,
     file: version
@@ -209,6 +242,15 @@ const mapStateToProps = (
     fileIsLoading: version
       ? isFileLoading(state.versions, versionId, version.selectedPath)
       : false,
+    nextFile:
+      version && nextFilePath
+        ? getVersionFile(state.versions, versionId, nextFilePath)
+        : undefined,
+    nextFileIsLoading:
+      version && nextFilePath
+        ? isFileLoading(state.versions, versionId, nextFilePath)
+        : false,
+    nextFilePath,
     version,
     currentVersionId,
   };
