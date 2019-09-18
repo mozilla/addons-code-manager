@@ -67,9 +67,11 @@ When developing a new component, always add a story for it. If you were creating
 
 ## Configuration
 
-You can configure the app by defining environment variables in `.env` files, the standard way to [configure Create React App](https://facebook.github.io/create-react-app/docs/adding-custom-environment-variables#adding-development-environment-variables-in-env).
+You can configure the app by defining environment variables in `.env` files, the standard way to [configure Create React App](https://facebook.github.io/create-react-app/docs/adding-custom-environment-variables#adding-development-environment-variables-in-env), but read on below because **there are some differences**.
 
-- How to add a new environment variable
+- How to override an environment variable for local development
+  - Define it in `env.common-local`. **This differs** from how Create React App wants you to do it. If you put an environment variable in `env.local`, it will get erased.
+- How to define a new environment variable
   - Add it to `.env` with the `REACT_APP_` prefix.
 - How to override an environment variable for a hosted site
   - Define the variable in the [corresponding puppet config file](https://github.com/mozilla-services/cloudops-deployment/tree/master/projects/addons-code-manager/puppet/yaml/type). To define a variable for `code.addons-dev.allizom.org`, for example, you'd update `amo.code_manager.dev.yaml`. Adding a variable to `.env.dev` **will do nothing** since that only affects the `yarn dev` command.
