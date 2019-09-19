@@ -41,6 +41,8 @@ import {
   createInternalVersion,
   createInternalVersionEntry,
 } from './reducers/versions';
+import Commentable from './components/Commentable';
+import CommentList from './components/CommentList';
 import LinterProvider, {
   LinterProviderInfo,
 } from './components/LinterProvider';
@@ -695,6 +697,88 @@ export const simulateLinterProvider = (
     messagesAreLoading,
     selectedMessageMap,
   });
+};
+
+/*
+ * Creates a helper for simulating the `children` render prop of a
+ * component.
+ *
+ * This is intended for testing render prop components that are typically
+ * used multiple times, like in a list.
+ */
+const multiRenderPropSimulator = <
+  T extends {
+    RenderArgType: {};
+    ComponentType: {};
+  }
+>({
+  Component,
+  renderArgValue,
+  root,
+}: {
+  Component: T['ComponentType'];
+  renderArgValue: T['RenderArgType'];
+  root: ShallowWrapper;
+}) => {
+  const shell = root.find(Component);
+
+  return {
+    shell,
+    renderContent(oneShell = shell) {
+      const render = oneShell.renderProp('children');
+      return render(renderArgValue);
+    },
+  };
+};
+
+export type SimulateCommentableParams = {
+  addCommentButton?: JSX.Element;
+  root: ShallowWrapper;
+};
+
+/*
+ * Given a component that uses <Commentable>, simulate the content
+ * returned by <Commentable>
+ */
+export const simulateCommentable = ({
+  // In reality this would be an instance of <AddComment /> but that
+  // doesn't matter here.
+  addCommentButton = <button type="button">Add</button>,
+  root,
+}: SimulateCommentableParams) => {
+  const Component = Commentable;
+  const renderArgValue = addCommentButton;
+  const simulatorParams = { root, Component, renderArgValue };
+
+  return multiRenderPropSimulator<{
+    ComponentType: typeof Component;
+    RenderArgType: typeof renderArgValue;
+  }>(simulatorParams);
+};
+
+export type SimulateCommentListParams = {
+  commentList?: JSX.Element;
+  root: ShallowWrapper;
+};
+
+/*
+ * Given a component that uses <CommentList>, simulate the content
+ * returned by <CommentList>
+ */
+export const simulateCommentList = ({
+  // In reality this would be a wrapper around an array of <Comment />
+  // components but that doesn't matter here.
+  commentList = <div />,
+  root,
+}: SimulateCommentListParams) => {
+  const Component = CommentList;
+  const renderArgValue = commentList;
+  const simulatorParams = { root, Component, renderArgValue };
+
+  return multiRenderPropSimulator<{
+    ComponentType: typeof Component;
+    RenderArgType: typeof renderArgValue;
+  }>(simulatorParams);
 };
 
 /*

@@ -1,12 +1,9 @@
 import queryString from 'query-string';
 import * as React from 'react';
-import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import { Location } from 'history';
-import { mount } from 'enzyme';
 import { Store } from 'redux';
 
-import configureStore from '../../configureStore';
 import refractor from '../../refractor';
 import FadableContent from '../FadableContent';
 import LinterMessage from '../LinterMessage';
@@ -18,12 +15,16 @@ import { createInternalVersion } from '../../reducers/versions';
 import { getCodeLineAnchor, getCodeLineAnchorID, mapWithDepth } from './utils';
 import { allowSlowPagesParam, getLanguageFromMimeType } from '../../utils';
 import {
+  SimulateCommentListParams,
+  SimulateCommentableParams,
   createContextWithFakeRouter,
   createFakeExternalLinterResult,
   createFakeLocation,
   fakeExternalLinterMessage,
   fakeVersion,
   shallowUntilTarget,
+  simulateCommentList,
+  simulateCommentable,
   simulateLinterProvider,
 } from '../../test-helpers';
 import styles from './styles.module.scss';
@@ -52,27 +53,20 @@ describe(__filename, () => {
     };
   };
 
-  const getProps = (otherProps = {}) => {
-    return {
+  const render = ({
+    location = createFakeLocation(),
+    ...otherProps
+  }: RenderParams = {}) => {
+    const props = {
       content: 'some content',
       linterMessagesByLine: undefined,
       mimeType: 'mime/type',
       version: createInternalVersion(fakeVersion),
       ...otherProps,
     };
-  };
-
-  const render = ({
-    location = createFakeLocation(),
-    ...otherProps
-  }: RenderParams = {}) => {
-    return shallowUntilTarget(
-      <CodeView {...getProps(otherProps)} />,
-      CodeViewBase,
-      {
-        shallowOptions: createContextWithFakeRouter({ location }),
-      },
-    );
+    return shallowUntilTarget(<CodeView {...props} />, CodeViewBase, {
+      shallowOptions: createContextWithFakeRouter({ location }),
+    });
   };
 
   type RenderWithLinterProviderParams = Partial<LinterProviderInfo> &
@@ -93,23 +87,28 @@ describe(__filename, () => {
     });
   };
 
-  const renderWithMount = ({
-    location = createFakeLocation(),
-    store = configureStore(),
-    ...otherProps
-  }: RenderParams = {}) => {
-    const options = createContextWithFakeRouter({ location });
-    return mount(<CodeView {...getProps(otherProps)} />, {
-      ...options,
-      childContextTypes: {
-        ...options.childContextTypes,
-        store: PropTypes.object.isRequired,
-      },
-      context: {
-        ...options.context,
-        store,
-      },
-    });
+  const simulateCommentableLine = ({
+    addCommentButton,
+    ...props
+  }: Pick<SimulateCommentableParams, 'addCommentButton'> &
+    Partial<RenderWithLinterProviderParams> = {}) => {
+    const provider = renderWithLinterProvider(props);
+    return {
+      ...simulateCommentable({ addCommentButton, root: provider }),
+      provider,
+    };
+  };
+
+  const simulateInlineCommentList = ({
+    commentList,
+    ...props
+  }: Pick<SimulateCommentListParams, 'commentList'> &
+    Partial<RenderWithLinterProviderParams> = {}) => {
+    const provider = renderWithLinterProvider(props);
+    return {
+      ...simulateCommentList({ commentList, root: provider }),
+      provider,
+    };
   };
 
   type RenderWithMessagesParams = RenderParams & {
@@ -170,9 +169,12 @@ describe(__filename, () => {
 
   it('renders plain text code when mime type is not supported', () => {
     const mimeType = 'mime/type';
-    const root = renderWithLinterProvider({ mimeType });
+    const { provider, renderContent } = simulateCommentableLine({
+      mimeType,
+    });
+    const root = renderContent();
 
-    expect(root.find(`.${styles.CodeView}`)).toHaveLength(1);
+    expect(provider.find(`.${styles.CodeView}`)).toHaveLength(1);
     expect(root.find(`.${styles.lineNumber}`)).toHaveLength(1);
     expect(root.find(`.${styles.code}`)).toHaveLength(1);
     expect(root.find(`.${styles.highlightedCode}`)).toHaveLength(1);
@@ -182,7 +184,11 @@ describe(__filename, () => {
   it('renders highlighted code when language is supported', () => {
     const content = '{ "foo": "bar" }';
     const mimeType = 'application/json';
-    const root = renderWithLinterProvider({ mimeType, content });
+    const { renderContent } = simulateCommentableLine({
+      mimeType,
+      content,
+    });
+    const root = renderContent();
 
     expect(root.find(`.${styles.lineNumber}`)).toHaveLength(1);
     expect(root.find(`.${styles.code}`)).toHaveLength(1);
@@ -203,18 +209,23 @@ describe(__filename, () => {
     expect(root.find(`.${styles.tableBody}`)).toHaveProp('children', []);
   });
 
-  it('renders multiple lines of code', () => {
-    const contentLines = ['{', '"foo":"bar"', '"some": "other-value"', '}'];
-    const content = contentLines.join('\n');
+  const contentLines = ['{', '"foo":"bar"', '"some": "other-value"', '}'];
 
-    const mimeType = 'application/json';
-    const root = renderWithLinterProvider({ mimeType, content });
+  it.each(contentLines.map((value, index) => index))(
+    'renders a multiline example at index %s',
+    (index) => {
+      const content = contentLines.join('\n');
 
-    expect(root.find(`.${styles.lineNumber}`)).toHaveLength(
-      contentLines.length,
-    );
-    expect(root.find(`.${styles.code}`)).toHaveLength(contentLines.length);
-  });
+      const { shell, renderContent } = simulateCommentableLine({
+        mimeType: 'application/json',
+        content,
+      });
+
+      const line = renderContent(shell.at(index));
+      expect(line.find(`.${styles.lineNumber}`)).toHaveLength(1);
+      expect(line.find(`.${styles.code}`)).toHaveLength(1);
+    },
+  );
 
   it('renders an HTML ID for each line', () => {
     const root = renderWithLinterProvider({ content: 'line 1\nline 2' });
@@ -250,7 +261,12 @@ describe(__filename, () => {
 
   it('renders a link for each line number', () => {
     const location = createFakeLocation();
-    const root = renderWithLinterProvider({ content: 'single line', location });
+    const { renderContent, shell } = simulateCommentableLine({
+      content: 'single line',
+      location,
+    });
+
+    const root = renderContent();
 
     expect(root.find(`.${styles.lineNumber}`)).toHaveLength(1);
     expect(root.find(`.${styles.lineNumber}`).find(Link)).toHaveLength(1);
@@ -258,26 +274,34 @@ describe(__filename, () => {
       ...location,
       hash: getCodeLineAnchor(1),
     });
-    // This is an anchor on the table row. This is a bit confusing here because
-    // `#` refers to the ID (CSS) selector and not the hash. The ID value is
-    // `I1`.
-    expect(root.find(`#${getCodeLineAnchorID(1)}`)).toHaveLength(1);
+    expect(shell).toHaveProp('id', getCodeLineAnchorID(1));
   });
 
-  it('calls _scrollToSelectedLine() when rendering a selected line', () => {
+  it('passes a _scrollToSelectedLine() ref when rendering a selected line', () => {
     const selectedLine = 2;
     const lines = ['first', 'second'];
     const content = lines.join('\n');
     const location = createFakeLocation({
+      // This causes the corresponding line to be selected.
       hash: getCodeLineAnchor(selectedLine),
     });
     const _scrollToSelectedLine = jest.fn();
 
-    // We need `mount()` because `ref` is only used in a DOM environment.
-    const root = renderWithMount({ _scrollToSelectedLine, content, location });
+    const { shell } = simulateCommentableLine({
+      _scrollToSelectedLine,
+      content,
+      location,
+    });
 
-    expect(_scrollToSelectedLine).toHaveBeenCalledWith(
-      root.find(`#${getCodeLineAnchorID(selectedLine)}`).getDOMNode(),
+    expect(shell.at(0)).toHaveProp('shellRef', undefined);
+
+    expect(shell.at(selectedLine - 1)).toHaveProp(
+      'shellRef',
+      _scrollToSelectedLine,
+    );
+    expect(shell.at(selectedLine - 1)).toHaveProp(
+      'id',
+      getCodeLineAnchorID(selectedLine),
     );
   });
 
@@ -469,6 +493,82 @@ describe(__filename, () => {
 
     expect(getLinkText(true)).toEqual('View a shortened file.');
     expect(getLinkText(false)).toEqual('View the original file.');
+  });
+
+  describe('add comment button', () => {
+    it('renders an add comment button on each line', () => {
+      const AddComment = () => <button type="button">Add</button>;
+
+      const { shell, renderContent } = simulateCommentableLine({
+        addCommentButton: <AddComment />,
+        content: 'first line \nsecond line',
+        enableCommenting: true,
+      });
+
+      const line1 = renderContent(shell.at(0));
+      expect(line1.find(AddComment)).toHaveLength(1);
+
+      const line2 = renderContent(shell.at(1));
+      expect(line2.find(AddComment)).toHaveLength(1);
+    });
+
+    it('does not render add comment buttons when the feature is disabled', () => {
+      const AddComment = () => <button type="button">Add</button>;
+
+      const { shell, renderContent } = simulateCommentableLine({
+        addCommentButton: <AddComment />,
+        content: 'single line of code',
+        enableCommenting: false,
+      });
+
+      expect(renderContent(shell.at(0)).find(AddComment)).toHaveLength(0);
+    });
+  });
+
+  describe('comment list', () => {
+    it('renders a comment list', () => {
+      const version = createInternalVersion(fakeVersion);
+      const { shell } = simulateInlineCommentList({
+        content: 'single line of code',
+        enableCommenting: true,
+        version,
+      });
+
+      expect(shell).toHaveProp('addonId', version.addon.id);
+      expect(shell).toHaveProp('fileName', version.selectedPath);
+      expect(shell).toHaveProp('line', 1);
+      expect(shell).toHaveProp('versionId', version.id);
+    });
+
+    it('does not render a comment list when the feature is disabled', () => {
+      const { shell } = simulateInlineCommentList({
+        enableCommenting: false,
+      });
+
+      expect(shell).toHaveLength(0);
+    });
+
+    it('renders comment list content for each line', () => {
+      const CommentListResult = () => <div />;
+
+      const { shell, renderContent } = simulateInlineCommentList({
+        commentList: <CommentListResult />,
+        content: 'first line \nsecond line',
+        enableCommenting: true,
+      });
+
+      const line1Shell = shell.at(0);
+      expect(line1Shell).toHaveProp('line', 1);
+
+      const line1 = renderContent(line1Shell);
+      expect(line1.find(CommentListResult)).toHaveLength(1);
+
+      const line2Shell = shell.at(1);
+      expect(line2Shell).toHaveProp('line', 2);
+
+      const line2 = renderContent(line2Shell);
+      expect(line2.find(CommentListResult)).toHaveLength(1);
+    });
   });
 
   describe('scrollToSelectedLine', () => {
