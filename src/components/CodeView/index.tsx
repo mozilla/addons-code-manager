@@ -138,11 +138,7 @@ export class CodeViewBase extends React.Component<Props> {
                   let shellRef;
 
                   if (isLineSelected(id, location)) {
-                    className = makeClassName(
-                      styles.line,
-                      className,
-                      styles.selectedLine,
-                    );
+                    className = makeClassName(className, styles.selectedLine);
                     shellRef = _scrollToSelectedLine;
                   }
 

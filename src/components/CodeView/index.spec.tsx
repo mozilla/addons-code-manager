@@ -172,13 +172,13 @@ describe(__filename, () => {
     const { provider, renderContent } = simulateCommentableLine({
       mimeType,
     });
-    const root = renderContent();
+    const line = renderContent();
 
     expect(provider.find(`.${styles.CodeView}`)).toHaveLength(1);
-    expect(root.find(`.${styles.lineNumber}`)).toHaveLength(1);
-    expect(root.find(`.${styles.code}`)).toHaveLength(1);
-    expect(root.find(`.${styles.highlightedCode}`)).toHaveLength(1);
-    expect(root.find('.language-text')).toHaveLength(1);
+    expect(line.find(`.${styles.lineNumber}`)).toHaveLength(1);
+    expect(line.find(`.${styles.code}`)).toHaveLength(1);
+    expect(line.find(`.${styles.highlightedCode}`)).toHaveLength(1);
+    expect(line.find('.language-text')).toHaveLength(1);
   });
 
   it('renders highlighted code when language is supported', () => {
@@ -188,14 +188,14 @@ describe(__filename, () => {
       mimeType,
       content,
     });
-    const root = renderContent();
+    const line = renderContent();
 
-    expect(root.find(`.${styles.lineNumber}`)).toHaveLength(1);
-    expect(root.find(`.${styles.code}`)).toHaveLength(1);
-    expect(root.find(`.${styles.highlightedCode}`)).toHaveLength(1);
+    expect(line.find(`.${styles.lineNumber}`)).toHaveLength(1);
+    expect(line.find(`.${styles.code}`)).toHaveLength(1);
+    expect(line.find(`.${styles.highlightedCode}`)).toHaveLength(1);
 
-    expect(root.find('.language-json')).toHaveLength(1);
-    expect(root.find('.language-json')).toHaveProp(
+    expect(line.find('.language-json')).toHaveLength(1);
+    expect(line.find('.language-json')).toHaveProp(
       'children',
       refractor
         .highlight(content, getLanguageFromMimeType(mimeType))
@@ -266,11 +266,11 @@ describe(__filename, () => {
       location,
     });
 
-    const root = renderContent();
+    const line = renderContent();
 
-    expect(root.find(`.${styles.lineNumber}`)).toHaveLength(1);
-    expect(root.find(`.${styles.lineNumber}`).find(Link)).toHaveLength(1);
-    expect(root.find(`.${styles.lineNumber}`).find(Link)).toHaveProp('to', {
+    expect(line.find(`.${styles.lineNumber}`)).toHaveLength(1);
+    expect(line.find(`.${styles.lineNumber}`).find(Link)).toHaveLength(1);
+    expect(line.find(`.${styles.lineNumber}`).find(Link)).toHaveProp('to', {
       ...location,
       hash: getCodeLineAnchor(1),
     });
