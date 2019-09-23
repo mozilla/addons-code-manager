@@ -5,10 +5,12 @@ import AddComment, { PublicProps as AddCommentProps } from './AddComment';
 import { AnyReactNode } from '../../typeUtils';
 import styles from './styles.module.scss';
 
+export type ChildrenArgValue = JSX.Element;
+
 export type PublicProps = {
   addCommentClassName?: string;
   as: React.ReactType;
-  children: (addComment: JSX.Element) => AnyReactNode;
+  children: (addComment: ChildrenArgValue) => AnyReactNode;
   className?: string;
   id?: string;
   shellRef?: (element: HTMLElement | null) => void;

@@ -16,8 +16,10 @@
 }
 
 .lineNumber {
-  padding-right: $default-padding;
-  text-align: right;
+  display: grid;
+  grid-gap: $default-padding / 2;
+  grid-template-columns: auto min-content;
+  padding-right: $default-padding / 2;
   user-select: none;
 
   a {
@@ -30,6 +32,12 @@
       font-weight: 500;
     }
   }
+}
+
+.lineNumberLink {
+  align-items: center;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .code {

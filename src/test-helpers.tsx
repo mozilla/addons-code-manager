@@ -41,6 +41,12 @@ import {
   createInternalVersion,
   createInternalVersionEntry,
 } from './reducers/versions';
+import Commentable, {
+  ChildrenArgValue as CommentableChildrenArgValue,
+} from './components/Commentable';
+import CommentList, {
+  ChildrenArgValue as CommentListChildrenArgValue,
+} from './components/CommentList';
 import LinterProvider, {
   LinterProviderInfo,
 } from './components/LinterProvider';
@@ -694,6 +700,83 @@ export const simulateLinterProvider = (
     messageMap,
     messagesAreLoading,
     selectedMessageMap,
+  });
+};
+
+/*
+ * Creates a helper for simulating the `children` render prop of a
+ * component.
+ *
+ * This is intended for testing render prop components that are typically
+ * used multiple times, like in a list.
+ *
+ * The `children` render prop can only take one argument.
+ */
+const multiRenderPropSimulator = <RenderArgValue extends {}>({
+  Component,
+  renderArgValue,
+  root,
+}: {
+  // A specific component type would not be helpful here because
+  // ShallowWrapper does not enforce the Component's actual prop type
+  // when calling renderProp('children')(...args), unfortunately.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  Component: React.ComponentType<any>;
+  renderArgValue: RenderArgValue;
+  root: ShallowWrapper;
+}) => {
+  const shell = root.find(Component);
+
+  return {
+    shell,
+    renderContent(oneShell = shell) {
+      const render = oneShell.renderProp('children');
+      return render(renderArgValue);
+    },
+  };
+};
+
+export type SimulateCommentableParams = {
+  addCommentButton?: CommentableChildrenArgValue;
+  root: ShallowWrapper;
+};
+
+/*
+ * Given a component that uses <Commentable>, simulate the content
+ * returned by <Commentable>
+ */
+export const simulateCommentable = ({
+  // In reality this would be an instance of <AddComment /> but that
+  // doesn't matter here.
+  addCommentButton = <button type="button">Add</button>,
+  root,
+}: SimulateCommentableParams) => {
+  return multiRenderPropSimulator<CommentableChildrenArgValue>({
+    Component: Commentable,
+    renderArgValue: addCommentButton,
+    root,
+  });
+};
+
+export type SimulateCommentListParams = {
+  commentList?: CommentListChildrenArgValue;
+  root: ShallowWrapper;
+};
+
+/*
+ * Given a component that uses <CommentList>, simulate the content
+ * returned by <CommentList>
+ */
+export const simulateCommentList = ({
+  // In reality this would be a wrapper around an array of <Comment />
+  // components but that doesn't matter here.
+  commentList = <div />,
+  root,
+}: SimulateCommentListParams) => {
+  return multiRenderPropSimulator<CommentListChildrenArgValue>({
+    Component: CommentList,
+    renderArgValue: commentList,
+    root,
   });
 };
 

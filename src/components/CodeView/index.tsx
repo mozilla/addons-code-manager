@@ -3,6 +3,8 @@ import { withRouter, Link, RouteComponentProps } from 'react-router-dom';
 import makeClassName from 'classnames';
 
 import styles from './styles.module.scss';
+import Commentable from '../Commentable';
+import CommentList from '../CommentList';
 import FadableContent from '../FadableContent';
 import LinterMessage from '../LinterMessage';
 import {
@@ -46,9 +48,7 @@ const isLineSelected = (
   return `#${id}` === location.hash;
 };
 
-export const scrollToSelectedLine = (
-  element: HTMLTableRowElement | HTMLDivElement | null,
-) => {
+export const scrollToSelectedLine = (element: HTMLElement | null) => {
   if (element) {
     element.scrollIntoView();
   }
@@ -63,20 +63,16 @@ export type PublicProps = {
 export type DefaultProps = {
   _scrollToSelectedLine: typeof scrollToSelectedLine;
   _slowLoadingLineCount: number;
+  enableCommenting: boolean;
 };
 
 type Props = PublicProps & DefaultProps & RouteComponentProps;
-
-type RowProps = {
-  className: string;
-  id: string;
-  ref?: typeof scrollToSelectedLine;
-};
 
 export class CodeViewBase extends React.Component<Props> {
   static defaultProps: DefaultProps = {
     _scrollToSelectedLine: scrollToSelectedLine,
     _slowLoadingLineCount: SLOW_LOADING_LINE_COUNT,
+    enableCommenting: process.env.REACT_APP_ENABLE_COMMENTING === 'true',
   };
 
   renderWithLinterInfo = ({ selectedMessageMap }: LinterProviderInfo) => {
@@ -84,8 +80,10 @@ export class CodeViewBase extends React.Component<Props> {
       _scrollToSelectedLine,
       _slowLoadingLineCount,
       content,
+      enableCommenting,
       location,
       mimeType,
+      version,
     } = this.props;
 
     const language = getLanguageFromMimeType(mimeType);
@@ -134,39 +132,46 @@ export class CodeViewBase extends React.Component<Props> {
               <tbody className={styles.tableBody}>
                 {codeLines.map((code, i) => {
                   const line = i + 1;
+                  const id = getCodeLineAnchorID(line);
 
-                  let rowProps: RowProps = {
-                    id: getCodeLineAnchorID(line),
-                    className: styles.line,
-                  };
+                  let className = styles.line;
+                  let shellRef;
 
-                  if (isLineSelected(rowProps.id, location)) {
-                    rowProps = {
-                      ...rowProps,
-                      className: makeClassName(
-                        rowProps.className,
-                        styles.selectedLine,
-                      ),
-                      ref: _scrollToSelectedLine,
-                    };
+                  if (isLineSelected(id, location)) {
+                    className = makeClassName(className, styles.selectedLine);
+                    shellRef = _scrollToSelectedLine;
                   }
 
                   return (
                     <React.Fragment key={`fragment-${line}`}>
-                      <tr {...rowProps}>
-                        <td className={styles.lineNumber}>
-                          <Link
-                            to={{
-                              ...location,
-                              hash: getCodeLineAnchor(line),
-                            }}
-                          >{`${line}`}</Link>
-                        </td>
+                      <Commentable
+                        as="tr"
+                        id={id}
+                        className={className}
+                        line={line}
+                        fileName={version.selectedPath}
+                        shellRef={shellRef}
+                        versionId={version.id}
+                      >
+                        {(addCommentButton) => (
+                          <>
+                            <td className={styles.lineNumber}>
+                              <Link
+                                className={styles.lineNumberLink}
+                                to={{
+                                  ...location,
+                                  hash: getCodeLineAnchor(line),
+                                }}
+                              >{`${line}`}</Link>
+                              {enableCommenting && addCommentButton}
+                            </td>
 
-                        <td className={styles.code}>
-                          {renderHighlightedCode(code, language)}
-                        </td>
-                      </tr>
+                            <td className={styles.code}>
+                              {renderHighlightedCode(code, language)}
+                            </td>
+                          </>
+                        )}
+                      </Commentable>
                       {selectedMessageMap && selectedMessageMap.byLine[line] && (
                         <tr>
                           <td
@@ -185,6 +190,20 @@ export class CodeViewBase extends React.Component<Props> {
                             })}
                           </td>
                         </tr>
+                      )}
+                      {enableCommenting && (
+                        <CommentList
+                          addonId={version.addon.id}
+                          fileName={version.selectedPath}
+                          line={line}
+                          versionId={version.id}
+                        >
+                          {(commentList) => (
+                            <tr>
+                              <td colSpan={2}>{commentList}</td>
+                            </tr>
+                          )}
+                        </CommentList>
                       )}
                     </React.Fragment>
                   );
@@ -208,7 +227,10 @@ export class CodeViewBase extends React.Component<Props> {
         validationURL={version.validationURL}
         selectedPath={version.selectedPath}
       >
-        {this.renderWithLinterInfo}
+        {// This needs to be an anonymous function (which defeats memoization)
+        // so that the component gets re-rendered in the case of adding
+        // comments per line.
+        (info: LinterProviderInfo) => this.renderWithLinterInfo(info)}
       </LinterProvider>
     );
   }
