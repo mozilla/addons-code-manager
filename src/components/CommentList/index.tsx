@@ -10,9 +10,11 @@ import {
 import Comment from '../Comment';
 import styles from './styles.module.scss';
 
+export type ChildrenArgValue = JSX.Element;
+
 export type PublicProps = CommentKeyParams & {
   addonId: number;
-  children: (content: JSX.Element) => JSX.Element;
+  children: (content: ChildrenArgValue) => JSX.Element;
   className?: string;
 };
 

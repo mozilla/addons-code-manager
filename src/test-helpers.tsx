@@ -41,8 +41,12 @@ import {
   createInternalVersion,
   createInternalVersionEntry,
 } from './reducers/versions';
-import Commentable from './components/Commentable';
-import CommentList from './components/CommentList';
+import Commentable, {
+  ChildrenArgValue as CommentableChildrenArgValue,
+} from './components/Commentable';
+import CommentList, {
+  ChildrenArgValue as CommentListChildrenArgValue,
+} from './components/CommentList';
 import LinterProvider, {
   LinterProviderInfo,
 } from './components/LinterProvider';
@@ -732,7 +736,7 @@ const multiRenderPropSimulator = <
 };
 
 export type SimulateCommentableParams = {
-  addCommentButton?: JSX.Element;
+  addCommentButton?: CommentableChildrenArgValue;
   root: ShallowWrapper;
 };
 
@@ -757,7 +761,7 @@ export const simulateCommentable = ({
 };
 
 export type SimulateCommentListParams = {
-  commentList?: JSX.Element;
+  commentList?: CommentListChildrenArgValue;
   root: ShallowWrapper;
 };
 
