@@ -709,19 +709,20 @@ export const simulateLinterProvider = (
  *
  * This is intended for testing render prop components that are typically
  * used multiple times, like in a list.
+ *
+ * The `children` render prop can only take one argument.
  */
-const multiRenderPropSimulator = <
-  T extends {
-    RenderArgType: {};
-    ComponentType: {};
-  }
->({
+const multiRenderPropSimulator = <RenderArgValue extends {}>({
   Component,
   renderArgValue,
   root,
 }: {
-  Component: T['ComponentType'];
-  renderArgValue: T['RenderArgType'];
+  // A specific component type would not be helpful here because
+  // ShallowWrapper does not enforce the Component's actual prop type
+  // when calling renderProp('children')(...args), unfortunately.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  Component: React.ComponentType<any>;
+  renderArgValue: RenderArgValue;
   root: ShallowWrapper;
 }) => {
   const shell = root.find(Component);
@@ -750,14 +751,11 @@ export const simulateCommentable = ({
   addCommentButton = <button type="button">Add</button>,
   root,
 }: SimulateCommentableParams) => {
-  const Component = Commentable;
-  const renderArgValue = addCommentButton;
-  const simulatorParams = { root, Component, renderArgValue };
-
-  return multiRenderPropSimulator<{
-    ComponentType: typeof Component;
-    RenderArgType: typeof renderArgValue;
-  }>(simulatorParams);
+  return multiRenderPropSimulator<CommentableChildrenArgValue>({
+    Component: Commentable,
+    renderArgValue: addCommentButton,
+    root,
+  });
 };
 
 export type SimulateCommentListParams = {
@@ -775,14 +773,11 @@ export const simulateCommentList = ({
   commentList = <div />,
   root,
 }: SimulateCommentListParams) => {
-  const Component = CommentList;
-  const renderArgValue = commentList;
-  const simulatorParams = { root, Component, renderArgValue };
-
-  return multiRenderPropSimulator<{
-    ComponentType: typeof Component;
-    RenderArgType: typeof renderArgValue;
-  }>(simulatorParams);
+  return multiRenderPropSimulator<CommentListChildrenArgValue>({
+    Component: CommentList,
+    renderArgValue: commentList,
+    root,
+  });
 };
 
 /*
