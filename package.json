@@ -24,7 +24,7 @@
     "@types/node": "10.14.18",
     "@types/react": "16.9.2",
     "@types/react-bootstrap": "0.32.19",
-    "@types/react-dom": "16.9.0",
+    "@types/react-dom": "16.9.1",
     "@types/react-helmet": "5.0.10",
     "@types/react-redux": "7.0.8",
     "@types/react-router-dom": "4.3.5",
