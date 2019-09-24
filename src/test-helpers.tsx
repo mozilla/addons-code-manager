@@ -178,11 +178,10 @@ export const createVersionWithEntries = (
 export const createVersionAndEntryStatusMap = (
   ...args: Parameters<typeof createExternalVersionWithEntries>
 ) => {
+  const externalVersion = createExternalVersionWithEntries(...args);
   return {
-    version: createVersionWithEntries(...args),
-    entryStatusMap: createEntryStatusMap(
-      createExternalVersionWithEntries(...args),
-    ),
+    version: createInternalVersion(externalVersion),
+    entryStatusMap: createEntryStatusMap(externalVersion),
   };
 };
 

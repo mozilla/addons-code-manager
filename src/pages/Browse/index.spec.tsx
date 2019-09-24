@@ -235,7 +235,6 @@ describe(__filename, () => {
         id: version.file.id,
       }),
     );
-    expect(viewer).toHaveProp('comparedToVersionId', null);
   });
 
   it('renders an image file', () => {

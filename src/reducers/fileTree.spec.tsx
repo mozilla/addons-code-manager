@@ -1439,5 +1439,24 @@ describe(__filename, () => {
         `findRelativePathWithDiff was unable to find a path with a diff using currentPath: ${file1}`,
       );
     });
+
+    it('throws an error if no entry status has been maped for a file', () => {
+      const { pathList, version } = getFakeVersionAndPathList([
+        { path: file1, status: '' },
+        { path: file2, status: 'M' },
+      ]);
+
+      expect(() => {
+        findRelativePathWithDiff({
+          currentPath: file1,
+          entryStatusMap: {},
+          pathList,
+          position: RelativePathPosition.next,
+          version,
+        });
+      }).toThrow(
+        `Entry status missing for path: ${file2}, versionId: ${version.id}`,
+      );
+    });
   });
 });

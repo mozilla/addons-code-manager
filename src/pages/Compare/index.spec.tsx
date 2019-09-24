@@ -115,18 +115,21 @@ describe(__filename, () => {
     store = configureStore(),
     version = fakeVersionWithDiff,
     setCurrentVersionId = true,
+    loadEntryStatusMap = true,
   }) => {
     store.dispatch(
       versionsActions.loadVersionInfo({
         version,
       }),
     );
-    store.dispatch(
-      versionsActions.loadEntryStatusMap({
-        version,
-        comparedToVersionId: baseVersionId,
-      }),
-    );
+    if (loadEntryStatusMap) {
+      store.dispatch(
+        versionsActions.loadEntryStatusMap({
+          version,
+          comparedToVersionId: baseVersionId,
+        }),
+      );
+    }
     store.dispatch(
       versionsActions.loadVersionFile({
         path: version.file.selected_file,
@@ -249,6 +252,7 @@ describe(__filename, () => {
     const viewer = root.find(VersionFileViewer);
     expect(viewer).toHaveLength(1);
     expect(viewer).toHaveProp('compareInfo', compareInfo);
+    expect(viewer).toHaveProp('comparedToVersionId', baseVersionId);
     expect(viewer).toHaveProp('version', createInternalVersion(version));
   });
 
@@ -727,6 +731,36 @@ describe(__filename, () => {
 
     expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
     expect(_fetchDiff).toHaveBeenCalledWith(expect.objectContaining({ path }));
+  });
+
+  it('dispatches fetchDiff() when entryStatusMap has not been loaded', () => {
+    const addonId = 10;
+    const headVersionId = 222;
+    const baseVersionId = 31;
+    const version = { ...fakeVersionWithDiff, id: headVersionId };
+    const store = configureStore();
+    _loadDiff({
+      addonId,
+      baseVersionId,
+      headVersionId,
+      store,
+      version,
+      loadEntryStatusMap: false,
+    });
+    const fakeThunk = createFakeThunk();
+    const _fetchDiff = fakeThunk.createThunk;
+
+    const dispatchSpy = spyOn(store, 'dispatch');
+
+    render({
+      _fetchDiff,
+      addonId: String(addonId),
+      baseVersionId: String(baseVersionId),
+      headVersionId: String(headVersionId),
+      store,
+    });
+
+    expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
   });
 
   it('dispatches viewVersionFile() when a file is selected', () => {

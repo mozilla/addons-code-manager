@@ -329,7 +329,7 @@ export type VersionsState = {
     [compareInfoKey: string]: boolean;
   };
   currentVersionId: number | undefined | false;
-  entryStatusMap: {
+  entryStatusMaps: {
     [entryStatusMapKey: string]: EntryStatusMap;
   };
   versionInfo: {
@@ -358,7 +358,7 @@ export const initialState: VersionsState = {
   compareInfo: {},
   compareInfoIsLoading: {},
   currentVersionId: undefined,
-  entryStatusMap: {},
+  entryStatusMaps: {},
   versionFiles: {},
   versionFilesLoading: {},
   versionInfo: {},
@@ -472,7 +472,7 @@ export const getEntryStatusMap = ({
   versionId: number;
   comparedToVersionId: number | null;
 }): EntryStatusMap | undefined => {
-  return versions.entryStatusMap[
+  return versions.entryStatusMaps[
     getEntryStatusMapKey({
       versionId,
       comparedToVersionId,
@@ -497,7 +497,7 @@ export const getMostRelevantEntryStatus = ({
   version: Version;
   entryStatusMap: EntryStatusMap;
   path: string;
-}): VersionEntryStatus | undefined | null => {
+}): VersionEntryStatus | undefined => {
   const statuses = version.entries
     .filter((e) => e.path.startsWith(path))
     .map((e) => entryStatusMap[e.path]);
@@ -1185,8 +1185,8 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
 
       return {
         ...state,
-        entryStatusMap: {
-          ...state.entryStatusMap,
+        entryStatusMaps: {
+          ...state.entryStatusMaps,
           [key]: createEntryStatusMap(version),
         },
       };

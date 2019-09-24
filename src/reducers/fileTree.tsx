@@ -231,6 +231,12 @@ export const findRelativePathWithDiff = ({
       );
     }
 
+    if (entryStatusMap[entry.path] === undefined) {
+      throw new Error(
+        `Entry status missing for path: ${nextPath}, versionId: ${version.id}`,
+      );
+    }
+
     if (entryStatusMap[entry.path] !== '') {
       // There is a difference.
       return nextPath;

@@ -133,7 +133,7 @@ describe(__filename, () => {
 
       expect(state).toEqual({
         ...initialState,
-        entryStatusMap: {
+        entryStatusMaps: {
           [getEntryStatusMapKey({
             versionId: version.id,
             comparedToVersionId,
@@ -914,7 +914,7 @@ describe(__filename, () => {
       ).toEqual(createEntryStatusMap(version));
     });
 
-    it('returns undefind when the entry status map does not exist', () => {
+    it('returns undefined when the entry status map does not exist', () => {
       expect(
         getEntryStatusMap({
           versions: state,
@@ -1722,7 +1722,7 @@ describe(__filename, () => {
       );
     });
 
-    it('does not dispatch loadEntryStatusMap() when EntryStatusMap alreayd exists', async () => {
+    it('does not dispatch loadEntryStatusMap() when EntryStatusMap already exists', async () => {
       const store = configureStore();
       const baseVersionId = 10;
       const headVersionId = 11;
