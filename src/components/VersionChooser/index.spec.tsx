@@ -13,6 +13,9 @@ import {
   createContextWithFakeRouter,
   createFakeHistory,
   createFakeThunk,
+  createStoreWithVersion,
+  fakeVersion,
+  fakeVersionFile,
   fakeVersionsList,
   fakeVersionsListItem,
   shallowUntilTarget,
@@ -275,6 +278,42 @@ describe(__filename, () => {
 
     expect(history.push).toHaveBeenCalledWith(
       `/${lang}/compare/${addonId}/versions/${baseVersionId}...${selectedVersion}/`,
+    );
+  });
+
+  it('pushes a new URL with a query string when the version has been loaded', () => {
+    const addonId = 999;
+    const baseVersionId = '3';
+    const headVersionId = '4';
+    const selectedFile = 'example.js';
+
+    const store = createStoreWithVersion({
+      version: {
+        ...fakeVersion,
+        id: parseInt(headVersionId, 10),
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        file: { ...fakeVersionFile, selected_file: selectedFile },
+      },
+    });
+    _loadVersionsList(store, addonId, fakeVersionsList);
+
+    const history = createFakeHistory();
+
+    const root = render({
+      addonId,
+      baseVersionId,
+      headVersionId,
+      history,
+      store,
+    });
+
+    const onChange = root
+      .find({ className: styles.headVersionSelect })
+      .prop('onChange');
+    onChange(headVersionId);
+
+    expect(history.push).toHaveBeenCalledWith(
+      `/${lang}/compare/${addonId}/versions/${baseVersionId}...${headVersionId}/?path=${selectedFile}`,
     );
   });
 

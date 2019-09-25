@@ -1,3 +1,4 @@
+import queryString from 'query-string';
 import * as React from 'react';
 import { Form } from 'react-bootstrap';
 import { connect } from 'react-redux';
@@ -9,7 +10,9 @@ import VersionSelect from '../VersionSelect';
 import {
   VersionsListItem,
   VersionsMap,
+  VersionsState,
   fetchVersionsList,
+  getVersionInfo,
 } from '../../reducers/versions';
 import { gettext } from '../../utils';
 import styles from './styles.module.scss';
@@ -34,6 +37,7 @@ export type DefaultProps = {
 
 type PropsFromState = {
   versionsMap: VersionsMap;
+  versions: VersionsState;
 };
 
 export type PropsFromRouter = {
@@ -72,11 +76,16 @@ export class VersionChooserBase extends React.Component<Props> {
     baseVersionId: string;
     headVersionId: string;
   }) => {
-    const { addonId, history, match } = this.props;
+    const { addonId, history, match, versions } = this.props;
     const { lang } = match.params;
+    const version = getVersionInfo(versions, parseInt(headVersionId, 10));
+
+    const query = version
+      ? `?${queryString.stringify({ path: version.selectedPath })}`
+      : '';
 
     history.push(
-      `/${lang}/compare/${addonId}/versions/${baseVersionId}...${headVersionId}/`,
+      `/${lang}/compare/${addonId}/versions/${baseVersionId}...${headVersionId}/${query}`,
     );
   };
 
@@ -143,6 +152,7 @@ const mapStateToProps = (
   const { addonId } = ownProps;
 
   return {
+    versions: state.versions,
     versionsMap: byAddonId[addonId],
   };
 };
