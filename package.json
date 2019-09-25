@@ -27,7 +27,7 @@
     "@types/react-dom": "16.9.1",
     "@types/react-helmet": "5.0.10",
     "@types/react-redux": "7.0.8",
-    "@types/react-router-dom": "4.3.5",
+    "@types/react-router-dom": "5.1.0",
     "@types/react-textarea-autosize": "4.3.4",
     "@types/redux-logger": "3.0.6",
     "bootstrap": "4.3.1",
