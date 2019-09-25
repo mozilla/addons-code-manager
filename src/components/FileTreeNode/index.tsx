@@ -11,10 +11,12 @@ import { gettext } from '../../utils';
 import { TreefoldRenderPropsForFileTree } from '../FileTree';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import {
+  EntryStatusMap,
   Version,
   actions as versionsActions,
   getMostRelevantEntryStatus,
   getVersionInfo,
+  getEntryStatusMap,
 } from '../../reducers/versions';
 import {
   LinterMessage,
@@ -31,9 +33,11 @@ export type PublicProps = TreefoldRenderPropsForFileTree & {
   createNodeRef?: () => React.RefObject<HTMLDivElement> | null;
   onSelect: (id: string) => void;
   versionId: number;
+  comparedToVersionId: number | null;
 };
 
 type PropsFromState = {
+  entryStatusMap: EntryStatusMap;
   version: Version;
 };
 
@@ -182,8 +186,8 @@ export class FileTreeNodeBase<TreeNodeType> extends React.Component<Props> {
       onSelect,
       renderChildNodes,
       version,
+      entryStatusMap,
     } = this.props;
-
     const hasLinterMessages =
       messageMap &&
       Object.keys(messageMap.byPath).some((path) => path.startsWith(node.id));
@@ -227,7 +231,11 @@ export class FileTreeNodeBase<TreeNodeType> extends React.Component<Props> {
     }
 
     const adjustedLevel = level + 1;
-    const entryStatus = getMostRelevantEntryStatus(version, node.id);
+    const entryStatus = getMostRelevantEntryStatus({
+      entryStatusMap,
+      version,
+      path: node.id,
+    });
 
     const ItemElement = (props = {}) => {
       return <div ref={this.nodeRef} {...props} />;
@@ -287,16 +295,15 @@ export class FileTreeNodeBase<TreeNodeType> extends React.Component<Props> {
   };
 
   render() {
-    const { node, version } = this.props;
+    const { version } = this.props;
 
     return (
       <LinterProvider
-        key={[node.id].concat(version.expandedPaths).join(':')}
         versionId={version.id}
         validationURL={version.validationURL}
         selectedPath={version.selectedPath}
       >
-        {this.renderWithLinterInfo}
+        {(info: LinterProviderInfo) => this.renderWithLinterInfo(info)}
       </LinterProvider>
     );
   }
@@ -306,15 +313,23 @@ const mapStateToProps = (
   state: ApplicationState,
   ownProps: PublicProps,
 ): PropsFromState => {
-  const version = getVersionInfo(state.versions, ownProps.versionId);
+  const { versionId, comparedToVersionId } = ownProps;
+  const { versions } = state;
+  const version = getVersionInfo(versions, versionId);
+  const entryStatusMap =
+    getEntryStatusMap({
+      versions,
+      versionId,
+      comparedToVersionId,
+    }) || {};
+
   if (!version) {
     // TODO: support loading version objects as needed.
     // https://github.com/mozilla/addons-code-manager/issues/754
-    throw new Error(
-      `No version exists in state for version ID ${ownProps.versionId}`,
-    );
+    throw new Error(`No version exists in state for version ID ${versionId}`);
   }
-  return { version };
+
+  return { entryStatusMap, version };
 };
 
 export default connect(mapStateToProps)(FileTreeNodeBase);

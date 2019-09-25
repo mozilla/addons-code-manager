@@ -12,6 +12,7 @@ import reducer, {
   VersionEntryStatus,
   VersionEntryType,
   actions,
+  createEntryStatusMap,
   createInternalDiff,
   createInternalHunk,
   createInternalVersion,
@@ -26,6 +27,8 @@ import reducer, {
   getCompareInfo,
   getCompareInfoKey,
   getDiffAnchors,
+  getEntryStatusMapKey,
+  getEntryStatusMap,
   getMostRelevantEntryStatus,
   getParentFolders,
   getRelativeDiff,
@@ -44,13 +47,14 @@ import { ROOT_PATH, RelativePathPosition } from './fileTree';
 import configureStore from '../configureStore';
 import diffWithDeletions from '../components/DiffView/fixtures/diffWithDeletions';
 import {
+  createExternalVersionWithEntries,
   createFakeEntry,
   createFakeHistory,
   createFakeLocation,
   createFakeLogger,
   createStoreWithVersion,
-  createVersionWithEntries,
   createFakeThunk,
+  createVersionAndEntryStatusMap,
   fakeExternalDiff,
   fakeVersion,
   fakeVersionAddon,
@@ -119,18 +123,21 @@ describe(__filename, () => {
       });
     });
 
-    it('loads version info with the comparedToVersionId property', () => {
+    it('loads entry status map', () => {
       const comparedToVersionId = 1;
       const version = { ...fakeVersion, id: 2 };
       const state = reducer(
         undefined,
-        actions.loadVersionInfo({ version, comparedToVersionId }),
+        actions.loadEntryStatusMap({ version, comparedToVersionId }),
       );
 
       expect(state).toEqual({
         ...initialState,
-        versionInfo: {
-          [version.id]: createInternalVersion(version, { comparedToVersionId }),
+        entryStatusMaps: {
+          [getEntryStatusMapKey({
+            versionId: version.id,
+            comparedToVersionId,
+          })]: createEntryStatusMap(version),
         },
       });
     });
@@ -502,7 +509,6 @@ describe(__filename, () => {
         undefined,
         actions.loadVersionInfo({
           version,
-          comparedToVersionId: baseVersionId,
         }),
       );
       versionsState = reducer(
@@ -554,7 +560,6 @@ describe(__filename, () => {
         undefined,
         actions.loadVersionInfo({
           version,
-          comparedToVersionId: baseVersionId,
         }),
       );
 
@@ -630,7 +635,6 @@ describe(__filename, () => {
         modified: entry.modified,
         path: entry.path,
         sha256: entry.sha256,
-        status: entry.status,
         type: entry.mime_category,
       });
     });
@@ -643,7 +647,6 @@ describe(__filename, () => {
 
       expect(createInternalVersion(version)).toEqual({
         addon: createInternalVersionAddon(version.addon),
-        comparedToVersionId: null,
         entries: [createInternalVersionEntry(entry)],
         expandedPaths: getParentFolders(version.file.selected_file),
         id: version.id,
@@ -653,15 +656,6 @@ describe(__filename, () => {
         validationURL: fakeVersion.validation_url_json,
         visibleSelectedPath: null,
       });
-    });
-
-    it('creates a Version with the comparedToVersionId property', () => {
-      const comparedToVersionId = 1;
-      const version = { ...fakeVersion, id: 2 };
-
-      expect(createInternalVersion(version, { comparedToVersionId })).toEqual(
-        expect.objectContaining({ comparedToVersionId }),
-      );
     });
 
     it('creates a Version with multiple entries', () => {
@@ -856,49 +850,78 @@ describe(__filename, () => {
 
       expect(getVersionInfo(state, versionId)).toEqual(null);
     });
+  });
 
-    it('returns null if there was an error fetching a version with comparedToVersionId set', () => {
-      const comparedToVersionId = 1;
-      const versionId = 2;
-      // Trigger an error with fetching the version.
-      const state = reducer(
-        undefined,
-        actions.abortFetchVersion({ versionId }),
-      );
-
-      expect(getVersionInfo(state, versionId, { comparedToVersionId })).toEqual(
-        null,
-      );
+  describe('getEntryStatusMapKey', () => {
+    it('return a key given comparedToVersionId is null', () => {
+      const versionId = 33;
+      expect(
+        getEntryStatusMapKey({ versionId, comparedToVersionId: null }),
+      ).toEqual(`versionId=${versionId};comparedToVersionId=null`);
     });
 
-    it('returns undefined if the comparedToVersionId does not match', () => {
-      const comparedToVersionId = 10;
-      const version = { ...fakeVersion, id: comparedToVersionId + 1 };
-
-      const state = reducer(
-        undefined,
-        actions.loadVersionInfo({ version, comparedToVersionId }),
+    it('return a key given comparedToVersionId is a number', () => {
+      const versionId = 33;
+      const comparedToVersionId = 11;
+      expect(getEntryStatusMapKey({ versionId, comparedToVersionId })).toEqual(
+        `versionId=${versionId};comparedToVersionId=${comparedToVersionId}`,
       );
+    });
+  });
 
+  describe('createEntryStatusMap', () => {
+    it('returns entry status map', () => {
+      const path1 = 'file1.js';
+      const path2 = 'file2.js';
+      const path3 = 'file3.js';
+      const status1 = 'M';
+      const status2 = 'A';
+      const status3 = '';
+      const version = createExternalVersionWithEntries([
+        { path: path1, status: status1 },
+        { path: path2, status: status2 },
+        { path: path3, status: status3 },
+      ]);
+
+      expect(createEntryStatusMap(version)).toEqual({
+        [path1]: status1,
+        [path2]: status2,
+        [path3]: status3,
+      });
+    });
+  });
+
+  describe('getEntryStatusMap', () => {
+    const path1 = 'file1.js';
+    const path2 = 'file2.js';
+    const status1 = 'M';
+    const status2 = '';
+    const comparedToVersionId = 33;
+    const versionId = 22;
+    const version = createExternalVersionWithEntries(
+      [{ path: path1, status: status1 }, { path: path2, status: status2 }],
+      { id: versionId },
+    );
+
+    const state = reducer(
+      undefined,
+      actions.loadEntryStatusMap({ version, comparedToVersionId }),
+    );
+
+    it('returns entry status map', () => {
       expect(
-        getVersionInfo(state, version.id, {
-          comparedToVersionId: comparedToVersionId - 1,
+        getEntryStatusMap({ versions: state, versionId, comparedToVersionId }),
+      ).toEqual(createEntryStatusMap(version));
+    });
+
+    it('returns undefined when the entry status map does not exist', () => {
+      expect(
+        getEntryStatusMap({
+          versions: state,
+          versionId,
+          comparedToVersionId: comparedToVersionId + 1,
         }),
       ).toEqual(undefined);
-    });
-
-    it('returns a mismatched version when comparedToVersionId is undefined', () => {
-      const comparedToVersionId = 10;
-      const version = { ...fakeVersion, id: comparedToVersionId + 1 };
-
-      const state = reducer(
-        undefined,
-        actions.loadVersionInfo({ version, comparedToVersionId }),
-      );
-
-      expect(getVersionInfo(state, version.id)).toEqual(
-        createInternalVersion(version, { comparedToVersionId }),
-      );
     });
   });
 
@@ -1640,12 +1663,11 @@ describe(__filename, () => {
       expect(dispatch).toHaveBeenCalledWith(
         actions.loadVersionInfo({
           version,
-          comparedToVersionId: baseVersionId,
         }),
       );
     });
 
-    it('does not dispatch loadVersionInfo() when the same version comparison exists', async () => {
+    it('does not dispatch loadVersionInfo() when the same version exists', async () => {
       const store = configureStore();
       const baseVersionId = 1;
       const headVersionId = 2;
@@ -1654,7 +1676,6 @@ describe(__filename, () => {
       store.dispatch(
         actions.loadVersionInfo({
           version,
-          comparedToVersionId: baseVersionId,
         }),
       );
 
@@ -1669,12 +1690,11 @@ describe(__filename, () => {
       expect(dispatch).not.toHaveBeenCalledWith(
         actions.loadVersionInfo({
           version,
-          comparedToVersionId: baseVersionId,
         }),
       );
     });
 
-    it('dispatches loadVersionInfo() when a version exists but for a different comparison', async () => {
+    it('dispatches loadEntryStatusMap() when EntryStatusMap does not exist', async () => {
       const store = configureStore();
       const baseVersionId = 10;
       const headVersionId = 11;
@@ -1683,25 +1703,56 @@ describe(__filename, () => {
       store.dispatch(
         actions.loadVersionInfo({
           version,
-          comparedToVersionId: baseVersionId,
         }),
       );
 
-      const newBaseVersionId = baseVersionId - 1;
       const { dispatch, thunk } = _fetchDiff({
-        // Request the same version comparison but with a different baseVersionId
-        baseVersionId: newBaseVersionId,
+        baseVersionId,
         headVersionId,
         version,
         store,
       });
       await thunk();
 
-      // Make sure the version for the new comparison was loaded.
       expect(dispatch).toHaveBeenCalledWith(
+        actions.loadEntryStatusMap({
+          version,
+          comparedToVersionId: baseVersionId,
+        }),
+      );
+    });
+
+    it('does not dispatch loadEntryStatusMap() when EntryStatusMap already exists', async () => {
+      const store = configureStore();
+      const baseVersionId = 10;
+      const headVersionId = 11;
+      const version = { ...fakeVersionWithDiff, id: headVersionId };
+
+      store.dispatch(
         actions.loadVersionInfo({
           version,
-          comparedToVersionId: newBaseVersionId,
+        }),
+      );
+
+      store.dispatch(
+        actions.loadEntryStatusMap({
+          version,
+          comparedToVersionId: baseVersionId,
+        }),
+      );
+
+      const { dispatch, thunk } = _fetchDiff({
+        baseVersionId,
+        headVersionId,
+        version,
+        store,
+      });
+      await thunk();
+
+      expect(dispatch).not.toHaveBeenCalledWith(
+        actions.loadEntryStatusMap({
+          version,
+          comparedToVersionId: baseVersionId,
         }),
       );
     });
@@ -2512,6 +2563,7 @@ describe(__filename, () => {
       return getRelativeDiff({
         currentAnchor: '',
         diff: createFakeDiffWithChanges([]),
+        entryStatusMap: createEntryStatusMap(fakeVersion),
         pathList: [fakeVersion.file.selected_file],
         position: RelativePathPosition.next,
         version: createInternalVersion(fakeVersion),
@@ -2549,13 +2601,14 @@ describe(__filename, () => {
       const _findRelativePathWithDiff = jest.fn().mockReturnValue(path);
       const _getRelativeDiffAnchor = jest.fn().mockReturnValue(null);
       const position = RelativePathPosition.next;
-      const { pathList, version } = getFakeVersionAndPathList([
+      const { entryStatusMap, pathList, version } = getFakeVersionAndPathList([
         { path, status: 'M' },
       ]);
 
       const result = _getRelativeDiff({
         _findRelativePathWithDiff,
         _getRelativeDiffAnchor,
+        entryStatusMap,
         pathList,
         position,
         version,
@@ -2563,6 +2616,7 @@ describe(__filename, () => {
 
       expect(_findRelativePathWithDiff).toHaveBeenCalledWith({
         currentPath: version.selectedPath,
+        entryStatusMap,
         pathList,
         position,
         version,
@@ -2574,13 +2628,14 @@ describe(__filename, () => {
       const path = file1;
       const _findRelativePathWithDiff = jest.fn().mockReturnValue(path);
       const position = RelativePathPosition.next;
-      const { pathList, version } = getFakeVersionAndPathList([
+      const { entryStatusMap, pathList, version } = getFakeVersionAndPathList([
         { path, status: 'M' },
       ]);
 
       const result = _getRelativeDiff({
         _findRelativePathWithDiff,
         diff: null,
+        entryStatusMap,
         pathList,
         position,
         version,
@@ -2588,6 +2643,7 @@ describe(__filename, () => {
 
       expect(_findRelativePathWithDiff).toHaveBeenCalledWith({
         currentPath: version.selectedPath,
+        entryStatusMap,
         pathList,
         position,
         version,
@@ -2705,33 +2761,47 @@ describe(__filename, () => {
 
   describe('getMostRelevantEntryStatus', () => {
     it('returns undefined for a non-existant file', () => {
-      const version = createVersionWithEntries([
+      const { entryStatusMap, version } = createVersionAndEntryStatusMap([
         { path: 'background.js', status: 'A' },
       ]);
 
-      expect(getMostRelevantEntryStatus(version, 'content-script.js')).toEqual(
-        undefined,
-      );
+      expect(
+        getMostRelevantEntryStatus({
+          entryStatusMap,
+          version,
+          path: 'content-script.js',
+        }),
+      ).toEqual(undefined);
     });
 
     it('returns a file status', () => {
       const path = 'background.js';
       const entryStatus = 'A';
 
-      const version = createVersionWithEntries([{ path, status: entryStatus }]);
+      const { entryStatusMap, version } = createVersionAndEntryStatusMap([
+        { path, status: entryStatus },
+      ]);
 
-      expect(getMostRelevantEntryStatus(version, path)).toEqual(entryStatus);
+      expect(
+        getMostRelevantEntryStatus({ entryStatusMap, path, version }),
+      ).toEqual(entryStatus);
     });
 
     it('returns undefined for a directory without any statuses', () => {
       const parentDir = 'scripts';
 
-      const version = createVersionWithEntries([
+      const { entryStatusMap, version } = createVersionAndEntryStatusMap([
         { path: `${parentDir}/background.js`, status: undefined },
         { path: `${parentDir}/content.js`, status: undefined },
       ]);
 
-      expect(getMostRelevantEntryStatus(version, parentDir)).toEqual(undefined);
+      expect(
+        getMostRelevantEntryStatus({
+          entryStatusMap,
+          path: parentDir,
+          version,
+        }),
+      ).toEqual(undefined);
     });
 
     it.each([
@@ -2744,15 +2814,19 @@ describe(__filename, () => {
       (statuses, expectedStatus) => {
         const parentDir = 'scripts';
 
-        const version = createVersionWithEntries(
+        const { entryStatusMap, version } = createVersionAndEntryStatusMap(
           (statuses as VersionEntryStatus[]).map((s) => {
             return { path: `${parentDir}/file-${s}.js`, status: s };
           }),
         );
 
-        expect(getMostRelevantEntryStatus(version, parentDir)).toEqual(
-          expectedStatus,
-        );
+        expect(
+          getMostRelevantEntryStatus({
+            entryStatusMap,
+            path: parentDir,
+            version,
+          }),
+        ).toEqual(expectedStatus);
       },
     );
 
@@ -2760,13 +2834,19 @@ describe(__filename, () => {
       const topDir = 'scripts';
       const parentDir = `${topDir}/within/nested/dirs`;
 
-      const version = createVersionWithEntries([
+      const { entryStatusMap, version } = createVersionAndEntryStatusMap([
         { path: `${topDir}/messageBus.js`, status: 'D' },
         { path: `${parentDir}/background.js`, status: 'D' },
         { path: `${parentDir}/content.js`, status: 'M' },
       ]);
 
-      expect(getMostRelevantEntryStatus(version, parentDir)).toEqual('M');
+      expect(
+        getMostRelevantEntryStatus({
+          entryStatusMap,
+          path: parentDir,
+          version,
+        }),
+      ).toEqual('M');
     });
   });
 
@@ -2778,11 +2858,13 @@ describe(__filename, () => {
       diff = null,
       pathList = ['file1.js'],
       position = RelativePathPosition.next,
-      versionId = 1,
+      versionId = 2,
+      comparedToVersionId = 1,
     } = {}) => {
       return goToRelativeDiff({
         _getRelativeDiff,
         _viewVersionFile,
+        comparedToVersionId,
         currentAnchor,
         diff,
         pathList,
@@ -2800,19 +2882,27 @@ describe(__filename, () => {
       const pathList = [path];
       const position = RelativePathPosition.next;
       const versionId = 123;
+      const comparedToVersionId = 31;
 
       const history = createBrowserHistory();
       const location = createFakeLocation({ pathname: path });
       history.push(location);
       const store = configureStore({ history });
+      const externalVersion = { ...fakeVersion, id: versionId };
+      const entryStatusMap = createEntryStatusMap(externalVersion);
+      store.dispatch(actions.loadVersionInfo({ version: externalVersion }));
       store.dispatch(
-        actions.loadVersionInfo({ version: { ...fakeVersion, id: versionId } }),
+        actions.loadEntryStatusMap({
+          version: externalVersion,
+          comparedToVersionId,
+        }),
       );
 
       const { dispatch, thunk } = thunkTester({
         createThunk: () =>
           _goToRelativeDiff({
             _getRelativeDiff,
+            comparedToVersionId,
             currentAnchor,
             diff,
             pathList,
@@ -2832,6 +2922,7 @@ describe(__filename, () => {
       expect(_getRelativeDiff).toHaveBeenCalledWith({
         currentAnchor,
         diff,
+        entryStatusMap,
         pathList,
         position,
         version,
@@ -2859,13 +2950,15 @@ describe(__filename, () => {
         const diff = null;
         const pathList = ['file1.js'];
         const versionId = 123;
-
+        const comparedToVersionId = 10;
         const fakeThunk = createFakeThunk();
         const _viewVersionFile = fakeThunk.createThunk;
+        const version = { ...fakeVersion, id: versionId };
+        const store = createStoreWithVersion({ version });
 
-        const store = createStoreWithVersion({
-          version: { ...fakeVersion, id: versionId },
-        });
+        store.dispatch(
+          actions.loadEntryStatusMap({ version, comparedToVersionId }),
+        );
 
         const typedPosition = position as RelativePathPosition;
 
@@ -2874,6 +2967,7 @@ describe(__filename, () => {
             _goToRelativeDiff({
               _getRelativeDiff,
               _viewVersionFile,
+              comparedToVersionId,
               currentAnchor,
               diff,
               pathList,
@@ -2900,15 +2994,18 @@ describe(__filename, () => {
         .fn()
         .mockReturnValue({ anchor: null, path: null });
       const versionId = 123;
-
-      const store = createStoreWithVersion({
-        version: { ...fakeVersion, id: versionId },
-      });
+      const comparedToVersionId = 11;
+      const version = { ...fakeVersion, id: versionId };
+      const store = createStoreWithVersion({ version });
+      store.dispatch(
+        actions.loadEntryStatusMap({ version, comparedToVersionId }),
+      );
 
       const { dispatch, thunk } = thunkTester({
         createThunk: () =>
           _goToRelativeDiff({
             _getRelativeDiff,
+            comparedToVersionId,
             versionId,
           }),
         store,
@@ -2935,6 +3032,27 @@ describe(__filename, () => {
 
       await expect(thunk()).rejects.toThrow(
         'Cannot go to relative diff without a version loaded',
+      );
+    });
+
+    it('throws an exception if the entryStatusMap is not loaded', async () => {
+      const versionId = 123;
+      const comparedToVersionId = 11;
+      const store = createStoreWithVersion({
+        version: { ...fakeVersion, id: versionId },
+      });
+
+      const { thunk } = thunkTester({
+        createThunk: () =>
+          _goToRelativeDiff({
+            versionId,
+            comparedToVersionId,
+          }),
+        store,
+      });
+
+      await expect(thunk()).rejects.toThrow(
+        `Cannot go to relative diff without an entryStatusMap for versionId=${versionId} comparedToVersionId=${comparedToVersionId}`,
       );
     });
   });

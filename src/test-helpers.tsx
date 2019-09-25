@@ -37,6 +37,7 @@ import {
   VersionEntry,
   VersionEntryType,
   actions as versionsActions,
+  createEntryStatusMap,
   createInternalCompareInfo,
   createInternalVersion,
   createInternalVersionEntry,
@@ -180,25 +181,35 @@ export const createVersionWithEntries = (
   return createInternalVersion(createExternalVersionWithEntries(...args));
 };
 
+export const createVersionAndEntryStatusMap = (
+  ...args: Parameters<typeof createExternalVersionWithEntries>
+) => {
+  const externalVersion = createExternalVersionWithEntries(...args);
+  return {
+    version: createInternalVersion(externalVersion),
+    entryStatusMap: createEntryStatusMap(externalVersion),
+  };
+};
+
 export const getFakeVersionAndPathList = (
   entries: ({ path: string } & Partial<ExternalVersionEntry>)[],
 ) => {
   const pathList = entries.map((e) => e.path);
 
-  const version = createVersionWithEntries(
-    entries.map((params) =>
-      createInternalVersionEntry({
-        ...fakeVersionEntry,
-        mime_category: 'text',
-        status: 'M',
-        ...params,
-        filename: params.path,
-      }),
-    ),
+  const externalEntries: ExternalVersionEntry[] = entries.map((params) => ({
+    ...fakeVersionEntry,
+    mime_category: 'text',
+    ...params,
+    filename: params.path,
+  }));
+
+  const { version, entryStatusMap } = createVersionAndEntryStatusMap(
+    externalEntries,
   );
+
   version.selectedPath = pathList[0];
 
-  return { pathList, version };
+  return { entryStatusMap, pathList, version };
 };
 
 export const fakeUser: ExternalUser = Object.freeze({

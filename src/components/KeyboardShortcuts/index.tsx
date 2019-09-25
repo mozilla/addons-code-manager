@@ -43,6 +43,7 @@ export const supportedKeys: { [key: string]: string | null } = {
 
 export type PublicProps = {
   compareInfo: CompareInfo | null | void;
+  comparedToVersionId: number | null;
   currentPath: string;
   messageMap: LinterProviderInfo['messageMap'];
   versionId: number;
@@ -84,6 +85,7 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
       _goToRelativeFile,
       _goToRelativeMessage,
       compareInfo,
+      comparedToVersionId,
       currentAnchor,
       currentPath,
       dispatch,
@@ -152,6 +154,7 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
             dispatch(
               _goToRelativeDiff({
                 currentAnchor,
+                comparedToVersionId,
                 diff: compareInfo.diff,
                 pathList,
                 position: RelativePathPosition.next,
@@ -167,6 +170,7 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
             dispatch(
               _goToRelativeDiff({
                 currentAnchor,
+                comparedToVersionId,
                 diff: compareInfo.diff,
                 pathList,
                 position: RelativePathPosition.previous,

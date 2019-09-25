@@ -87,6 +87,7 @@ describe(__filename, () => {
     _goToRelativeDiff = jest.fn(),
     _goToRelativeFile = jest.fn().mockReturnValue(fakeAction),
     _goToRelativeMessage = jest.fn().mockReturnValue(fakeAction),
+    comparedToVersionId = 1,
     compareInfo = null,
     currentPath = 'file1.js',
     location = createFakeLocation(),
@@ -103,6 +104,7 @@ describe(__filename, () => {
       _goToRelativeFile,
       _goToRelativeMessage,
       compareInfo,
+      comparedToVersionId,
       currentPath,
       location,
       messageMap,
@@ -256,6 +258,7 @@ describe(__filename, () => {
       const hash = '#D1';
       const pathList = [currentPath];
       const versionId = 123;
+      const comparedToVersionId = 11;
       const compareInfo = createFakeCompareInfo();
       const location = createFakeLocation({
         search: queryString.stringify({ path: currentPath }),
@@ -277,6 +280,7 @@ describe(__filename, () => {
           location,
           store,
           versionId,
+          comparedToVersionId,
         },
       );
 
@@ -287,6 +291,7 @@ describe(__filename, () => {
         pathList,
         position,
         versionId,
+        comparedToVersionId,
       });
     },
   );

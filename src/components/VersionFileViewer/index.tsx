@@ -23,6 +23,7 @@ export enum ItemTitles {
 
 export type PublicProps = {
   children: AnyReactNode;
+  comparedToVersionId: number | null;
   compareInfo?: CompareInfo | null | void;
   getCodeLineAnchor?: GetCodeLineAnchor;
   file: VersionFile | null | void;
@@ -32,6 +33,7 @@ export type PublicProps = {
 
 const VersionFileViewer = ({
   children,
+  comparedToVersionId,
   compareInfo,
   file,
   getCodeLineAnchor,
@@ -67,7 +69,11 @@ const VersionFileViewer = ({
         mainSidePanel={
           <AccordionMenu>
             <AccordionItem expandedByDefault title={ItemTitles.Files}>
-              <FileTree onSelect={onSelectFile} versionId={version.id} />
+              <FileTree
+                comparedToVersionId={comparedToVersionId}
+                onSelect={onSelectFile}
+                versionId={version.id}
+              />
             </AccordionItem>
             <AccordionItem title={ItemTitles.Information}>
               {file ? (
@@ -78,6 +84,7 @@ const VersionFileViewer = ({
             </AccordionItem>
             <AccordionItem title={ItemTitles.Shortcuts}>
               <KeyboardShortcuts
+                comparedToVersionId={comparedToVersionId}
                 compareInfo={compareInfo}
                 currentPath={version.selectedPath}
                 messageMap={messageMap}

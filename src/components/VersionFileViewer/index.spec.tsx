@@ -93,6 +93,7 @@ describe(__filename, () => {
     const { file, version } = getInternalVersionAndFile();
     const props = {
       children: <div />,
+      comparedToVersionId: null,
       file,
       onSelectFile: jest.fn(),
       version,
@@ -143,9 +144,10 @@ describe(__filename, () => {
   it('renders a FileTree component', () => {
     const onSelectFile = jest.fn();
     const { version } = getInternalVersionAndFile();
+    const comparedToVersionId = 11;
 
     const root = renderPanel(
-      { onSelectFile, version },
+      { onSelectFile, version, comparedToVersionId },
       PanelAttribs.mainSidePanel,
     );
 
@@ -153,6 +155,7 @@ describe(__filename, () => {
     expect(tree).toHaveLength(1);
     expect(tree).toHaveProp('onSelect', onSelectFile);
     expect(tree).toHaveProp('versionId', version.id);
+    expect(tree).toHaveProp('comparedToVersionId', comparedToVersionId);
   });
 
   it('shows an information panel by default', () => {
@@ -192,13 +195,14 @@ describe(__filename, () => {
   it('renders a KeyboardShortcuts panel', () => {
     const { version } = getInternalVersionAndFile();
     const compareInfo = createFakeCompareInfo();
+    const comparedToVersionId = 41;
 
     const messageMap = getMessageMap(
       createFakeExternalLinterResult({ messages: [fakeExternalLinterMessage] }),
     );
 
     const root = renderWithLinterProvider(
-      { compareInfo, version },
+      { compareInfo, comparedToVersionId, version },
       { messageMap },
     );
 
@@ -208,6 +212,7 @@ describe(__filename, () => {
     ).find(KeyboardShortcuts);
 
     expect(shortcuts).toHaveLength(1);
+    expect(shortcuts).toHaveProp('comparedToVersionId', comparedToVersionId);
     expect(shortcuts).toHaveProp('compareInfo', compareInfo);
     expect(shortcuts).toHaveProp('currentPath', version.selectedPath);
     expect(shortcuts).toHaveProp('messageMap', messageMap);

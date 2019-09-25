@@ -3,7 +3,7 @@ import log from 'loglevel';
 import { Reducer } from 'redux';
 import { ActionType, createAction, getType } from 'typesafe-actions';
 
-import { Version, viewVersionFile } from './versions';
+import { EntryStatusMap, Version, viewVersionFile } from './versions';
 import { ThunkActionCreator } from '../configureStore';
 import {
   createAdjustedQueryString,
@@ -200,6 +200,7 @@ export const getRelativePath = ({
 
 export type FindRelativePathWithDiffParams = {
   currentPath: string;
+  entryStatusMap: EntryStatusMap;
   pathList: string[];
   position: RelativePathPosition;
   version: Version;
@@ -207,6 +208,7 @@ export type FindRelativePathWithDiffParams = {
 
 export const findRelativePathWithDiff = ({
   currentPath,
+  entryStatusMap,
   pathList,
   position,
   version,
@@ -229,7 +231,13 @@ export const findRelativePathWithDiff = ({
       );
     }
 
-    if (entry.status !== '') {
+    if (entryStatusMap[entry.path] === undefined) {
+      throw new Error(
+        `Entry status missing for path: ${nextPath}, versionId: ${version.id}`,
+      );
+    }
+
+    if (entryStatusMap[entry.path] !== '') {
       // There is a difference.
       return nextPath;
     }

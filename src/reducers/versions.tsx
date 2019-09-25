@@ -182,7 +182,6 @@ export type VersionEntry = {
   modified: string;
   path: string;
   sha256: string;
-  status?: VersionEntryStatus;
   type: VersionEntryType;
 };
 
@@ -195,7 +194,6 @@ type VersionAddon = {
 
 export type Version = {
   addon: VersionAddon;
-  comparedToVersionId: null | number;
   entries: VersionEntry[];
   expandedPaths: string[];
   id: number;
@@ -228,6 +226,10 @@ export type CompareInfo = {
   mimeType: string;
 };
 
+export type EntryStatusMap = {
+  [nodeName: string]: VersionEntryStatus | undefined;
+};
+
 export const actions = {
   loadVersionFile: createAction('LOAD_VERSION_FILE', (resolve) => {
     return (payload: { path: string; version: ExternalVersionWithContent }) =>
@@ -236,7 +238,12 @@ export const actions = {
   loadVersionInfo: createAction('LOAD_VERSION_INFO', (resolve) => {
     return (payload: {
       version: ExternalVersionWithContent | ExternalVersionWithDiff;
-      comparedToVersionId?: number;
+    }) => resolve(payload);
+  }),
+  loadEntryStatusMap: createAction('LOAD_ENTRY_STATUS_MAP', (resolve) => {
+    return (payload: {
+      version: ExternalVersionWithContent | ExternalVersionWithDiff;
+      comparedToVersionId: number | null;
     }) => resolve(payload);
   }),
   updateSelectedPath: createAction('UPDATE_SELECTED_PATH', (resolve) => {
@@ -322,6 +329,9 @@ export type VersionsState = {
     [compareInfoKey: string]: boolean;
   };
   currentVersionId: number | undefined | false;
+  entryStatusMaps: {
+    [entryStatusMapKey: string]: EntryStatusMap;
+  };
   versionInfo: {
     [versionId: number]:
       | Version // data successfully loaded
@@ -348,6 +358,7 @@ export const initialState: VersionsState = {
   compareInfo: {},
   compareInfoIsLoading: {},
   currentVersionId: undefined,
+  entryStatusMaps: {},
   versionFiles: {},
   versionFilesLoading: {},
   versionInfo: {},
@@ -388,9 +399,31 @@ export const createInternalVersionEntry = (
     modified: entry.modified,
     path: entry.path,
     sha256: entry.sha256,
-    status: entry.status,
     type: entry.mime_category,
   };
+};
+
+export const getEntryStatusMapKey = ({
+  versionId,
+  comparedToVersionId,
+}: {
+  versionId: number;
+  comparedToVersionId: number | null;
+}) => {
+  return `versionId=${versionId};comparedToVersionId=${comparedToVersionId}`;
+};
+
+export const createEntryStatusMap = (
+  version: ExternalVersionWithContent | ExternalVersionWithDiff,
+): EntryStatusMap => {
+  const { entries } = version.file;
+  const entryStatusMap: EntryStatusMap = {};
+
+  for (const nodeName of Object.keys(entries)) {
+    entryStatusMap[nodeName] = entries[nodeName].status;
+  }
+
+  return entryStatusMap;
 };
 
 export const createInternalVersionAddon = (
@@ -406,11 +439,9 @@ export const createInternalVersionAddon = (
 
 export const createInternalVersion = (
   version: ExternalVersionWithContent | ExternalVersionWithDiff,
-  { comparedToVersionId }: { comparedToVersionId?: number } = {},
 ): Version => {
   return {
     addon: createInternalVersionAddon(version.addon),
-    comparedToVersionId: comparedToVersionId || null,
     entries: Object.keys(version.file.entries).map((nodeName) => {
       return createInternalVersionEntry(version.file.entries[nodeName]);
     }),
@@ -428,25 +459,25 @@ export const getVersionFiles = (versions: VersionsState, versionId: number) => {
   return versions.versionFiles[versionId];
 };
 
-export const getVersionInfo = (
-  versions: VersionsState,
-  versionId: number,
-  { comparedToVersionId }: { comparedToVersionId?: number } = {},
-) => {
-  const version = versions.versionInfo[versionId];
+export const getVersionInfo = (versions: VersionsState, versionId: number) => {
+  return versions.versionInfo[versionId];
+};
 
-  if (version === undefined) {
-    return undefined;
-  }
-  if (
-    version &&
-    comparedToVersionId !== undefined &&
-    version.comparedToVersionId !== comparedToVersionId
-  ) {
-    return undefined;
-  }
-
-  return version;
+export const getEntryStatusMap = ({
+  versions,
+  versionId,
+  comparedToVersionId,
+}: {
+  versions: VersionsState;
+  versionId: number;
+  comparedToVersionId: number | null;
+}): EntryStatusMap | undefined => {
+  return versions.entryStatusMaps[
+    getEntryStatusMapKey({
+      versionId,
+      comparedToVersionId,
+    })
+  ];
 };
 
 export const selectCurrentVersionInfo = (
@@ -458,13 +489,18 @@ export const selectCurrentVersionInfo = (
   return getVersionInfo(versions, versions.currentVersionId);
 };
 
-export const getMostRelevantEntryStatus = (
-  version: Version,
-  path: string,
-): VersionEntryStatus | void => {
+export const getMostRelevantEntryStatus = ({
+  version,
+  entryStatusMap,
+  path,
+}: {
+  version: Version;
+  entryStatusMap: EntryStatusMap;
+  path: string;
+}): VersionEntryStatus | undefined => {
   const statuses = version.entries
     .filter((e) => e.path.startsWith(path))
-    .map((e) => e.status);
+    .map((e) => entryStatusMap[e.path]);
 
   const priorities: VersionEntryStatus[] = ['A', 'M', 'D'];
 
@@ -616,6 +652,7 @@ export type GetRelativeDiffParams = {
   _getRelativeDiffAnchor?: typeof getRelativeDiffAnchor;
   currentAnchor: string | void;
   diff: DiffInfo | null;
+  entryStatusMap: EntryStatusMap;
   pathList: string[];
   position: RelativePathPosition;
   version: Version;
@@ -631,6 +668,7 @@ export const getRelativeDiff = ({
   _getRelativeDiffAnchor = getRelativeDiffAnchor,
   currentAnchor,
   diff,
+  entryStatusMap,
   pathList,
   position,
   version,
@@ -645,6 +683,7 @@ export const getRelativeDiff = ({
   if (!result.anchor) {
     result.path = _findRelativePathWithDiff({
       currentPath: version.selectedPath,
+      entryStatusMap,
       pathList,
       position,
       version,
@@ -957,13 +996,22 @@ export const fetchDiff = ({
       dispatch(actions.abortFetchVersion({ versionId: headVersionId }));
       dispatch(errorsActions.addError({ error: response.error }));
     } else {
+      if (!getVersionInfo(versionsState, response.id)) {
+        dispatch(
+          actions.loadVersionInfo({
+            version: response,
+          }),
+        );
+      }
       if (
-        !getVersionInfo(versionsState, response.id, {
+        !getEntryStatusMap({
+          versions: versionsState,
+          versionId: response.id,
           comparedToVersionId: baseVersionId,
         })
       ) {
         dispatch(
-          actions.loadVersionInfo({
+          actions.loadEntryStatusMap({
             version: response,
             comparedToVersionId: baseVersionId,
           }),
@@ -1025,6 +1073,7 @@ type GoToRelativeDiffParams = {
   pathList: string[];
   position: RelativePathPosition;
   versionId: number;
+  comparedToVersionId: number | null;
 };
 
 export const goToRelativeDiff = ({
@@ -1032,6 +1081,7 @@ export const goToRelativeDiff = ({
   _getRelativeDiff = getRelativeDiff,
   /* istanbul ignore next */
   _viewVersionFile = viewVersionFile,
+  comparedToVersionId,
   currentAnchor,
   diff,
   pathList,
@@ -1041,14 +1091,25 @@ export const goToRelativeDiff = ({
   return async (dispatch, getState) => {
     const { router, versions: versionsState } = getState();
     const version = getVersionInfo(versionsState, versionId);
+    const entryStatusMap = getEntryStatusMap({
+      comparedToVersionId,
+      versions: versionsState,
+      versionId,
+    });
 
     if (!version) {
       throw new Error('Cannot go to relative diff without a version loaded.');
+    }
+    if (!entryStatusMap) {
+      throw new Error(
+        `Cannot go to relative diff without an entryStatusMap for versionId=${version.id} comparedToVersionId=${comparedToVersionId}`,
+      );
     }
 
     const nextDiffInfo = _getRelativeDiff({
       currentAnchor,
       diff,
+      entryStatusMap,
       pathList,
       position,
       version,
@@ -1094,13 +1155,13 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
       };
     }
     case getType(actions.loadVersionInfo): {
-      const { version, comparedToVersionId } = action.payload;
+      const { version } = action.payload;
 
       return {
         ...state,
         versionInfo: {
           ...state.versionInfo,
-          [version.id]: createInternalVersion(version, { comparedToVersionId }),
+          [version.id]: createInternalVersion(version),
         },
       };
     }
@@ -1112,6 +1173,21 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
         versionInfo: {
           ...state.versionInfo,
           [versionId]: null,
+        },
+      };
+    }
+    case getType(actions.loadEntryStatusMap): {
+      const { version, comparedToVersionId } = action.payload;
+      const key = getEntryStatusMapKey({
+        versionId: version.id,
+        comparedToVersionId,
+      });
+
+      return {
+        ...state,
+        entryStatusMaps: {
+          ...state.entryStatusMaps,
+          [key]: createEntryStatusMap(version),
         },
       };
     }
@@ -1351,9 +1427,7 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
         path,
       });
 
-      const headVersion = getVersionInfo(state, headVersionId, {
-        comparedToVersionId: baseVersionId,
-      });
+      const headVersion = getVersionInfo(state, headVersionId);
       if (!headVersion) {
         throw new Error(`Version missing for headVersionId: ${headVersionId}`);
       }

@@ -1316,7 +1316,7 @@ describe(__filename, () => {
     const file4 = 'file4.js';
 
     it('gets the next path which has a diff', () => {
-      const { pathList, version } = getFakeVersionAndPathList([
+      const { entryStatusMap, pathList, version } = getFakeVersionAndPathList([
         { path: file1, status: 'M' },
         { path: file2, status: '' },
         { path: file3, status: 'M' },
@@ -1326,6 +1326,7 @@ describe(__filename, () => {
       expect(
         findRelativePathWithDiff({
           currentPath: file1,
+          entryStatusMap,
           pathList,
           position: RelativePathPosition.next,
           version,
@@ -1334,7 +1335,7 @@ describe(__filename, () => {
     });
 
     it('gets the previous path which has a diff', () => {
-      const { pathList, version } = getFakeVersionAndPathList([
+      const { entryStatusMap, pathList, version } = getFakeVersionAndPathList([
         { path: file1, status: 'M' },
         { path: file2, status: '' },
         { path: file3, status: 'M' },
@@ -1344,6 +1345,7 @@ describe(__filename, () => {
       expect(
         findRelativePathWithDiff({
           currentPath: file3,
+          entryStatusMap,
           pathList,
           position: RelativePathPosition.previous,
           version,
@@ -1352,7 +1354,7 @@ describe(__filename, () => {
     });
 
     it('wraps around to the first path on next', () => {
-      const { pathList, version } = getFakeVersionAndPathList([
+      const { entryStatusMap, pathList, version } = getFakeVersionAndPathList([
         { path: file1, status: 'M' },
         { path: file2, status: 'M' },
         { path: file3, status: 'M' },
@@ -1361,6 +1363,7 @@ describe(__filename, () => {
       expect(
         findRelativePathWithDiff({
           currentPath: file3,
+          entryStatusMap,
           pathList,
           position: RelativePathPosition.next,
           version,
@@ -1369,7 +1372,7 @@ describe(__filename, () => {
     });
 
     it('wraps around to the last path on previous', () => {
-      const { pathList, version } = getFakeVersionAndPathList([
+      const { entryStatusMap, pathList, version } = getFakeVersionAndPathList([
         { path: file1, status: 'M' },
         { path: file2, status: 'M' },
         { path: file3, status: 'M' },
@@ -1378,6 +1381,7 @@ describe(__filename, () => {
       expect(
         findRelativePathWithDiff({
           currentPath: file1,
+          entryStatusMap,
           pathList,
           position: RelativePathPosition.previous,
           version,
@@ -1386,7 +1390,7 @@ describe(__filename, () => {
     });
 
     it('returns the current path if there are no other paths with changes', () => {
-      const { pathList, version } = getFakeVersionAndPathList([
+      const { entryStatusMap, pathList, version } = getFakeVersionAndPathList([
         { path: file1, status: 'M' },
         { path: file2, status: '' },
       ]);
@@ -1394,6 +1398,7 @@ describe(__filename, () => {
       expect(
         findRelativePathWithDiff({
           currentPath: file1,
+          entryStatusMap,
           pathList,
           position: RelativePathPosition.next,
           version,
@@ -1402,13 +1407,14 @@ describe(__filename, () => {
     });
 
     it('throws an error if no entry is found for a path', () => {
-      const { version } = getFakeVersionAndPathList([
+      const { entryStatusMap, version } = getFakeVersionAndPathList([
         { path: file2, status: 'M' },
       ]);
 
       expect(() => {
         findRelativePathWithDiff({
           currentPath: file1,
+          entryStatusMap,
           pathList: [file1],
           position: RelativePathPosition.next,
           version,
@@ -1417,19 +1423,39 @@ describe(__filename, () => {
     });
 
     it('throws an error if no paths with diffs were found at all', () => {
-      const { version } = getFakeVersionAndPathList([
+      const { entryStatusMap, version } = getFakeVersionAndPathList([
         { path: file1, status: 'M' },
       ]);
 
       expect(() => {
         findRelativePathWithDiff({
           currentPath: file1,
+          entryStatusMap,
           pathList: [],
           position: RelativePathPosition.next,
           version,
         });
       }).toThrow(
         `findRelativePathWithDiff was unable to find a path with a diff using currentPath: ${file1}`,
+      );
+    });
+
+    it('throws an error if no entry status has been maped for a file', () => {
+      const { pathList, version } = getFakeVersionAndPathList([
+        { path: file1, status: '' },
+        { path: file2, status: 'M' },
+      ]);
+
+      expect(() => {
+        findRelativePathWithDiff({
+          currentPath: file1,
+          entryStatusMap: {},
+          pathList,
+          position: RelativePathPosition.next,
+          version,
+        });
+      }).toThrow(
+        `Entry status missing for path: ${file2}, versionId: ${version.id}`,
       );
     });
   });
