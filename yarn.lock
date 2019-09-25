@@ -2250,10 +2250,10 @@
   resolved "https://registry.yarnpkg.com/@types/range-parser/-/range-parser-1.2.3.tgz#7ee330ba7caafb98090bece86a5ee44115904c2c"
   integrity sha512-ewFXqrQHlFsgc09MK5jP5iR7vumV/BYayNC6PgJO2LPe8vrnNFyjQjSppfEngITi0qvfKtzFvgKymGheFM9UOA==
 
-"@types/react-bootstrap@0.32.19":
-  version "0.32.19"
-  resolved "https://registry.yarnpkg.com/@types/react-bootstrap/-/react-bootstrap-0.32.19.tgz#1bdf1536cabcc4e0be5a2011e33d6766685a7e2a"
-  integrity sha512-WT108qFXs462RALsnA51e/Q5UJMtCCwIubhgv1U/YtVh2Rh18ZLALkNfAJZO9iroj7fk5RHcfMg7cZxirZp47w==
+"@types/react-bootstrap@0.32.20":
+  version "0.32.20"
+  resolved "https://registry.yarnpkg.com/@types/react-bootstrap/-/react-bootstrap-0.32.20.tgz#8d90e625a1b2d92d169de27e40b3d20057efa1ae"
+  integrity sha512-lc7bUHGMfVkbH9B7EKPD/9AYtgtFYP5go5D3tqIUN4O0znPX1UwBY4wUeicJPONaMpYtmVUGSdbDDqK9lXUCFQ==
   dependencies:
     "@types/react" "*"
 
