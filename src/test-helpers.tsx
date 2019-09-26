@@ -893,11 +893,10 @@ export const dispatchComments = ({
   line = null,
   versionId = 1,
 } = {}) => {
-  for (const comment of comments) {
-    store.dispatch(
-      commentsActions.setComment({ fileName, line, versionId, comment }),
-    );
-  }
+  store.dispatch(
+    commentsActions.setComments({ fileName, line, versionId, comments }),
+  );
+
   return { store };
 };
 

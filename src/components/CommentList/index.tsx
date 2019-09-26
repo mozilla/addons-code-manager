@@ -2,20 +2,19 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 
 import { ApplicationState } from '../../reducers';
-import {
-  CommentKeyParams,
-  CommentInfo,
-  createCommentKey,
-} from '../../reducers/comments';
+import { CommentInfo, selectCommentInfo } from '../../reducers/comments';
 import Comment from '../Comment';
 import styles from './styles.module.scss';
 
 export type ChildrenArgValue = JSX.Element;
 
-export type PublicProps = CommentKeyParams & {
+export type PublicProps = {
   addonId: number;
   children: (content: ChildrenArgValue) => JSX.Element;
   className?: string;
+  fileName: string | null;
+  line: number | null;
+  versionId: number;
 };
 
 type PropsFromState = {
@@ -76,9 +75,13 @@ const mapStateToProps = (
   state: ApplicationState,
   { versionId, fileName, line }: PublicProps,
 ): PropsFromState => {
-  const key = createCommentKey({ versionId, fileName, line });
   return {
-    commentInfo: state.comments.byKey[key],
+    commentInfo: selectCommentInfo({
+      comments: state.comments,
+      versionId,
+      fileName,
+      line,
+    }),
   };
 };
 

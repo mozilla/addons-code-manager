@@ -38,7 +38,7 @@ const render = ({
   let commentId = null;
   if (initialComment) {
     store.dispatch(
-      commentsActions.setComment({ ...key, comment: initialComment }),
+      commentsActions.setComments({ ...key, comments: [initialComment] }),
     );
     commentId = initialComment.id;
   }
