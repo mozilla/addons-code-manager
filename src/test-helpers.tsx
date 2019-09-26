@@ -142,15 +142,98 @@ export const fakeVersion: ExternalVersionWithContent = Object.freeze({
   version: '1.0',
 });
 
+export const fakeExternalDiff = Object.freeze({
+  path: 'manifest.json',
+  size: 172,
+  lines_added: 2,
+  lines_deleted: 2,
+  is_binary: false,
+  mode: 'M',
+  hunks: [
+    {
+      header: '@@ -1,6 +1,6 @@',
+      old_start: 1,
+      new_start: 1,
+      old_lines: 6,
+      new_lines: 6,
+      changes: [
+        {
+          content: '{',
+          type: 'normal' as ExternalChange['type'],
+          old_line_number: 1,
+          new_line_number: 1,
+        },
+        {
+          content: '    "manifest_version": 2,',
+          type: 'normal' as ExternalChange['type'],
+          old_line_number: 2,
+          new_line_number: 2,
+        },
+        {
+          content: '    "version": "7",',
+          type: 'delete' as ExternalChange['type'],
+          old_line_number: 3,
+          new_line_number: -1,
+        },
+        {
+          content: '    "version": "8",',
+          type: 'insert' as ExternalChange['type'],
+          old_line_number: -1,
+          new_line_number: 3,
+        },
+        {
+          content:
+            '    "name": "Awesome Screenshot - Capture, Annotate & More",',
+          type: 'normal' as ExternalChange['type'],
+          old_line_number: 4,
+          new_line_number: 4,
+        },
+        {
+          content: '    "description": "this is a new description"',
+          type: 'delete' as ExternalChange['type'],
+          old_line_number: 5,
+          new_line_number: -1,
+        },
+        {
+          content: '    "description": "this is a new version with files"',
+          type: 'insert' as ExternalChange['type'],
+          old_line_number: -1,
+          new_line_number: 5,
+        },
+        {
+          content: '}',
+          type: 'normal' as ExternalChange['type'],
+          old_line_number: 6,
+          new_line_number: 6,
+        },
+      ],
+    },
+  ],
+  old_path: 'manifest.json',
+  parent: '514a8bd3cfb1ccae67dff61e3ea174bb444dfb00',
+  hash: '054771578d3a903264bfd16ba71e5b4808a6764b',
+  old_ending_new_line: true,
+  new_ending_new_line: false,
+});
+
 export const createExternalVersionWithEntries = (
   partialEntries: ({ path: string } & Partial<ExternalVersionEntry>)[],
-  versionProps: Partial<ExternalVersionWithContent> = {},
+  {
+    diff = null,
+    id = fakeVersion.id,
+    selected_file = fakeVersion.file.selected_file,
+  }: {
+    diff?: typeof fakeExternalDiff | null;
+    id?: typeof fakeVersion.id;
+    selected_file?: typeof fakeVersion.file.selected_file;
+  } = {},
 ) => {
   return {
     ...fakeVersion,
-    ...versionProps,
+    id,
     file: {
       ...fakeVersion.file,
+      diff,
       entries: partialEntries.reduce((entries, file) => {
         return {
           [file.path]: {
@@ -162,6 +245,7 @@ export const createExternalVersionWithEntries = (
           ...entries,
         };
       }, {}),
+      selected_file,
     },
   };
 };
@@ -271,80 +355,6 @@ export const fakeExternalLinterResult = Object.freeze({
     warnings: 5,
   },
 }) as ExternalLinterResult;
-
-export const fakeExternalDiff = Object.freeze({
-  path: 'manifest.json',
-  size: 172,
-  lines_added: 2,
-  lines_deleted: 2,
-  is_binary: false,
-  mode: 'M',
-  hunks: [
-    {
-      header: '@@ -1,6 +1,6 @@',
-      old_start: 1,
-      new_start: 1,
-      old_lines: 6,
-      new_lines: 6,
-      changes: [
-        {
-          content: '{',
-          type: 'normal' as ExternalChange['type'],
-          old_line_number: 1,
-          new_line_number: 1,
-        },
-        {
-          content: '    "manifest_version": 2,',
-          type: 'normal' as ExternalChange['type'],
-          old_line_number: 2,
-          new_line_number: 2,
-        },
-        {
-          content: '    "version": "7",',
-          type: 'delete' as ExternalChange['type'],
-          old_line_number: 3,
-          new_line_number: -1,
-        },
-        {
-          content: '    "version": "8",',
-          type: 'insert' as ExternalChange['type'],
-          old_line_number: -1,
-          new_line_number: 3,
-        },
-        {
-          content:
-            '    "name": "Awesome Screenshot - Capture, Annotate & More",',
-          type: 'normal' as ExternalChange['type'],
-          old_line_number: 4,
-          new_line_number: 4,
-        },
-        {
-          content: '    "description": "this is a new description"',
-          type: 'delete' as ExternalChange['type'],
-          old_line_number: 5,
-          new_line_number: -1,
-        },
-        {
-          content: '    "description": "this is a new version with files"',
-          type: 'insert' as ExternalChange['type'],
-          old_line_number: -1,
-          new_line_number: 5,
-        },
-        {
-          content: '}',
-          type: 'normal' as ExternalChange['type'],
-          old_line_number: 6,
-          new_line_number: 6,
-        },
-      ],
-    },
-  ],
-  old_path: 'manifest.json',
-  parent: '514a8bd3cfb1ccae67dff61e3ea174bb444dfb00',
-  hash: '054771578d3a903264bfd16ba71e5b4808a6764b',
-  old_ending_new_line: true,
-  new_ending_new_line: false,
-});
 
 /* eslint-enable @typescript-eslint/camelcase */
 

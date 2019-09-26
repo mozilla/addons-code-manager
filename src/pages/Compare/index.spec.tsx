@@ -1,9 +1,11 @@
+/* eslint @typescript-eslint/camelcase: 0 */
 import * as React from 'react';
 import { Store } from 'redux';
 import { History } from 'history';
 import queryString from 'query-string';
 
 import {
+  createExternalVersionWithEntries,
   createFakeHistory,
   createFakeLocation,
   createFakeThunk,
@@ -15,6 +17,7 @@ import {
   spyOn,
 } from '../../test-helpers';
 import configureStore from '../../configureStore';
+import { actions as fileTreeActions } from '../../reducers/fileTree';
 import {
   ExternalVersionWithDiff,
   actions as versionsActions,
@@ -115,7 +118,9 @@ describe(__filename, () => {
     store = configureStore(),
     version = fakeVersionWithDiff,
     setCurrentVersionId = true,
+    loadDiff = true,
     loadEntryStatusMap = true,
+    loadVersionFile = true,
   }) => {
     store.dispatch(
       versionsActions.loadVersionInfo({
@@ -130,29 +135,33 @@ describe(__filename, () => {
         }),
       );
     }
-    store.dispatch(
-      versionsActions.loadVersionFile({
-        path: version.file.selected_file,
-        // Make a version with file content out of the given version
-        // diff response.
-        version: {
-          ...fakeVersion,
-          id: version.id,
-          file: {
-            ...fakeVersion.file,
-            ...version.file,
+    if (loadVersionFile) {
+      store.dispatch(
+        versionsActions.loadVersionFile({
+          path: version.file.selected_file,
+          // Make a version with file content out of the given version
+          // diff response.
+          version: {
+            ...fakeVersion,
+            id: version.id,
+            file: {
+              ...fakeVersion.file,
+              ...version.file,
+            },
           },
-        },
-      }),
-    );
-    store.dispatch(
-      versionsActions.loadDiff({
-        addonId,
-        baseVersionId,
-        headVersionId,
-        version,
-      }),
-    );
+        }),
+      );
+    }
+    if (loadDiff) {
+      store.dispatch(
+        versionsActions.loadDiff({
+          addonId,
+          baseVersionId,
+          headVersionId,
+          version,
+        }),
+      );
+    }
     if (setCurrentVersionId) {
       store.dispatch(
         versionsActions.setCurrentVersionId({ versionId: headVersionId }),
@@ -162,18 +171,19 @@ describe(__filename, () => {
 
   const loadDiffAndRender = ({
     history = createFakeHistory(),
-    // eslint-disable-next-line @typescript-eslint/camelcase
     selected_file = fakeVersionWithDiff.file.selected_file,
     store = configureStore(),
     addonId = 1,
     baseVersionId = 2,
+    buildTree = false,
     headVersionId = 3,
+    loadDiff = true,
+    loadVersionFile = true,
     version = {
       ...fakeVersionWithDiff,
       id: headVersionId,
       file: {
         ...fakeVersionWithDiff.file,
-        // eslint-disable-next-line @typescript-eslint/camelcase
         selected_file,
       },
     },
@@ -182,16 +192,34 @@ describe(__filename, () => {
     store?: Store;
     addonId?: number;
     baseVersionId?: number;
+    buildTree?: boolean;
     headVersionId?: number;
+    loadDiff?: boolean;
+    loadVersionFile?: boolean;
     selected_file?: string;
     version?: ExternalVersionWithDiff;
   } = {}) => {
     const fakeThunk = createFakeThunk();
-    const _fetchDiff = fakeThunk.createThunk;
-    const _fetchVersionFile = fakeThunk.createThunk;
-    const _viewVersionFile = fakeThunk.createThunk;
+    const _fetchDiff = createFakeThunk().createThunk;
+    const _fetchVersionFile = createFakeThunk().createThunk;
+    const _viewVersionFile = createFakeThunk().createThunk;
 
-    _loadDiff({ addonId, baseVersionId, headVersionId, store, version });
+    _loadDiff({
+      addonId,
+      baseVersionId,
+      headVersionId,
+      loadDiff,
+      loadVersionFile,
+      store,
+      version,
+    });
+    if (buildTree) {
+      store.dispatch(
+        fileTreeActions.buildTree({
+          version: createInternalVersion(version),
+        }),
+      );
+    }
 
     const dispatchSpy = spyOn(store, 'dispatch');
 
@@ -274,7 +302,6 @@ describe(__filename, () => {
             mimetype: mimeType,
           },
         },
-        // eslint-disable-next-line @typescript-eslint/camelcase
         selected_file: path,
       },
     };
@@ -803,7 +830,6 @@ describe(__filename, () => {
   it('does not dispatch fetchDiff() when path remains the same on update', () => {
     const path = 'manifest.json';
     const { dispatchSpy, root } = loadDiffAndRender({
-      // eslint-disable-next-line @typescript-eslint/camelcase
       selected_file: path,
     });
 
@@ -884,6 +910,183 @@ describe(__filename, () => {
     });
 
     expect(dispatch).not.toHaveBeenCalled();
+  });
+
+  describe('preload', () => {
+    const setUpForPreloadAndRender = ({
+      buildTree = true,
+      currentFile = 'currentFile.json',
+      headVersionId = 5,
+      nextModifiedFile = 'modifiedFile.json',
+      ...params
+    }) => {
+      const version = createExternalVersionWithEntries(
+        [
+          { path: currentFile, status: 'M' },
+          { path: 'fileWithoutChange', status: '' },
+          { path: nextModifiedFile, status: 'M' },
+        ],
+        { id: headVersionId, selected_file: currentFile },
+      );
+      const {
+        _fetchDiff,
+        _fetchVersionFile,
+        dispatchSpy,
+        fakeThunk,
+      } = loadDiffAndRender({
+        buildTree,
+        headVersionId,
+        version,
+        ...params,
+      });
+      return {
+        _fetchDiff,
+        _fetchVersionFile,
+        dispatchSpy,
+        fakeThunk,
+      };
+    };
+
+    it('dispatches fetchDiff and fetchVersionFile for the next file with diff', () => {
+      const addonId = 10;
+      const baseVersionId = 44;
+      const headVersionId = 55;
+      const currentFile = 'current.json';
+      const nextModifiedFile = 'modified.json';
+      const {
+        _fetchDiff,
+        _fetchVersionFile,
+        dispatchSpy,
+        fakeThunk,
+      } = setUpForPreloadAndRender({
+        addonId,
+        baseVersionId,
+        currentFile,
+        headVersionId,
+        nextModifiedFile,
+      });
+
+      expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
+      expect(_fetchDiff).toHaveBeenCalledWith({
+        addonId,
+        baseVersionId,
+        headVersionId,
+        path: nextModifiedFile,
+      });
+      expect(_fetchVersionFile).toHaveBeenCalledWith({
+        addonId,
+        versionId: headVersionId,
+        path: nextModifiedFile,
+      });
+    });
+
+    it.each([['buildTree'], ['loadVersionFile'], ['loadDiff']])(
+      'does not dispatch fetchDiff or fetchVersionFile for the next file before %s is dispatched',
+      (action) => {
+        const currentFile = 'current.json';
+        const nextModifiedFile = 'next.json';
+        const { _fetchDiff, _fetchVersionFile } = setUpForPreloadAndRender({
+          currentFile,
+          nextModifiedFile,
+          [action]: false,
+        });
+
+        expect(_fetchDiff).not.toHaveBeenCalledWith(
+          expect.objectContaining({
+            path: nextModifiedFile,
+          }),
+        );
+        expect(_fetchVersionFile).not.toHaveBeenCalledWith(
+          expect.objectContaining({
+            path: nextModifiedFile,
+          }),
+        );
+      },
+    );
+
+    it('does not dispatch fetchVersionFile for the next file if it is loading', () => {
+      const headVersionId = 2222;
+      const baseVersionId = 11;
+      const currentFile = 'current.json';
+      const nextModifiedFile = 'next.json';
+      const store = configureStore();
+      store.dispatch(
+        versionsActions.beginFetchVersionFile({
+          path: nextModifiedFile,
+          versionId: headVersionId,
+        }),
+      );
+      const { _fetchVersionFile } = setUpForPreloadAndRender({
+        baseVersionId,
+        currentFile,
+        headVersionId,
+        nextModifiedFile,
+        store,
+      });
+
+      expect(_fetchVersionFile).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          versionId: headVersionId,
+          path: nextModifiedFile,
+        }),
+      );
+    });
+
+    it('does not dispatch fetchVersionFile for the next file when it is already loaded', () => {
+      const headVersionId = 2222;
+      const baseVersionId = 11;
+      const currentFile = 'current.json';
+      const nextModifiedFile = 'next.json';
+      const store = configureStore();
+      store.dispatch(
+        versionsActions.loadVersionFile({
+          path: nextModifiedFile,
+          version: { ...fakeVersion, id: headVersionId },
+        }),
+      );
+      const { _fetchVersionFile } = setUpForPreloadAndRender({
+        baseVersionId,
+        currentFile,
+        headVersionId,
+        nextModifiedFile,
+        store,
+      });
+
+      expect(_fetchVersionFile).not.toHaveBeenCalled();
+    });
+
+    it('does not dispatch fetchDiff for the next diff when it is already loaded', () => {
+      const addonId = 2;
+      const headVersionId = 2222;
+      const baseVersionId = 11;
+      const currentFile = 'current.json';
+      const nextModifiedFile = 'next.json';
+      const store = configureStore();
+      store.dispatch(
+        versionsActions.loadVersionInfo({
+          version: { ...fakeVersion, id: headVersionId },
+        }),
+      );
+      store.dispatch(
+        versionsActions.loadDiff({
+          addonId,
+          baseVersionId,
+          headVersionId,
+          version: fakeVersionWithDiff,
+          path: nextModifiedFile,
+        }),
+      );
+      const { _fetchDiff } = setUpForPreloadAndRender({
+        addonId,
+        baseVersionId,
+        currentFile,
+        headVersionId,
+        nextModifiedFile,
+        store,
+      });
+
+      expect(_fetchDiff).not.toHaveBeenCalled();
+    });
   });
 
   it('configures VersionFileViewer with a file', () => {
