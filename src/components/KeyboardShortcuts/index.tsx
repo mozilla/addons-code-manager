@@ -42,7 +42,7 @@ export const supportedKeys: { [key: string]: string | null } = {
 };
 
 export type PublicProps = {
-  compareInfo: CompareInfo | null | void;
+  compareInfo: CompareInfo | null | undefined;
   comparedToVersionId: number | null;
   currentPath: string;
   messageMap: LinterProviderInfo['messageMap'];
@@ -52,7 +52,7 @@ export type PublicProps = {
 type PropsFromState = {
   currentAnchor: string;
   messageUid: LinterMessage['uid'];
-  pathList: FileTree['pathList'] | void;
+  pathList: FileTree['pathList'] | undefined;
 };
 
 export type DefaultProps = {

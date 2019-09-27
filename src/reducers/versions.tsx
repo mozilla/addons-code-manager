@@ -518,7 +518,7 @@ export const getVersionFile = (
   versionId: number,
   path: string,
   { _log = log } = {},
-): VersionFile | void | null => {
+): VersionFile | undefined | null => {
   const version = getVersionInfo(versions, versionId);
   const filesForVersion = getVersionFiles(versions, versionId);
 
@@ -586,7 +586,7 @@ export const getDiffAnchors = (diff: DiffInfo): string[] => {
 };
 
 export type GetRelativeDiffAnchorParams = {
-  currentAnchor?: string | void;
+  currentAnchor?: string | undefined;
   diff: DiffInfo;
   position?: RelativePathPosition;
 };
@@ -650,7 +650,7 @@ export const getRelativeDiffAnchor = ({
 export type GetRelativeDiffParams = {
   _findRelativePathWithDiff?: typeof findRelativePathWithDiff;
   _getRelativeDiffAnchor?: typeof getRelativeDiffAnchor;
-  currentAnchor: string | void;
+  currentAnchor: string | undefined;
   diff: DiffInfo | null;
   entryStatusMap: EntryStatusMap;
   pathList: string[];
@@ -1068,7 +1068,7 @@ export const viewVersionFile = ({
 type GoToRelativeDiffParams = {
   _getRelativeDiff?: typeof getRelativeDiff;
   _viewVersionFile?: typeof viewVersionFile;
-  currentAnchor: string | void;
+  currentAnchor: string | undefined;
   diff: DiffInfo | null;
   pathList: string[];
   position: RelativePathPosition;

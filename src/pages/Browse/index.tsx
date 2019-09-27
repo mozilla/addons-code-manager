@@ -45,9 +45,9 @@ type PropsFromRouter = {
 
 type PropsFromState = {
   apiState: ApiState;
-  file: VersionFile | null | void;
+  file: VersionFile | null | undefined;
   fileIsLoading: boolean;
-  version: Version | void | null;
+  version: Version | undefined | null;
   currentVersionId: number | null | undefined | false;
 };
 

@@ -303,7 +303,7 @@ const findRelativeMessage = (
 };
 
 export type GetRelativeMessageParams = {
-  currentMessageUid: LinterMessage['uid'] | void;
+  currentMessageUid: LinterMessage['uid'] | undefined;
   currentPath: string;
   messageMap: LinterMessageMap;
   pathList: string[];
@@ -391,7 +391,7 @@ export const goToRelativeFile = ({
 type GoToRelativeMessageParams = {
   _getRelativeMessage?: typeof getRelativeMessage;
   _viewVersionFile?: typeof viewVersionFile;
-  currentMessageUid: LinterMessage['uid'] | void;
+  currentMessageUid: LinterMessage['uid'] | undefined;
   currentPath: string;
   getCodeLineAnchor: GetCodeLineAnchor;
   messageMap: LinterMessageMap;
@@ -463,8 +463,8 @@ export type FileTree = {
 };
 
 export type FileTreeState = {
-  forVersionId: void | number;
-  tree: void | FileTree;
+  forVersionId: undefined | number;
+  tree: undefined | FileTree;
 };
 
 export const initialState: FileTreeState = {
@@ -481,7 +481,7 @@ export const actions = {
 export const getTree = (
   treeState: FileTreeState,
   versionId: number,
-): void | FileTree => {
+): undefined | FileTree => {
   if (treeState.forVersionId !== versionId) {
     return undefined;
   }
