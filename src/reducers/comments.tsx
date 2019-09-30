@@ -109,34 +109,25 @@ export const createCommentKey = ({ fileName, line }: CommentKeyParams) => {
   return key;
 };
 
+type CommonPayload = CommentKeyParams & { versionId: number };
+
 export const actions = {
   abortSaveComment: createAction('ABORT_SAVE_COMMENT', (resolve) => {
-    return (payload: CommentKeyParams & { versionId: number }) =>
-      resolve(payload);
+    return (payload: CommonPayload) => resolve(payload);
   }),
   beginComment: createAction('BEGIN_COMMENT', (resolve) => {
-    return (payload: CommentKeyParams & { versionId: number }) =>
-      resolve(payload);
+    return (payload: CommonPayload) => resolve(payload);
   }),
   beginSaveComment: createAction('BEGIN_SAVE_COMMENT', (resolve) => {
-    return (
-      payload: CommentKeyParams & {
-        pendingCommentText: string | null;
-        versionId: number;
-      },
-    ) => resolve(payload);
-  }),
-  finishComment: createAction('FINISH_COMMENT', (resolve) => {
-    return (payload: CommentKeyParams & { versionId: number }) =>
+    return (payload: CommonPayload & { pendingCommentText: string | null }) =>
       resolve(payload);
   }),
+  finishComment: createAction('FINISH_COMMENT', (resolve) => {
+    return (payload: CommonPayload) => resolve(payload);
+  }),
   setComments: createAction('SET_COMMENTS', (resolve) => {
-    return (
-      payload: CommentKeyParams & {
-        comments: ExternalComment[];
-        versionId: number;
-      },
-    ) => resolve(payload);
+    return (payload: CommonPayload & { comments: ExternalComment[] }) =>
+      resolve(payload);
   }),
 };
 

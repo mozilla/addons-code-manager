@@ -200,6 +200,22 @@ describe(__filename, () => {
     expect(button).toHaveText('Saving…');
   });
 
+  it('can submit an empty comment', () => {
+    const store = configureStore();
+    spyOn(store, 'dispatch');
+
+    const fakeThunk = createFakeThunk();
+    const _manageComment = fakeThunk.createThunk;
+
+    const root = render({ _manageComment, store });
+
+    root.find(`.${styles.form}`).simulate('submit', createFakeEvent());
+
+    expect(_manageComment).toHaveBeenCalledWith(
+      expect.objectContaining({ comment: undefined }),
+    );
+  });
+
   it('seeds the form with an initial comment', () => {
     const commentId = 1;
     const commentText = 'Example of a previously saved comment';
