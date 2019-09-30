@@ -98,6 +98,7 @@ describe(__filename, () => {
         // This should make sure pendingCommentText is preserved.
         createCommentInfo({ pendingCommentText, savingComment: false }),
       );
+
       expect(state.forVersionId).toEqual(keyParams.versionId);
     });
   });
@@ -135,7 +136,7 @@ describe(__filename, () => {
 
   describe('setComments', () => {
     it('sets comments for a key', () => {
-      const comment1 = createFakeExternalComment({ id: 54321 });
+      const comment1 = createFakeExternalComment({ id: 12345 });
       const comment2 = createFakeExternalComment({ id: 54322 });
 
       const versionId = 1;
@@ -217,7 +218,7 @@ describe(__filename, () => {
   });
 
   describe('createCommentKey', () => {
-    it('creates a key from fileName, line', () => {
+    it('creates a key from fileName and line', () => {
       const fileName = 'manifest.json';
       const line = 321;
 
