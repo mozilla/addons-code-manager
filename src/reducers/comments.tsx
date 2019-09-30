@@ -73,14 +73,12 @@ export type CommentsState = {
   byKey: CommentsByKey;
   byId: { [id: number]: Comment };
   forVersionId: undefined | number;
-  hasComments: undefined | boolean;
 };
 
 export const initialState: CommentsState = {
   byKey: {},
   byId: {},
   forVersionId: undefined,
-  hasComments: undefined,
 };
 
 export const createEmptyCommentInfo = (): CommentInfo => {
@@ -155,7 +153,7 @@ export const selectVersionHasComments = ({
   if (comments.forVersionId !== versionId) {
     return undefined;
   }
-  return comments.hasComments;
+  return Object.keys(comments.byId).length > 0;
 };
 
 export const manageComment = ({
@@ -224,6 +222,22 @@ const getKeyAndInfo = (state: CommentsState, keyParams: CommentKeyParams) => {
   return { key, info };
 };
 
+export const stateForVersion = ({
+  state,
+  versionId,
+}: {
+  state: CommentsState;
+  versionId: number;
+}): CommentsState => {
+  const reset = state.forVersionId !== versionId;
+  return {
+    ...state,
+    byId: reset ? {} : state.byId,
+    byKey: reset ? {} : state.byKey,
+    forVersionId: versionId,
+  };
+};
+
 const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
   state = initialState,
   action,
@@ -231,13 +245,13 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
   switch (action.type) {
     case getType(actions.beginComment): {
       const { versionId, ...keyParams } = action.payload;
-      const { key, info } = getKeyAndInfo(state, keyParams);
+      const newState = stateForVersion({ state, versionId });
+      const { key, info } = getKeyAndInfo(newState, keyParams);
 
       return {
-        ...state,
-        forVersionId: versionId,
+        ...newState,
         byKey: {
-          ...state.byKey,
+          ...newState.byKey,
           [key]: {
             ...info,
             beginNewComment: true,
@@ -249,13 +263,13 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
     }
     case getType(actions.beginSaveComment): {
       const { pendingCommentText, versionId, ...keyParams } = action.payload;
-      const { key, info } = getKeyAndInfo(state, keyParams);
+      const newState = stateForVersion({ state, versionId });
+      const { key, info } = getKeyAndInfo(newState, keyParams);
 
       return {
-        ...state,
-        forVersionId: versionId,
+        ...newState,
         byKey: {
-          ...state.byKey,
+          ...newState.byKey,
           [key]: {
             ...info,
             pendingCommentText,
@@ -266,13 +280,13 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
     }
     case getType(actions.abortSaveComment): {
       const { versionId, ...keyParams } = action.payload;
-      const { key, info } = getKeyAndInfo(state, keyParams);
+      const newState = stateForVersion({ state, versionId });
+      const { key, info } = getKeyAndInfo(newState, keyParams);
 
       return {
-        ...state,
-        forVersionId: versionId,
+        ...newState,
         byKey: {
-          ...state.byKey,
+          ...newState.byKey,
           [key]: {
             ...info,
             savingComment: false,
@@ -282,13 +296,13 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
     }
     case getType(actions.finishComment): {
       const { versionId, ...keyParams } = action.payload;
-      const { key, info } = getKeyAndInfo(state, keyParams);
+      const newState = stateForVersion({ state, versionId });
+      const { key, info } = getKeyAndInfo(newState, keyParams);
 
       return {
-        ...state,
-        forVersionId: versionId,
+        ...newState,
         byKey: {
-          ...state.byKey,
+          ...newState.byKey,
           [key]: {
             ...info,
             beginNewComment: false,
@@ -300,35 +314,24 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
     }
     case getType(actions.setComments): {
       const { comments, versionId, ...keyParams } = action.payload;
-      const { key, info } = getKeyAndInfo(state, keyParams);
+      const newState = stateForVersion({ state, versionId });
+      const { key, info } = getKeyAndInfo(newState, keyParams);
 
-      const byId = { ...state.byId };
+      const byId = { ...newState.byId };
       for (const comment of comments) {
         byId[comment.id] = createInternalComment(comment);
       }
 
-      const {
-        forVersionId: lastVersionId,
-        hasComments: lastStateHadComments,
-      } = state;
-
-      let hasComments = lastStateHadComments;
-      if (hasComments === undefined || lastVersionId !== versionId) {
-        hasComments = comments.length > 0;
-      }
-
       return {
-        ...state,
-        forVersionId: versionId,
+        ...newState,
         byKey: {
-          ...state.byKey,
+          ...newState.byKey,
           [key]: {
             ...info,
             commentIds: info.commentIds.concat(comments.map((c) => c.id)),
           },
         },
         byId,
-        hasComments,
       };
     }
     default:

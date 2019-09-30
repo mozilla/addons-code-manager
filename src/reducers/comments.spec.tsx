@@ -10,6 +10,7 @@ import reducer, {
   manageComment,
   selectCommentInfo,
   selectVersionHasComments,
+  stateForVersion,
 } from './comments';
 import { createInternalVersion } from './versions';
 import {
@@ -160,7 +161,6 @@ describe(__filename, () => {
         commentIds: [comment1.id, comment2.id],
       });
 
-      expect(state.hasComments).toEqual(true);
       expect(state.forVersionId).toEqual(versionId);
     });
 
@@ -171,52 +171,8 @@ describe(__filename, () => {
         actions.setComments({ comments: [], ...keyParams, versionId }),
       );
 
-      expect(state.hasComments).toEqual(false);
       expect(state.byId).toEqual({});
       expect(state.forVersionId).toEqual(versionId);
-    });
-
-    it('preserves hasComments if the last state had comments', () => {
-      let state;
-
-      state = reducer(
-        state,
-        actions.setComments({
-          comments: [createFakeExternalComment()],
-          ...keyParams,
-        }),
-      );
-      state = reducer(
-        state,
-        actions.setComments({ comments: [], ...keyParams }),
-      );
-
-      expect(state.hasComments).toEqual(true);
-    });
-
-    it('only preserves hasComments for matching versions', () => {
-      const versionId1 = 1;
-      const versionId2 = 2;
-      let state;
-
-      state = reducer(
-        state,
-        actions.setComments({
-          comments: [createFakeExternalComment()],
-          ...keyParams,
-          versionId: versionId1,
-        }),
-      );
-      state = reducer(
-        state,
-        actions.setComments({
-          comments: [],
-          ...keyParams,
-          versionId: versionId2,
-        }),
-      );
-
-      expect(state.hasComments).toEqual(false);
     });
 
     it('adds comments to a key', () => {
@@ -563,6 +519,121 @@ describe(__filename, () => {
           versionId: versionId2,
         }),
       ).toEqual(undefined);
+    });
+
+    it.each([
+      'abortSaveComment',
+      'beginComment',
+      'beginSaveComment',
+      'finishComment',
+      'setComments',
+    ])('returns false when switching versions via action=%s', (action) => {
+      const oldVersionId = 1;
+      const versionId = 2;
+      let state;
+
+      // Set comments for a previous version.
+      state = reducer(
+        state,
+        actions.setComments({
+          comments: [createFakeExternalComment()],
+          ...keyParams,
+          versionId: oldVersionId,
+        }),
+      );
+
+      // Perform an action with a new version.
+      switch (action) {
+        case 'abortSaveComment': {
+          state = reducer(
+            state,
+            actions.abortSaveComment({ ...keyParams, versionId }),
+          );
+          break;
+        }
+        case 'beginComment': {
+          state = reducer(
+            state,
+            actions.beginComment({ ...keyParams, versionId }),
+          );
+          break;
+        }
+        case 'beginSaveComment': {
+          state = reducer(
+            state,
+            actions.beginSaveComment({
+              ...keyParams,
+              versionId,
+              pendingCommentText: null,
+            }),
+          );
+          break;
+        }
+        case 'finishComment': {
+          state = reducer(
+            state,
+            actions.finishComment({ ...keyParams, versionId }),
+          );
+          break;
+        }
+        case 'setComments': {
+          // Set zero comments for the current version.
+          state = reducer(
+            state,
+            actions.setComments({ comments: [], ...keyParams, versionId }),
+          );
+          break;
+        }
+        default: {
+          throw new Error(`Unmapped action: ${action}`);
+        }
+      }
+
+      expect(selectVersionHasComments({ comments: state, versionId })).toEqual(
+        false,
+      );
+    });
+  });
+
+  describe('stateForVersion', () => {
+    it('preserves old values when not switching versions', () => {
+      const versionId = 1;
+      const state = reducer(
+        undefined,
+        actions.setComments({
+          comments: [createFakeExternalComment()],
+          fileName: 'manifest.json',
+          line: null,
+          versionId,
+        }),
+      );
+
+      expect(stateForVersion({ state, versionId })).toMatchObject({
+        forVersionId: versionId,
+        byKey: state.byKey,
+        byId: state.byId,
+      });
+    });
+
+    it('resets values when switching versions', () => {
+      const oldVersionId = 1;
+      const versionId = 2;
+
+      const state = reducer(
+        undefined,
+        actions.setComments({
+          comments: [createFakeExternalComment()],
+          fileName: 'manifest.json',
+          line: null,
+          versionId: oldVersionId,
+        }),
+      );
+
+      expect(stateForVersion({ state, versionId })).toMatchObject({
+        forVersionId: versionId,
+        byKey: {},
+        byId: {},
+      });
     });
   });
 });
