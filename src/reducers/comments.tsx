@@ -8,7 +8,7 @@ import {
   Version,
   createInternalVersion,
 } from './versions';
-import { createOrUpdateComment, isErrorResponse } from '../api';
+import { createOrUpdateComment, getComments, isErrorResponse } from '../api';
 
 type CommentBase = {
   filename: string | null;
@@ -73,12 +73,14 @@ export type CommentsState = {
   byKey: CommentsByKey;
   byId: { [id: number]: Comment };
   forVersionId: undefined | number;
+  isLoading: boolean;
 };
 
 export const initialState: CommentsState = {
   byKey: {},
   byId: {},
   forVersionId: undefined,
+  isLoading: false,
 };
 
 export const createEmptyCommentInfo = (): CommentInfo => {
@@ -110,12 +112,24 @@ export const createCommentKey = ({ fileName, line }: CommentKeyParams) => {
 type CommonPayload = CommentKeyParams & { versionId: number };
 
 export const actions = {
+  abortLoadVersionComments: createAction(
+    'ABORT_FETCH_VERSION_COMMENTS',
+    (resolve) => {
+      return (payload: { versionId: number }) => resolve(payload);
+    },
+  ),
   abortSaveComment: createAction('ABORT_SAVE_COMMENT', (resolve) => {
     return (payload: CommonPayload) => resolve(payload);
   }),
   beginComment: createAction('BEGIN_COMMENT', (resolve) => {
     return (payload: CommonPayload) => resolve(payload);
   }),
+  beginLoadVersionComments: createAction(
+    'BEGIN_FETCH_VERSION_COMMENTS',
+    (resolve) => {
+      return (payload: { versionId: number }) => resolve(payload);
+    },
+  ),
   beginSaveComment: createAction('BEGIN_SAVE_COMMENT', (resolve) => {
     return (payload: CommonPayload & { pendingCommentText: string | null }) =>
       resolve(payload);
@@ -154,6 +168,73 @@ export const selectVersionHasComments = ({
     return undefined;
   }
   return Object.keys(comments.byId).length > 0;
+};
+
+export const fetchAndLoadComments = ({
+  _getComments = getComments,
+  addonId,
+  versionId,
+}: {
+  _getComments?: typeof getComments;
+  addonId: number;
+  versionId: number;
+}): ThunkActionCreator => {
+  return async (dispatch, getState) => {
+    const { api: apiState, comments } = getState();
+
+    if (comments.isLoading) {
+      return;
+    }
+
+    dispatch(actions.beginLoadVersionComments({ versionId }));
+
+    // TODO: fetch all pages to get all comments.
+    // https://github.com/mozilla/addons-code-manager/issues/1093
+    const response = await _getComments({ addonId, apiState, versionId });
+
+    if (isErrorResponse(response)) {
+      dispatch(actions.abortLoadVersionComments({ versionId }));
+      dispatch(errorsActions.addError({ error: response.error }));
+      return;
+    }
+
+    const map: { [key: string]: ExternalComment[] } = {};
+
+    for (const comment of response.results) {
+      let key = '';
+      if (comment.filename) {
+        key = comment.filename;
+      }
+      if (comment.lineno) {
+        key = `${key}:${comment.lineno}`;
+      }
+      if (!map[key]) {
+        map[key] = [];
+      }
+      map[key].push(comment);
+    }
+
+    for (const key of Object.keys(map)) {
+      let line = null;
+      let fileName = null;
+      if (key) {
+        const parts = key.split(':');
+        fileName = parts[0];
+        if (parts[1]) {
+          line = parseInt(parts[1], 10);
+        }
+      }
+
+      dispatch(
+        actions.setComments({
+          fileName,
+          line,
+          versionId,
+          comments: map[key],
+        }),
+      );
+    }
+  };
 };
 
 export const manageComment = ({
@@ -252,6 +333,12 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
   action,
 ): CommentsState => {
   switch (action.type) {
+    case getType(actions.abortLoadVersionComments): {
+      const { versionId } = action.payload;
+      const newState = stateForVersion({ state, versionId });
+
+      return { ...newState, isLoading: false };
+    }
     case getType(actions.beginComment): {
       const { versionId, ...keyParams } = action.payload;
       const { key, info, newState } = prepareStateForKeyChange({
@@ -356,7 +443,14 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
           },
         },
         byId,
+        isLoading: false,
       };
+    }
+    case getType(actions.beginLoadVersionComments): {
+      const { versionId } = action.payload;
+      const newState = stateForVersion({ state, versionId });
+
+      return { ...newState, isLoading: true };
     }
     default:
       return state;

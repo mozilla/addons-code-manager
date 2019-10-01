@@ -5,13 +5,17 @@ import {
   actions as apiActions,
   initialState as defaultApiState,
 } from '../reducers/api';
-import { createFakeExternalComment } from '../test-helpers';
+import {
+  createFakeCommentsResponse,
+  createFakeExternalComment,
+} from '../test-helpers';
 
 import {
   HttpMethod,
   callApi,
   createOrUpdateComment,
   getApiHost,
+  getComments,
   getCurrentUser,
   getDiff,
   getVersion,
@@ -693,6 +697,33 @@ describe(__filename, () => {
       ).rejects.toThrow(
         /cannedResponseId and comment cannot both be specified/,
       );
+    });
+  });
+
+  describe('getComments', () => {
+    it('can get comments', async () => {
+      const addonId = 1;
+      const apiState = defaultApiState;
+      const versionId = 2;
+      const results = [createFakeExternalComment()];
+      const _callApi = jest
+        .fn()
+        .mockResolvedValue(createFakeCommentsResponse(results));
+
+      const response = await getComments({
+        _callApi,
+        addonId,
+        apiState,
+        versionId,
+      });
+
+      expect(response).toMatchObject({ results });
+
+      expect(_callApi).toHaveBeenCalledWith({
+        apiState,
+        endpoint: `reviewers/addon/${addonId}/versions/${versionId}/draft_comments`,
+        method: HttpMethod.GET,
+      });
     });
   });
 });

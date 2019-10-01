@@ -1,11 +1,14 @@
 /* eslint @typescript-eslint/camelcase: 0 */
 import { actions as errorsActions } from './errors';
+import configureStore from '../configureStore';
 import reducer, {
   CommentInfo,
+  ExternalComment,
   actions,
   createCommentKey,
   createEmptyCommentInfo,
   createInternalComment,
+  fetchAndLoadComments,
   initialState,
   manageComment,
   selectCommentInfo,
@@ -14,6 +17,7 @@ import reducer, {
 } from './comments';
 import { createInternalVersion } from './versions';
 import {
+  createFakeCommentsResponse,
   createFakeExternalComment,
   fakeVersion,
   thunkTester,
@@ -635,6 +639,289 @@ describe(__filename, () => {
         byKey: {},
         byId: {},
       });
+    });
+  });
+
+  describe('abortLoadVersionComments', () => {
+    it('sets isLoading to false', () => {
+      const versionId = 1;
+      let state;
+      state = reducer(state, actions.beginLoadVersionComments({ versionId }));
+      state = reducer(state, actions.abortLoadVersionComments({ versionId }));
+
+      expect(state.isLoading).toEqual(false);
+    });
+  });
+
+  describe('beginLoadVersionComments', () => {
+    it('sets isLoading to true', () => {
+      const versionId = 1;
+      const state = reducer(
+        undefined,
+        actions.beginLoadVersionComments({ versionId }),
+      );
+
+      expect(state.isLoading).toEqual(true);
+    });
+  });
+
+  describe('fetchAndLoadComments', () => {
+    const _fetchAndLoadComments = ({
+      _getComments = jest.fn().mockResolvedValue(createFakeCommentsResponse()),
+      addonId = 1,
+      versionId = 2,
+    }) => {
+      return fetchAndLoadComments({ _getComments, addonId, versionId });
+    };
+
+    it('dispatches beginLoadVersionComments', async () => {
+      const versionId = 1;
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () => _fetchAndLoadComments({ versionId }),
+      });
+
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(
+        actions.beginLoadVersionComments({ versionId }),
+      );
+    });
+
+    it('does not dispatch anything while already fetching comments', async () => {
+      const store = configureStore();
+      const versionId = 1;
+      store.dispatch(actions.beginLoadVersionComments({ versionId }));
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () => _fetchAndLoadComments({ versionId }),
+        store,
+      });
+
+      await thunk();
+
+      expect(dispatch).not.toHaveBeenCalled();
+    });
+
+    it('handles API errors', async () => {
+      const error = new Error('API Error');
+      const _getComments = jest.fn().mockResolvedValue({ error });
+      const versionId = 1;
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () => _fetchAndLoadComments({ _getComments, versionId }),
+      });
+
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(
+        actions.abortLoadVersionComments({ versionId }),
+      );
+      expect(dispatch).toHaveBeenCalledWith(errorsActions.addError({ error }));
+    });
+
+    it('fetches version comments', async () => {
+      const _getComments = jest
+        .fn()
+        .mockResolvedValue(createFakeCommentsResponse());
+      const store = configureStore();
+      const addonId = 1;
+      const versionId = 1;
+
+      const { thunk } = thunkTester({
+        createThunk: () =>
+          _fetchAndLoadComments({ _getComments, addonId, versionId }),
+        store,
+      });
+
+      await thunk();
+
+      expect(_getComments).toHaveBeenCalledWith({
+        addonId,
+        apiState: store.getState().api,
+        versionId,
+      });
+    });
+
+    it('loads comments for a version + file + line', async () => {
+      const versionId = 1;
+
+      const commentId1 = 1;
+      const commentId2 = 2;
+      const commentId3 = 2;
+
+      const fileName = 'manifest.json';
+      const line = 123;
+
+      const extComments = [commentId1, commentId2, commentId3].map((id) => {
+        return createFakeExternalComment({
+          id,
+          version: { ...fakeVersion, id: versionId },
+          filename: fileName,
+          lineno: line,
+        });
+      });
+
+      const _getComments = jest
+        .fn()
+        .mockResolvedValue(createFakeCommentsResponse(extComments));
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () => _fetchAndLoadComments({ _getComments, versionId }),
+      });
+
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(
+        actions.setComments({
+          versionId,
+          fileName,
+          line,
+          comments: extComments,
+        }),
+      );
+    });
+
+    it('loads comments for a version, file, and a line', async () => {
+      const versionId = 1;
+      const extVersion = { ...fakeVersion, id: versionId };
+
+      const commentId1 = 1;
+      const commentId2 = 2;
+      const commentId3 = 2;
+      const commentId4 = 4;
+      const commentId5 = 5;
+      const commentId6 = 6;
+
+      const fileName = 'manifest.json';
+      const line = 321;
+
+      const extComment = ({
+        version = extVersion,
+        filename = fileName,
+        lineno = line,
+        ...params
+      }: Partial<ExternalComment>) => {
+        return createFakeExternalComment({
+          version,
+          filename,
+          lineno,
+          ...params,
+        });
+      };
+
+      const versionComments = [commentId1, commentId2].map((id) => {
+        return extComment({ id, filename: null, lineno: null });
+      });
+
+      const fileComments = [commentId3, commentId4].map((id) => {
+        return extComment({ id, lineno: null });
+      });
+
+      const lineComments = [commentId5, commentId6].map((id) => {
+        return extComment({ id });
+      });
+
+      const _getComments = jest
+        .fn()
+        .mockResolvedValue(
+          createFakeCommentsResponse(
+            versionComments.concat(fileComments).concat(lineComments),
+          ),
+        );
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () => _fetchAndLoadComments({ _getComments, versionId }),
+      });
+
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(
+        actions.setComments({
+          versionId,
+          fileName: null,
+          line: null,
+          comments: versionComments,
+        }),
+      );
+
+      expect(dispatch).toHaveBeenCalledWith(
+        actions.setComments({
+          versionId,
+          fileName,
+          line: null,
+          comments: fileComments,
+        }),
+      );
+
+      expect(dispatch).toHaveBeenCalledWith(
+        actions.setComments({
+          versionId,
+          fileName,
+          line,
+          comments: lineComments,
+        }),
+      );
+    });
+
+    it('loads comments separately by file line', async () => {
+      const versionId = 1;
+      const extVersion = { ...fakeVersion, id: versionId };
+
+      const commentId1 = 1;
+      const commentId2 = 2;
+      const commentId3 = 2;
+      const commentId4 = 4;
+
+      const fileName = 'manifest.json';
+      const line1 = 1;
+      const line2 = 2;
+
+      const extComment = (params: Partial<ExternalComment> = {}) => {
+        return createFakeExternalComment({
+          version: extVersion,
+          filename: fileName,
+          ...params,
+        });
+      };
+
+      const line1Comments = [commentId1, commentId2].map((id) => {
+        return extComment({ id, lineno: line1 });
+      });
+
+      const line2Comments = [commentId3, commentId4].map((id) => {
+        return extComment({ id, lineno: line2 });
+      });
+
+      const _getComments = jest
+        .fn()
+        .mockResolvedValue(
+          createFakeCommentsResponse(line1Comments.concat(line2Comments)),
+        );
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () => _fetchAndLoadComments({ _getComments, versionId }),
+      });
+
+      await thunk();
+
+      const _setComments = ({
+        line,
+        comments,
+      }: {
+        line: number;
+        comments: ExternalComment[];
+      }) => {
+        return actions.setComments({ versionId, fileName, line, comments });
+      };
+
+      expect(dispatch).toHaveBeenCalledWith(
+        _setComments({ line: line1, comments: line1Comments }),
+      );
+
+      expect(dispatch).toHaveBeenCalledWith(
+        _setComments({ line: line2, comments: line2Comments }),
+      );
     });
   });
 });

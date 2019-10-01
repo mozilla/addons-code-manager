@@ -9,6 +9,7 @@ import { Store } from 'redux';
 import log from 'loglevel';
 import { createAction } from 'typesafe-actions';
 
+import { PaginatedResponse } from './api';
 import configureStore, { ThunkActionCreator } from './configureStore';
 import { ApplicationState } from './reducers';
 import {
@@ -906,4 +907,29 @@ export const dispatchComment = ({
   ...params
 } = {}) => {
   return dispatchComments({ comments: [comment], ...params });
+};
+
+export const createFakeApiPage = ({
+  next = null,
+  previous = null,
+  page_size = 25,
+  results = [],
+  count = results.length,
+  page_count = count > page_size ? Math.ceil(count / page_size) : 1,
+}: // eslint-disable-next-line @typescript-eslint/no-explicit-any
+Partial<PaginatedResponse<any>> = {}): PaginatedResponse<any> => {
+  return {
+    count,
+    next,
+    page_count,
+    page_size,
+    previous,
+    results,
+  };
+};
+
+export const createFakeCommentsResponse = (
+  results = [createFakeExternalComment()],
+) => {
+  return createFakeApiPage({ results });
 };
