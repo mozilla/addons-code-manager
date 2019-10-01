@@ -31,11 +31,11 @@ const render = ({
   }
   for (const comment of comments) {
     store.dispatch(
-      commentsActions.setComment({
+      commentsActions.setComments({
         fileName,
         line,
         versionId,
-        comment,
+        comments: [comment],
       }),
     );
   }

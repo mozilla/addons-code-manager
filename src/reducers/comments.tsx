@@ -71,14 +71,14 @@ export type CommentsByKey = {
 
 export type CommentsState = {
   byKey: CommentsByKey;
-  byId: {
-    [id: number]: Comment;
-  };
+  byId: { [id: number]: Comment };
+  forVersionId: undefined | number;
 };
 
 export const initialState: CommentsState = {
   byKey: {},
   byId: {},
+  forVersionId: undefined,
 };
 
 export const createEmptyCommentInfo = (): CommentInfo => {
@@ -93,53 +93,67 @@ export const createEmptyCommentInfo = (): CommentInfo => {
 export type CommentKeyParams = {
   fileName: string | null;
   line: number | null;
-  versionId: number;
 };
 
-export const createCommentKey = ({
-  versionId,
-  fileName,
-  line,
-}: CommentKeyParams) => {
-  const key = [
-    `version:${versionId}`,
-    fileName && `file:${fileName}`,
-    line && `line:${line}`,
-  ]
-    .filter(Boolean)
-    .join(';');
+export const createCommentKey = ({ fileName, line }: CommentKeyParams) => {
+  const key = `fileName:${fileName};line:${line}`;
 
   if (line !== null && fileName === null) {
+    // This wouldn't make sense because it's like saying "add a comment
+    // on line N of file null."
     throw new Error(`Cannot create key "${key}" because fileName is empty`);
   }
 
   return key;
 };
 
+type CommonPayload = CommentKeyParams & { versionId: number };
+
 export const actions = {
   abortSaveComment: createAction('ABORT_SAVE_COMMENT', (resolve) => {
-    return (payload: CommentKeyParams) => resolve(payload);
+    return (payload: CommonPayload) => resolve(payload);
   }),
   beginComment: createAction('BEGIN_COMMENT', (resolve) => {
-    return (payload: CommentKeyParams) => resolve(payload);
+    return (payload: CommonPayload) => resolve(payload);
   }),
   beginSaveComment: createAction('BEGIN_SAVE_COMMENT', (resolve) => {
-    return (
-      payload: CommentKeyParams & {
-        pendingCommentText: string | null;
-      },
-    ) => resolve(payload);
+    return (payload: CommonPayload & { pendingCommentText: string | null }) =>
+      resolve(payload);
   }),
   finishComment: createAction('FINISH_COMMENT', (resolve) => {
-    return (payload: CommentKeyParams) => resolve(payload);
+    return (payload: CommonPayload) => resolve(payload);
   }),
-  setComment: createAction('SET_COMMENT', (resolve) => {
-    return (
-      payload: CommentKeyParams & {
-        comment: ExternalComment;
-      },
-    ) => resolve(payload);
+  setComments: createAction('SET_COMMENTS', (resolve) => {
+    return (payload: CommonPayload & { comments: ExternalComment[] }) =>
+      resolve(payload);
   }),
+};
+
+export const selectCommentInfo = ({
+  comments,
+  fileName,
+  line,
+  versionId,
+}: { comments: CommentsState; versionId: number } & CommentKeyParams):
+  | undefined
+  | CommentInfo => {
+  if (comments.forVersionId !== versionId) {
+    return undefined;
+  }
+  return comments.byKey[createCommentKey({ fileName, line })];
+};
+
+export const selectVersionHasComments = ({
+  comments,
+  versionId,
+}: {
+  comments: CommentsState;
+  versionId: number;
+}): undefined | boolean => {
+  if (comments.forVersionId !== versionId) {
+    return undefined;
+  }
+  return Object.keys(comments.byId).length > 0;
 };
 
 export const manageComment = ({
@@ -191,16 +205,46 @@ export const manageComment = ({
     } else {
       dispatch(actions.finishComment({ versionId, fileName, line }));
       dispatch(
-        actions.setComment({ versionId, fileName, line, comment: response }),
+        actions.setComments({
+          versionId,
+          fileName,
+          line,
+          comments: [response],
+        }),
       );
     }
   };
 };
 
-const getKeyAndInfo = (state: CommentsState, keyParams: CommentKeyParams) => {
+export const stateForVersion = ({
+  state,
+  versionId,
+}: {
+  state: CommentsState;
+  versionId: number;
+}): CommentsState => {
+  const reset = state.forVersionId !== versionId;
+  return {
+    ...state,
+    byId: reset ? {} : state.byId,
+    byKey: reset ? {} : state.byKey,
+    forVersionId: versionId,
+  };
+};
+
+const prepareStateForKeyChange = ({
+  state,
+  keyParams,
+  versionId,
+}: {
+  state: CommentsState;
+  keyParams: CommentKeyParams;
+  versionId: number;
+}) => {
+  const newState = stateForVersion({ state, versionId });
   const key = createCommentKey(keyParams);
-  const info = state.byKey[key] || createEmptyCommentInfo();
-  return { key, info };
+  const info = newState.byKey[key] || createEmptyCommentInfo();
+  return { key, info, newState };
 };
 
 const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
@@ -209,12 +253,17 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
 ): CommentsState => {
   switch (action.type) {
     case getType(actions.beginComment): {
-      const { key, info } = getKeyAndInfo(state, action.payload);
+      const { versionId, ...keyParams } = action.payload;
+      const { key, info, newState } = prepareStateForKeyChange({
+        state,
+        keyParams,
+        versionId,
+      });
 
       return {
-        ...state,
+        ...newState,
         byKey: {
-          ...state.byKey,
+          ...newState.byKey,
           [key]: {
             ...info,
             beginNewComment: true,
@@ -225,13 +274,17 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
       };
     }
     case getType(actions.beginSaveComment): {
-      const { pendingCommentText, ...keyParams } = action.payload;
-      const { key, info } = getKeyAndInfo(state, keyParams);
+      const { pendingCommentText, versionId, ...keyParams } = action.payload;
+      const { key, info, newState } = prepareStateForKeyChange({
+        state,
+        keyParams,
+        versionId,
+      });
 
       return {
-        ...state,
+        ...newState,
         byKey: {
-          ...state.byKey,
+          ...newState.byKey,
           [key]: {
             ...info,
             pendingCommentText,
@@ -241,12 +294,17 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
       };
     }
     case getType(actions.abortSaveComment): {
-      const { key, info } = getKeyAndInfo(state, action.payload);
+      const { versionId, ...keyParams } = action.payload;
+      const { key, info, newState } = prepareStateForKeyChange({
+        state,
+        keyParams,
+        versionId,
+      });
 
       return {
-        ...state,
+        ...newState,
         byKey: {
-          ...state.byKey,
+          ...newState.byKey,
           [key]: {
             ...info,
             savingComment: false,
@@ -255,12 +313,17 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
       };
     }
     case getType(actions.finishComment): {
-      const { key, info } = getKeyAndInfo(state, action.payload);
+      const { versionId, ...keyParams } = action.payload;
+      const { key, info, newState } = prepareStateForKeyChange({
+        state,
+        keyParams,
+        versionId,
+      });
 
       return {
-        ...state,
+        ...newState,
         byKey: {
-          ...state.byKey,
+          ...newState.byKey,
           [key]: {
             ...info,
             beginNewComment: false,
@@ -270,23 +333,29 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
         },
       };
     }
-    case getType(actions.setComment): {
-      const { comment, ...keyParams } = action.payload;
-      const { key, info } = getKeyAndInfo(state, keyParams);
+    case getType(actions.setComments): {
+      const { comments, versionId, ...keyParams } = action.payload;
+      const { key, info, newState } = prepareStateForKeyChange({
+        state,
+        keyParams,
+        versionId,
+      });
+
+      const byId = { ...newState.byId };
+      for (const comment of comments) {
+        byId[comment.id] = createInternalComment(comment);
+      }
 
       return {
-        ...state,
+        ...newState,
         byKey: {
-          ...state.byKey,
+          ...newState.byKey,
           [key]: {
             ...info,
-            commentIds: [...info.commentIds, comment.id],
+            commentIds: info.commentIds.concat(comments.map((c) => c.id)),
           },
         },
-        byId: {
-          ...state.byId,
-          [comment.id]: createInternalComment(comment),
-        },
+        byId,
       };
     }
     default:

@@ -9,8 +9,8 @@ import { ConnectedReduxProps } from '../../configureStore';
 import { ApplicationState } from '../../reducers';
 import {
   Comment,
-  createCommentKey,
   manageComment,
+  selectCommentInfo,
 } from '../../reducers/comments';
 import { gettext, sanitizeHTML, nl2br } from '../../utils';
 import styles from './styles.module.scss';
@@ -189,11 +189,15 @@ const mapStateToProps = (
     }
   }
 
-  const info =
-    state.comments.byKey[createCommentKey({ fileName, line, versionId })];
+  const info = selectCommentInfo({
+    comments: state.comments,
+    fileName,
+    line,
+    versionId,
+  });
   return {
     initialComment: initialComment || null,
-    initialCommentText: info && info.pendingCommentText,
+    initialCommentText: info ? info.pendingCommentText : null,
     savingComment: info ? info.savingComment : false,
   };
 };
