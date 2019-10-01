@@ -216,12 +216,6 @@ export const manageComment = ({
   };
 };
 
-const getKeyAndInfo = (state: CommentsState, keyParams: CommentKeyParams) => {
-  const key = createCommentKey(keyParams);
-  const info = state.byKey[key] || createEmptyCommentInfo();
-  return { key, info };
-};
-
 export const stateForVersion = ({
   state,
   versionId,
@@ -238,6 +232,21 @@ export const stateForVersion = ({
   };
 };
 
+const prepareStateForKeyChange = ({
+  state,
+  keyParams,
+  versionId,
+}: {
+  state: CommentsState;
+  keyParams: CommentKeyParams;
+  versionId: number;
+}) => {
+  const newState = stateForVersion({ state, versionId });
+  const key = createCommentKey(keyParams);
+  const info = newState.byKey[key] || createEmptyCommentInfo();
+  return { key, info, newState };
+};
+
 const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
   state = initialState,
   action,
@@ -245,8 +254,11 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
   switch (action.type) {
     case getType(actions.beginComment): {
       const { versionId, ...keyParams } = action.payload;
-      const newState = stateForVersion({ state, versionId });
-      const { key, info } = getKeyAndInfo(newState, keyParams);
+      const { key, info, newState } = prepareStateForKeyChange({
+        state,
+        keyParams,
+        versionId,
+      });
 
       return {
         ...newState,
@@ -263,8 +275,11 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
     }
     case getType(actions.beginSaveComment): {
       const { pendingCommentText, versionId, ...keyParams } = action.payload;
-      const newState = stateForVersion({ state, versionId });
-      const { key, info } = getKeyAndInfo(newState, keyParams);
+      const { key, info, newState } = prepareStateForKeyChange({
+        state,
+        keyParams,
+        versionId,
+      });
 
       return {
         ...newState,
@@ -280,8 +295,11 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
     }
     case getType(actions.abortSaveComment): {
       const { versionId, ...keyParams } = action.payload;
-      const newState = stateForVersion({ state, versionId });
-      const { key, info } = getKeyAndInfo(newState, keyParams);
+      const { key, info, newState } = prepareStateForKeyChange({
+        state,
+        keyParams,
+        versionId,
+      });
 
       return {
         ...newState,
@@ -296,8 +314,11 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
     }
     case getType(actions.finishComment): {
       const { versionId, ...keyParams } = action.payload;
-      const newState = stateForVersion({ state, versionId });
-      const { key, info } = getKeyAndInfo(newState, keyParams);
+      const { key, info, newState } = prepareStateForKeyChange({
+        state,
+        keyParams,
+        versionId,
+      });
 
       return {
         ...newState,
@@ -314,8 +335,11 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
     }
     case getType(actions.setComments): {
       const { comments, versionId, ...keyParams } = action.payload;
-      const newState = stateForVersion({ state, versionId });
-      const { key, info } = getKeyAndInfo(newState, keyParams);
+      const { key, info, newState } = prepareStateForKeyChange({
+        state,
+        keyParams,
+        versionId,
+      });
 
       const byId = { ...newState.byId };
       for (const comment of comments) {
