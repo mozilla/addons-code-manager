@@ -210,6 +210,15 @@ export const callApi = async <
   }
 };
 
+export type PaginatedResponse<ResultsType> = {
+  count: number;
+  next: string | null;
+  page_count: number;
+  page_size: number;
+  previous: string | null;
+  results: ResultsType;
+};
+
 type GetVersionParams = {
   addonId: number;
   apiState: ApiState;
@@ -340,5 +349,25 @@ export const createOrUpdateComment = async ({
     },
     endpoint,
     method: commentId ? HttpMethod.PATCH : HttpMethod.POST,
+  });
+};
+
+export type GetCommentsResponse = PaginatedResponse<ExternalComment[]>;
+
+export const getComments = async ({
+  _callApi = callApi,
+  addonId,
+  apiState,
+  versionId,
+}: {
+  _callApi?: typeof callApi;
+  addonId: number;
+  apiState: ApiState;
+  versionId: number;
+}) => {
+  return _callApi<GetResource<GetCommentsResponse>>({
+    apiState,
+    endpoint: `reviewers/addon/${addonId}/versions/${versionId}/draft_comments`,
+    method: HttpMethod.GET,
   });
 };
