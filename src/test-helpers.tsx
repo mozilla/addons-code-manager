@@ -910,6 +910,7 @@ export const dispatchComment = ({
 };
 
 export const createFakeApiPage = <
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   PaginatedResponseType extends PaginatedResponse<any>
 >({
   next = null,
