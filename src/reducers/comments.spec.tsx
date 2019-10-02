@@ -4,6 +4,7 @@ import configureStore from '../configureStore';
 import reducer, {
   CommentInfo,
   ExternalComment,
+  SelectCommentInfoParams,
   actions,
   createCommentKey,
   createEmptyCommentInfo,
@@ -139,22 +140,25 @@ describe(__filename, () => {
   });
 
   describe('setComments', () => {
-    it('sets comments for a key', () => {
-      const comment1 = createFakeExternalComment({ id: 12345 });
-      const comment2 = createFakeExternalComment({ id: 54322 });
-
+    it('sets comments for a single key', () => {
       const versionId = 1;
       const line = 123;
       const fileName = 'manifest.json';
 
+      const comment = (id: number) => {
+        return createFakeExternalComment({
+          filename: fileName,
+          id,
+          lineno: line,
+        });
+      };
+
+      const comment1 = comment(12345);
+      const comment2 = comment(54322);
+
       const state = reducer(
         undefined,
-        actions.setComments({
-          comments: [comment1, comment2],
-          fileName,
-          line,
-          versionId,
-        }),
+        actions.setComments({ comments: [comment1, comment2], versionId }),
       );
 
       expect(state.byId[comment1.id]).toEqual(createInternalComment(comment1));
@@ -180,33 +184,31 @@ describe(__filename, () => {
       expect(state.forVersionId).toEqual(versionId);
     });
 
-    it('adds comments to a key', () => {
-      const comment1 = createFakeExternalComment({ id: 1 });
-      const comment2 = createFakeExternalComment({ id: 2 });
-      const comment3 = createFakeExternalComment({ id: 3 });
-
+    it('adds comments to a single key', () => {
       const versionId = 1;
       const line = 123;
       const fileName = 'manifest.json';
 
+      const comment = (id: number) => {
+        return createFakeExternalComment({
+          filename: fileName,
+          id,
+          lineno: line,
+        });
+      };
+
+      const comment1 = comment(1);
+      const comment2 = comment(2);
+      const comment3 = comment(3);
+
       let state;
       state = reducer(
         state,
-        actions.setComments({
-          comments: [comment1],
-          fileName,
-          line,
-          versionId,
-        }),
+        actions.setComments({ comments: [comment1], versionId }),
       );
       state = reducer(
         state,
-        actions.setComments({
-          comments: [comment2, comment3],
-          fileName,
-          line,
-          versionId,
-        }),
+        actions.setComments({ comments: [comment2, comment3], versionId }),
       );
 
       expect(
@@ -218,6 +220,124 @@ describe(__filename, () => {
       expect(state.byId[comment1.id]).toEqual(createInternalComment(comment1));
       expect(state.byId[comment2.id]).toEqual(createInternalComment(comment2));
       expect(state.byId[comment3.id]).toEqual(createInternalComment(comment3));
+    });
+
+    it('sets comments for a version, file, and a line', () => {
+      const versionId = 1;
+      const version = { ...fakeVersion, id: versionId };
+
+      const commentId1 = 1;
+      const commentId2 = 2;
+      const commentId3 = 2;
+      const commentId4 = 4;
+      const commentId5 = 5;
+      const commentId6 = 6;
+
+      const fileName = 'manifest.json';
+      const line = 321;
+
+      const comment = ({
+        filename = fileName,
+        lineno = line,
+        ...params
+      }: Partial<ExternalComment>) => {
+        return createFakeExternalComment({
+          version,
+          filename,
+          lineno,
+          ...params,
+        });
+      };
+
+      const versionComments = [commentId1, commentId2].map((id) => {
+        return comment({ id, filename: null, lineno: null });
+      });
+
+      const fileComments = [commentId3, commentId4].map((id) => {
+        return comment({ id, lineno: null });
+      });
+
+      const lineComments = [commentId5, commentId6].map((id) => {
+        return comment({ id });
+      });
+
+      const comments = reducer(
+        undefined,
+        actions.setComments({
+          comments: versionComments.concat(fileComments, lineComments),
+          versionId,
+        }),
+      );
+
+      const select = (
+        params: Pick<SelectCommentInfoParams, 'fileName' | 'line'>,
+      ) => selectCommentInfo({ comments, versionId, ...params });
+
+      // Check version comments.
+      expect(select({ fileName: null, line: null })).toMatchObject({
+        commentIds: versionComments.map((c) => c.id),
+      });
+
+      // Check file comments.
+      expect(select({ fileName, line: null })).toMatchObject({
+        commentIds: fileComments.map((c) => c.id),
+      });
+
+      // Check line comments.
+      expect(select({ fileName, line })).toMatchObject({
+        commentIds: lineComments.map((c) => c.id),
+      });
+    });
+
+    it('loads comments separately by file line', () => {
+      const versionId = 1;
+      const version = { ...fakeVersion, id: versionId };
+
+      const commentId1 = 1;
+      const commentId2 = 2;
+      const commentId3 = 2;
+      const commentId4 = 4;
+
+      const fileName = 'manifest.json';
+      const line1 = 1;
+      const line2 = 2;
+
+      const comment = (params: Partial<ExternalComment> = {}) => {
+        return createFakeExternalComment({
+          version,
+          filename: fileName,
+          ...params,
+        });
+      };
+
+      const line1Comments = [commentId1, commentId2].map((id) => {
+        return comment({ id, lineno: line1 });
+      });
+
+      const line2Comments = [commentId3, commentId4].map((id) => {
+        return comment({ id, lineno: line2 });
+      });
+
+      const comments = reducer(
+        undefined,
+        actions.setComments({
+          comments: line1Comments.concat(line2Comments),
+          versionId,
+        }),
+      );
+
+      const select = (params: Pick<SelectCommentInfoParams, 'line'>) =>
+        selectCommentInfo({ comments, fileName, versionId, ...params });
+
+      // Check comments on line 1
+      expect(select({ line: line1 })).toMatchObject({
+        commentIds: line1Comments.map((c) => c.id),
+      });
+
+      // Check comments on line 2
+      expect(select({ line: line2 })).toMatchObject({
+        commentIds: line2Comments.map((c) => c.id),
+      });
     });
   });
 
@@ -383,21 +503,25 @@ describe(__filename, () => {
     });
 
     it('dispatches finishComment(), setComments() on success', async () => {
+      const versionId = 1;
       const fakeComment = createFakeExternalComment();
 
       const { dispatch, thunk } = thunkTester({
         createThunk: () =>
           _manageComment({
-            _createOrUpdateComment: jest.fn().mockResolvedValue(fakeComment),
             ...keyParams,
+            _createOrUpdateComment: jest.fn().mockResolvedValue(fakeComment),
+            versionId,
           }),
       });
 
       await thunk();
 
-      expect(dispatch).toHaveBeenCalledWith(actions.finishComment(keyParams));
       expect(dispatch).toHaveBeenCalledWith(
-        actions.setComments({ comments: [fakeComment], ...keyParams }),
+        actions.finishComment({ ...keyParams, versionId }),
+      );
+      expect(dispatch).toHaveBeenCalledWith(
+        actions.setComments({ comments: [fakeComment], versionId }),
       );
     });
 
@@ -607,8 +731,6 @@ describe(__filename, () => {
         undefined,
         actions.setComments({
           comments: [createFakeExternalComment()],
-          fileName: 'manifest.json',
-          line: null,
           versionId,
         }),
       );
@@ -628,8 +750,6 @@ describe(__filename, () => {
         undefined,
         actions.setComments({
           comments: [createFakeExternalComment()],
-          fileName: 'manifest.json',
-          line: null,
           versionId: oldVersionId,
         }),
       );
@@ -743,24 +863,9 @@ describe(__filename, () => {
       });
     });
 
-    it('loads comments for a version + file + line', async () => {
+    it('loads comments', async () => {
       const versionId = 1;
-
-      const commentId1 = 1;
-      const commentId2 = 2;
-      const commentId3 = 2;
-
-      const fileName = 'manifest.json';
-      const line = 123;
-
-      const comments = [commentId1, commentId2, commentId3].map((id) => {
-        return createFakeExternalComment({
-          id,
-          version: { ...fakeVersion, id: versionId },
-          filename: fileName,
-          lineno: line,
-        });
-      });
+      const comments = [1, 2, 3].map((id) => createFakeExternalComment({ id }));
 
       const _getComments = jest
         .fn()
@@ -773,149 +878,7 @@ describe(__filename, () => {
       await thunk();
 
       expect(dispatch).toHaveBeenCalledWith(
-        actions.setComments({ versionId, fileName, line, comments }),
-      );
-    });
-
-    it('loads comments for a version, file, and a line', async () => {
-      const versionId = 1;
-      const _version = { ...fakeVersion, id: versionId };
-
-      const commentId1 = 1;
-      const commentId2 = 2;
-      const commentId3 = 2;
-      const commentId4 = 4;
-      const commentId5 = 5;
-      const commentId6 = 6;
-
-      const fileName = 'manifest.json';
-      const line = 321;
-
-      const comment = ({
-        version = _version,
-        filename = fileName,
-        lineno = line,
-        ...params
-      }: Partial<ExternalComment>) => {
-        return createFakeExternalComment({
-          version,
-          filename,
-          lineno,
-          ...params,
-        });
-      };
-
-      const versionComments = [commentId1, commentId2].map((id) => {
-        return comment({ id, filename: null, lineno: null });
-      });
-
-      const fileComments = [commentId3, commentId4].map((id) => {
-        return comment({ id, lineno: null });
-      });
-
-      const lineComments = [commentId5, commentId6].map((id) => {
-        return comment({ id });
-      });
-
-      const _getComments = jest
-        .fn()
-        .mockResolvedValue(
-          createFakeCommentsResponse(
-            versionComments.concat(fileComments, lineComments),
-          ),
-        );
-
-      const { dispatch, thunk } = thunkTester({
-        createThunk: () => _fetchAndLoadComments({ _getComments, versionId }),
-      });
-
-      await thunk();
-
-      expect(dispatch).toHaveBeenCalledWith(
-        actions.setComments({
-          versionId,
-          fileName: null,
-          line: null,
-          comments: versionComments,
-        }),
-      );
-
-      expect(dispatch).toHaveBeenCalledWith(
-        actions.setComments({
-          versionId,
-          fileName,
-          line: null,
-          comments: fileComments,
-        }),
-      );
-
-      expect(dispatch).toHaveBeenCalledWith(
-        actions.setComments({
-          versionId,
-          fileName,
-          line,
-          comments: lineComments,
-        }),
-      );
-    });
-
-    it('loads comments separately by file line', async () => {
-      const versionId = 1;
-      const _version = { ...fakeVersion, id: versionId };
-
-      const commentId1 = 1;
-      const commentId2 = 2;
-      const commentId3 = 2;
-      const commentId4 = 4;
-
-      const fileName = 'manifest.json';
-      const line1 = 1;
-      const line2 = 2;
-
-      const comment = (params: Partial<ExternalComment> = {}) => {
-        return createFakeExternalComment({
-          version: _version,
-          filename: fileName,
-          ...params,
-        });
-      };
-
-      const line1Comments = [commentId1, commentId2].map((id) => {
-        return comment({ id, lineno: line1 });
-      });
-
-      const line2Comments = [commentId3, commentId4].map((id) => {
-        return comment({ id, lineno: line2 });
-      });
-
-      const _getComments = jest
-        .fn()
-        .mockResolvedValue(
-          createFakeCommentsResponse(line1Comments.concat(line2Comments)),
-        );
-
-      const { dispatch, thunk } = thunkTester({
-        createThunk: () => _fetchAndLoadComments({ _getComments, versionId }),
-      });
-
-      await thunk();
-
-      const _setComments = ({
-        line,
-        comments,
-      }: {
-        line: number;
-        comments: ExternalComment[];
-      }) => {
-        return actions.setComments({ versionId, fileName, line, comments });
-      };
-
-      expect(dispatch).toHaveBeenCalledWith(
-        _setComments({ line: line1, comments: line1Comments }),
-      );
-
-      expect(dispatch).toHaveBeenCalledWith(
-        _setComments({ line: line2, comments: line2Comments }),
+        actions.setComments({ versionId, comments }),
       );
     });
   });
