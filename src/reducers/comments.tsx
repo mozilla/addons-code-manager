@@ -138,19 +138,22 @@ export const actions = {
     return (payload: CommonPayload) => resolve(payload);
   }),
   setComments: createAction('SET_COMMENTS', (resolve) => {
-    return (payload: CommonPayload & { comments: ExternalComment[] }) =>
+    return (payload: { versionId: number; comments: ExternalComment[] }) =>
       resolve(payload);
   }),
 };
+
+export type SelectCommentInfoParams = {
+  comments: CommentsState;
+  versionId: number;
+} & CommentKeyParams;
 
 export const selectCommentInfo = ({
   comments,
   fileName,
   line,
   versionId,
-}: { comments: CommentsState; versionId: number } & CommentKeyParams):
-  | undefined
-  | CommentInfo => {
+}: SelectCommentInfoParams): undefined | CommentInfo => {
   if (comments.forVersionId !== versionId) {
     return undefined;
   }
@@ -195,37 +198,13 @@ export const fetchAndLoadComments = ({
     if (isErrorResponse(response)) {
       dispatch(actions.abortFetchVersionComments({ versionId }));
       dispatch(errorsActions.addError({ error: response.error }));
-      return;
-    }
-
-    // Sort all comments into arrays according to type:
-    // - version comments
-    // - file comments
-    // - line comments
-    // This minimizes the number of Redux dispatches.
-
-    const map: {
-      [key: string]: {
-        fileName: string | null;
-        line: number | null;
-        comments: ExternalComment[];
-      };
-    } = {};
-
-    for (const comment of response.results) {
-      const key = `${comment.filename}:${comment.lineno}`;
-      if (!map[key]) {
-        map[key] = {
-          fileName: comment.filename || null,
-          line: comment.lineno || null,
-          comments: [],
-        };
-      }
-      map[key].comments.push(comment);
-    }
-
-    for (const { fileName, line, comments } of Object.values(map)) {
-      dispatch(actions.setComments({ fileName, line, versionId, comments }));
+    } else {
+      dispatch(
+        actions.setComments({
+          versionId,
+          comments: response.results,
+        }),
+      );
     }
   };
 };
@@ -278,14 +257,7 @@ export const manageComment = ({
       dispatch(errorsActions.addError({ error: response.error }));
     } else {
       dispatch(actions.finishComment({ versionId, fileName, line }));
-      dispatch(
-        actions.setComments({
-          versionId,
-          fileName,
-          line,
-          comments: [response],
-        }),
-      );
+      dispatch(actions.setComments({ versionId, comments: [response] }));
     }
   };
 };
@@ -306,6 +278,15 @@ export const stateForVersion = ({
   };
 };
 
+const getKeyAndInfo = ({
+  byKey,
+  ...keyParams
+}: { byKey: CommentsByKey } & CommentKeyParams) => {
+  const key = createCommentKey(keyParams);
+  const info = byKey[key] || createEmptyCommentInfo();
+  return { key, info };
+};
+
 const prepareStateForKeyChange = ({
   state,
   keyParams,
@@ -316,8 +297,10 @@ const prepareStateForKeyChange = ({
   versionId: number;
 }) => {
   const newState = stateForVersion({ state, versionId });
-  const key = createCommentKey(keyParams);
-  const info = newState.byKey[key] || createEmptyCommentInfo();
+  const { key, info } = getKeyAndInfo({
+    byKey: newState.byKey,
+    ...keyParams,
+  });
   return { key, info, newState };
 };
 
@@ -414,27 +397,30 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
       };
     }
     case getType(actions.setComments): {
-      const { comments, versionId, ...keyParams } = action.payload;
-      const { key, info, newState } = prepareStateForKeyChange({
-        state,
-        keyParams,
-        versionId,
-      });
+      const { comments, versionId } = action.payload;
+      const newState = stateForVersion({ state, versionId });
 
+      const byKey = { ...newState.byKey };
       const byId = { ...newState.byId };
+
       for (const comment of comments) {
         byId[comment.id] = createInternalComment(comment);
+
+        const { key, info } = getKeyAndInfo({
+          byKey,
+          fileName: comment.filename || null,
+          line: comment.lineno || null,
+        });
+
+        byKey[key] = {
+          ...info,
+          commentIds: info.commentIds.concat(comment.id),
+        };
       }
 
       return {
         ...newState,
-        byKey: {
-          ...newState.byKey,
-          [key]: {
-            ...info,
-            commentIds: info.commentIds.concat(comments.map((c) => c.id)),
-          },
-        },
+        byKey,
         byId,
         isLoading: false,
       };

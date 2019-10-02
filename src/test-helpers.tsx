@@ -890,13 +890,9 @@ export const dispatchComments = ({
   store = configureStore(),
   /* istanbul ignore next */
   comments = [createFakeExternalComment()],
-  fileName = null,
-  line = null,
   versionId = 1,
 } = {}) => {
-  store.dispatch(
-    commentsActions.setComments({ fileName, line, versionId, comments }),
-  );
+  store.dispatch(commentsActions.setComments({ versionId, comments }));
 
   return { store };
 };

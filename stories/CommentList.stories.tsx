@@ -31,12 +31,7 @@ const render = ({
   }
   for (const comment of comments) {
     store.dispatch(
-      commentsActions.setComments({
-        fileName,
-        line,
-        versionId,
-        comments: [comment],
-      }),
+      commentsActions.setComments({ versionId, comments: [comment] }),
     );
   }
 
