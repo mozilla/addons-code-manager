@@ -180,9 +180,9 @@ export const fetchAndLoadComments = ({
   versionId: number;
 }): ThunkActionCreator => {
   return async (dispatch, getState) => {
-    const { api: apiState, comments } = getState();
+    const { api: apiState, comments: commentsState } = getState();
 
-    if (comments.isLoading) {
+    if (commentsState.isLoading) {
       return;
     }
 
@@ -198,41 +198,34 @@ export const fetchAndLoadComments = ({
       return;
     }
 
-    const map: { [key: string]: ExternalComment[] } = {};
+    // Sort all comments into arrays according to type:
+    // - version comments
+    // - file comments
+    // - line comments
+    // This minimizes the number of Redux dispatches.
+
+    const map: {
+      [key: string]: {
+        fileName: string | null;
+        line: number | null;
+        comments: ExternalComment[];
+      };
+    } = {};
 
     for (const comment of response.results) {
-      let key = '';
-      if (comment.filename) {
-        key = comment.filename;
-      }
-      if (comment.lineno) {
-        key = `${key}:${comment.lineno}`;
-      }
+      const key = `${comment.filename}:${comment.lineno}`;
       if (!map[key]) {
-        map[key] = [];
+        map[key] = {
+          fileName: comment.filename || null,
+          line: comment.lineno || null,
+          comments: [],
+        };
       }
-      map[key].push(comment);
+      map[key].comments.push(comment);
     }
 
-    for (const key of Object.keys(map)) {
-      let line = null;
-      let fileName = null;
-      if (key) {
-        const parts = key.split(':');
-        fileName = parts[0];
-        if (parts[1]) {
-          line = parseInt(parts[1], 10);
-        }
-      }
-
-      dispatch(
-        actions.setComments({
-          fileName,
-          line,
-          versionId,
-          comments: map[key],
-        }),
-      );
+    for (const { fileName, line, comments } of Object.values(map)) {
+      dispatch(actions.setComments({ fileName, line, versionId, comments }));
     }
   };
 };
