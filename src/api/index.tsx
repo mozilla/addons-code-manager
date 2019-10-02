@@ -352,7 +352,7 @@ export const createOrUpdateComment = async ({
   });
 };
 
-type GetCommentsResponse = PaginatedResponse<ExternalComment[]>;
+export type GetCommentsResponse = PaginatedResponse<ExternalComment[]>;
 
 export const getComments = async ({
   _callApi = callApi,
