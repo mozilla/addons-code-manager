@@ -112,7 +112,7 @@ export const createCommentKey = ({ fileName, line }: CommentKeyParams) => {
 type CommonPayload = CommentKeyParams & { versionId: number };
 
 export const actions = {
-  abortLoadVersionComments: createAction(
+  abortFetchVersionComments: createAction(
     'ABORT_FETCH_VERSION_COMMENTS',
     (resolve) => {
       return (payload: { versionId: number }) => resolve(payload);
@@ -124,7 +124,7 @@ export const actions = {
   beginComment: createAction('BEGIN_COMMENT', (resolve) => {
     return (payload: CommonPayload) => resolve(payload);
   }),
-  beginLoadVersionComments: createAction(
+  beginFetchVersionComments: createAction(
     'BEGIN_FETCH_VERSION_COMMENTS',
     (resolve) => {
       return (payload: { versionId: number }) => resolve(payload);
@@ -186,14 +186,14 @@ export const fetchAndLoadComments = ({
       return;
     }
 
-    dispatch(actions.beginLoadVersionComments({ versionId }));
+    dispatch(actions.beginFetchVersionComments({ versionId }));
 
     // TODO: fetch all pages to get all comments.
     // https://github.com/mozilla/addons-code-manager/issues/1093
     const response = await _getComments({ addonId, apiState, versionId });
 
     if (isErrorResponse(response)) {
-      dispatch(actions.abortLoadVersionComments({ versionId }));
+      dispatch(actions.abortFetchVersionComments({ versionId }));
       dispatch(errorsActions.addError({ error: response.error }));
       return;
     }
@@ -333,7 +333,7 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
   action,
 ): CommentsState => {
   switch (action.type) {
-    case getType(actions.abortLoadVersionComments): {
+    case getType(actions.abortFetchVersionComments): {
       const { versionId } = action.payload;
       const newState = stateForVersion({ state, versionId });
 
@@ -446,7 +446,7 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
         isLoading: false,
       };
     }
-    case getType(actions.beginLoadVersionComments): {
+    case getType(actions.beginFetchVersionComments): {
       const { versionId } = action.payload;
       const newState = stateForVersion({ state, versionId });
 

@@ -642,23 +642,23 @@ describe(__filename, () => {
     });
   });
 
-  describe('abortLoadVersionComments', () => {
+  describe('abortFetchVersionComments', () => {
     it('sets isLoading to false', () => {
       const versionId = 1;
       let state;
-      state = reducer(state, actions.beginLoadVersionComments({ versionId }));
-      state = reducer(state, actions.abortLoadVersionComments({ versionId }));
+      state = reducer(state, actions.beginFetchVersionComments({ versionId }));
+      state = reducer(state, actions.abortFetchVersionComments({ versionId }));
 
       expect(state.isLoading).toEqual(false);
     });
   });
 
-  describe('beginLoadVersionComments', () => {
+  describe('beginFetchVersionComments', () => {
     it('sets isLoading to true', () => {
       const versionId = 1;
       const state = reducer(
         undefined,
-        actions.beginLoadVersionComments({ versionId }),
+        actions.beginFetchVersionComments({ versionId }),
       );
 
       expect(state.isLoading).toEqual(true);
@@ -674,7 +674,7 @@ describe(__filename, () => {
       return fetchAndLoadComments({ _getComments, addonId, versionId });
     };
 
-    it('dispatches beginLoadVersionComments', async () => {
+    it('dispatches beginFetchVersionComments', async () => {
       const versionId = 1;
 
       const { dispatch, thunk } = thunkTester({
@@ -684,14 +684,14 @@ describe(__filename, () => {
       await thunk();
 
       expect(dispatch).toHaveBeenCalledWith(
-        actions.beginLoadVersionComments({ versionId }),
+        actions.beginFetchVersionComments({ versionId }),
       );
     });
 
     it('does not dispatch anything while already fetching comments', async () => {
       const store = configureStore();
       const versionId = 1;
-      store.dispatch(actions.beginLoadVersionComments({ versionId }));
+      store.dispatch(actions.beginFetchVersionComments({ versionId }));
 
       const { dispatch, thunk } = thunkTester({
         createThunk: () => _fetchAndLoadComments({ versionId }),
@@ -715,7 +715,7 @@ describe(__filename, () => {
       await thunk();
 
       expect(dispatch).toHaveBeenCalledWith(
-        actions.abortLoadVersionComments({ versionId }),
+        actions.abortFetchVersionComments({ versionId }),
       );
       expect(dispatch).toHaveBeenCalledWith(errorsActions.addError({ error }));
     });
@@ -753,7 +753,7 @@ describe(__filename, () => {
       const fileName = 'manifest.json';
       const line = 123;
 
-      const extComments = [commentId1, commentId2, commentId3].map((id) => {
+      const comments = [commentId1, commentId2, commentId3].map((id) => {
         return createFakeExternalComment({
           id,
           version: { ...fakeVersion, id: versionId },
@@ -764,7 +764,7 @@ describe(__filename, () => {
 
       const _getComments = jest
         .fn()
-        .mockResolvedValue(createFakeCommentsResponse(extComments));
+        .mockResolvedValue(createFakeCommentsResponse(comments));
 
       const { dispatch, thunk } = thunkTester({
         createThunk: () => _fetchAndLoadComments({ _getComments, versionId }),
@@ -773,18 +773,13 @@ describe(__filename, () => {
       await thunk();
 
       expect(dispatch).toHaveBeenCalledWith(
-        actions.setComments({
-          versionId,
-          fileName,
-          line,
-          comments: extComments,
-        }),
+        actions.setComments({ versionId, fileName, line, comments }),
       );
     });
 
     it('loads comments for a version, file, and a line', async () => {
       const versionId = 1;
-      const extVersion = { ...fakeVersion, id: versionId };
+      const _version = { ...fakeVersion, id: versionId };
 
       const commentId1 = 1;
       const commentId2 = 2;
@@ -796,8 +791,8 @@ describe(__filename, () => {
       const fileName = 'manifest.json';
       const line = 321;
 
-      const extComment = ({
-        version = extVersion,
+      const comment = ({
+        version = _version,
         filename = fileName,
         lineno = line,
         ...params
@@ -811,22 +806,22 @@ describe(__filename, () => {
       };
 
       const versionComments = [commentId1, commentId2].map((id) => {
-        return extComment({ id, filename: null, lineno: null });
+        return comment({ id, filename: null, lineno: null });
       });
 
       const fileComments = [commentId3, commentId4].map((id) => {
-        return extComment({ id, lineno: null });
+        return comment({ id, lineno: null });
       });
 
       const lineComments = [commentId5, commentId6].map((id) => {
-        return extComment({ id });
+        return comment({ id });
       });
 
       const _getComments = jest
         .fn()
         .mockResolvedValue(
           createFakeCommentsResponse(
-            versionComments.concat(fileComments).concat(lineComments),
+            versionComments.concat(fileComments, lineComments),
           ),
         );
 
@@ -866,7 +861,7 @@ describe(__filename, () => {
 
     it('loads comments separately by file line', async () => {
       const versionId = 1;
-      const extVersion = { ...fakeVersion, id: versionId };
+      const _version = { ...fakeVersion, id: versionId };
 
       const commentId1 = 1;
       const commentId2 = 2;
@@ -877,20 +872,20 @@ describe(__filename, () => {
       const line1 = 1;
       const line2 = 2;
 
-      const extComment = (params: Partial<ExternalComment> = {}) => {
+      const comment = (params: Partial<ExternalComment> = {}) => {
         return createFakeExternalComment({
-          version: extVersion,
+          version: _version,
           filename: fileName,
           ...params,
         });
       };
 
       const line1Comments = [commentId1, commentId2].map((id) => {
-        return extComment({ id, lineno: line1 });
+        return comment({ id, lineno: line1 });
       });
 
       const line2Comments = [commentId3, commentId4].map((id) => {
-        return extComment({ id, lineno: line2 });
+        return comment({ id, lineno: line2 });
       });
 
       const _getComments = jest
