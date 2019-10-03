@@ -2,7 +2,13 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 
 import { ApplicationState } from '../../reducers';
-import { CommentInfo, selectCommentInfo } from '../../reducers/comments';
+import { ConnectedReduxProps } from '../../configureStore';
+import {
+  CommentInfo,
+  fetchAndLoadComments,
+  selectCommentInfo,
+  selectVersionHasComments,
+} from '../../reducers/comments';
 import Comment from '../Comment';
 import styles from './styles.module.scss';
 
@@ -17,13 +23,44 @@ export type PublicProps = {
   versionId: number;
 };
 
-type PropsFromState = {
-  commentInfo: CommentInfo | undefined;
+export type DefaultProps = {
+  _fetchAndLoadComments: typeof fetchAndLoadComments;
 };
 
-type Props = PublicProps & PropsFromState;
+type PropsFromState = {
+  commentInfo: CommentInfo | undefined;
+  versionHasComments: boolean | undefined;
+};
+
+type Props = PublicProps & DefaultProps & PropsFromState & ConnectedReduxProps;
 
 export class CommentListBase extends React.Component<Props> {
+  static defaultProps = {
+    _fetchAndLoadComments: fetchAndLoadComments,
+  };
+
+  componentDidMount() {
+    this.loadData();
+  }
+
+  componentDidUpdate() {
+    this.loadData();
+  }
+
+  loadData() {
+    const {
+      _fetchAndLoadComments,
+      addonId,
+      dispatch,
+      versionHasComments,
+      versionId,
+    } = this.props;
+
+    if (versionHasComments === undefined) {
+      dispatch(_fetchAndLoadComments({ addonId, versionId }));
+    }
+  }
+
   render() {
     const {
       addonId,
@@ -81,6 +118,10 @@ const mapStateToProps = (
       versionId,
       fileName,
       line,
+    }),
+    versionHasComments: selectVersionHasComments({
+      comments: state.comments,
+      versionId,
     }),
   };
 };
