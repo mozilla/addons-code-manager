@@ -9,16 +9,21 @@ import {
 } from '../../reducers/comments';
 import {
   createFakeExternalComment,
+  createFakeThunk,
   dispatchComments,
+  fakeAction,
   shallowUntilTarget,
+  spyOn,
 } from '../../test-helpers';
 
-import CommentList, { CommentListBase, PublicProps } from '.';
+import CommentList, { CommentListBase, DefaultProps, PublicProps } from '.';
 
 describe(__filename, () => {
-  type RenderParams = Partial<PublicProps> & { store?: Store };
+  type RenderParams = Partial<PublicProps> &
+    Partial<DefaultProps> & { store?: Store };
 
   const render = ({
+    _fetchAndLoadComments = jest.fn().mockReturnValue(fakeAction),
     addonId = 1,
     children = (content: JSX.Element) => content,
     fileName = null,
@@ -28,6 +33,7 @@ describe(__filename, () => {
     ...moreProps
   }: RenderParams = {}) => {
     const props = {
+      _fetchAndLoadComments,
       addonId,
       children,
       fileName,
@@ -197,5 +203,103 @@ describe(__filename, () => {
 
     expect(root.find(Comment)).toHaveLength(0);
     expect(root).toBeEmptyRender();
+  });
+
+  describe('fetching and loading comments', () => {
+    const renderForFetching = ({
+      addonId = 42,
+      store = configureStore(),
+      versionId = 87,
+      ...params
+    }: RenderParams = {}) => {
+      const fakeThunk = createFakeThunk();
+      const _fetchAndLoadComments = fakeThunk.createThunk;
+
+      const dispatch = spyOn(store, 'dispatch');
+
+      const root = render({
+        _fetchAndLoadComments,
+        addonId,
+        store,
+        versionId,
+        ...params,
+      });
+
+      return { _fetchAndLoadComments, dispatch, fakeThunk, root };
+    };
+
+    it('fetches comments on mount', () => {
+      const addonId = 42;
+      const versionId = 87;
+
+      const { _fetchAndLoadComments, dispatch, fakeThunk } = renderForFetching({
+        addonId,
+        versionId,
+      });
+
+      expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+      expect(_fetchAndLoadComments).toHaveBeenCalledWith({
+        addonId,
+        versionId,
+      });
+    });
+
+    it('fetches comments on update', () => {
+      const {
+        _fetchAndLoadComments,
+        dispatch,
+        fakeThunk,
+        root,
+      } = renderForFetching();
+
+      dispatch.mockClear();
+      root.setProps({});
+
+      expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+      expect(_fetchAndLoadComments).toHaveBeenCalled();
+    });
+
+    it('does not fetch comments if they already exist', () => {
+      const versionId = 123;
+      const store = configureStore();
+
+      store.dispatch(
+        commentsActions.setComments({
+          versionId,
+          comments: [createFakeExternalComment()],
+        }),
+      );
+
+      const { _fetchAndLoadComments, dispatch } = renderForFetching({
+        store,
+        versionId,
+      });
+
+      expect(dispatch).not.toHaveBeenCalled();
+      expect(_fetchAndLoadComments).not.toHaveBeenCalled();
+    });
+
+    it('fetches comments if existing comments were for a different version', () => {
+      const versionId = 123;
+      const store = configureStore();
+
+      // Load comments for a different version.
+      store.dispatch(
+        commentsActions.setComments({
+          versionId: 3214,
+          comments: [createFakeExternalComment()],
+        }),
+      );
+
+      const { _fetchAndLoadComments, dispatch, fakeThunk } = renderForFetching({
+        store,
+        versionId,
+      });
+
+      expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+      expect(_fetchAndLoadComments).toHaveBeenCalledWith(
+        expect.objectContaining({ versionId }),
+      );
+    });
   });
 });
