@@ -213,7 +213,8 @@ export const callApi = async <
 
     return await (contentType.startsWith('application/json')
       ? response.json()
-      : response.text());
+      : // The API might return a text response, like 204s.
+        response.text());
   } catch (error) {
     log.debug('Error caught in callApi():', error);
 
