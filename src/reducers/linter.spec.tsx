@@ -4,6 +4,7 @@ import {
   createFakeLinterMessagesByPath,
   fakeExternalLinterResult,
   fakeExternalLinterMessage,
+  setMockFetchResponseJSON,
   thunkTester,
 } from '../test-helpers';
 import linterReducer, {
@@ -436,7 +437,7 @@ describe(__filename, () => {
       respondWithResult?: boolean;
     } = {}) => {
       if (respondWithResult) {
-        fetchMock.mockResponse(JSON.stringify(result));
+        setMockFetchResponseJSON(result);
       }
 
       return thunkTester({

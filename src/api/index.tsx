@@ -137,9 +137,14 @@ type Headers = {
   [name: string]: string;
 };
 
-type GetResource<SuccessfulResponse> = {
+type ResponseOnly<SuccessfulResponse> = {
   requestData: undefined;
   successfulResponse: SuccessfulResponse;
+};
+
+type EmptyRequestAndResponse = {
+  requestData: undefined;
+  successfulResponse: '';
 };
 
 export const callApi = async <
@@ -202,7 +207,14 @@ export const callApi = async <
       );
     }
 
-    return await response.json();
+    const contentType = (
+      response.headers.get('content-type') || ''
+    ).toLowerCase();
+
+    return await (contentType.startsWith('application/json')
+      ? response.json()
+      : // The API might return a text response, like 204s.
+        response.text());
   } catch (error) {
     log.debug('Error caught in callApi():', error);
 
@@ -232,7 +244,7 @@ export const getVersion = async ({
   addonId,
   versionId,
 }: GetVersionParams) => {
-  return callApi<GetResource<ExternalVersionWithContent>>({
+  return callApi<ResponseOnly<ExternalVersionWithContent>>({
     apiState,
     endpoint: `reviewers/addon/${addonId}/versions/${versionId}`,
     query: path ? { file: path } : undefined,
@@ -248,14 +260,14 @@ export const getVersionsList = async ({
   apiState,
   addonId,
 }: GetVersionsListParams) => {
-  return callApi<GetResource<ExternalVersionsList>>({
+  return callApi<ResponseOnly<ExternalVersionsList>>({
     apiState,
     endpoint: `reviewers/addon/${addonId}/versions/`,
   });
 };
 
 export const logOutFromServer = async (apiState: ApiState) => {
-  return callApi<GetResource<{}>>({
+  return callApi<ResponseOnly<{ ok: boolean }>>({
     apiState,
     // We need to send the credentials (cookies) because the API will return
     // new `Set-Cookie` headers to clear the cookies in the client. Without
@@ -267,7 +279,7 @@ export const logOutFromServer = async (apiState: ApiState) => {
 };
 
 export const getCurrentUser = async (apiState: ApiState) => {
-  return callApi<GetResource<ExternalUser>>({
+  return callApi<ResponseOnly<ExternalUser>>({
     apiState,
     endpoint: '/accounts/profile/',
   });
@@ -288,7 +300,7 @@ export const getDiff = async ({
   headVersionId,
   path,
 }: GetDiffParams) => {
-  return callApi<GetResource<ExternalVersionWithDiff>>({
+  return callApi<ResponseOnly<ExternalVersionWithDiff>>({
     apiState,
     endpoint: `reviewers/addon/${addonId}/versions/${baseVersionId}/compare_to/${headVersionId}`,
     query: path ? { file: path } : undefined,
@@ -365,9 +377,29 @@ export const getComments = async ({
   apiState: ApiState;
   versionId: number;
 }) => {
-  return _callApi<GetResource<GetCommentsResponse>>({
+  return _callApi<ResponseOnly<GetCommentsResponse>>({
     apiState,
     endpoint: `reviewers/addon/${addonId}/versions/${versionId}/draft_comments`,
     method: HttpMethod.GET,
+  });
+};
+
+export const deleteComment = async ({
+  _callApi = callApi,
+  addonId,
+  commentId,
+  apiState,
+  versionId,
+}: {
+  _callApi?: typeof callApi;
+  addonId: number;
+  apiState: ApiState;
+  commentId: number;
+  versionId: number;
+}) => {
+  return _callApi<EmptyRequestAndResponse>({
+    apiState,
+    endpoint: `reviewers/addon/${addonId}/versions/${versionId}/draft_comments/${commentId}`,
+    method: HttpMethod.DELETE,
   });
 };
