@@ -144,7 +144,7 @@ type GetResource<SuccessfulResponse> = {
 
 type EmptyRequestAndResponse = {
   requestData: undefined;
-  successfulResponse: string;
+  successfulResponse: '';
 };
 
 export const callApi = async <
