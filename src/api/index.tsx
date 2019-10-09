@@ -137,7 +137,7 @@ type Headers = {
   [name: string]: string;
 };
 
-type GetResource<SuccessfulResponse> = {
+type ResponseOnly<SuccessfulResponse> = {
   requestData: undefined;
   successfulResponse: SuccessfulResponse;
 };
@@ -243,7 +243,7 @@ export const getVersion = async ({
   addonId,
   versionId,
 }: GetVersionParams) => {
-  return callApi<GetResource<ExternalVersionWithContent>>({
+  return callApi<ResponseOnly<ExternalVersionWithContent>>({
     apiState,
     endpoint: `reviewers/addon/${addonId}/versions/${versionId}`,
     query: path ? { file: path } : undefined,
@@ -259,17 +259,14 @@ export const getVersionsList = async ({
   apiState,
   addonId,
 }: GetVersionsListParams) => {
-  return callApi<GetResource<ExternalVersionsList>>({
+  return callApi<ResponseOnly<ExternalVersionsList>>({
     apiState,
     endpoint: `reviewers/addon/${addonId}/versions/`,
   });
 };
 
 export const logOutFromServer = async (apiState: ApiState) => {
-  return callApi<{
-    requestData: undefined;
-    successfulResponse: { ok: boolean };
-  }>({
+  return callApi<ResponseOnly<{ ok: boolean }>>({
     apiState,
     // We need to send the credentials (cookies) because the API will return
     // new `Set-Cookie` headers to clear the cookies in the client. Without
@@ -281,7 +278,7 @@ export const logOutFromServer = async (apiState: ApiState) => {
 };
 
 export const getCurrentUser = async (apiState: ApiState) => {
-  return callApi<GetResource<ExternalUser>>({
+  return callApi<ResponseOnly<ExternalUser>>({
     apiState,
     endpoint: '/accounts/profile/',
   });
@@ -302,7 +299,7 @@ export const getDiff = async ({
   headVersionId,
   path,
 }: GetDiffParams) => {
-  return callApi<GetResource<ExternalVersionWithDiff>>({
+  return callApi<ResponseOnly<ExternalVersionWithDiff>>({
     apiState,
     endpoint: `reviewers/addon/${addonId}/versions/${baseVersionId}/compare_to/${headVersionId}`,
     query: path ? { file: path } : undefined,
@@ -379,7 +376,7 @@ export const getComments = async ({
   apiState: ApiState;
   versionId: number;
 }) => {
-  return _callApi<GetResource<GetCommentsResponse>>({
+  return _callApi<ResponseOnly<GetCommentsResponse>>({
     apiState,
     endpoint: `reviewers/addon/${addonId}/versions/${versionId}/draft_comments`,
     method: HttpMethod.GET,
