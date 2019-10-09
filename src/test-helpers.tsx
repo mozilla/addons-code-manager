@@ -1,4 +1,5 @@
 /* eslint @typescript-eslint/camelcase: 0 */
+/* global fetchMock */
 import pathLib from 'path';
 
 import * as React from 'react';
@@ -930,4 +931,16 @@ export const createFakeCommentsResponse = (
   results = [createFakeExternalComment()],
 ) => {
   return createFakeApiPage<GetCommentsResponse>({ results });
+};
+
+export const setMockFetchResponseJSON = (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: Record<string, any>,
+  { contentType = 'application/json' } = {},
+) => {
+  fetchMock.mockResponse(JSON.stringify(data), {
+    headers: {
+      'content-type': contentType,
+    },
+  });
 };

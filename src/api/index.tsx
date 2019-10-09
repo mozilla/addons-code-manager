@@ -142,6 +142,11 @@ type GetResource<SuccessfulResponse> = {
   successfulResponse: SuccessfulResponse;
 };
 
+type EmptyRequestAndResponse = {
+  requestData: undefined;
+  successfulResponse: string;
+};
+
 export const callApi = async <
   T extends {
     requestData: undefined | {};
@@ -202,7 +207,13 @@ export const callApi = async <
       );
     }
 
-    return await response.json();
+    const contentType = (
+      response.headers.get('content-type') || ''
+    ).toLowerCase();
+
+    return await (contentType.startsWith('application/json')
+      ? response.json()
+      : response.text());
   } catch (error) {
     log.debug('Error caught in callApi():', error);
 
@@ -255,7 +266,10 @@ export const getVersionsList = async ({
 };
 
 export const logOutFromServer = async (apiState: ApiState) => {
-  return callApi<GetResource<{}>>({
+  return callApi<{
+    requestData: undefined;
+    successfulResponse: { ok: boolean };
+  }>({
     apiState,
     // We need to send the credentials (cookies) because the API will return
     // new `Set-Cookie` headers to clear the cookies in the client. Without
@@ -369,5 +383,25 @@ export const getComments = async ({
     apiState,
     endpoint: `reviewers/addon/${addonId}/versions/${versionId}/draft_comments`,
     method: HttpMethod.GET,
+  });
+};
+
+export const deleteComment = async ({
+  _callApi = callApi,
+  addonId,
+  commentId,
+  apiState,
+  versionId,
+}: {
+  _callApi?: typeof callApi;
+  addonId: number;
+  apiState: ApiState;
+  commentId: number;
+  versionId: number;
+}) => {
+  return _callApi<EmptyRequestAndResponse>({
+    apiState,
+    endpoint: `reviewers/addon/${addonId}/versions/${versionId}/draft_comments/${commentId}`,
+    method: HttpMethod.DELETE,
   });
 };

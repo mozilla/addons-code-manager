@@ -8,12 +8,14 @@ import {
 import {
   createFakeCommentsResponse,
   createFakeExternalComment,
+  setMockFetchResponseJSON,
 } from '../test-helpers';
 
 import {
   HttpMethod,
   callApi,
   createOrUpdateComment,
+  deleteComment,
   getApiHost,
   getComments,
   getCurrentUser,
@@ -169,7 +171,56 @@ describe(__filename, () => {
 
     it('returns an object containing the API response', async () => {
       const data = { some: 'data', count: 123 };
-      fetchMock.mockResponse(JSON.stringify(data));
+      setMockFetchResponseJSON(data);
+
+      const response = await callApiWithDefaultApiState();
+
+      expect(response).toEqual(data);
+    });
+
+    it('assumes a text response without content-type', async () => {
+      const serverResponse = 'some kind of text response';
+      fetchMock.mockResponse(serverResponse);
+
+      const response = await callApiWithDefaultApiState();
+
+      expect(response).toEqual(serverResponse);
+    });
+
+    it('handles text with an explicit content-type', async () => {
+      const serverResponse = 'some kind of text response';
+      fetchMock.mockResponse(serverResponse, {
+        headers: { 'content-type': 'text/plain' },
+      });
+
+      const response = await callApiWithDefaultApiState();
+
+      expect(response).toEqual(serverResponse);
+    });
+
+    it('handles JSON with an explicit content-type', async () => {
+      const data = { thing: 'value' };
+      setMockFetchResponseJSON(data, { contentType: 'application/json' });
+
+      const response = await callApiWithDefaultApiState();
+
+      expect(response).toEqual(data);
+    });
+
+    it('handles JSON with a content-type specifying the encoding', async () => {
+      const data = { thing: 'value' };
+      setMockFetchResponseJSON(data, {
+        contentType: 'application/json; charset=utf-8',
+      });
+
+      const response = await callApiWithDefaultApiState();
+
+      expect(response).toEqual(data);
+    });
+
+    it('treats a JSON content-type as case-insensitive', async () => {
+      const data = { thing: 'value' };
+      setMockFetchResponseJSON(data, { contentType: 'APPLICATION/JSON' });
 
       const response = await callApiWithDefaultApiState();
 
@@ -723,6 +774,34 @@ describe(__filename, () => {
         apiState,
         endpoint: `reviewers/addon/${addonId}/versions/${versionId}/draft_comments`,
         method: HttpMethod.GET,
+      });
+    });
+  });
+
+  describe('deleteComment', () => {
+    it('deletes a comment', async () => {
+      const addonId = 1;
+      const apiState = defaultApiState;
+      const commentId = 2;
+      const versionId = 3;
+
+      const serverResponse = '';
+      const _callApi = jest.fn().mockResolvedValue(serverResponse);
+
+      const response = await deleteComment({
+        _callApi,
+        addonId,
+        commentId,
+        apiState,
+        versionId,
+      });
+
+      expect(response).toEqual(serverResponse);
+
+      expect(_callApi).toHaveBeenCalledWith({
+        apiState,
+        endpoint: `reviewers/addon/${addonId}/versions/${versionId}/draft_comments/${commentId}`,
+        method: HttpMethod.DELETE,
       });
     });
   });
