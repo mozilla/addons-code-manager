@@ -8,7 +8,12 @@ import {
   Version,
   createInternalVersion,
 } from './versions';
-import { createOrUpdateComment, getComments, isErrorResponse } from '../api';
+import {
+  createOrUpdateComment,
+  deleteComment as requestCommentDeletion,
+  getComments,
+  isErrorResponse,
+} from '../api';
 
 type CommentBase = {
   filename: string | null;
@@ -36,6 +41,8 @@ export type ExternalComment = CommentBase & {
 };
 
 export type Comment = CommentBase & {
+  beginDelete: boolean;
+  considerDelete: boolean;
   content: string | null;
   userId: number;
   userName: string | null;
@@ -46,6 +53,8 @@ export type Comment = CommentBase & {
 
 export const createInternalComment = (comment: ExternalComment): Comment => {
   return {
+    beginDelete: false,
+    considerDelete: false,
     content: comment.comment,
     filename: comment.filename,
     id: comment.id,
@@ -71,7 +80,7 @@ export type CommentsByKey = {
 
 export type CommentsState = {
   byKey: CommentsByKey;
-  byId: { [id: number]: Comment };
+  byId: { [id: number]: Comment | undefined };
   forVersionId: undefined | number;
   isLoading: boolean;
 };
@@ -112,6 +121,9 @@ export const createCommentKey = ({ fileName, line }: CommentKeyParams) => {
 type CommonPayload = CommentKeyParams & { versionId: number };
 
 export const actions = {
+  abortDeleteComment: createAction('ABORT_DELETE_COMMENT', (resolve) => {
+    return (payload: { commentId: number }) => resolve(payload);
+  }),
   abortFetchVersionComments: createAction(
     'ABORT_FETCH_VERSION_COMMENTS',
     (resolve) => {
@@ -124,6 +136,9 @@ export const actions = {
   beginComment: createAction('BEGIN_COMMENT', (resolve) => {
     return (payload: CommonPayload) => resolve(payload);
   }),
+  beginDeleteComment: createAction('BEGIN_DELETE_COMMENT', (resolve) => {
+    return (payload: { commentId: number }) => resolve(payload);
+  }),
   beginFetchVersionComments: createAction(
     'BEGIN_FETCH_VERSION_COMMENTS',
     (resolve) => {
@@ -134,12 +149,18 @@ export const actions = {
     return (payload: CommonPayload & { pendingCommentText: string | null }) =>
       resolve(payload);
   }),
+  considerDeleteComment: createAction('CONSIDER_DELETE_COMMENT', (resolve) => {
+    return (payload: { commentId: number }) => resolve(payload);
+  }),
   finishComment: createAction('FINISH_COMMENT', (resolve) => {
     return (payload: CommonPayload) => resolve(payload);
   }),
   setComments: createAction('SET_COMMENTS', (resolve) => {
     return (payload: { versionId: number; comments: ExternalComment[] }) =>
       resolve(payload);
+  }),
+  unsetComment: createAction('UNSET_COMMENT', (resolve) => {
+    return (payload: { commentId: number }) => resolve(payload);
   }),
 };
 
@@ -158,6 +179,16 @@ export const selectCommentInfo = ({
     return undefined;
   }
   return comments.byKey[createCommentKey({ fileName, line })];
+};
+
+export const selectComment = ({
+  comments,
+  id,
+}: {
+  comments: CommentsState;
+  id: number;
+}): Comment | undefined => {
+  return comments.byId[id];
 };
 
 export const selectVersionHasComments = ({
@@ -205,6 +236,38 @@ export const fetchAndLoadComments = ({
           comments: response.results,
         }),
       );
+    }
+  };
+};
+
+export const deleteComment = ({
+  _requestCommentDeletion = requestCommentDeletion,
+  addonId,
+  commentId,
+  versionId,
+}: {
+  _requestCommentDeletion?: typeof requestCommentDeletion;
+  addonId: number;
+  commentId: number;
+  versionId: number;
+}): ThunkActionCreator => {
+  return async (dispatch, getState) => {
+    const { api: apiState } = getState();
+
+    dispatch(actions.beginDeleteComment({ commentId }));
+
+    const response = await _requestCommentDeletion({
+      addonId,
+      apiState,
+      commentId,
+      versionId,
+    });
+
+    if (isErrorResponse(response)) {
+      dispatch(actions.abortDeleteComment({ commentId }));
+      dispatch(errorsActions.addError({ error: response.error }));
+    } else {
+      dispatch(actions.unsetComment({ commentId }));
     }
   };
 };
@@ -302,6 +365,28 @@ const prepareStateForKeyChange = ({
     ...keyParams,
   });
   return { key, info, newState };
+};
+
+export const adjustComment = ({
+  state,
+  id,
+  props,
+}: {
+  state: CommentsState;
+  id: number;
+  props: Partial<Comment>;
+}): Comment => {
+  const comment = selectComment({ comments: state, id });
+  if (!comment) {
+    throw new Error(
+      `Cannot adjust comment by ID=${id} because it does not exist`,
+    );
+  }
+
+  return {
+    ...comment,
+    ...props,
+  };
 };
 
 const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
@@ -430,6 +515,80 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
       const newState = stateForVersion({ state, versionId });
 
       return { ...newState, isLoading: true };
+    }
+    case getType(actions.abortDeleteComment): {
+      const { commentId } = action.payload;
+
+      return {
+        ...state,
+        byId: {
+          ...state.byId,
+          [commentId]: adjustComment({
+            state,
+            id: commentId,
+            props: {
+              beginDelete: false,
+              considerDelete: false,
+            },
+          }),
+        },
+      };
+    }
+    case getType(actions.beginDeleteComment): {
+      const { commentId } = action.payload;
+
+      return {
+        ...state,
+        byId: {
+          ...state.byId,
+          [commentId]: adjustComment({
+            state,
+            id: commentId,
+            props: {
+              beginDelete: true,
+              considerDelete: false,
+            },
+          }),
+        },
+      };
+    }
+    case getType(actions.considerDeleteComment): {
+      const { commentId } = action.payload;
+
+      return {
+        ...state,
+        byId: {
+          ...state.byId,
+          [commentId]: adjustComment({
+            state,
+            id: commentId,
+            props: {
+              beginDelete: false,
+              considerDelete: true,
+            },
+          }),
+        },
+      };
+    }
+    case getType(actions.unsetComment): {
+      const { commentId } = action.payload;
+
+      const byId = { ...state.byId, [commentId]: undefined };
+
+      const byKey = { ...state.byKey };
+      for (const key of Object.keys(byKey)) {
+        const info = byKey[key];
+        byKey[key] = {
+          ...info,
+          commentIds: info.commentIds.filter((id) => id !== commentId),
+        };
+      }
+
+      return {
+        ...state,
+        byId,
+        byKey,
+      };
     }
     default:
       return state;
