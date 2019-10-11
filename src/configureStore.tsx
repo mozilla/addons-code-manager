@@ -15,6 +15,8 @@ import thunk, {
 } from 'redux-thunk';
 import { routerMiddleware } from 'connected-react-router';
 import { History, createBrowserHistory } from 'history';
+import * as Sentry from '@sentry/browser';
+import createSentryMiddleware from 'redux-sentry-middleware';
 
 import createRootReducer, { ApplicationState } from './reducers';
 
@@ -35,6 +37,36 @@ export type ConnectedReduxProps<A extends Action = AnyAction> = {
   dispatch: ThunkDispatch<A>;
 };
 
+const flattenObject = (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  object: Record<string, any>,
+) => {
+  return Object.keys(object).reduce((newObject: typeof object, k: string) => {
+    const value = object[k];
+    let newValue;
+
+    if (
+      value === null ||
+      ['string', 'number', 'boolean', 'undefined'].includes(typeof value)
+    ) {
+      newValue = value;
+    } else {
+      newValue = `[type: ${typeof value}]`;
+    }
+
+    // eslint-disable-next-line no-param-reassign
+    newObject[k] = newValue;
+    return newObject;
+  }, {});
+};
+
+export const actionToSentryBreadcrumb = (action: AnyAction) => {
+  return {
+    ...flattenObject(action),
+    payload: action.payload ? flattenObject(action.payload) : undefined,
+  };
+};
+
 type ConfigureStoreParams = {
   history?: History;
   preloadedState?: ApplicationState;
@@ -49,6 +81,16 @@ const configureStore = ({
     thunk as ThunkMiddleware<ApplicationState, AnyAction>,
   ];
   const isDevelopment = process.env.NODE_ENV === 'development';
+
+  if (process.env.REACT_APP_SENTRY_DSN) {
+    allMiddleware.push(
+      // Sentry needs to come after redux-thunk and anything that
+      // intercepts / emits actions.
+      createSentryMiddleware(Sentry, {
+        breadcrumbDataFromAction: actionToSentryBreadcrumb,
+      }),
+    );
+  }
 
   if (isDevelopment) {
     allMiddleware.push(createLogger());
