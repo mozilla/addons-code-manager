@@ -67,6 +67,23 @@ export const actionToSentryBreadcrumb = (action: AnyAction) => {
   };
 };
 
+export const redactStateForSentry = (state: ApplicationState) => {
+  // When adding a new state entry to this object, consider the
+  // implication of sending it to Sentry and redact data if necessary.
+  return {
+    accordionMenu: state.accordionMenu,
+    api: { authToken: '[redacted]' },
+    comments: state.comments,
+    errors: state.errors,
+    fileTree: state.fileTree,
+    fullscreenGrid: state.fullscreenGrid,
+    linter: state.linter,
+    router: state.router,
+    users: state.users,
+    versions: state.versions,
+  };
+};
+
 type ConfigureStoreParams = {
   history?: History;
   preloadedState?: ApplicationState;
@@ -88,6 +105,7 @@ const configureStore = ({
       // intercepts / emits actions.
       createSentryMiddleware(Sentry, {
         breadcrumbDataFromAction: actionToSentryBreadcrumb,
+        stateTransformer: redactStateForSentry,
       }),
     );
   }

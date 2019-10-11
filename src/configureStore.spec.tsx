@@ -1,4 +1,8 @@
-import { actionToSentryBreadcrumb } from './configureStore';
+import configureStore, {
+  actionToSentryBreadcrumb,
+  redactStateForSentry,
+} from './configureStore';
+import { actions as apiActions } from './reducers/api';
 
 describe(__filename, () => {
   describe('actionToSentryBreadcrumb', () => {
@@ -54,6 +58,32 @@ describe(__filename, () => {
       ).toMatchObject({
         payload: { key: '[type: object]' },
       });
+    });
+  });
+
+  describe('redactStateForSentry', () => {
+    it('redacts all state', () => {
+      const store = configureStore();
+
+      expect(Object.keys(redactStateForSentry(store.getState()))).toEqual(
+        Object.keys(store.getState()),
+      );
+    });
+
+    it('redacts api state', () => {
+      const store = configureStore();
+      store.dispatch(apiActions.setAuthToken({ authToken: 'some-token' }));
+
+      expect(redactStateForSentry(store.getState()).api).toEqual({
+        authToken: '[redacted]',
+      });
+    });
+
+    it('redacts all of api state', () => {
+      const store = configureStore();
+      expect(Object.keys(redactStateForSentry(store.getState()).api)).toEqual(
+        Object.keys(store.getState().api),
+      );
     });
   });
 });
