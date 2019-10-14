@@ -72,6 +72,9 @@ export const redactStateForSentry = (state: ApplicationState) => {
   // implication of sending it to Sentry and redact data if necessary.
   return {
     accordionMenu: state.accordionMenu,
+    // This intentionally doesn't spread api state. As the api shape evolves,
+    // the tests will fail and that will help the author consider redaction
+    // implications.
     api: { authToken: '[redacted]' },
     comments: state.comments,
     errors: state.errors,
