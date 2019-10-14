@@ -10,7 +10,7 @@ import {
 } from './versions';
 import {
   createOrUpdateComment,
-  deleteComment as requestCommentDeletion,
+  deleteComment as apiDeleteComment,
   getComments,
   isErrorResponse,
 } from '../api';
@@ -241,12 +241,12 @@ export const fetchAndLoadComments = ({
 };
 
 export const deleteComment = ({
-  _requestCommentDeletion = requestCommentDeletion,
+  _apiDeleteComment = apiDeleteComment,
   addonId,
   commentId,
   versionId,
 }: {
-  _requestCommentDeletion?: typeof requestCommentDeletion;
+  _apiDeleteComment?: typeof apiDeleteComment;
   addonId: number;
   commentId: number;
   versionId: number;
@@ -256,7 +256,7 @@ export const deleteComment = ({
 
     dispatch(actions.beginDeleteComment({ commentId }));
 
-    const response = await _requestCommentDeletion({
+    const response = await _apiDeleteComment({
       addonId,
       apiState,
       commentId,

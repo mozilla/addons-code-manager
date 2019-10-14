@@ -1065,13 +1065,13 @@ describe(__filename, () => {
 
   describe('deleteComment', () => {
     const _deleteComment = ({
-      _requestCommentDeletion = jest.fn().mockResolvedValue(''),
+      _apiDeleteComment = jest.fn().mockResolvedValue(''),
       addonId = 123,
       commentId = 321,
       versionId = 567,
     }) => {
       return deleteComment({
-        _requestCommentDeletion,
+        _apiDeleteComment,
         addonId,
         commentId,
         versionId,
@@ -1079,7 +1079,7 @@ describe(__filename, () => {
     };
 
     it('requests comment deletion', async () => {
-      const _requestCommentDeletion = jest.fn().mockResolvedValue('');
+      const _apiDeleteComment = jest.fn().mockResolvedValue('');
       const addonId = 987;
       const versionId = 3321;
       const commentId = 675;
@@ -1087,7 +1087,7 @@ describe(__filename, () => {
       const { store, thunk } = thunkTester({
         createThunk: () =>
           _deleteComment({
-            _requestCommentDeletion,
+            _apiDeleteComment,
             addonId,
             commentId,
             versionId,
@@ -1096,7 +1096,7 @@ describe(__filename, () => {
 
       await thunk();
 
-      expect(_requestCommentDeletion).toHaveBeenCalledWith({
+      expect(_apiDeleteComment).toHaveBeenCalledWith({
         addonId,
         apiState: store.getState().api,
         commentId,
@@ -1135,11 +1135,10 @@ describe(__filename, () => {
     it('dispatches abortDeleteComment(), addError() on error', async () => {
       const commentId = 987;
       const error = new Error('API Error');
-      const _requestCommentDeletion = jest.fn().mockResolvedValue({ error });
+      const _apiDeleteComment = jest.fn().mockResolvedValue({ error });
 
       const { dispatch, thunk } = thunkTester({
-        createThunk: () =>
-          _deleteComment({ _requestCommentDeletion, commentId }),
+        createThunk: () => _deleteComment({ _apiDeleteComment, commentId }),
       });
 
       await thunk();
