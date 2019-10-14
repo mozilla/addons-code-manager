@@ -6,12 +6,15 @@ import reducer, {
   ExternalComment,
   SelectCommentInfoParams,
   actions,
+  adjustComment,
   createCommentKey,
   createEmptyCommentInfo,
   createInternalComment,
+  deleteComment,
   fetchAndLoadComments,
   initialState,
   manageComment,
+  selectComment,
   selectCommentInfo,
   selectVersionHasComments,
   stateForVersion,
@@ -30,6 +33,16 @@ describe(__filename, () => {
       ...createEmptyCommentInfo(),
       ...info,
     };
+  };
+
+  const stateWithComment = (props: Partial<ExternalComment> = {}) => {
+    return reducer(
+      undefined,
+      actions.setComments({
+        comments: [createFakeExternalComment(props)],
+        versionId: 1,
+      }),
+    );
   };
 
   const keyParams = Object.freeze({
@@ -400,6 +413,8 @@ describe(__filename, () => {
           version,
         }),
       ).toEqual({
+        beginDelete: false,
+        considerDelete: false,
         content: comment,
         id,
         lineno,
@@ -880,6 +895,315 @@ describe(__filename, () => {
       expect(dispatch).toHaveBeenCalledWith(
         actions.setComments({ versionId, comments }),
       );
+    });
+  });
+
+  describe('abortDeleteComment', () => {
+    it('resets state after beginDeleteComment', () => {
+      const commentId = 1;
+      let state = stateWithComment({ id: commentId });
+
+      state = reducer(state, actions.beginDeleteComment({ commentId }));
+      state = reducer(state, actions.abortDeleteComment({ commentId }));
+
+      expect(selectComment({ comments: state, id: commentId })).toMatchObject({
+        beginDelete: false,
+      });
+    });
+
+    it('resets state after considerDeleteComment', () => {
+      const commentId = 1;
+      let state = stateWithComment({ id: commentId });
+
+      state = reducer(state, actions.considerDeleteComment({ commentId }));
+      state = reducer(state, actions.abortDeleteComment({ commentId }));
+
+      expect(selectComment({ comments: state, id: commentId })).toMatchObject({
+        considerDelete: false,
+      });
+    });
+  });
+
+  describe('beginDeleteComment', () => {
+    it('begins deleting a comment', () => {
+      const commentId = 1;
+      let state = stateWithComment({ id: commentId });
+
+      expect(selectComment({ comments: state, id: commentId })).toMatchObject({
+        beginDelete: false,
+      });
+
+      state = reducer(state, actions.beginDeleteComment({ commentId }));
+
+      expect(selectComment({ comments: state, id: commentId })).toMatchObject({
+        beginDelete: true,
+      });
+    });
+
+    it('resets state after considerDeleteComment', () => {
+      const commentId = 1;
+      let state = stateWithComment({ id: commentId });
+
+      state = reducer(state, actions.considerDeleteComment({ commentId }));
+      state = reducer(state, actions.beginDeleteComment({ commentId }));
+
+      expect(selectComment({ comments: state, id: commentId })).toMatchObject({
+        considerDelete: false,
+      });
+    });
+  });
+
+  describe('considerDeleteComment', () => {
+    it('considers deleting a comment', () => {
+      const commentId = 1;
+      let state = stateWithComment({ id: commentId });
+
+      expect(selectComment({ comments: state, id: commentId })).toMatchObject({
+        considerDelete: false,
+      });
+
+      state = reducer(state, actions.considerDeleteComment({ commentId }));
+
+      expect(selectComment({ comments: state, id: commentId })).toMatchObject({
+        considerDelete: true,
+      });
+    });
+
+    it('resets state after beginDeleteComment', () => {
+      const commentId = 1;
+      let state = stateWithComment({ id: commentId });
+
+      state = reducer(state, actions.beginDeleteComment({ commentId }));
+      state = reducer(state, actions.considerDeleteComment({ commentId }));
+
+      expect(selectComment({ comments: state, id: commentId })).toMatchObject({
+        beginDelete: false,
+      });
+    });
+  });
+
+  describe('unsetComment', () => {
+    it('removes a comment', () => {
+      const commentId = 1;
+      let state = stateWithComment({ id: commentId });
+
+      state = reducer(state, actions.unsetComment({ commentId }));
+
+      expect(state.byId[commentId]).toBeUndefined();
+    });
+
+    it('removes a comment from the comment list', () => {
+      const versionId = 1;
+      const line = 123;
+      const fileName = 'manifest.json';
+
+      const comment = (id: number) => {
+        return createFakeExternalComment({
+          filename: fileName,
+          id,
+          lineno: line,
+        });
+      };
+
+      const comment1 = comment(12345);
+      const comment2 = comment(54322);
+
+      let state;
+      state = reducer(
+        state,
+        actions.setComments({ comments: [comment1, comment2], versionId }),
+      );
+      state = reducer(state, actions.unsetComment({ commentId: comment1.id }));
+
+      expect(
+        selectCommentInfo({ comments: state, fileName, line, versionId }),
+      ).toMatchObject({
+        commentIds: [comment2.id],
+      });
+    });
+
+    it('preserves comment lists for unrelated keys', () => {
+      const versionId = 1;
+      const line = 123;
+
+      const file1 = 'manifest.json';
+      const file2 = 'background-script.js';
+
+      const comment = (id: number, fileName: string) => {
+        return createFakeExternalComment({
+          filename: fileName,
+          id,
+          lineno: line,
+        });
+      };
+
+      const comment1 = comment(12345, file1);
+      const comment2 = comment(54322, file2);
+
+      let state;
+      state = reducer(
+        state,
+        actions.setComments({ comments: [comment1, comment2], versionId }),
+      );
+
+      // Delete the comment associated with file1.
+      state = reducer(state, actions.unsetComment({ commentId: comment1.id }));
+
+      // Make sure the comment associated with file2 is still there.
+      expect(
+        selectCommentInfo({
+          comments: state,
+          fileName: file2,
+          line,
+          versionId,
+        }),
+      ).toMatchObject({
+        commentIds: [comment2.id],
+      });
+    });
+  });
+
+  describe('deleteComment', () => {
+    const _deleteComment = ({
+      _apiDeleteComment = jest.fn().mockResolvedValue(''),
+      addonId = 123,
+      commentId = 321,
+      versionId = 567,
+    }) => {
+      return deleteComment({
+        _apiDeleteComment,
+        addonId,
+        commentId,
+        versionId,
+      });
+    };
+
+    it('requests comment deletion', async () => {
+      const _apiDeleteComment = jest.fn().mockResolvedValue('');
+      const addonId = 987;
+      const versionId = 3321;
+      const commentId = 675;
+
+      const { store, thunk } = thunkTester({
+        createThunk: () =>
+          _deleteComment({
+            _apiDeleteComment,
+            addonId,
+            commentId,
+            versionId,
+          }),
+      });
+
+      await thunk();
+
+      expect(_apiDeleteComment).toHaveBeenCalledWith({
+        addonId,
+        apiState: store.getState().api,
+        commentId,
+        versionId,
+      });
+    });
+
+    it('begins deleting a comment', async () => {
+      const commentId = 675;
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () => _deleteComment({ commentId }),
+      });
+
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(
+        actions.beginDeleteComment({ commentId }),
+      );
+    });
+
+    it('unsets a comment', async () => {
+      const commentId = 675;
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () => _deleteComment({ commentId }),
+      });
+
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(
+        actions.unsetComment({ commentId }),
+      );
+    });
+
+    it('dispatches abortDeleteComment(), addError() on error', async () => {
+      const commentId = 987;
+      const error = new Error('API Error');
+      const _apiDeleteComment = jest.fn().mockResolvedValue({ error });
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () => _deleteComment({ _apiDeleteComment, commentId }),
+      });
+
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(
+        actions.abortDeleteComment({ commentId }),
+      );
+
+      expect(dispatch).toHaveBeenCalledWith(errorsActions.addError({ error }));
+    });
+  });
+
+  describe('selectComment', () => {
+    it('returns a comment', () => {
+      const comment = createFakeExternalComment({ id: 987 });
+      const state = reducer(
+        undefined,
+        actions.setComments({
+          versionId: 1,
+          comments: [comment],
+        }),
+      );
+
+      expect(selectComment({ comments: state, id: comment.id })).toEqual(
+        createInternalComment(comment),
+      );
+    });
+
+    it('returns undefined if the comment does not exist', () => {
+      expect(
+        selectComment({ comments: initialState, id: 7654 }),
+      ).toBeUndefined();
+    });
+  });
+
+  describe('adjustComment', () => {
+    it('adjusts a comment', () => {
+      const id = 234;
+      const comment = createFakeExternalComment({
+        comment: 'some content',
+        id,
+      });
+
+      const state = reducer(
+        undefined,
+        actions.setComments({ versionId: 1, comments: [comment] }),
+      );
+
+      const newContent = 'some content (edited)';
+      expect(
+        adjustComment({ state, id, props: { content: newContent } }),
+      ).toEqual({
+        ...createInternalComment(comment),
+        content: newContent,
+      });
+    });
+
+    it('throws if the comment does not exist', () => {
+      expect(() =>
+        adjustComment({
+          state: initialState,
+          id: 54321,
+          props: { content: 'new content' },
+        }),
+      ).toThrow(/Cannot adjust comment/);
     });
   });
 });
