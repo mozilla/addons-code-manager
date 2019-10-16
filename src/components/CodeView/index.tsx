@@ -57,6 +57,7 @@ export const scrollToSelectedLine = (element: HTMLElement | null) => {
 export type PublicProps = {
   mimeType: string;
   content: string;
+  selectedPath: string;
   version: Version;
 };
 
@@ -83,6 +84,7 @@ export class CodeViewBase extends React.Component<Props> {
       enableCommenting,
       location,
       mimeType,
+      selectedPath,
       version,
     } = this.props;
 
@@ -149,7 +151,7 @@ export class CodeViewBase extends React.Component<Props> {
                         id={id}
                         className={className}
                         line={line}
-                        fileName={version.selectedPath}
+                        fileName={selectedPath}
                         shellRef={shellRef}
                         versionId={version.id}
                       >
@@ -194,7 +196,7 @@ export class CodeViewBase extends React.Component<Props> {
                       {enableCommenting && (
                         <CommentList
                           addonId={version.addon.id}
-                          fileName={version.selectedPath}
+                          fileName={selectedPath}
                           line={line}
                           versionId={version.id}
                         >
@@ -219,13 +221,13 @@ export class CodeViewBase extends React.Component<Props> {
   };
 
   render() {
-    const { version } = this.props;
+    const { selectedPath, version } = this.props;
 
     return (
       <LinterProvider
         versionId={version.id}
         validationURL={version.validationURL}
-        selectedPath={version.selectedPath}
+        selectedPath={selectedPath}
       >
         {// This needs to be an anonymous function (which defeats memoization)
         // so that the component gets re-rendered in the case of adding

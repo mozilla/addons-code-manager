@@ -90,12 +90,14 @@ describe(__filename, () => {
   type RenderParams = Partial<PublicProps>;
 
   const render = (moreProps: RenderParams = {}) => {
-    const { file, version } = getInternalVersionAndFile();
+    const selectedPath = 'select.js';
+    const { file, version } = getInternalVersionAndFile({ path: selectedPath });
     const props = {
       children: <div />,
       comparedToVersionId: null,
       file,
       onSelectFile: jest.fn(),
+      selectedPath,
       version,
       ...moreProps,
     };
@@ -176,14 +178,15 @@ describe(__filename, () => {
   });
 
   it('configures LinterProvider', () => {
+    const selectedPath = 'sel.js';
     const { version } = getInternalVersionAndFile();
     const compareInfo = createFakeCompareInfo();
-    const root = render({ compareInfo, version });
+    const root = render({ compareInfo, selectedPath, version });
 
     const provider = root.find(LinterProvider);
     expect(provider).toHaveProp('versionId', version.id);
     expect(provider).toHaveProp('validationURL', version.validationURL);
-    expect(provider).toHaveProp('selectedPath', version.selectedPath);
+    expect(provider).toHaveProp('selectedPath', selectedPath);
   });
 
   it('does not configure LinterProvider without a version', () => {
@@ -196,13 +199,14 @@ describe(__filename, () => {
     const { version } = getInternalVersionAndFile();
     const compareInfo = createFakeCompareInfo();
     const comparedToVersionId = 41;
+    const selectedPath = 'newPath.js';
 
     const messageMap = getMessageMap(
       createFakeExternalLinterResult({ messages: [fakeExternalLinterMessage] }),
     );
 
     const root = renderWithLinterProvider(
-      { compareInfo, comparedToVersionId, version },
+      { compareInfo, comparedToVersionId, selectedPath, version },
       { messageMap },
     );
 
@@ -214,7 +218,7 @@ describe(__filename, () => {
     expect(shortcuts).toHaveLength(1);
     expect(shortcuts).toHaveProp('comparedToVersionId', comparedToVersionId);
     expect(shortcuts).toHaveProp('compareInfo', compareInfo);
-    expect(shortcuts).toHaveProp('currentPath', version.selectedPath);
+    expect(shortcuts).toHaveProp('currentPath', selectedPath);
     expect(shortcuts).toHaveProp('messageMap', messageMap);
     expect(shortcuts).toHaveProp('versionId', version.id);
   });

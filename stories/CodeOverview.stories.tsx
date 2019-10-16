@@ -57,11 +57,18 @@ const render = ({
     <FullscreenGrid>
       <Header />
       <ContentShell
-        altSidePanel={<CodeOverview content={content} version={version} />}
+        altSidePanel={
+          <CodeOverview
+            content={content}
+            selectedPath={path}
+            version={version}
+          />
+        }
       >
         <CodeView
           content={content}
           mimeType="application/javascript"
+          selectedPath={path}
           version={version}
         />
       </ContentShell>

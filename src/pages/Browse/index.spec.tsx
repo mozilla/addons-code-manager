@@ -278,7 +278,6 @@ describe(__filename, () => {
     store.dispatch(
       versionsActions.updateSelectedPath({
         selectedPath: 'some/file.js',
-        versionId: version.id,
       }),
     );
 
@@ -357,7 +356,6 @@ describe(__filename, () => {
     const selectedPath = 'scripts/background.js';
     store.dispatch(
       versionsActions.updateSelectedPath({
-        versionId: version.id,
         selectedPath,
       }),
     );
@@ -380,7 +378,6 @@ describe(__filename, () => {
     const selectedPath = 'scripts/background.js';
     store.dispatch(
       versionsActions.updateSelectedPath({
-        versionId: version.id,
         selectedPath,
       }),
     );
@@ -416,7 +413,6 @@ describe(__filename, () => {
     // Switch back to this file.
     store.dispatch(
       versionsActions.updateSelectedPath({
-        versionId: version.id,
         selectedPath,
       }),
     );
@@ -434,7 +430,6 @@ describe(__filename, () => {
     const selectedPath = 'scripts/background.js';
     store.dispatch(
       versionsActions.updateSelectedPath({
-        versionId: version.id,
         selectedPath,
       }),
     );

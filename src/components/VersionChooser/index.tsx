@@ -12,7 +12,6 @@ import {
   VersionsMap,
   VersionsState,
   fetchVersionsList,
-  getVersionInfo,
 } from '../../reducers/versions';
 import { gettext } from '../../utils';
 import styles from './styles.module.scss';
@@ -78,10 +77,9 @@ export class VersionChooserBase extends React.Component<Props> {
   }) => {
     const { addonId, history, match, versions } = this.props;
     const { lang } = match.params;
-    const version = getVersionInfo(versions, parseInt(headVersionId, 10));
-
-    const query = version
-      ? `?${queryString.stringify({ path: version.selectedPath })}`
+    const { selectedPath } = versions;
+    const query = selectedPath
+      ? `?${queryString.stringify({ path: selectedPath })}`
       : '';
 
     history.push(

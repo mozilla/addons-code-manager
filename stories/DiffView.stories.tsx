@@ -1,3 +1,4 @@
+/*  eslint-disable @typescript-eslint/camelcase */
 import { Location } from 'history';
 import queryString from 'query-string';
 import React from 'react';
@@ -33,6 +34,7 @@ const render = (
   const props: DiffViewProps = {
     diff: parseDiff(basicDiff)[0],
     mimeType: 'application/javascript',
+    selectedPath: fakeVersion.file.selected_file,
     version: createInternalVersion(fakeVersion),
     ...remainingProps,
   };
@@ -62,8 +64,6 @@ const renderWithMessages = (
     file: {
       ...fakeVersionFile,
       entries: { [path]: { ...fakeVersionEntry, path } },
-      // eslint-disable-next-line @typescript-eslint/camelcase
-      selected_file: path,
     },
   });
 
@@ -73,6 +73,7 @@ const renderWithMessages = (
     diff: parseDiff(basicDiff)[0],
     mimeType: 'application/javascript',
     version,
+    selectedPath: path,
     ...moreProps,
   };
 

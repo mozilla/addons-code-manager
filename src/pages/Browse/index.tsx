@@ -55,6 +55,7 @@ type PropsFromState = {
   nextFilePath: string | undefined;
   nextFile: VersionFile | null | undefined;
   nextFileIsLoading: boolean;
+  selectedPath: string | undefined;
   version: Version | undefined | null;
   currentVersionId: number | null | undefined | false;
 };
@@ -94,6 +95,7 @@ export class BrowseBase extends React.Component<Props> {
       nextFile,
       nextFileIsLoading,
       nextFilePath,
+      selectedPath,
       version,
     } = this.props;
 
@@ -122,12 +124,12 @@ export class BrowseBase extends React.Component<Props> {
       dispatch(versionsActions.setCurrentVersionId({ versionId: version.id }));
     }
 
-    if (version.selectedPath && !fileIsLoading && file === undefined) {
+    if (selectedPath && !fileIsLoading && file === undefined) {
       dispatch(
         _fetchVersionFile({
           addonId,
           versionId: version.id,
-          path: version.selectedPath,
+          path: selectedPath,
         }),
       );
     }
@@ -159,8 +161,8 @@ export class BrowseBase extends React.Component<Props> {
   };
 
   getContent() {
-    const { file, version } = this.props;
-    if (!file || !version) {
+    const { file, selectedPath, version } = this.props;
+    if (!file || !version || !selectedPath) {
       return <Loading message={gettext('Loading content...')} />;
     }
     if (file.type === 'image' && file.downloadURL) {
@@ -179,12 +181,13 @@ export class BrowseBase extends React.Component<Props> {
         mimeType={file.mimeType}
         content={file.content}
         version={version}
+        selectedPath={selectedPath}
       />
     );
   }
 
   render() {
-    const { file, version } = this.props;
+    const { file, selectedPath, version } = this.props;
 
     return (
       <>
@@ -204,6 +207,7 @@ export class BrowseBase extends React.Component<Props> {
           file={file}
           onSelectFile={this.viewVersionFile}
           version={version}
+          selectedPath={selectedPath}
         >
           {this.getContent()}
         </VersionFileViewer>
@@ -224,11 +228,12 @@ const mapStateToProps = (
     : undefined;
 
   const tree = getTree(state.fileTree, versionId);
+  const { selectedPath } = state.versions;
 
   const nextFilePath =
-    version && tree
+    version && tree && selectedPath
       ? getRelativePath({
-          currentPath: version.selectedPath,
+          currentPath: selectedPath,
           pathList: tree.pathList,
           position: RelativePathPosition.next,
         })
@@ -236,12 +241,14 @@ const mapStateToProps = (
 
   return {
     apiState: state.api,
-    file: version
-      ? getVersionFile(state.versions, versionId, version.selectedPath)
-      : null,
-    fileIsLoading: version
-      ? isFileLoading(state.versions, versionId, version.selectedPath)
-      : false,
+    file:
+      version && selectedPath
+        ? getVersionFile(state.versions, versionId, selectedPath)
+        : null,
+    fileIsLoading:
+      version && selectedPath
+        ? isFileLoading(state.versions, versionId, selectedPath)
+        : false,
     nextFile:
       version && nextFilePath
         ? getVersionFile(state.versions, versionId, nextFilePath)
@@ -251,6 +258,7 @@ const mapStateToProps = (
         ? isFileLoading(state.versions, versionId, nextFilePath)
         : false,
     nextFilePath,
+    selectedPath,
     version,
     currentVersionId,
   };

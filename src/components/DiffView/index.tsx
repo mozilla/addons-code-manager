@@ -97,6 +97,7 @@ export const trimHunkChanges = (
 export type PublicProps = {
   diff: DiffInfo | null;
   mimeType: string;
+  selectedPath: string;
   version: Version;
 };
 
@@ -386,13 +387,13 @@ export class DiffViewBase extends React.Component<Props> {
   };
 
   render() {
-    const { version } = this.props;
+    const { selectedPath, version } = this.props;
 
     return (
       <LinterProvider
         versionId={version.id}
         validationURL={version.validationURL}
-        selectedPath={version.selectedPath}
+        selectedPath={selectedPath}
       >
         {this.renderWithMessages}
       </LinterProvider>

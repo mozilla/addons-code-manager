@@ -26,6 +26,7 @@ import {
 
 export type PublicProps = {
   content: string;
+  selectedPath: string;
   version: Version;
 };
 
@@ -287,14 +288,14 @@ export class CodeOverviewBase extends React.Component<Props, State> {
 
   render() {
     const { overviewHeight } = this.state;
-    const { version } = this.props;
+    const { selectedPath, version } = this.props;
 
     return (
       <LinterProvider
         key={overviewHeight ? String(overviewHeight) : ''}
         versionId={version.id}
         validationURL={version.validationURL}
-        selectedPath={version.selectedPath}
+        selectedPath={selectedPath}
       >
         {this.renderWithLinterInfo}
       </LinterProvider>

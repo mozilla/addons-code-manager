@@ -203,7 +203,6 @@ describe(__filename, () => {
       expect(dispatch).toHaveBeenCalledWith(
         versionActions.toggleExpandedPath({
           path: node.id,
-          versionId: version.id,
         }),
       );
     });
@@ -222,7 +221,6 @@ describe(__filename, () => {
       store.dispatch(
         versionActions.toggleExpandedPath({
           path: node.id,
-          versionId: version.id,
         }),
       );
 
@@ -274,36 +272,6 @@ describe(__filename, () => {
       );
 
       expect(shallow(<div>{node}</div>).find(Loading)).toHaveLength(1);
-    });
-
-    it('throws an error when isNodeExpanded is called without a version', () => {
-      const node = {
-        id: 'some/path',
-        name: 'some name',
-        children: [],
-      };
-      const root = render();
-
-      const { isNodeExpanded } = getInstance<FileTreeBase>(root);
-
-      expect(() => {
-        isNodeExpanded(node);
-      }).toThrow('Cannot check if node is expanded without a version');
-    });
-
-    it('throws an error when onToggleExpand is called without a version', () => {
-      const node = {
-        id: 'some/path',
-        name: 'some name',
-        children: [],
-      };
-      const root = render();
-
-      const { onToggleExpand } = getInstance<FileTreeBase>(root);
-
-      expect(() => {
-        onToggleExpand(node);
-      }).toThrow('Cannot toggle expanded path without a version');
     });
 
     it('dispatches expandTree when the Expand All button is clicked', () => {

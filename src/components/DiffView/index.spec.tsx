@@ -60,6 +60,7 @@ describe(__filename, () => {
   const render = ({
     history = createFakeHistory(),
     location = createFakeLocation(),
+    selectedPath = 'selected.path',
     ...props
   }: RenderParams = {}) => {
     const shallowOptions = createContextWithFakeRouter({ history, location });
@@ -68,6 +69,7 @@ describe(__filename, () => {
       <DiffView
         diff={parseDiff(basicDiff)[0]}
         mimeType="text/plain"
+        selectedPath={selectedPath}
         version={createInternalVersion(fakeVersion)}
         {...props}
       />,
@@ -507,12 +509,13 @@ describe(__filename, () => {
       ...fakeVersion,
       id: fakeVersion.id + 1,
     });
-    const root = render({ version });
+    const selectedPath = 'sel.file';
+    const root = render({ selectedPath, version });
 
     const provider = root.find(LinterProvider);
     expect(provider).toHaveProp('versionId', version.id);
     expect(provider).toHaveProp('validationURL', version.validationURL);
-    expect(provider).toHaveProp('selectedPath', version.selectedPath);
+    expect(provider).toHaveProp('selectedPath', selectedPath);
   });
 
   it('renders global messages', () => {

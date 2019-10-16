@@ -61,6 +61,7 @@ describe(__filename, () => {
       content: 'some content',
       linterMessagesByLine: undefined,
       mimeType: 'mime/type',
+      selectedPath: 'selected.path',
       version: createInternalVersion(fakeVersion),
       ...otherProps,
     };
@@ -352,12 +353,13 @@ describe(__filename, () => {
 
   it('configures LinterProvider', () => {
     const version = createInternalVersion(fakeVersion);
-    const root = render({ version });
+    const selectedPath = 'sel.file';
+    const root = render({ selectedPath, version });
 
     const provider = root.find(LinterProvider);
     expect(provider).toHaveProp('versionId', version.id);
     expect(provider).toHaveProp('validationURL', version.validationURL);
-    expect(provider).toHaveProp('selectedPath', version.selectedPath);
+    expect(provider).toHaveProp('selectedPath', selectedPath);
   });
 
   it('renders a global LinterMessage', () => {
@@ -528,14 +530,16 @@ describe(__filename, () => {
   describe('comment list', () => {
     it('renders a comment list', () => {
       const version = createInternalVersion(fakeVersion);
+      const selectedPath = 'sel1.file';
       const { shell } = simulateInlineCommentList({
         content: 'single line of code',
         enableCommenting: true,
+        selectedPath,
         version,
       });
 
       expect(shell).toHaveProp('addonId', version.addon.id);
-      expect(shell).toHaveProp('fileName', version.selectedPath);
+      expect(shell).toHaveProp('fileName', selectedPath);
       expect(shell).toHaveProp('line', 1);
       expect(shell).toHaveProp('versionId', version.id);
     });

@@ -42,6 +42,7 @@ export type DefaultProps = {
 type PropsFromState = {
   tree: FileTree | undefined;
   version: Version | undefined | null;
+  expandedPaths: string[];
 };
 
 type Props = PublicProps & DefaultProps & PropsFromState & ConnectedReduxProps;
@@ -101,7 +102,6 @@ export class FileTreeBase extends React.Component<Props> {
     dispatch(
       versionsActions.toggleExpandedPath({
         path: node.id,
-        versionId: version.id,
       }),
     );
   };
@@ -131,13 +131,9 @@ export class FileTreeBase extends React.Component<Props> {
   };
 
   isNodeExpanded = (node: TreeNode) => {
-    const { version } = this.props;
+    const { expandedPaths } = this.props;
 
-    if (!version) {
-      throw new Error('Cannot check if node is expanded without a version');
-    }
-
-    return version.expandedPaths.includes(node.id);
+    return expandedPaths.includes(node.id);
   };
 
   render() {
@@ -189,6 +185,7 @@ const mapStateToProps = (
   ownProps: PublicProps,
 ): PropsFromState => {
   const { versionId } = ownProps;
+  const { expandedPaths } = state.versions;
   const version = getVersionInfo(state.versions, versionId);
 
   if (!version) {
@@ -205,6 +202,7 @@ const mapStateToProps = (
   const tree = version ? getTree(state.fileTree, version.id) : undefined;
 
   return {
+    expandedPaths,
     tree,
     version,
   };

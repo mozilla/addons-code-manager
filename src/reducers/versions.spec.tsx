@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/camelcase */
 import { push } from 'connected-react-router';
 import { createBrowserHistory } from 'history';
 import { ChangeInfo, DiffInfo, parseDiff } from 'react-diff-view';
@@ -113,14 +114,54 @@ describe(__filename, () => {
 
     it('loads version info', () => {
       const version = fakeVersion;
+      const selectedPath = version.file.selected_file;
       const state = reducer(undefined, actions.loadVersionInfo({ version }));
 
       expect(state).toEqual({
         ...initialState,
+        expandedPaths: getParentFolders(selectedPath),
+        selectedPath,
         versionInfo: {
           [version.id]: createInternalVersion(version),
         },
       });
+    });
+
+    it('preserves the expanded paths when a new version is loaded', () => {
+      const expandedPath = 'expanded.path';
+      const selectedPath = 'selected/path/in/version.js';
+      const version = {
+        ...fakeVersion,
+        file: { ...fakeVersion.file, selected_file: selectedPath },
+      };
+
+      let state = reducer(
+        undefined,
+        actions.toggleExpandedPath({ path: expandedPath }),
+      );
+      state = reducer(state, actions.loadVersionInfo({ version }));
+
+      expect(state).toHaveProperty('expandedPaths', [
+        expandedPath,
+        ...getParentFolders(selectedPath),
+      ]);
+    });
+
+    it('does not duplicate expanded paths when a new version is loaded', () => {
+      const expandedPath = 'folder';
+      const selectedPath = `${expandedPath}/file.js`;
+      const version = {
+        ...fakeVersion,
+        file: { ...fakeVersion.file, selected_file: selectedPath },
+      };
+
+      let state = reducer(
+        undefined,
+        actions.toggleExpandedPath({ path: expandedPath }),
+      );
+      state = reducer(state, actions.loadVersionInfo({ version }));
+
+      expect(state).toHaveProperty('expandedPaths', [expandedPath, ROOT_PATH]);
     });
 
     it('loads entry status map', () => {
@@ -142,198 +183,110 @@ describe(__filename, () => {
       });
     });
 
-    it('updates a selected path for a given version', () => {
-      const version = fakeVersion;
-      let state = reducer(undefined, actions.loadVersionInfo({ version }));
-
-      expect(state).toHaveProperty(
-        `versionInfo.${version.id}.selectedPath`,
-        version.file.selected_file,
-      );
-
+    it('updates a selected path', () => {
       const selectedPath = 'new/selected/path';
-      state = reducer(
-        state,
-        actions.updateSelectedPath({ selectedPath, versionId: version.id }),
+      const state = reducer(
+        undefined,
+        actions.updateSelectedPath({ selectedPath }),
       );
 
-      expect(state).toHaveProperty(
-        `versionInfo.${version.id}.selectedPath`,
-        selectedPath,
-      );
-    });
-
-    it('throws an error when updateSelectedPath is called for an unknown version', () => {
-      expect(() => {
-        reducer(
-          undefined,
-          actions.updateSelectedPath({ selectedPath: 'pa/th', versionId: 123 }),
-        );
-      }).toThrow(/Version missing/);
+      expect(state).toHaveProperty(`selectedPath`, selectedPath);
     });
 
     it('expands all parent folders when updateSelectedPath is dispatched', () => {
       const selectedPath = 'folder1/folder2/file1.js';
 
-      const version = fakeVersion;
-      let state = reducer(undefined, actions.loadVersionInfo({ version }));
-
-      state = reducer(
-        state,
-        actions.updateSelectedPath({ selectedPath, versionId: version.id }),
+      const state = reducer(
+        undefined,
+        actions.updateSelectedPath({ selectedPath }),
       );
 
       expect(state).toHaveProperty(
-        `versionInfo.${version.id}.expandedPaths`,
+        `expandedPaths`,
         getParentFolders(selectedPath),
       );
     });
 
     it('retains all expanded folders when updateSelectedPath is dispatched', () => {
-      const newFolder = 'newFolder';
-      const file = 'file.js';
-      const selectedPath = `${newFolder}/${file}`;
-
-      const version = fakeVersion;
-      let state = reducer(undefined, actions.loadVersionInfo({ version }));
-
-      const { expandedPaths } = getVersionInfo(state, version.id) as Version;
-
       const initialPath = 'new/selected/path';
-      state = reducer(
-        state,
+      const selectedPath = 'newFolder/file.js';
+
+      let state = reducer(
+        undefined,
         actions.toggleExpandedPath({
           path: initialPath,
-          versionId: version.id,
         }),
       );
 
-      state = reducer(
-        state,
-        actions.updateSelectedPath({ selectedPath, versionId: version.id }),
-      );
+      state = reducer(state, actions.updateSelectedPath({ selectedPath }));
 
-      expect(state).toHaveProperty(`versionInfo.${version.id}.expandedPaths`, [
-        ...expandedPaths,
+      expect(state).toHaveProperty('expandedPaths', [
         initialPath,
-        newFolder,
+        ...getParentFolders(selectedPath),
       ]);
     });
 
-    it('throws an error when toggleExpandedPath is called for an unknown version', () => {
-      expect(() => {
-        reducer(
-          undefined,
-          actions.toggleExpandedPath({ path: 'pa/th', versionId: 123 }),
-        );
-      }).toThrow(/Version missing/);
-    });
-
     it('does not duplicate paths in expandedPaths when updateSelectedPath is dispatched', () => {
-      const version = fakeVersion;
-      let state = reducer(undefined, actions.loadVersionInfo({ version }));
-
-      const { expandedPaths } = getVersionInfo(state, version.id) as Version;
-
-      const path = 'path1';
-      state = reducer(
-        state,
-        actions.toggleExpandedPath({
-          path,
-          versionId: version.id,
+      const selectedPath = 'selected/path1';
+      let state = reducer(
+        undefined,
+        actions.updateSelectedPath({
+          selectedPath,
         }),
       );
 
       state = reducer(
         state,
         actions.updateSelectedPath({
-          selectedPath: path,
-          versionId: version.id,
+          selectedPath,
         }),
       );
 
-      expect(state).toHaveProperty(`versionInfo.${version.id}.expandedPaths`, [
-        ...expandedPaths,
-        path,
-      ]);
+      expect(state).toHaveProperty(
+        'expandedPaths',
+        getParentFolders(selectedPath),
+      );
     });
 
     it('adds a path to expandedPaths', () => {
-      const version = fakeVersion;
-      let state = reducer(undefined, actions.loadVersionInfo({ version }));
-
-      const { expandedPaths } = getVersionInfo(state, version.id) as Version;
-
-      const path = 'new/selected/path';
-      state = reducer(
-        state,
-        actions.toggleExpandedPath({ path, versionId: version.id }),
+      const initialPath = 'init.js';
+      const newPath = 'new/selected/path';
+      let state = reducer(
+        undefined,
+        actions.toggleExpandedPath({ path: initialPath }),
       );
 
-      expect(state).toHaveProperty(`versionInfo.${version.id}.expandedPaths`, [
-        ...expandedPaths,
-        path,
-      ]);
+      state = reducer(state, actions.toggleExpandedPath({ path: newPath }));
+
+      expect(state).toHaveProperty('expandedPaths', [initialPath, newPath]);
     });
 
     it('removes a path from expandedPaths', () => {
-      const version = fakeVersion;
-      let state = reducer(undefined, actions.loadVersionInfo({ version }));
-
-      const { expandedPaths } = getVersionInfo(state, version.id) as Version;
-
       const path = 'new/selected/path';
-      state = reducer(
-        state,
-        actions.toggleExpandedPath({ path, versionId: version.id }),
-      );
+      let state = reducer(undefined, actions.toggleExpandedPath({ path }));
 
-      state = reducer(
-        state,
-        actions.toggleExpandedPath({ path, versionId: version.id }),
-      );
+      state = reducer(state, actions.toggleExpandedPath({ path }));
 
-      expect(state).toHaveProperty(
-        `versionInfo.${version.id}.expandedPaths`,
-        expandedPaths,
-      );
+      expect(state).toHaveProperty('expandedPaths', []);
     });
 
     it('maintains other paths when removing a path from expandedPaths', () => {
-      const version = fakeVersion;
-      let state = reducer(undefined, actions.loadVersionInfo({ version }));
-
-      const { expandedPaths } = getVersionInfo(state, version.id) as Version;
-
       const path1 = 'new/selected/path1';
       const path2 = 'new/selected/path2';
 
       // Add both paths.
-      state = reducer(
-        state,
-        actions.toggleExpandedPath({ path: path1, versionId: version.id }),
+      let state = reducer(
+        undefined,
+        actions.toggleExpandedPath({ path: path1 }),
       );
-      state = reducer(
-        state,
-        actions.toggleExpandedPath({ path: path2, versionId: version.id }),
-      );
+      state = reducer(state, actions.toggleExpandedPath({ path: path2 }));
 
-      expect(state).toHaveProperty(`versionInfo.${version.id}.expandedPaths`, [
-        ...expandedPaths,
-        path1,
-        path2,
-      ]);
+      expect(state).toHaveProperty('expandedPaths', [path1, path2]);
 
       // Remove the first path.
-      state = reducer(
-        state,
-        actions.toggleExpandedPath({ path: path1, versionId: version.id }),
-      );
+      state = reducer(state, actions.toggleExpandedPath({ path: path1 }));
 
-      expect(state).toHaveProperty(`versionInfo.${version.id}.expandedPaths`, [
-        ...expandedPaths,
-        path2,
-      ]);
+      expect(state).toHaveProperty('expandedPaths', [path2]);
     });
 
     it('adds all paths to expandedPaths when expandTree is dispatched', () => {
@@ -348,12 +301,7 @@ describe(__filename, () => {
       let state = reducer(undefined, actions.loadVersionInfo({ version }));
 
       state = reducer(state, actions.expandTree({ versionId: version.id }));
-
-      expect(state).toHaveProperty(`versionInfo.${version.id}.expandedPaths`, [
-        path1,
-        path2,
-        ROOT_PATH,
-      ]);
+      expect(state).toHaveProperty('expandedPaths', [path1, path2, ROOT_PATH]);
     });
 
     it('throws an error when expandTree is called for an unknown version', () => {
@@ -375,10 +323,7 @@ describe(__filename, () => {
 
       state = reducer(state, actions.expandTree({ versionId: version.id }));
 
-      expect(state).toHaveProperty(`versionInfo.${version.id}.expandedPaths`, [
-        path1,
-        ROOT_PATH,
-      ]);
+      expect(state).toHaveProperty('expandedPaths', [path1, ROOT_PATH]);
     });
 
     it('removes all paths from expandedPaths when collapseTree is dispatched', () => {
@@ -387,25 +332,11 @@ describe(__filename, () => {
 
       const path1 = 'new/selected/path1';
       const path2 = 'new/selected/path2';
-      state = reducer(
-        state,
-        actions.toggleExpandedPath({ path: path1, versionId: version.id }),
-      );
-      state = reducer(
-        state,
-        actions.toggleExpandedPath({ path: path2, versionId: version.id }),
-      );
+      state = reducer(state, actions.toggleExpandedPath({ path: path1 }));
+      state = reducer(state, actions.toggleExpandedPath({ path: path2 }));
       state = reducer(state, actions.collapseTree({ versionId: version.id }));
 
-      expect(state).toHaveProperty(`versionInfo.${version.id}.expandedPaths`, [
-        ROOT_PATH,
-      ]);
-    });
-
-    it('throws an error when collapseTree is called for an unknown version', () => {
-      expect(() => {
-        reducer(initialState, actions.collapseTree({ versionId: 123 }));
-      }).toThrow(/Version missing/);
+      expect(state).toHaveProperty('expandedPaths', [ROOT_PATH]);
     });
 
     it('stores lists of versions by add-on ID', () => {
@@ -550,7 +481,6 @@ describe(__filename, () => {
         ...fakeVersionWithDiff,
         file: {
           ...fakeVersionWithDiff.file,
-          // eslint-disable-next-line @typescript-eslint/camelcase
           selected_file: path,
         },
       };
@@ -648,13 +578,10 @@ describe(__filename, () => {
       expect(createInternalVersion(version)).toEqual({
         addon: createInternalVersionAddon(version.addon),
         entries: [createInternalVersionEntry(entry)],
-        expandedPaths: getParentFolders(version.file.selected_file),
         id: version.id,
         reviewed: version.reviewed,
         version: version.version,
-        selectedPath: version.file.selected_file,
         validationURL: fakeVersion.validation_url_json,
-        visibleSelectedPath: null,
       });
     });
 
@@ -679,13 +606,11 @@ describe(__filename, () => {
         id: version.id,
         reviewed: version.reviewed,
         version: version.version,
-        selectedPath: version.file.selected_file,
       });
     });
   });
 
   describe('getVersionFile', () => {
-    /* eslint-disable @typescript-eslint/camelcase */
     it('returns a version file', () => {
       const downloadURL = 'http://example.org/download/file';
       const mimeType = 'mime/type';
@@ -727,7 +652,6 @@ describe(__filename, () => {
         version: versionString,
       });
     });
-    /* eslint-enable @typescript-eslint/camelcase */
 
     it('returns undefined if there is no version found', () => {
       const state = initialState;
@@ -1505,9 +1429,7 @@ describe(__filename, () => {
       const oldLineNumber = 123;
       const hunk = createInternalHunk(
         createExternalHunkWithChange({
-          // eslint-disable-next-line @typescript-eslint/camelcase
           old_line_number: oldLineNumber,
-          // eslint-disable-next-line @typescript-eslint/camelcase
           new_line_number: oldLineNumber + 1,
           type,
         }),
@@ -1527,9 +1449,7 @@ describe(__filename, () => {
       const newLineNumber = 123;
       const hunk = createInternalHunk(
         createExternalHunkWithChange({
-          // eslint-disable-next-line @typescript-eslint/camelcase
           old_line_number: newLineNumber - 1,
-          // eslint-disable-next-line @typescript-eslint/camelcase
           new_line_number: newLineNumber,
           type,
         }),
@@ -1549,9 +1469,7 @@ describe(__filename, () => {
       const oldLineNumber = 123;
       const hunk = createInternalHunk(
         createExternalHunkWithChange({
-          // eslint-disable-next-line @typescript-eslint/camelcase
           old_line_number: oldLineNumber,
-          // eslint-disable-next-line @typescript-eslint/camelcase
           new_line_number: oldLineNumber + 1,
           type,
         }),
@@ -2032,7 +1950,6 @@ describe(__filename, () => {
       expect(dispatch).toHaveBeenCalledWith(
         actions.updateSelectedPath({
           selectedPath,
-          versionId,
         }),
       );
       expect(dispatch).toHaveBeenCalledWith(
@@ -2566,6 +2483,7 @@ describe(__filename, () => {
         entryStatusMap: createEntryStatusMap(fakeVersion),
         pathList: [fakeVersion.file.selected_file],
         position: RelativePathPosition.next,
+        selectedPath: fakeVersion.file.selected_file,
         version: createInternalVersion(fakeVersion),
         ...params,
       });
@@ -2601,9 +2519,12 @@ describe(__filename, () => {
       const _findRelativePathWithDiff = jest.fn().mockReturnValue(path);
       const _getRelativeDiffAnchor = jest.fn().mockReturnValue(null);
       const position = RelativePathPosition.next;
-      const { entryStatusMap, pathList, version } = getFakeVersionAndPathList([
-        { path, status: 'M' },
-      ]);
+      const {
+        entryStatusMap,
+        pathList,
+        selectedPath,
+        version,
+      } = getFakeVersionAndPathList([{ path, status: 'M' }]);
 
       const result = _getRelativeDiff({
         _findRelativePathWithDiff,
@@ -2611,11 +2532,12 @@ describe(__filename, () => {
         entryStatusMap,
         pathList,
         position,
+        selectedPath,
         version,
       });
 
       expect(_findRelativePathWithDiff).toHaveBeenCalledWith({
-        currentPath: version.selectedPath,
+        currentPath: selectedPath,
         entryStatusMap,
         pathList,
         position,
@@ -2628,9 +2550,12 @@ describe(__filename, () => {
       const path = file1;
       const _findRelativePathWithDiff = jest.fn().mockReturnValue(path);
       const position = RelativePathPosition.next;
-      const { entryStatusMap, pathList, version } = getFakeVersionAndPathList([
-        { path, status: 'M' },
-      ]);
+      const {
+        entryStatusMap,
+        pathList,
+        selectedPath,
+        version,
+      } = getFakeVersionAndPathList([{ path, status: 'M' }]);
 
       const result = _getRelativeDiff({
         _findRelativePathWithDiff,
@@ -2638,11 +2563,12 @@ describe(__filename, () => {
         entryStatusMap,
         pathList,
         position,
+        selectedPath,
         version,
       });
 
       expect(_findRelativePathWithDiff).toHaveBeenCalledWith({
-        currentPath: version.selectedPath,
+        currentPath: selectedPath,
         entryStatusMap,
         pathList,
         position,
@@ -2706,13 +2632,7 @@ describe(__filename, () => {
         }),
       );
 
-      const version = getVersionInfo(state, versionId);
-      if (!version) {
-        throw new Error(
-          `Unexpectedly found an empty version for ID ${versionId}`,
-        );
-      }
-      expect(version.visibleSelectedPath).toEqual(path);
+      expect(state.visibleSelectedPath).toEqual(path);
     });
 
     it('requires the version to exist in state', () => {
@@ -2858,6 +2778,7 @@ describe(__filename, () => {
       diff = null,
       pathList = ['file1.js'],
       position = RelativePathPosition.next,
+      selectedPath = 'selected.js',
       versionId = 2,
       comparedToVersionId = 1,
     } = {}) => {
@@ -2869,6 +2790,7 @@ describe(__filename, () => {
         diff,
         pathList,
         position,
+        selectedPath,
         versionId,
       });
     };
@@ -2883,12 +2805,20 @@ describe(__filename, () => {
       const position = RelativePathPosition.next;
       const versionId = 123;
       const comparedToVersionId = 31;
+      const selectedPath = 'sel.js';
 
       const history = createBrowserHistory();
       const location = createFakeLocation({ pathname: path });
       history.push(location);
       const store = configureStore({ history });
-      const externalVersion = { ...fakeVersion, id: versionId };
+      const externalVersion = {
+        ...fakeVersion,
+        id: versionId,
+        file: {
+          ...fakeVersion.file,
+          selected_file: selectedPath,
+        },
+      };
       const entryStatusMap = createEntryStatusMap(externalVersion);
       store.dispatch(actions.loadVersionInfo({ version: externalVersion }));
       store.dispatch(
@@ -2907,6 +2837,7 @@ describe(__filename, () => {
             diff,
             pathList,
             position,
+            selectedPath,
             versionId,
           }),
         store,
@@ -2925,6 +2856,7 @@ describe(__filename, () => {
         entryStatusMap,
         pathList,
         position,
+        selectedPath,
         version,
       });
 

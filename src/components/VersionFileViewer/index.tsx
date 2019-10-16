@@ -28,6 +28,7 @@ export type PublicProps = {
   file: VersionFile | null | undefined;
   getCodeLineAnchor?: GetCodeLineAnchor;
   onSelectFile: FileTreeProps['onSelect'];
+  selectedPath: string | undefined;
   version: Version | undefined | null;
 };
 
@@ -38,9 +39,10 @@ const VersionFileViewer = ({
   file,
   getCodeLineAnchor,
   onSelectFile,
+  selectedPath,
   version,
 }: PublicProps) => {
-  if (!version) {
+  if (!version || !selectedPath) {
     return (
       <ContentShell>
         <Loading message={gettext('Loading version...')} />
@@ -86,7 +88,7 @@ const VersionFileViewer = ({
               <KeyboardShortcuts
                 comparedToVersionId={comparedToVersionId}
                 compareInfo={compareInfo}
-                currentPath={version.selectedPath}
+                currentPath={selectedPath}
                 messageMap={messageMap}
                 versionId={version.id}
               />
@@ -98,6 +100,7 @@ const VersionFileViewer = ({
             <CodeOverview
               content={file.type === 'image' ? '' : file.content}
               getCodeLineAnchor={getCodeLineAnchor}
+              selectedPath={selectedPath}
               version={version}
             />
           ) : null
@@ -112,7 +115,7 @@ const VersionFileViewer = ({
     <LinterProvider
       versionId={version.id}
       validationURL={version.validationURL}
-      selectedPath={version.selectedPath}
+      selectedPath={selectedPath}
     >
       {renderWithLinterProvider}
     </LinterProvider>

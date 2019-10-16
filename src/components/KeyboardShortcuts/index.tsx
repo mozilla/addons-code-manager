@@ -53,6 +53,7 @@ type PropsFromState = {
   currentAnchor: string;
   messageUid: LinterMessage['uid'];
   pathList: FileTree['pathList'] | undefined;
+  selectedPath: string | undefined;
 };
 
 export type DefaultProps = {
@@ -92,6 +93,7 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
       messageMap,
       messageUid,
       pathList,
+      selectedPath,
       versionId,
     } = this.props;
 
@@ -150,7 +152,7 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
           );
           break;
         case 'n':
-          if (compareInfo) {
+          if (compareInfo && selectedPath) {
             dispatch(
               _goToRelativeDiff({
                 currentAnchor,
@@ -158,6 +160,7 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
                 diff: compareInfo.diff,
                 pathList,
                 position: RelativePathPosition.next,
+                selectedPath,
                 versionId,
               }),
             );
@@ -166,7 +169,7 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
           }
           break;
         case 'p':
-          if (compareInfo) {
+          if (compareInfo && selectedPath) {
             dispatch(
               _goToRelativeDiff({
                 currentAnchor,
@@ -174,6 +177,7 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
                 diff: compareInfo.diff,
                 pathList,
                 position: RelativePathPosition.previous,
+                selectedPath,
                 versionId,
               }),
             );
@@ -271,6 +275,7 @@ const mapStateToProps = (
 ): PropsFromState => {
   const { location, versionId } = ownProps;
   const messageUid = queryString.parse(location.search)[messageUidQueryParam];
+  const { selectedPath } = state.versions;
 
   const tree = getTree(state.fileTree, versionId);
   if (!tree) {
@@ -284,6 +289,7 @@ const mapStateToProps = (
     currentAnchor: location.hash.replace(/^#/, ''),
     messageUid: typeof messageUid === 'string' ? messageUid : '',
     pathList: tree && tree.pathList,
+    selectedPath,
   };
 };
 

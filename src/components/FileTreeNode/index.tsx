@@ -38,7 +38,9 @@ export type PublicProps = TreefoldRenderPropsForFileTree & {
 
 type PropsFromState = {
   entryStatusMap: EntryStatusMap;
+  selectedPath: string | undefined;
   version: Version;
+  visibleSelectedPath: string | null;
 };
 
 type Props = PublicProps & PropsFromState & ConnectedReduxProps;
@@ -153,9 +155,9 @@ export class FileTreeNodeBase<TreeNodeType> extends React.Component<Props> {
   }
 
   _scrollIntoViewIfNeeded = () => {
-    const { dispatch, node, version } = this.props;
+    const { dispatch, node, version, visibleSelectedPath } = this.props;
 
-    if (this.isSelected() && version.visibleSelectedPath !== node.id) {
+    if (this.isSelected() && visibleSelectedPath !== node.id) {
       if (this.nodeRef && this.nodeRef.current) {
         this.nodeRef.current.scrollIntoView();
         dispatch(
@@ -171,8 +173,8 @@ export class FileTreeNodeBase<TreeNodeType> extends React.Component<Props> {
   };
 
   isSelected() {
-    const { node, version } = this.props;
-    return version.selectedPath === node.id;
+    const { node, selectedPath } = this.props;
+    return selectedPath === node.id;
   }
 
   renderWithLinterInfo = ({ messageMap }: LinterProviderInfo) => {
@@ -295,13 +297,13 @@ export class FileTreeNodeBase<TreeNodeType> extends React.Component<Props> {
   };
 
   render() {
-    const { version } = this.props;
+    const { selectedPath, version } = this.props;
 
     return (
       <LinterProvider
         versionId={version.id}
         validationURL={version.validationURL}
-        selectedPath={version.selectedPath}
+        selectedPath={selectedPath}
       >
         {(info: LinterProviderInfo) => this.renderWithLinterInfo(info)}
       </LinterProvider>
@@ -315,6 +317,7 @@ const mapStateToProps = (
 ): PropsFromState => {
   const { versionId, comparedToVersionId } = ownProps;
   const { versions } = state;
+  const { selectedPath, visibleSelectedPath } = versions;
   const version = getVersionInfo(versions, versionId);
   const entryStatusMap =
     getEntryStatusMap({
@@ -329,7 +332,7 @@ const mapStateToProps = (
     throw new Error(`No version exists in state for version ID ${versionId}`);
   }
 
-  return { entryStatusMap, version };
+  return { entryStatusMap, selectedPath, version, visibleSelectedPath };
 };
 
 export default connect(mapStateToProps)(FileTreeNodeBase);

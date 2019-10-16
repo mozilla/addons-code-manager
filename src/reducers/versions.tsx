@@ -195,12 +195,9 @@ type VersionAddon = {
 export type Version = {
   addon: VersionAddon;
   entries: VersionEntry[];
-  expandedPaths: string[];
   id: number;
   reviewed: string;
-  selectedPath: string;
   validationURL: string;
-  visibleSelectedPath: string | null;
   version: string;
 };
 
@@ -247,8 +244,7 @@ export const actions = {
     }) => resolve(payload);
   }),
   updateSelectedPath: createAction('UPDATE_SELECTED_PATH', (resolve) => {
-    return (payload: { selectedPath: string; versionId: number }) =>
-      resolve(payload);
+    return (payload: { selectedPath: string }) => resolve(payload);
   }),
   setCurrentVersionId: createAction('SET_CURRENT_VERSION_ID', (resolve) => {
     return (payload: { versionId: number }) => resolve(payload);
@@ -264,7 +260,7 @@ export const actions = {
     },
   ),
   toggleExpandedPath: createAction('TOGGLE_EXPANDED_PATH', (resolve) => {
-    return (payload: { path: string; versionId: number }) => resolve(payload);
+    return (payload: { path: string }) => resolve(payload);
   }),
   expandTree: createAction('EXPAND_TREE', (resolve) => {
     return (payload: { versionId: number }) => resolve(payload);
@@ -332,6 +328,9 @@ export type VersionsState = {
   entryStatusMaps: {
     [entryStatusMapKey: string]: EntryStatusMap;
   };
+  expandedPaths: string[];
+  selectedPath: string | undefined;
+  visibleSelectedPath: string | null;
   versionInfo: {
     [versionId: number]:
       | Version // data successfully loaded
@@ -359,6 +358,9 @@ export const initialState: VersionsState = {
   compareInfoIsLoading: {},
   currentVersionId: undefined,
   entryStatusMaps: {},
+  expandedPaths: [],
+  selectedPath: undefined,
+  visibleSelectedPath: null,
   versionFiles: {},
   versionFilesLoading: {},
   versionInfo: {},
@@ -445,13 +447,10 @@ export const createInternalVersion = (
     entries: Object.keys(version.file.entries).map((nodeName) => {
       return createInternalVersionEntry(version.file.entries[nodeName]);
     }),
-    expandedPaths: getParentFolders(version.file.selected_file),
     id: version.id,
     reviewed: version.reviewed,
-    selectedPath: version.file.selected_file,
     version: version.version,
     validationURL: version.validation_url_json,
-    visibleSelectedPath: null,
   };
 };
 
@@ -655,6 +654,7 @@ export type GetRelativeDiffParams = {
   entryStatusMap: EntryStatusMap;
   pathList: string[];
   position: RelativePathPosition;
+  selectedPath: string;
   version: Version;
 };
 
@@ -671,6 +671,7 @@ export const getRelativeDiff = ({
   entryStatusMap,
   pathList,
   position,
+  selectedPath,
   version,
 }: GetRelativeDiffParams): RelativeDiffResult => {
   const result: RelativeDiffResult = {
@@ -682,7 +683,7 @@ export const getRelativeDiff = ({
 
   if (!result.anchor) {
     result.path = _findRelativePathWithDiff({
-      currentPath: version.selectedPath,
+      currentPath: selectedPath,
       entryStatusMap,
       pathList,
       position,
@@ -1041,7 +1042,6 @@ export const viewVersionFile = ({
   preserveHash = false,
   selectedPath,
   scrollTo,
-  versionId,
 }: ViewVersionFileParams): ThunkActionCreator => {
   return async (dispatch, getState) => {
     const { router } = getState();
@@ -1060,7 +1060,7 @@ export const viewVersionFile = ({
       delete newLocation.hash;
     }
 
-    dispatch(actions.updateSelectedPath({ versionId, selectedPath }));
+    dispatch(actions.updateSelectedPath({ selectedPath }));
     dispatch(push(newLocation));
   };
 };
@@ -1068,12 +1068,13 @@ export const viewVersionFile = ({
 type GoToRelativeDiffParams = {
   _getRelativeDiff?: typeof getRelativeDiff;
   _viewVersionFile?: typeof viewVersionFile;
+  comparedToVersionId: number | null;
   currentAnchor: string | undefined;
   diff: DiffInfo | null;
   pathList: string[];
   position: RelativePathPosition;
+  selectedPath: string;
   versionId: number;
-  comparedToVersionId: number | null;
 };
 
 export const goToRelativeDiff = ({
@@ -1086,6 +1087,7 @@ export const goToRelativeDiff = ({
   diff,
   pathList,
   position,
+  selectedPath,
   versionId,
 }: GoToRelativeDiffParams): ThunkActionCreator => {
   return async (dispatch, getState) => {
@@ -1112,6 +1114,7 @@ export const goToRelativeDiff = ({
       entryStatusMap,
       pathList,
       position,
+      selectedPath,
       version,
     });
 
@@ -1159,10 +1162,18 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
 
       return {
         ...state,
+        expandedPaths: [
+          ...state.expandedPaths,
+          ...getParentFolders(version.file.selected_file).filter(
+            (path) => !state.expandedPaths.includes(path),
+          ),
+        ],
+        selectedPath: version.file.selected_file,
         versionInfo: {
           ...state.versionInfo,
           [version.id]: createInternalVersion(version),
         },
+        visibleSelectedPath: null,
       };
     }
     case getType(actions.abortFetchVersion): {
@@ -1248,31 +1259,18 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
       };
     }
     case getType(actions.updateSelectedPath): {
-      const { selectedPath, versionId } = action.payload;
-
-      const version = state.versionInfo[versionId];
-
-      if (!version) {
-        throw new Error(`Version missing for versionId: ${versionId}`);
-      }
-
-      const { expandedPaths } = version;
+      const { selectedPath } = action.payload;
+      const { expandedPaths } = state;
 
       const parents = getParentFolders(selectedPath);
 
       return {
         ...state,
-        versionInfo: {
-          ...state.versionInfo,
-          [versionId]: {
-            ...version,
-            selectedPath,
-            expandedPaths: [
-              ...expandedPaths,
-              ...parents.filter((newPath) => !expandedPaths.includes(newPath)),
-            ],
-          },
-        },
+        selectedPath,
+        expandedPaths: [
+          ...expandedPaths,
+          ...parents.filter((newPath) => !expandedPaths.includes(newPath)),
+        ],
       };
     }
     case getType(actions.setVisibleSelectedPath): {
@@ -1296,33 +1294,20 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
           ...state.versionInfo,
           [versionId]: {
             ...version,
-            visibleSelectedPath: path,
           },
         },
+        visibleSelectedPath: path,
       };
     }
     case getType(actions.toggleExpandedPath): {
-      const { path, versionId } = action.payload;
-
-      const version = state.versionInfo[versionId];
-
-      if (!version) {
-        throw new Error(`Version missing for versionId: ${versionId}`);
-      }
-
-      const { expandedPaths } = version;
+      const { path } = action.payload;
+      const { expandedPaths } = state;
 
       return {
         ...state,
-        versionInfo: {
-          ...state.versionInfo,
-          [versionId]: {
-            ...version,
-            expandedPaths: expandedPaths.includes(path)
-              ? expandedPaths.filter((storedPath) => path !== storedPath)
-              : [...expandedPaths, path],
-          },
-        },
+        expandedPaths: expandedPaths.includes(path)
+          ? expandedPaths.filter((storedPath) => path !== storedPath)
+          : [...expandedPaths, path],
       };
     }
     case getType(actions.expandTree): {
@@ -1341,13 +1326,7 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
 
       return {
         ...state,
-        versionInfo: {
-          ...state.versionInfo,
-          [versionId]: {
-            ...version,
-            expandedPaths,
-          },
-        },
+        expandedPaths,
       };
     }
     case getType(actions.collapseTree): {
@@ -1361,13 +1340,7 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
 
       return {
         ...state,
-        versionInfo: {
-          ...state.versionInfo,
-          [versionId]: {
-            ...version,
-            expandedPaths: [ROOT_PATH],
-          },
-        },
+        expandedPaths: [ROOT_PATH],
       };
     }
     case getType(actions.loadVersionsList): {
@@ -1432,8 +1405,8 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
         throw new Error(`Version missing for headVersionId: ${headVersionId}`);
       }
 
-      const { entries, selectedPath } = headVersion;
-      const entry = entries.find((e) => e.path === selectedPath);
+      const { entries } = headVersion;
+      const entry = entries.find((e) => e.path === version.file.selected_file);
 
       if (!entry) {
         throw new Error(`Entry missing for headVersionId: ${headVersionId}`);

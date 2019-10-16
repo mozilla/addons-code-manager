@@ -37,6 +37,7 @@ describe(__filename, () => {
   const render = ({
     children = jest.fn(),
     version = createInternalVersion(fakeVersion),
+    selectedPath = 'selected.js',
     store = configureStore(),
     ...moreProps
   }: RenderParams = {}) => {
@@ -44,7 +45,7 @@ describe(__filename, () => {
       children,
       versionId: version.id,
       validationURL: version.validationURL,
-      selectedPath: version.selectedPath,
+      selectedPath,
       ...moreProps,
     };
 
@@ -241,7 +242,7 @@ describe(__filename, () => {
       messages: [{ uid: 'some-message-uid' }],
     });
 
-    render({ children, store, version });
+    render({ children, selectedPath: path, store, version });
 
     const map = getMessageMap(linterResult);
     expect(children).toHaveBeenCalledWith(

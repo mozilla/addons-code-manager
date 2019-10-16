@@ -47,6 +47,7 @@ describe(__filename, () => {
       _debounce,
       _window: createFakeWindow(),
       content: 'example code content',
+      selectedPath: 'selectedPath.js',
       version: createInternalVersion(fakeVersion),
       ...otherProps,
     };
@@ -143,12 +144,13 @@ describe(__filename, () => {
 
   it('configures LinterProvider', () => {
     const version = createInternalVersion(fakeVersion);
-    const root = render({ version });
+    const selectedPath = 'sel.json';
+    const root = render({ selectedPath, version });
 
     const provider = root.find(LinterProvider);
     expect(provider).toHaveProp('versionId', version.id);
     expect(provider).toHaveProp('validationURL', version.validationURL);
-    expect(provider).toHaveProp('selectedPath', version.selectedPath);
+    expect(provider).toHaveProp('selectedPath', selectedPath);
   });
 
   it('adds and removes event listeners', () => {

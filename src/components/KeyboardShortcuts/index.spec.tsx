@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/camelcase */
 import { Location } from 'history';
 import queryString from 'query-string';
 import * as React from 'react';
@@ -50,6 +51,7 @@ describe(__filename, () => {
   const configureStoreWithFileTree = ({
     pathList = ['file1.js'],
     versionId = 321,
+    selectedPath = 'default_selected.js',
     externalVersion = {
       ...fakeVersion,
       id: versionId,
@@ -65,11 +67,13 @@ describe(__filename, () => {
             },
           };
         }, {}),
+        selected_file: selectedPath,
       },
     },
     store = createStoreWithVersion({ version: externalVersion }),
   }: {
     pathList?: string[];
+    selectedPath?: string;
     versionId?: number;
     externalVersion?: typeof fakeVersion;
     store?: Store;
@@ -258,6 +262,7 @@ describe(__filename, () => {
       const currentPath = fakeVersionWithDiff.file.selected_file;
       const hash = '#D1';
       const pathList = [currentPath];
+      const selectedPath = 'sel.js';
       const versionId = 123;
       const comparedToVersionId = 11;
       const compareInfo = createFakeCompareInfo();
@@ -266,7 +271,11 @@ describe(__filename, () => {
         hash,
       });
 
-      const store = configureStoreWithFileTree({ versionId, pathList });
+      const store = configureStoreWithFileTree({
+        versionId,
+        pathList,
+        selectedPath,
+      });
 
       const dispatch = spyOn(store, 'dispatch');
       const fakeThunk = createFakeThunk();
@@ -291,6 +300,7 @@ describe(__filename, () => {
         diff: compareInfo.diff,
         pathList,
         position,
+        selectedPath,
         versionId,
         comparedToVersionId,
       });

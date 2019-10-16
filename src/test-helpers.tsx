@@ -293,9 +293,9 @@ export const getFakeVersionAndPathList = (
     externalEntries,
   );
 
-  version.selectedPath = pathList[0];
+  const selectedPath = pathList[0];
 
-  return { entryStatusMap, pathList, version };
+  return { entryStatusMap, pathList, selectedPath, version };
 };
 
 export const fakeUser: ExternalUser = Object.freeze({

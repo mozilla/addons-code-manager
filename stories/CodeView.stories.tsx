@@ -61,6 +61,7 @@ const render = ({
   const props: CodeViewProps = {
     content: JS_SAMPLE,
     mimeType: 'application/javascript',
+    selectedPath: fakeVersion.file.selected_file,
     version: createInternalVersion(fakeVersion),
     ...moreProps,
   };
@@ -87,8 +88,6 @@ const renderJSWithMessages = (
     file: {
       ...fakeVersionFile,
       entries: { [path]: { ...fakeVersionEntry, path } },
-      // eslint-disable-next-line @typescript-eslint/camelcase
-      selected_file: path,
     },
   });
 
@@ -104,6 +103,7 @@ const renderJSWithMessages = (
     store,
     content: JS_SAMPLE,
     mimeType: 'application/javascript',
+    selectedPath: path,
     version,
     ...moreProps,
   });

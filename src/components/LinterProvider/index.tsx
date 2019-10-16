@@ -26,7 +26,7 @@ export type PublicProps = {
   children: RenderWithMessages;
   versionId: number;
   validationURL: string;
-  selectedPath: string;
+  selectedPath: string | undefined;
 };
 
 export type DefaultProps = {
@@ -102,7 +102,7 @@ const mapStateToProps = (
 
   let selectedMessageMap;
   const map = selectMessageMap(state.linter, versionId);
-  if (map) {
+  if (map && selectedPath) {
     selectedMessageMap = map.byPath[selectedPath]
       ? map.byPath[selectedPath]
       : // No messages exist for this path.

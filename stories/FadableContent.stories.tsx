@@ -24,6 +24,7 @@ storiesOf('FadableContent', module)
       <CodeView
         content={JS_SAMPLE}
         mimeType="application/javascript"
+        selectedPath={fakeVersion.file.selected_file}
         version={createInternalVersion(fakeVersion)}
       />,
     );
