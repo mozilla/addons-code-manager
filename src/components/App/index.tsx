@@ -153,12 +153,10 @@ export class AppBase extends React.Component<Props> {
   }
 
   render() {
-    const { loading } = this.props;
-
     return (
       <FullscreenGrid>
         <Header>
-          {!loading && <Navbar />}
+          <Navbar />
           {this.renderErrors()}
         </Header>
         {this.renderContent()}

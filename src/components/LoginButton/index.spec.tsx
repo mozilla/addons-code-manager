@@ -1,23 +1,30 @@
 import * as React from 'react';
 import { Button } from 'react-bootstrap';
-import { shallow } from 'enzyme';
 
+import { actions as userActions } from '../../reducers/users';
+import configureStore from '../../configureStore';
 import { makeApiURL } from '../../api';
+import { shallowUntilTarget } from '../../test-helpers';
 
-import LoginButton from '.';
+import LoginButton, { LoginButtonBase } from '.';
 
 describe(__filename, () => {
   const render = ({
     _window = window,
     fxaConfig = 'fxa',
     isLocalDev = false,
+    store = configureStore(),
   } = {}) => {
-    return shallow(
+    return shallowUntilTarget(
       <LoginButton
         _window={_window}
         fxaConfig={fxaConfig}
         isLocalDev={isLocalDev}
       />,
+      LoginButtonBase,
+      {
+        shallowOptions: { context: { store } },
+      },
     );
   };
 
@@ -41,6 +48,7 @@ describe(__filename, () => {
         path: `/accounts/login/start/?config=${fxaConfig}&to=${href}`,
       }),
     );
+    expect(root.find(Button)).toHaveProp('disabled', false);
   });
 
   it('passes a relative URL to addons-server in local dev', () => {
@@ -66,5 +74,13 @@ describe(__filename, () => {
         path: `/accounts/login/start/?config=${fxaConfig}&to=${path}`,
       }),
     );
+  });
+
+  it('renders a disabled button while the user is loading', () => {
+    const store = configureStore();
+    store.dispatch(userActions.beginFetchCurrentUser());
+    const root = render({ store });
+
+    expect(root.find(Button)).toHaveProp('disabled', true);
   });
 });

@@ -75,7 +75,6 @@ describe(__filename, () => {
     expect(root.find(ContentShell).childAt(1)).toIncludeText(
       'Getting your workspace ready',
     );
-    expect(root.find(Navbar)).toHaveLength(0);
   });
 
   it('does not dispatch setAuthToken on mount when authToken is already present in the state', () => {

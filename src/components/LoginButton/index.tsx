@@ -1,11 +1,19 @@
 import * as React from 'react';
 import { Button } from 'react-bootstrap';
+import { connect } from 'react-redux';
 
+import { ApplicationState } from '../../reducers';
+import { currentUserIsLoading } from '../../reducers/users';
+import { ConnectedReduxProps } from '../../configureStore';
 import { makeApiURL } from '../../api';
 import { gettext } from '../../utils';
 import styles from './styles.module.scss';
 
 type PublicProps = {};
+
+type PropsFromState = {
+  userIsLoading: boolean;
+};
 
 type DefaultProps = {
   _window: typeof window;
@@ -13,7 +21,7 @@ type DefaultProps = {
   isLocalDev: boolean;
 };
 
-type Props = PublicProps & DefaultProps;
+type Props = PublicProps & DefaultProps & PropsFromState & ConnectedReduxProps;
 
 export class LoginButtonBase extends React.Component<Props> {
   static defaultProps: DefaultProps = {
@@ -37,12 +45,24 @@ export class LoginButtonBase extends React.Component<Props> {
   }
 
   render() {
+    const { userIsLoading } = this.props;
     return (
-      <Button size="sm" href={this.getFxaURL()} className={styles.link}>
+      <Button
+        disabled={userIsLoading}
+        size="sm"
+        href={this.getFxaURL()}
+        className={styles.link}
+      >
         {gettext('Log in')}
       </Button>
     );
   }
 }
 
-export default LoginButtonBase;
+const mapStateToProps = (state: ApplicationState): PropsFromState => {
+  return {
+    userIsLoading: currentUserIsLoading(state.users),
+  };
+};
+
+export default connect(mapStateToProps)(LoginButtonBase);
