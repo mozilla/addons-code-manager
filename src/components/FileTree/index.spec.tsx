@@ -17,6 +17,7 @@ import {
 import {
   createFakeLogger,
   fakeVersion,
+  getInstance,
   shallowUntilTarget,
   spyOn,
 } from '../../test-helpers';
@@ -147,7 +148,7 @@ describe(__filename, () => {
 
       const root = render({ onSelect, store, versionId: version.id });
 
-      const node = (root.instance() as FileTreeBase).renderNode(
+      const node = getInstance<FileTreeBase>(root).renderNode(
         getTreefoldRenderProps(),
       );
 
@@ -168,7 +169,7 @@ describe(__filename, () => {
         comparedToVersionId,
       });
 
-      const node = (root.instance() as FileTreeBase).renderNode(
+      const node = getInstance<FileTreeBase>(root).renderNode(
         getTreefoldRenderProps(),
       );
 
@@ -268,7 +269,7 @@ describe(__filename, () => {
     it('returns a Loading component from renderNode when no version is loaded', () => {
       const root = render();
 
-      const node = (root.instance() as FileTreeBase).renderNode(
+      const node = getInstance<FileTreeBase>(root).renderNode(
         getTreefoldRenderProps(),
       );
 
@@ -283,7 +284,7 @@ describe(__filename, () => {
       };
       const root = render();
 
-      const { isNodeExpanded } = root.instance() as FileTreeBase;
+      const { isNodeExpanded } = getInstance<FileTreeBase>(root);
 
       expect(() => {
         isNodeExpanded(node);
@@ -298,7 +299,7 @@ describe(__filename, () => {
       };
       const root = render();
 
-      const { onToggleExpand } = root.instance() as FileTreeBase;
+      const { onToggleExpand } = getInstance<FileTreeBase>(root);
 
       expect(() => {
         onToggleExpand(node);

@@ -4,13 +4,14 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Store } from 'redux';
 
 import configureStore from '../../configureStore';
-import { actions } from '../../reducers/comments';
+import { actions, createInternalComment } from '../../reducers/comments';
 import {
   createFakeExternalComment,
   createFakeChangeEvent,
   createFakeEvent,
   createFakeThunk,
   dispatchComment,
+  getInstance,
   shallowUntilTarget,
   spyOn,
 } from '../../test-helpers';
@@ -63,7 +64,7 @@ describe(__filename, () => {
 
   it('requires a comment when readOnly=true', () => {
     expect(() => render({ readOnly: true, commentId: null })).toThrow(
-      /initialComment for commentId=null cannot be empty/,
+      /Cannot get initialComment/,
     );
   });
 
@@ -280,7 +281,7 @@ describe(__filename, () => {
 
       expect(fakeRef.current.addEventListener).toHaveBeenCalledWith(
         'keydown',
-        (root.instance() as CommentBase).keydownListener,
+        getInstance<CommentBase>(root).keydownListener,
       );
     });
 
@@ -300,7 +301,7 @@ describe(__filename, () => {
     it('removes keydown event listeners on unmount', () => {
       const fakeRef = createFakeTextareaRef();
       const root = render({ createTextareaRef: () => fakeRef });
-      const { keydownListener } = root.instance() as CommentBase;
+      const { keydownListener } = getInstance<CommentBase>(root);
       root.unmount();
 
       expect(fakeRef.current.removeEventListener).toHaveBeenCalledWith(
@@ -319,6 +320,153 @@ describe(__filename, () => {
       // Make sure this doesn't throw an error.
       const root = render({ createTextareaRef: () => React.createRef() });
       root.unmount();
+    });
+  });
+
+  describe('deleting', () => {
+    const renderCommentToDelete = ({
+      commentId = 5432,
+      considerDelete = false,
+      deleting = false,
+      store = configureStore(),
+      ...params
+    }: RenderParams & {
+      commentId?: number;
+      considerDelete?: boolean;
+      deleting?: boolean;
+    } = {}) => {
+      const comment = createFakeExternalComment({
+        id: commentId,
+        comment: 'Example of a comment',
+      });
+      dispatchComment({ comment, store });
+
+      if (considerDelete) {
+        store.dispatch(
+          actions.considerDeleteComment({ commentId: comment.id }),
+        );
+      }
+
+      if (deleting) {
+        store.dispatch(actions.beginDeleteComment({ commentId: comment.id }));
+      }
+
+      const dispatchSpy = spyOn(store, 'dispatch');
+
+      const fakeThunk = createFakeThunk();
+      const _deleteComment = fakeThunk.createThunk;
+
+      return {
+        _deleteComment,
+        dispatchSpy,
+        fakeThunk,
+        root: render({
+          _deleteComment,
+          commentId: comment.id,
+          store,
+          readOnly: true,
+          ...params,
+        }),
+      };
+    };
+
+    it('provides a delete button', () => {
+      const commentId = 987;
+      const { dispatchSpy, root } = renderCommentToDelete({ commentId });
+
+      const deleteButton = root.find(`.${styles.deleteButton}`);
+      expect(deleteButton).toHaveLength(1);
+      expect(deleteButton).toHaveText('Delete');
+      expect(deleteButton).toHaveProp('disabled', false);
+
+      expect(root.find(`.${styles.cancelButton}`)).toHaveLength(0);
+
+      deleteButton.simulate('click');
+
+      expect(dispatchSpy).toHaveBeenCalledWith(
+        actions.considerDeleteComment({ commentId }),
+      );
+    });
+
+    it('provides a cancel button when considering deletion', () => {
+      const commentId = 987;
+      const { dispatchSpy, root } = renderCommentToDelete({
+        commentId,
+        considerDelete: true,
+      });
+
+      const cancelButton = root.find(`.${styles.cancelButton}`);
+      expect(cancelButton).toHaveLength(1);
+
+      cancelButton.simulate('click');
+
+      expect(dispatchSpy).toHaveBeenCalledWith(
+        actions.abortDeleteComment({ commentId }),
+      );
+    });
+
+    it('provides an actual delete button', () => {
+      const addonId = 123;
+      const commentId = 987;
+      const versionId = 432;
+
+      const {
+        _deleteComment,
+        dispatchSpy,
+        fakeThunk,
+        root,
+      } = renderCommentToDelete({
+        addonId,
+        commentId,
+        considerDelete: true,
+        versionId,
+      });
+
+      const deleteButton = root.find(`.${styles.deleteButton}`);
+      expect(deleteButton).toHaveLength(1);
+      expect(deleteButton).toHaveText('Delete, really?');
+      expect(deleteButton).toHaveProp('disabled', false);
+
+      deleteButton.simulate('click');
+
+      expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
+
+      expect(_deleteComment).toHaveBeenCalledWith({
+        addonId,
+        commentId,
+        versionId,
+      });
+    });
+
+    it('disables the delete button when deleting', () => {
+      const { root } = renderCommentToDelete({ deleting: true });
+
+      const deleteButton = root.find(`.${styles.deleteButton}`);
+      expect(deleteButton).toHaveLength(1);
+      expect(deleteButton).toHaveText('Deleting…');
+      expect(deleteButton).toHaveProp('disabled', true);
+
+      expect(root.find(`.${styles.cancelButton}`)).toHaveLength(0);
+    });
+  });
+
+  describe('getInitialCommentOrThrow', () => {
+    it('throws when initialComment is empty', () => {
+      const root = render({ commentId: null });
+      expect(() =>
+        getInstance<CommentBase>(root).getInitialCommentOrThrow(),
+      ).toThrow(/Cannot get initialComment/);
+    });
+
+    it('returns initialComment', () => {
+      const comment = createFakeExternalComment();
+      const { store } = dispatchComment({ comment });
+
+      const root = render({ commentId: comment.id, store });
+
+      expect(getInstance<CommentBase>(root).getInitialCommentOrThrow()).toEqual(
+        createInternalComment(comment),
+      );
     });
   });
 });

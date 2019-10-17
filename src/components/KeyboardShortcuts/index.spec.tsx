@@ -28,6 +28,7 @@ import {
   fakeVersion,
   fakeVersionEntry,
   fakeVersionWithDiff,
+  getInstance,
   shallowUntilTarget,
   spyOn,
 } from '../../test-helpers';
@@ -137,7 +138,7 @@ describe(__filename, () => {
   ) => {
     const root = render(renderProps);
 
-    const { keydownListener } = root.instance() as KeyboardShortcutsBase;
+    const { keydownListener } = getInstance<KeyboardShortcutsBase>(root);
 
     keydownListener(event);
   };
@@ -183,7 +184,7 @@ describe(__filename, () => {
     const _document = createFakeDocument() as Document;
 
     const root = render({ _document });
-    const { keydownListener } = root.instance() as KeyboardShortcutsBase;
+    const { keydownListener } = getInstance<KeyboardShortcutsBase>(root);
 
     expect(_document.addEventListener).toHaveBeenCalledWith(
       'keydown',

@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import {
   createFakeEvent,
   createFakeLogger,
+  getInstance,
   spyOn,
   shallowUntilTarget,
 } from '../../test-helpers';
@@ -64,7 +65,7 @@ describe(__filename, () => {
   it('will not throw an error when simulation is not allowed', () => {
     const root = render({ allowErrorSimulation: false });
 
-    (root.instance() as IndexBase).throwAnError();
+    getInstance<IndexBase>(root).throwAnError();
   });
 
   it('logs a simulated error', () => {
@@ -87,7 +88,7 @@ describe(__filename, () => {
     const _log = createFakeLogger();
     const root = render({ allowErrorSimulation: false, _log });
 
-    (root.instance() as IndexBase).logAnError();
+    getInstance<IndexBase>(root).logAnError();
 
     expect(_log.error).not.toHaveBeenCalled();
   });

@@ -901,9 +901,10 @@ export const dispatchComments = ({
 export const dispatchComment = ({
   /* istanbul ignore next */
   comment = createFakeExternalComment(),
+  store = configureStore(),
   ...params
 } = {}) => {
-  return dispatchComments({ comments: [comment], ...params });
+  return dispatchComments({ comments: [comment], store, ...params });
 };
 
 export const createFakeApiPage = <
@@ -944,3 +945,7 @@ export const setMockFetchResponseJSON = (
     },
   });
 };
+
+export const getInstance = <ComponentType extends React.Component>(
+  root: ShallowWrapper,
+) => root.instance() as ComponentType;

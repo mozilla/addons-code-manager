@@ -16,6 +16,7 @@ import {
   createFakeLocation,
   createFakeRef,
   fakeVersion,
+  getInstance,
   shallowUntilTarget,
   simulateLinterProvider,
   spyOn,
@@ -66,7 +67,7 @@ describe(__filename, () => {
     const root = render(props);
     return {
       root,
-      instance: root.instance() as CodeOverviewBase,
+      instance: getInstance<CodeOverviewBase>(root),
     };
   };
 
