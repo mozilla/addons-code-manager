@@ -23,6 +23,8 @@ const fakeComment = createFakeExternalComment({
 });
 
 const render = ({
+  considerDelete = false,
+  deleting = false,
   fileName = null,
   initialComment,
   line = null,
@@ -30,6 +32,8 @@ const render = ({
   versionId = 2,
   ...moreProps
 }: Partial<CommentProps> & {
+  considerDelete?: boolean;
+  deleting?: boolean;
   initialComment?: ExternalComment;
   store?: Store;
 } = {}) => {
@@ -41,6 +45,13 @@ const render = ({
       commentsActions.setComments({ ...key, comments: [initialComment] }),
     );
     commentId = initialComment.id;
+
+    if (considerDelete) {
+      store.dispatch(commentsActions.considerDeleteComment({ commentId }));
+    }
+    if (deleting) {
+      store.dispatch(commentsActions.beginDeleteComment({ commentId }));
+    }
   }
   const props = {
     addonId: 1,
@@ -95,6 +106,34 @@ storiesOf('Comment', module).addWithChapters('all variants', {
           title: 'viewing a multi-line comment',
           sectionFn: () =>
             render({ initialComment: fakeComment, readOnly: true }),
+        },
+        {
+          title: 'consider deleting a comment',
+          sectionFn: () => {
+            return render({
+              considerDelete: true,
+              initialComment: {
+                ...fakeComment,
+                id: 321,
+                comment: 'This function call is dangerous.',
+              },
+              readOnly: true,
+            });
+          },
+        },
+        {
+          title: 'deleting a comment',
+          sectionFn: () => {
+            return render({
+              deleting: true,
+              initialComment: {
+                ...fakeComment,
+                id: 321,
+                comment: 'This function call is dangerous.',
+              },
+              readOnly: true,
+            });
+          },
         },
       ],
     },

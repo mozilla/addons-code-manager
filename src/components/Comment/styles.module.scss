@@ -19,7 +19,21 @@
   width: 100%;
 }
 
-.comment {
+.commentBody {
   display: flex;
   width: 100%;
+}
+
+.commentControls {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 5px;
+}
+
+.controlButton {
+  margin-right: 10px;
+
+  &:last-child {
+    margin-right: 0;
+  }
 }

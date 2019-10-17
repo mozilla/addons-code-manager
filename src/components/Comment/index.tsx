@@ -9,7 +9,10 @@ import { ConnectedReduxProps } from '../../configureStore';
 import { ApplicationState } from '../../reducers';
 import {
   Comment,
+  actions as commentsActions,
+  deleteComment,
   manageComment,
+  selectComment,
   selectCommentInfo,
 } from '../../reducers/comments';
 import { gettext, sanitizeHTML, nl2br } from '../../utils';
@@ -28,6 +31,7 @@ export type PublicProps = {
 };
 
 export type DefaultProps = {
+  _deleteComment: typeof deleteComment;
   _manageComment: typeof manageComment;
   createTextareaRef?: () => TextareaRef;
 };
@@ -44,6 +48,7 @@ type State = { commentText: string | undefined };
 
 export class CommentBase extends React.Component<Props, State> {
   static defaultProps = {
+    _deleteComment: deleteComment,
     _manageComment: manageComment,
   };
 
@@ -87,10 +92,42 @@ export class CommentBase extends React.Component<Props, State> {
     }
   }
 
+  getInitialCommentOrThrow() {
+    const { initialComment } = this.props;
+    if (!initialComment) {
+      throw new Error('Cannot get initialComment because it is empty');
+    }
+    return initialComment;
+  }
+
   onCommentChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     event.preventDefault();
 
     this.setState({ commentText: event.target.value });
+  };
+
+  onAbortDelete = () => {
+    const { dispatch } = this.props;
+    const initialComment = this.getInitialCommentOrThrow();
+    dispatch(
+      commentsActions.abortDeleteComment({ commentId: initialComment.id }),
+    );
+  };
+
+  onConsiderDelete = () => {
+    const { dispatch } = this.props;
+    const initialComment = this.getInitialCommentOrThrow();
+    dispatch(
+      commentsActions.considerDeleteComment({ commentId: initialComment.id }),
+    );
+  };
+
+  onDelete = () => {
+    const { _deleteComment, addonId, dispatch, versionId } = this.props;
+    const initialComment = this.getInitialCommentOrThrow();
+    dispatch(
+      _deleteComment({ addonId, commentId: initialComment.id, versionId }),
+    );
   };
 
   onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -121,27 +158,65 @@ export class CommentBase extends React.Component<Props, State> {
   };
 
   renderComment() {
-    const { commentId, initialComment } = this.props;
-    if (!initialComment) {
-      throw new Error(
-        `initialComment for commentId=${commentId} cannot be empty when readOnly=true`,
-      );
+    const initialComment = this.getInitialCommentOrThrow();
+
+    let showCancel = false;
+    let deleteIsDisabled = false;
+    let deletePrompt = gettext('Delete');
+    let onDeleteClick = this.onConsiderDelete;
+
+    if (initialComment.considerDelete) {
+      deletePrompt = gettext('Delete, really?');
+      onDeleteClick = this.onDelete;
+      showCancel = true;
+    } else if (initialComment.beginDelete) {
+      deletePrompt = gettext('Deleting…');
+      deleteIsDisabled = true;
     }
+
     return (
       <div className={styles.comment}>
-        <FontAwesomeIcon
-          flip="horizontal"
-          icon={['far', 'comment-alt']}
-          pull="left"
-          size="2x"
-        />
-
-        <div
-          // eslint-disable-next-line react/no-danger
-          dangerouslySetInnerHTML={sanitizeHTML(nl2br(initialComment.content), [
-            'br',
-          ])}
-        />
+        <div className={styles.commentBody}>
+          <FontAwesomeIcon
+            flip="horizontal"
+            icon={['far', 'comment-alt']}
+            pull="left"
+            size="2x"
+          />
+          <div
+            // eslint-disable-next-line react/no-danger
+            dangerouslySetInnerHTML={sanitizeHTML(
+              nl2br(initialComment.content),
+              ['br'],
+            )}
+          />
+        </div>
+        <div className={styles.commentControls}>
+          {showCancel && (
+            <Button
+              className={makeClassName(
+                styles.controlButton,
+                styles.cancelButton,
+              )}
+              onClick={this.onAbortDelete}
+              size="sm"
+              type="button"
+              variant="light"
+            >
+              {gettext('Cancel')}
+            </Button>
+          )}
+          <Button
+            className={makeClassName(styles.controlButton, styles.deleteButton)}
+            disabled={deleteIsDisabled}
+            onClick={onDeleteClick}
+            size="sm"
+            type="button"
+            variant="danger"
+          >
+            {deletePrompt}
+          </Button>
+        </div>
       </div>
     );
   }
@@ -183,7 +258,7 @@ const mapStateToProps = (
 ): PropsFromState => {
   let initialComment;
   if (commentId) {
-    initialComment = state.comments.byId[commentId];
+    initialComment = selectComment({ comments: state.comments, id: commentId });
     if (!initialComment) {
       throw new Error(`No comment was mapped for commentId=${commentId}`);
     }
