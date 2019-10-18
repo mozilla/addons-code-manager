@@ -25,6 +25,11 @@ import {
   actions as versionsActions,
 } from '../../reducers/versions';
 import {
+  findRelativePathWithDiff,
+  getTree,
+  RelativePathPosition,
+} from '../../reducers/fileTree';
+import {
   createCodeLineAnchorGetter,
   getLocalizedString,
   getPathFromQueryString,
@@ -48,6 +53,10 @@ type PropsFromRouter = {
 type PropsFromState = {
   addonId: number;
   compareInfo: CompareInfo | null | undefined;
+  nextCompareInfo: CompareInfo | null | undefined;
+  nextFile: VersionFile | null | undefined;
+  nextFileIsLoading: boolean;
+  nextFilePath: string | undefined;
   entryStatusMap: EntryStatusMap | undefined;
   path: string | undefined;
   version: Version | undefined | null;
@@ -86,6 +95,10 @@ export class CompareBase extends React.Component<Props> {
       dispatch,
       history,
       match,
+      nextCompareInfo,
+      nextFile,
+      nextFileIsLoading,
+      nextFilePath,
       path,
       version,
       versionFile,
@@ -126,18 +139,45 @@ export class CompareBase extends React.Component<Props> {
       return;
     }
 
-    if (version && currentVersionId !== version.id) {
-      dispatch(versionsActions.setCurrentVersionId({ versionId: version.id }));
-    }
+    if (version) {
+      if (currentVersionId !== version.id) {
+        dispatch(
+          versionsActions.setCurrentVersionId({ versionId: version.id }),
+        );
+      }
 
-    if (version && !versionFileIsLoading && versionFile === undefined) {
-      dispatch(
-        _fetchVersionFile({
-          addonId: parseInt(addonId, 10),
-          versionId: version.id,
-          path: version.selectedPath,
-        }),
-      );
+      if (!versionFileIsLoading && versionFile === undefined) {
+        dispatch(
+          _fetchVersionFile({
+            addonId: parseInt(addonId, 10),
+            versionId: version.id,
+            path: version.selectedPath,
+          }),
+        );
+      }
+
+      if (versionFile && nextFilePath) {
+        if (!nextFileIsLoading && nextFile === undefined) {
+          dispatch(
+            _fetchVersionFile({
+              addonId: parseInt(addonId, 10),
+              versionId: version.id,
+              path: nextFilePath,
+            }),
+          );
+        }
+
+        if (nextCompareInfo === undefined) {
+          dispatch(
+            _fetchDiff({
+              addonId: parseInt(addonId, 10),
+              baseVersionId: oldVersionId,
+              headVersionId: newVersionId,
+              path: nextFilePath,
+            }),
+          );
+        }
+      }
     }
   }
 
@@ -271,11 +311,42 @@ export const mapStateToProps = (
     );
   }
 
+  const tree = getTree(state.fileTree, headVersionId);
+
+  const nextFilePath =
+    version && tree && entryStatusMap
+      ? findRelativePathWithDiff({
+          currentPath: version.selectedPath,
+          pathList: tree.pathList,
+          position: RelativePathPosition.next,
+          version,
+          entryStatusMap,
+        })
+      : undefined;
+
+  const nextCompareInfo = nextFilePath
+    ? getCompareInfo(
+        state.versions,
+        addonId,
+        baseVersionId,
+        headVersionId,
+        nextFilePath,
+      )
+    : undefined;
+
   return {
     addonId,
     compareInfo,
     currentVersionId,
     entryStatusMap,
+    nextCompareInfo,
+    nextFile: nextFilePath
+      ? getVersionFile(state.versions, headVersionId, nextFilePath)
+      : undefined,
+    nextFileIsLoading: nextFilePath
+      ? isFileLoading(state.versions, headVersionId, nextFilePath)
+      : false,
+    nextFilePath,
     path,
     version,
     versionFile,
