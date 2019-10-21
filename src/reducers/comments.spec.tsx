@@ -16,6 +16,7 @@ import reducer, {
   manageComment,
   selectComment,
   selectCommentInfo,
+  selectVersionComments,
   selectVersionHasComments,
   stateForVersion,
 } from './comments';
@@ -606,42 +607,48 @@ describe(__filename, () => {
     });
   });
 
-  describe('selectVersionHasComments', () => {
+  describe('selectVersionComments', () => {
     it('returns undefined before any data has loaded', () => {
       expect(
-        selectVersionHasComments({ comments: initialState, versionId: 1 }),
+        selectVersionComments({ comments: initialState, versionId: 1 }),
       ).toEqual(undefined);
     });
 
-    it('returns false if the version has zero comments', () => {
+    it('returns zero comments', () => {
       const state = reducer(
         undefined,
         actions.setComments({ comments: [], ...keyParams }),
       );
 
       expect(
-        selectVersionHasComments({
+        selectVersionComments({
           comments: state,
           versionId: keyParams.versionId,
         }),
-      ).toEqual(false);
+      ).toEqual([]);
     });
 
-    it('returns true if comments have been set', () => {
+    it('returns comments', () => {
+      const comment1 = createFakeExternalComment({ id: 1 });
+      const comment2 = createFakeExternalComment({ id: 2 });
+
       const state = reducer(
         undefined,
         actions.setComments({
-          comments: [createFakeExternalComment()],
+          comments: [comment1, comment2],
           ...keyParams,
         }),
       );
 
       expect(
-        selectVersionHasComments({
+        selectVersionComments({
           comments: state,
           versionId: keyParams.versionId,
         }),
-      ).toEqual(true);
+      ).toEqual([
+        createInternalComment(comment1),
+        createInternalComment(comment2),
+      ]);
     });
 
     it('returns undefined if no comments for this version have been set', () => {
@@ -658,7 +665,7 @@ describe(__filename, () => {
       );
 
       expect(
-        selectVersionHasComments({
+        selectVersionComments({
           comments: state,
           versionId: versionId2,
         }),
@@ -671,70 +678,131 @@ describe(__filename, () => {
       'beginSaveComment',
       'finishComment',
       'setComments',
-    ])('returns false when switching versions via action=%s', (action) => {
-      const oldVersionId = 1;
-      const versionId = 2;
-      let state;
+    ])(
+      'returns zero comments when switching versions via action=%s',
+      (action) => {
+        const oldVersionId = 1;
+        const versionId = 2;
+        let state;
 
-      // Set comments for a previous version.
-      state = reducer(
-        state,
+        // Set comments for a previous version.
+        state = reducer(
+          state,
+          actions.setComments({
+            comments: [createFakeExternalComment()],
+            ...keyParams,
+            versionId: oldVersionId,
+          }),
+        );
+
+        // Perform an action with a new version.
+        switch (action) {
+          case 'abortSaveComment': {
+            state = reducer(
+              state,
+              actions.abortSaveComment({ ...keyParams, versionId }),
+            );
+            break;
+          }
+          case 'beginComment': {
+            state = reducer(
+              state,
+              actions.beginComment({ ...keyParams, versionId }),
+            );
+            break;
+          }
+          case 'beginSaveComment': {
+            state = reducer(
+              state,
+              actions.beginSaveComment({
+                ...keyParams,
+                versionId,
+                pendingCommentText: null,
+              }),
+            );
+            break;
+          }
+          case 'finishComment': {
+            state = reducer(
+              state,
+              actions.finishComment({ ...keyParams, versionId }),
+            );
+            break;
+          }
+          case 'setComments': {
+            // Set zero comments for the current version.
+            state = reducer(
+              state,
+              actions.setComments({ comments: [], ...keyParams, versionId }),
+            );
+            break;
+          }
+          default: {
+            throw new Error(`Unmapped action: ${action}`);
+          }
+        }
+
+        expect(selectVersionComments({ comments: state, versionId })).toEqual(
+          [],
+        );
+      },
+    );
+  });
+
+  describe('selectVersionHasComments', () => {
+    const _selectVersionHasComments = (params = {}) => {
+      return selectVersionHasComments({
+        _selectVersionComments: jest.fn(() => undefined),
+        comments: initialState,
+        versionId: 9944,
+        ...params,
+      });
+    };
+
+    it('calls selectVersionComments', () => {
+      const state = reducer(
+        undefined,
         actions.setComments({
           comments: [createFakeExternalComment()],
           ...keyParams,
-          versionId: oldVersionId,
         }),
       );
 
-      // Perform an action with a new version.
-      switch (action) {
-        case 'abortSaveComment': {
-          state = reducer(
-            state,
-            actions.abortSaveComment({ ...keyParams, versionId }),
-          );
-          break;
-        }
-        case 'beginComment': {
-          state = reducer(
-            state,
-            actions.beginComment({ ...keyParams, versionId }),
-          );
-          break;
-        }
-        case 'beginSaveComment': {
-          state = reducer(
-            state,
-            actions.beginSaveComment({
-              ...keyParams,
-              versionId,
-              pendingCommentText: null,
-            }),
-          );
-          break;
-        }
-        case 'finishComment': {
-          state = reducer(
-            state,
-            actions.finishComment({ ...keyParams, versionId }),
-          );
-          break;
-        }
-        case 'setComments': {
-          // Set zero comments for the current version.
-          state = reducer(
-            state,
-            actions.setComments({ comments: [], ...keyParams, versionId }),
-          );
-          break;
-        }
-        default: {
-          throw new Error(`Unmapped action: ${action}`);
-        }
-      }
+      const versionId = 984;
+      const _selectVersionComments = jest.fn();
 
-      expect(selectVersionHasComments({ comments: state, versionId })).toEqual(
+      _selectVersionHasComments({
+        _selectVersionComments,
+        comments: state,
+        versionId,
+      });
+
+      expect(_selectVersionComments).toHaveBeenCalledWith({
+        comments: state,
+        versionId,
+      });
+    });
+
+    it('handles undefined comments', () => {
+      const _selectVersionComments = jest.fn(() => undefined);
+      expect(_selectVersionHasComments({ _selectVersionComments })).toEqual(
+        undefined,
+      );
+    });
+
+    it('returns false for zero comments', () => {
+      const _selectVersionComments = jest.fn(() => []);
+      expect(_selectVersionHasComments({ _selectVersionComments })).toEqual(
         false,
+      );
+    });
+
+    it('returns true for one or more comment', () => {
+      const _selectVersionComments = jest.fn(() => [
+        createInternalComment(createFakeExternalComment()),
+      ]);
+      expect(_selectVersionHasComments({ _selectVersionComments })).toEqual(
+        true,
       );
     });
   });
@@ -1204,6 +1272,56 @@ describe(__filename, () => {
           props: { content: 'new content' },
         }),
       ).toThrow(/Cannot adjust comment/);
+    });
+  });
+
+  describe('hideFinishReviewOverlay', () => {
+    it('hides the overlay', () => {
+      let state;
+
+      state = reducer(state, actions.showFinishReviewOverlay());
+      expect(state.showFinishReviewOverlay).toEqual(true);
+
+      state = reducer(state, actions.hideFinishReviewOverlay());
+
+      expect(state.showFinishReviewOverlay).toEqual(false);
+    });
+  });
+
+  describe('showFinishReviewOverlay', () => {
+    it('shows the overlay', () => {
+      let state;
+
+      state = reducer(state, actions.hideFinishReviewOverlay());
+      expect(state.showFinishReviewOverlay).toEqual(false);
+
+      state = reducer(state, actions.showFinishReviewOverlay());
+
+      expect(state.showFinishReviewOverlay).toEqual(true);
+    });
+  });
+
+  describe('toggleFinishReviewOverlay', () => {
+    it('shows the overlay when it is hidden', () => {
+      let state;
+
+      state = reducer(state, actions.hideFinishReviewOverlay());
+      expect(state.showFinishReviewOverlay).toEqual(false);
+
+      state = reducer(state, actions.toggleFinishReviewOverlay());
+
+      expect(state.showFinishReviewOverlay).toEqual(true);
+    });
+
+    it('hides the overlay when it is visible', () => {
+      let state;
+
+      state = reducer(state, actions.showFinishReviewOverlay());
+      expect(state.showFinishReviewOverlay).toEqual(true);
+
+      state = reducer(state, actions.toggleFinishReviewOverlay());
+
+      expect(state.showFinishReviewOverlay).toEqual(false);
     });
   });
 });
