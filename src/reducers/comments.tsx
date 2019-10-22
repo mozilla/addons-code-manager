@@ -83,6 +83,7 @@ export type CommentsState = {
   byId: { [id: number]: Comment | undefined };
   forVersionId: undefined | number;
   isLoading: boolean;
+  showFinishReviewOverlay: boolean;
 };
 
 export const initialState: CommentsState = {
@@ -90,6 +91,7 @@ export const initialState: CommentsState = {
   byId: {},
   forVersionId: undefined,
   isLoading: false,
+  showFinishReviewOverlay: false,
 };
 
 export const createEmptyCommentInfo = (): CommentInfo => {
@@ -155,10 +157,13 @@ export const actions = {
   finishComment: createAction('FINISH_COMMENT', (resolve) => {
     return (payload: CommonPayload) => resolve(payload);
   }),
+  hideFinishReviewOverlay: createAction('HIDE_FINISH_REVIEW_OVERLAY'),
   setComments: createAction('SET_COMMENTS', (resolve) => {
     return (payload: { versionId: number; comments: ExternalComment[] }) =>
       resolve(payload);
   }),
+  showFinishReviewOverlay: createAction('SHOW_FINISH_REVIEW_OVERLAY'),
+  toggleFinishReviewOverlay: createAction('TOGGLE_FINISH_REVIEW_OVERLAY'),
   unsetComment: createAction('UNSET_COMMENT', (resolve) => {
     return (payload: { commentId: number }) => resolve(payload);
   }),
@@ -191,17 +196,36 @@ export const selectComment = ({
   return comments.byId[id];
 };
 
-export const selectVersionHasComments = ({
+export const selectVersionComments = ({
   comments,
   versionId,
 }: {
   comments: CommentsState;
   versionId: number;
-}): undefined | boolean => {
+}): Comment[] | undefined => {
   if (comments.forVersionId !== versionId) {
     return undefined;
   }
-  return Object.keys(comments.byId).length > 0;
+  return Object.keys(comments.byId).reduce((all: Comment[], id) => {
+    const comment = selectComment({ comments, id: parseInt(id, 10) });
+    if (comment) {
+      all.push(comment);
+    }
+    return all;
+  }, []);
+};
+
+export const selectVersionHasComments = ({
+  _selectVersionComments = selectVersionComments,
+  comments,
+  versionId,
+}: {
+  _selectVersionComments?: typeof selectVersionComments;
+  comments: CommentsState;
+  versionId: number;
+}): undefined | boolean => {
+  const all = _selectVersionComments({ comments, versionId });
+  return all ? all.length > 0 : undefined;
 };
 
 export const fetchAndLoadComments = ({
@@ -588,6 +612,18 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
         ...state,
         byId,
         byKey,
+      };
+    }
+    case getType(actions.hideFinishReviewOverlay): {
+      return { ...state, showFinishReviewOverlay: false };
+    }
+    case getType(actions.showFinishReviewOverlay): {
+      return { ...state, showFinishReviewOverlay: true };
+    }
+    case getType(actions.toggleFinishReviewOverlay): {
+      return {
+        ...state,
+        showFinishReviewOverlay: !state.showFinishReviewOverlay,
       };
     }
     default:
