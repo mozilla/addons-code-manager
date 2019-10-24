@@ -57,6 +57,16 @@ import ContentShell, {
   PanelAttribs,
 } from './components/FullscreenGrid/ContentShell';
 
+let _uniqueId = 0;
+
+/*
+ * Returns a unique sequential ID.
+ */
+export const nextUniqueId = () => {
+  _uniqueId++;
+  return _uniqueId;
+};
+
 export const fakeVersionEntry: ExternalVersionEntry = Object.freeze({
   depth: 0,
   // This is always the base filename, no subdirectories.
@@ -257,6 +267,7 @@ export const createVersionWithInternalEntries = (
 ): Version => {
   return {
     ...createInternalVersion(fakeVersion),
+    id: nextUniqueId(),
     entries,
   };
 };
@@ -874,7 +885,7 @@ export const createFakeExternalComment = (
   return {
     canned_response: null,
     comment: 'Example comment about some code',
-    id: 1,
+    id: nextUniqueId(),
     lineno: null,
     filename: null,
     user: {

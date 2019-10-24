@@ -2035,6 +2035,11 @@
   resolved "https://registry.yarnpkg.com/@types/debug/-/debug-4.1.5.tgz#b14efa8852b7768d898906613c23f688713e02cd"
   integrity sha512-Q1y515GcOdTHgagaVFhHnIFQ38ygs/kmxdNpvpou+raI9UO3YZcHDngBSYKQklcKlvA7iuQlmIKbzvmxcOE9CQ==
 
+"@types/dedent@^0.7.0":
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/@types/dedent/-/dedent-0.7.0.tgz#155f339ca404e6dd90b9ce46a3f78fd69ca9b050"
+  integrity sha512-EGlKlgMhnLt/cM4DbUSafFdrkeJoC9Mvnj0PUCU7tFmTjMjNRT957kXCx0wYm3JuEq4o4ZsS5vG+NlkM2DMd2A==
+
 "@types/dompurify@0.0.33":
   version "0.0.33"
   resolved "https://registry.yarnpkg.com/@types/dompurify/-/dompurify-0.0.33.tgz#bec490ba5a5b4b31679fb9e5a70e4d2f405516bd"
@@ -5287,6 +5292,11 @@ decompress-response@^3.3.0:
   integrity sha1-gKTdMjdIOEv6JICDYirt7Jgq3/M=
   dependencies:
     mimic-response "^1.0.0"
+
+dedent@^0.7.0:
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/dedent/-/dedent-0.7.0.tgz#2495ddbaf6eb874abb0e1be9df22d2e5a544326c"
+  integrity sha1-JJXduvbrh0q7Dhvp3yLS5aVEMmw=
 
 deep-diff@^0.3.5:
   version "0.3.8"

@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { Store } from 'redux';
 
 import configureStore from '../src/configureStore';
+import { nextUniqueId } from '../src/test-helpers';
 
 export const renderWithStoreAndRouter = (
   element: JSX.Element,
@@ -24,8 +25,6 @@ export const renderWithStoreAndRouter = (
   );
 };
 
-let _uid = 0;
-
 /*
  * Returns a unique UID for a linter message.
  *
@@ -33,8 +32,7 @@ let _uid = 0;
  * have unique UIDs.
  */
 export const newLinterMessageUID = () => {
-  _uid++;
-  return `msg-${_uid}`;
+  return `msg-${nextUniqueId()}`;
 };
 
 /*
