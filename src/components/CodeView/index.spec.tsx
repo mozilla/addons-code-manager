@@ -363,9 +363,11 @@ describe(__filename, () => {
   it('renders a global LinterMessage', () => {
     const uid = 'some-global-message-id';
     const externalMessage = createGlobalExternalMessage({ uid });
+    const key = 'locationKey';
 
     const { root } = renderWithMessages({
       messages: [externalMessage],
+      location: createFakeLocation({ key }),
     });
 
     const globalLinterMessages = root.find(GlobalLinterMessages);
@@ -373,6 +375,7 @@ describe(__filename, () => {
     expect(globalLinterMessages).toHaveProp('messages', [
       expect.objectContaining({ uid }),
     ]);
+    expect(globalLinterMessages.key()).toEqual(key);
   });
 
   it('renders all global LinterMessage components', () => {

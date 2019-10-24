@@ -121,6 +121,7 @@ export class CodeViewBase extends React.Component<Props> {
               ? _scrollToSelectedLine
               : undefined
           }
+          key={location.key}
           messages={selectedMessageMap && selectedMessageMap.global}
         />
 
