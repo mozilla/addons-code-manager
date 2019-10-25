@@ -1,0 +1,16 @@
+@import '../../scss/mixins';
+
+.label,
+.summary {
+  width: 100%;
+}
+
+.label {
+  // This label is for a11y only.
+  @include visually-hidden();
+}
+
+.summary {
+  height: 70vh;
+  padding: 10px;
+}

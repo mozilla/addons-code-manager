@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 import { shallow } from 'enzyme';
 import { compose } from 'redux';
 
-import { shallowUntilTarget } from './test-helpers';
+import { nextUniqueId, shallowUntilTarget } from './test-helpers';
 
 describe(__filename, () => {
   describe('shallowUntilTarget', () => {
@@ -116,6 +116,12 @@ describe(__filename, () => {
       root.setProps({ something: 'else' });
 
       expect(componentDidUpdate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('nextUniqueId', () => {
+    it('returns a unique ID', () => {
+      expect(nextUniqueId()).not.toEqual(nextUniqueId());
     });
   });
 });
