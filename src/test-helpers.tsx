@@ -5,7 +5,7 @@ import pathLib from 'path';
 import * as React from 'react';
 import PropTypes from 'prop-types';
 import { History, Location } from 'history';
-import { ShallowWrapper, shallow } from 'enzyme';
+import { ShallowRendererProps, ShallowWrapper, shallow } from 'enzyme';
 import { Store } from 'redux';
 import log from 'loglevel';
 import { createAction } from 'typesafe-actions';
@@ -537,7 +537,7 @@ export const createContextWithFakeRouter = ({
  */
 type ShallowUntilTargetOptions = {
   maxTries?: number;
-  shallowOptions?: object;
+  shallowOptions?: ShallowRendererProps;
   _shallow?: typeof shallow;
 };
 
@@ -926,6 +926,18 @@ export const dispatchComment = ({
   ...params
 } = {}) => {
   return dispatchComments({ comments: [comment], store, ...params });
+};
+
+export const createStoreWithVersionComments = ({
+  versionId = 1,
+  comments = [createFakeExternalComment()],
+} = {}) => {
+  const version = { ...fakeVersion, id: versionId };
+  const store = createStoreWithVersion({ version, makeCurrent: true });
+
+  dispatchComments({ versionId, store, comments });
+
+  return store;
 };
 
 export const createFakeApiPage = <
