@@ -9,6 +9,7 @@
 .form {
   background-color: $light-gray;
   border: 1px solid darken($light-gray, 10);
+  border-radius: $border-radius;
   padding: $default-padding;
 }
 
@@ -26,8 +27,8 @@
 
 .commentControls {
   display: flex;
-  justify-content: flex-end;
-  padding-top: 5px;
+  justify-content: flex-start;
+  padding-top: 10px;
 }
 
 .controlButton {
