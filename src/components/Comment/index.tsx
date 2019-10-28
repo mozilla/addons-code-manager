@@ -166,7 +166,7 @@ export class CommentBase extends React.Component<Props, State> {
     let onDeleteClick = this.onConsiderDelete;
 
     if (initialComment.considerDelete) {
-      deletePrompt = gettext('Delete, really?');
+      deletePrompt = gettext('Confirm delete');
       onDeleteClick = this.onDelete;
       showCancel = true;
     } else if (initialComment.beginDelete) {
@@ -192,6 +192,16 @@ export class CommentBase extends React.Component<Props, State> {
           />
         </div>
         <div className={styles.commentControls}>
+          <Button
+            className={makeClassName(styles.controlButton, styles.deleteButton)}
+            disabled={deleteIsDisabled}
+            onClick={onDeleteClick}
+            size="sm"
+            type="button"
+            variant="danger"
+          >
+            {deletePrompt}
+          </Button>
           {showCancel && (
             <Button
               className={makeClassName(
@@ -206,16 +216,6 @@ export class CommentBase extends React.Component<Props, State> {
               {gettext('Cancel')}
             </Button>
           )}
-          <Button
-            className={makeClassName(styles.controlButton, styles.deleteButton)}
-            disabled={deleteIsDisabled}
-            onClick={onDeleteClick}
-            size="sm"
-            type="button"
-            variant="danger"
-          >
-            {deletePrompt}
-          </Button>
         </div>
       </div>
     );

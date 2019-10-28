@@ -424,7 +424,7 @@ describe(__filename, () => {
 
       const deleteButton = root.find(`.${styles.deleteButton}`);
       expect(deleteButton).toHaveLength(1);
-      expect(deleteButton).toHaveText('Delete, really?');
+      expect(deleteButton).toHaveText('Confirm delete');
       expect(deleteButton).toHaveProp('disabled', false);
 
       deleteButton.simulate('click');
