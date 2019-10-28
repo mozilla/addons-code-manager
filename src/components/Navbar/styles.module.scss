@@ -1,6 +1,11 @@
 @import '../../scss/variables';
 
+$bg-color: $dark-gray;
+
 .Navbar {
+  // This is controlling the background color so that we can invert the colors
+  // for a comment count (below). This is equivalent to bg="dark" in Navbar.
+  background-color: $bg-color;
   display: flex;
   justify-content: space-between;
   padding: $default-padding;
@@ -13,17 +18,42 @@
   padding: 0;
 }
 
-.addonName {
-  color: $white;
-}
-
-.addonName,
+.info,
 .text,
 .Navbar {
   align-items: center;
   display: flex;
-  flex-align: center;
   font-size: 1rem;
+}
+
+.info {
+  align-items: stretch;
+  color: $white;
+  display: flex;
+}
+
+.infoItem {
+  align-items: center;
+  display: flex;
+
+  &:not(:first-child) {
+    border-left: 1px solid darken($white, 70);
+    padding-left: 10px;
+    margin-left: 10px;
+  }
+}
+
+.commentCount {
+  align-items: center;
+  background-color: $white;
+  border-radius: 2px;
+  color: $bg-color;
+  display: flex;
+  justify-content: center;
+  margin-left: 5px;
+  // Fix the width to minimize jumpiness.
+  min-width: 20px;
+  padding: 0 5px;
 }
 
 .username {

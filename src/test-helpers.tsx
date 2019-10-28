@@ -855,7 +855,7 @@ export const createStoreWithVersion = (
   }: {
     version?: ExternalVersionWithDiff | ExternalVersionWithContent;
     makeCurrent?: boolean;
-  },
+  } = {},
 ) => {
   const store = configureStore();
   store.dispatch(versionsActions.loadVersionInfo({ version }));

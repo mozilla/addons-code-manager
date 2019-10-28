@@ -3,11 +3,14 @@ import React from 'react';
 import { Store } from 'redux';
 
 import configureStore from '../../configureStore';
+import CommentSummaryButton from '../CommentSummaryButton';
 import LoginButton from '../LoginButton';
 import styles from './styles.module.scss';
 import {
+  createFakeExternalComment,
   createFakeThunk,
   createStoreWithVersion,
+  createStoreWithVersionComments,
   fakeUser,
   fakeVersion,
   fakeVersionAddon,
@@ -55,7 +58,7 @@ describe(__filename, () => {
       });
       const root = render({ store });
 
-      expect(root.find(`.${styles.addonName}`)).toHaveText(addonName);
+      expect(root.find(`.${styles.info}`)).toHaveText(addonName);
     });
   });
 
@@ -63,7 +66,7 @@ describe(__filename, () => {
     it('does not render addon name', () => {
       const root = render();
 
-      expect(root.find(`.${styles.addonName}`)).toHaveLength(0);
+      expect(root.find(`.${styles.info}`)).toHaveText('');
     });
   });
 
@@ -122,6 +125,48 @@ describe(__filename, () => {
 
       root.find(`.${styles.logOut}`).simulate('click');
       expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+    });
+  });
+
+  describe('comments', () => {
+    it('does not render a comment nav for undefined comments', () => {
+      const root = render();
+
+      expect(root.find(`.${styles.commentCount}`)).toHaveLength(0);
+      expect(root.find(CommentSummaryButton)).toHaveLength(0);
+    });
+
+    it('does not render a comment nav for zero comments', () => {
+      const root = render({
+        store: createStoreWithVersionComments({ comments: [] }),
+      });
+
+      expect(root.find(`.${styles.commentCount}`)).toHaveLength(0);
+      expect(root.find(CommentSummaryButton)).toHaveLength(0);
+    });
+
+    it('renders a comment count', () => {
+      const comments = [
+        createFakeExternalComment({ comment: 'first' }),
+        createFakeExternalComment({ comment: 'second' }),
+      ];
+      const root = render({
+        store: createStoreWithVersionComments({ comments }),
+      });
+
+      const count = root.find(`.${styles.commentCount}`);
+      expect(count).toHaveLength(1);
+      expect(count).toHaveText(String(comments.length));
+    });
+
+    it('renders CommentSummaryButton', () => {
+      const root = render({
+        store: createStoreWithVersionComments({
+          comments: [createFakeExternalComment()],
+        }),
+      });
+
+      expect(root.find(CommentSummaryButton)).toHaveLength(1);
     });
   });
 });
