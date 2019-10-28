@@ -116,8 +116,6 @@ export class CommentSummaryButtonBase extends React.Component<Props, State> {
       <>
         <Button
           onClick={() => {
-            // TODO: rename this to toggleSummaryOverlay()
-            // https://github.com/mozilla/addons-code-manager/issues/1166
             dispatch(commentsActions.toggleSummaryOverlay());
           }}
           // This type has a conflicting definition. See:
