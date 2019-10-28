@@ -88,7 +88,7 @@ describe(__filename, () => {
     button.simulate('click');
 
     expect(dispatchSpy).toHaveBeenCalledWith(
-      commentsActions.toggleFinishReviewOverlay(),
+      commentsActions.toggleSummaryOverlay(),
     );
   });
 
@@ -132,13 +132,13 @@ describe(__filename, () => {
     onHide();
 
     expect(dispatchSpy).toHaveBeenCalledWith(
-      commentsActions.hideFinishReviewOverlay(),
+      commentsActions.hideSummaryOverlay(),
     );
   });
 
   it('renders a hidden overlay based on state', () => {
     const store = configureStore();
-    store.dispatch(commentsActions.hideFinishReviewOverlay());
+    store.dispatch(commentsActions.hideSummaryOverlay());
     const root = render({ store });
 
     const overlay = root.find(Overlay);
@@ -148,7 +148,7 @@ describe(__filename, () => {
 
   it('renders a visible overlay based on state', () => {
     const store = configureStore();
-    store.dispatch(commentsActions.showFinishReviewOverlay());
+    store.dispatch(commentsActions.showSummaryOverlay());
     const root = render({ store });
 
     const overlay = root.find(Overlay);
@@ -190,7 +190,7 @@ describe(__filename, () => {
     summary.find(Button).simulate('click');
 
     expect(dispatchSpy).toHaveBeenCalledWith(
-      commentsActions.hideFinishReviewOverlay(),
+      commentsActions.hideSummaryOverlay(),
     );
   });
 

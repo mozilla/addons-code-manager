@@ -54,7 +54,7 @@ export class CommentSummaryButtonBase extends React.Component<Props, State> {
         <div className={styles.summaryControls}>
           <Button
             onClick={() => {
-              dispatch(commentsActions.hideFinishReviewOverlay());
+              dispatch(commentsActions.hideSummaryOverlay());
             }}
             size="sm"
             variant="primary"
@@ -83,7 +83,7 @@ export class CommentSummaryButtonBase extends React.Component<Props, State> {
     return (
       <Overlay
         onHide={() => {
-          dispatch(commentsActions.hideFinishReviewOverlay());
+          dispatch(commentsActions.hideSummaryOverlay());
         }}
         placement="bottom"
         rootClose
@@ -116,9 +116,7 @@ export class CommentSummaryButtonBase extends React.Component<Props, State> {
       <>
         <Button
           onClick={() => {
-            // TODO: rename this to toggleSummaryOverlay()
-            // https://github.com/mozilla/addons-code-manager/issues/1166
-            dispatch(commentsActions.toggleFinishReviewOverlay());
+            dispatch(commentsActions.toggleSummaryOverlay());
           }}
           // This type has a conflicting definition. See:
           // https://github.com/react-bootstrap/react-bootstrap/issues/4706
@@ -145,7 +143,7 @@ const mapStateToProps = (state: ApplicationState): PropsFromState => {
           versionId: currentVersion.id,
         })
       : undefined,
-    showOverlay: state.comments.showFinishReviewOverlay,
+    showOverlay: state.comments.showSummaryOverlay,
   };
 };
 

@@ -83,7 +83,7 @@ export type CommentsState = {
   byId: { [id: number]: Comment | undefined };
   forVersionId: undefined | number;
   isLoading: boolean;
-  showFinishReviewOverlay: boolean;
+  showSummaryOverlay: boolean;
 };
 
 export const initialState: CommentsState = {
@@ -91,7 +91,7 @@ export const initialState: CommentsState = {
   byId: {},
   forVersionId: undefined,
   isLoading: false,
-  showFinishReviewOverlay: false,
+  showSummaryOverlay: false,
 };
 
 export const createEmptyCommentInfo = (): CommentInfo => {
@@ -157,13 +157,13 @@ export const actions = {
   finishComment: createAction('FINISH_COMMENT', (resolve) => {
     return (payload: CommonPayload) => resolve(payload);
   }),
-  hideFinishReviewOverlay: createAction('HIDE_FINISH_REVIEW_OVERLAY'),
+  hideSummaryOverlay: createAction('HIDE_COMMENTS_SUMMARY_OVERLAY'),
   setComments: createAction('SET_COMMENTS', (resolve) => {
     return (payload: { versionId: number; comments: ExternalComment[] }) =>
       resolve(payload);
   }),
-  showFinishReviewOverlay: createAction('SHOW_FINISH_REVIEW_OVERLAY'),
-  toggleFinishReviewOverlay: createAction('TOGGLE_FINISH_REVIEW_OVERLAY'),
+  showSummaryOverlay: createAction('SHOW_COMMENTS_SUMMARY_OVERLAY'),
+  toggleSummaryOverlay: createAction('TOGGLE_COMMENTS_SUMMARY_OVERLAY'),
   unsetComment: createAction('UNSET_COMMENT', (resolve) => {
     return (payload: { commentId: number }) => resolve(payload);
   }),
@@ -614,16 +614,16 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
         byKey,
       };
     }
-    case getType(actions.hideFinishReviewOverlay): {
-      return { ...state, showFinishReviewOverlay: false };
+    case getType(actions.hideSummaryOverlay): {
+      return { ...state, showSummaryOverlay: false };
     }
-    case getType(actions.showFinishReviewOverlay): {
-      return { ...state, showFinishReviewOverlay: true };
+    case getType(actions.showSummaryOverlay): {
+      return { ...state, showSummaryOverlay: true };
     }
-    case getType(actions.toggleFinishReviewOverlay): {
+    case getType(actions.toggleSummaryOverlay): {
       return {
         ...state,
-        showFinishReviewOverlay: !state.showFinishReviewOverlay,
+        showSummaryOverlay: !state.showSummaryOverlay,
       };
     }
     default:

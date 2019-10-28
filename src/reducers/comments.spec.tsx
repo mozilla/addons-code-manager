@@ -1275,53 +1275,53 @@ describe(__filename, () => {
     });
   });
 
-  describe('hideFinishReviewOverlay', () => {
+  describe('hideSummaryOverlay', () => {
     it('hides the overlay', () => {
       let state;
 
-      state = reducer(state, actions.showFinishReviewOverlay());
-      expect(state.showFinishReviewOverlay).toEqual(true);
+      state = reducer(state, actions.showSummaryOverlay());
+      expect(state.showSummaryOverlay).toEqual(true);
 
-      state = reducer(state, actions.hideFinishReviewOverlay());
+      state = reducer(state, actions.hideSummaryOverlay());
 
-      expect(state.showFinishReviewOverlay).toEqual(false);
+      expect(state.showSummaryOverlay).toEqual(false);
     });
   });
 
-  describe('showFinishReviewOverlay', () => {
+  describe('showSummaryOverlay', () => {
     it('shows the overlay', () => {
       let state;
 
-      state = reducer(state, actions.hideFinishReviewOverlay());
-      expect(state.showFinishReviewOverlay).toEqual(false);
+      state = reducer(state, actions.hideSummaryOverlay());
+      expect(state.showSummaryOverlay).toEqual(false);
 
-      state = reducer(state, actions.showFinishReviewOverlay());
+      state = reducer(state, actions.showSummaryOverlay());
 
-      expect(state.showFinishReviewOverlay).toEqual(true);
+      expect(state.showSummaryOverlay).toEqual(true);
     });
   });
 
-  describe('toggleFinishReviewOverlay', () => {
+  describe('toggleSummaryOverlay', () => {
     it('shows the overlay when it is hidden', () => {
       let state;
 
-      state = reducer(state, actions.hideFinishReviewOverlay());
-      expect(state.showFinishReviewOverlay).toEqual(false);
+      state = reducer(state, actions.hideSummaryOverlay());
+      expect(state.showSummaryOverlay).toEqual(false);
 
-      state = reducer(state, actions.toggleFinishReviewOverlay());
+      state = reducer(state, actions.toggleSummaryOverlay());
 
-      expect(state.showFinishReviewOverlay).toEqual(true);
+      expect(state.showSummaryOverlay).toEqual(true);
     });
 
     it('hides the overlay when it is visible', () => {
       let state;
 
-      state = reducer(state, actions.showFinishReviewOverlay());
-      expect(state.showFinishReviewOverlay).toEqual(true);
+      state = reducer(state, actions.showSummaryOverlay());
+      expect(state.showSummaryOverlay).toEqual(true);
 
-      state = reducer(state, actions.toggleFinishReviewOverlay());
+      state = reducer(state, actions.toggleSummaryOverlay());
 
-      expect(state.showFinishReviewOverlay).toEqual(false);
+      expect(state.showSummaryOverlay).toEqual(false);
     });
   });
 });

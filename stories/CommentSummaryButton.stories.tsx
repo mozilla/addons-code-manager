@@ -16,7 +16,7 @@ import {
 
 const setUpStore = ({ comments = [createFakeExternalComment()] } = {}) => {
   const store = createStoreWithVersionComments({ comments });
-  store.dispatch(commentsActions.showFinishReviewOverlay());
+  store.dispatch(commentsActions.showSummaryOverlay());
 
   return store;
 };
