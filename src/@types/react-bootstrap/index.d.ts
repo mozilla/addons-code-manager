@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Placement, PopoverProps } from 'react-bootstrap';
 
 // This overloads some types defined incorrectly in react-bootstrap.
-// See https://github.com/react-bootstrap/react-bootstrap/issues/4717
+// See https://github.com/mozilla/addons-code-manager/issues/1169
 declare module 'react-bootstrap' {
   export interface OverlayChildrenParams {
     arrowProps:
