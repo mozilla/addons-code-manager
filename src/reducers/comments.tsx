@@ -78,9 +78,14 @@ export type CommentsByKey = {
   [key: string]: CommentInfo;
 };
 
+type CommentsById = { [id: number]: Comment | undefined };
+
+type FilePathsHavingComments = { [path: string]: boolean };
+
 export type CommentsState = {
   byKey: CommentsByKey;
-  byId: { [id: number]: Comment | undefined };
+  byId: CommentsById;
+  filePathsHavingComments: FilePathsHavingComments;
   forVersionId: undefined | number;
   isLoading: boolean;
   showSummaryOverlay: boolean;
@@ -89,6 +94,7 @@ export type CommentsState = {
 export const initialState: CommentsState = {
   byKey: {},
   byId: {},
+  filePathsHavingComments: {},
   forVersionId: undefined,
   isLoading: false,
   showSummaryOverlay: false,
@@ -226,6 +232,22 @@ export const selectVersionHasComments = ({
 }): undefined | boolean => {
   const all = _selectVersionComments({ comments, versionId });
   return all ? all.length > 0 : undefined;
+};
+
+export const selectFilePathHasComments = ({
+  comments,
+  path,
+  versionId,
+}: {
+  comments: CommentsState;
+  path: string;
+  versionId: number;
+}): boolean => {
+  if (comments.forVersionId !== versionId) {
+    return false;
+  }
+
+  return comments.filePathsHavingComments[path] || false;
 };
 
 export const fetchAndLoadComments = ({
@@ -413,6 +435,40 @@ export const adjustComment = ({
   };
 };
 
+export const findAllSubpaths = (path: string): string[] => {
+  const parts = [];
+  const subpaths = [];
+
+  const normPath = path.endsWith('/')
+    ? path.substring(0, path.length - 1)
+    : path;
+
+  for (const part of normPath.split('/')) {
+    parts.push(part);
+    const subpath = parts.join('/');
+    if (subpath) {
+      subpaths.push(subpath);
+    }
+  }
+  return subpaths;
+};
+
+const findFilePathsHavingComments = (byId: CommentsById) => {
+  const map: FilePathsHavingComments = {};
+
+  for (const id of Object.keys(byId)) {
+    const comment = byId[parseInt(id, 10)];
+
+    if (comment && comment.filename) {
+      for (const part of findAllSubpaths(comment.filename)) {
+        map[part] = true;
+      }
+    }
+  }
+
+  return map;
+};
+
 const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
   state = initialState,
   action,
@@ -531,6 +587,7 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
         ...newState,
         byKey,
         byId,
+        filePathsHavingComments: findFilePathsHavingComments(byId),
         isLoading: false,
       };
     }
@@ -612,6 +669,7 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
         ...state,
         byId,
         byKey,
+        filePathsHavingComments: findFilePathsHavingComments(byId),
       };
     }
     case getType(actions.hideSummaryOverlay): {
