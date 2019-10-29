@@ -121,6 +121,10 @@ export class CodeViewBase extends React.Component<Props> {
               ? _scrollToSelectedLine
               : undefined
           }
+          // This forces a remount for all location changes which
+          // keeps the containerRef in sync with location.
+          // See https://github.com/mozilla/addons-code-manager/issues/905
+          key={location.key}
           messages={selectedMessageMap && selectedMessageMap.global}
         />
 
