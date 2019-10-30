@@ -450,13 +450,15 @@ describe(__filename, () => {
 
     const root = renderWithComments({
       pathsWithComments: [path],
-      ...getTreefoldRenderProps({ id: path }),
+      ...getTreefoldRenderProps({ id: path, isFolder: false }),
     });
 
     const icons = root.find(`.${styles.nodeIcons}`).find(FontAwesomeIcon);
     expect(icons).toHaveLength(1);
 
-    expect(icons.at(0).key()).toEqual('comments-icon');
+    const icon = icons.at(0);
+    expect(icon.key()).toEqual('comments-icon');
+    expect(icon).toHaveProp('title', 'This file has comments');
   });
 
   it('adds a comment icon for a directory', () => {
@@ -465,13 +467,18 @@ describe(__filename, () => {
 
     const root = renderWithComments({
       pathsWithComments: [path],
-      ...getTreefoldRenderProps({ id: dir }),
+      ...getTreefoldRenderProps({ id: dir, isFolder: true }),
     });
 
     const icons = root.find(`.${styles.nodeIcons}`).find(FontAwesomeIcon);
     expect(icons).toHaveLength(1);
 
-    expect(icons.at(0).key()).toEqual('comments-icon');
+    const icon = icons.at(0);
+    expect(icon.key()).toEqual('comments-icon');
+    expect(icon).toHaveProp(
+      'title',
+      'This directory contains files with comments',
+    );
   });
 
   it('adds a linter and comment icon for a file', () => {

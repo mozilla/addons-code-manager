@@ -225,7 +225,11 @@ export class FileTreeNodeBase<TreeNodeType> extends React.Component<Props> {
           flip="horizontal"
           icon={['fas', 'comment-alt']}
           size="1x"
-          title={gettext('This file has comments')}
+          title={
+            isFolder
+              ? gettext('This directory contains files with comments')
+              : gettext('This file has comments')
+          }
         />,
       );
     }
