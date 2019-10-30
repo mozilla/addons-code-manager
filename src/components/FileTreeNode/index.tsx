@@ -10,6 +10,7 @@ import { ConnectedReduxProps } from '../../configureStore';
 import { gettext } from '../../utils';
 import { TreefoldRenderPropsForFileTree } from '../FileTree';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
+import { selectFilePathHasComments } from '../../reducers/comments';
 import {
   EntryStatusMap,
   Version,
@@ -38,6 +39,7 @@ export type PublicProps = TreefoldRenderPropsForFileTree & {
 
 type PropsFromState = {
   entryStatusMap: EntryStatusMap;
+  hasComments: boolean;
   version: Version;
 };
 
@@ -177,6 +179,7 @@ export class FileTreeNodeBase<TreeNodeType> extends React.Component<Props> {
 
   renderWithLinterInfo = ({ messageMap }: LinterProviderInfo) => {
     const {
+      hasComments,
       getToggleProps,
       hasChildNodes,
       isExpanded,
@@ -192,7 +195,7 @@ export class FileTreeNodeBase<TreeNodeType> extends React.Component<Props> {
       messageMap &&
       Object.keys(messageMap.byPath).some((path) => path.startsWith(node.id));
 
-    let nodeIcons = null;
+    const nodeIcons = [];
     let linterType = null;
     if (messageMap && hasLinterMessages) {
       let title;
@@ -204,10 +207,30 @@ export class FileTreeNodeBase<TreeNodeType> extends React.Component<Props> {
         title = getTitleForType(linterType, isFolder);
       }
 
-      nodeIcons = (
-        <span className={styles.nodeIcons}>
-          <FontAwesomeIcon icon={getIconForType(linterType)} title={title} />
-        </span>
+      nodeIcons.push(
+        <FontAwesomeIcon
+          fixedWidth
+          key="linter-icon"
+          icon={getIconForType(linterType)}
+          title={title}
+        />,
+      );
+    }
+
+    if (hasComments) {
+      nodeIcons.push(
+        <FontAwesomeIcon
+          fixedWidth
+          key="comments-icon"
+          flip="horizontal"
+          icon={['fas', 'comment-alt']}
+          size="1x"
+          title={
+            isFolder
+              ? gettext('This directory contains files with comments')
+              : gettext('This file has comments')
+          }
+        />,
       );
     }
 
@@ -267,15 +290,20 @@ export class FileTreeNodeBase<TreeNodeType> extends React.Component<Props> {
           >
             <span className={styles.folderAndFileIcons}>
               {isFolder ? (
-                <FontAwesomeIcon icon={isExpanded ? 'folder-open' : 'folder'} />
+                <FontAwesomeIcon
+                  fixedWidth
+                  icon={isExpanded ? 'folder-open' : 'folder'}
+                />
               ) : (
-                <FontAwesomeIcon icon="file" />
+                <FontAwesomeIcon fixedWidth icon="file" />
               )}
             </span>
             <span title={nodeTitle} className={styles.nodeName}>
               {node.name}
             </span>
-            {nodeIcons}
+            {nodeIcons.length > 0 ? (
+              <span className={styles.nodeIcons}>{nodeIcons}</span>
+            ) : null}
           </span>
         </ListGroup.Item>
 
@@ -313,7 +341,7 @@ const mapStateToProps = (
   state: ApplicationState,
   ownProps: PublicProps,
 ): PropsFromState => {
-  const { versionId, comparedToVersionId } = ownProps;
+  const { node, versionId, comparedToVersionId } = ownProps;
   const { versions } = state;
   const version = getVersionInfo(versions, versionId);
   const entryStatusMap =
@@ -329,7 +357,15 @@ const mapStateToProps = (
     throw new Error(`No version exists in state for version ID ${versionId}`);
   }
 
-  return { entryStatusMap, version };
+  return {
+    entryStatusMap,
+    hasComments: selectFilePathHasComments({
+      comments: state.comments,
+      path: node.id,
+      versionId,
+    }),
+    version,
+  };
 };
 
 export default connect(mapStateToProps)(FileTreeNodeBase);

@@ -1,34 +1,38 @@
 /* eslint @typescript-eslint/camelcase: 0 */
 import React from 'react';
+import { Store } from 'redux';
 import { storiesOf } from '@storybook/react';
 
 import FileTree, {
   PublicProps as FileTreeProps,
 } from '../src/components/FileTree';
-import { VersionEntryType } from '../src/reducers/versions';
+import {
+  VersionEntryType,
+  actions as versionsActions,
+} from '../src/reducers/versions';
 import {
   ExternalLinterMessage,
   actions as linterActions,
 } from '../src/reducers/linter';
 import {
+  createFakeExternalComment,
   createStoreWithVersion,
   createFakeExternalLinterResult,
+  dispatchComments,
   fakeExternalLinterMessage,
   fakeVersion,
   fakeVersionEntry,
 } from '../src/test-helpers';
 import { renderWithStoreAndRouter } from './utils';
 
-const versionId = 456;
-
 const fakeDirectoryEntry = {
   ...fakeVersionEntry,
   mime_category: 'directory' as VersionEntryType,
 };
 
-const version = {
+const defaultVersion = {
   ...fakeVersion,
-  id: versionId,
+  id: 456,
   file: {
     ...fakeVersion.file,
     entries: {
@@ -151,11 +155,16 @@ const onSelectFile = (path: string) => {
   alert(`Selected file: ${path}`);
 };
 
-const render = ({ ...moreProps }: Partial<FileTreeProps> = {}) => {
-  const store = createStoreWithVersion({ version });
+const render = ({
+  version = defaultVersion,
+  store = createStoreWithVersion({ version }),
+  ...moreProps
+}: { store?: Store; version?: typeof defaultVersion } & Partial<
+  FileTreeProps
+> = {}) => {
   store.dispatch(
     linterActions.loadLinterResult({
-      versionId,
+      versionId: version.id,
       result: createFakeExternalLinterResult({ messages }),
     }),
   );
@@ -173,4 +182,30 @@ storiesOf('FileTree', module)
   .add('fluid width', () => render())
   .add('small width', () => (
     <div className="FileTreeStory-smallWidth"> {render()}</div>
-  ));
+  ))
+  .add('files with comments', () => {
+    const version = defaultVersion;
+    const store = createStoreWithVersion({ version });
+    store.dispatch(versionsActions.expandTree({ versionId: version.id }));
+    dispatchComments({
+      store,
+      versionId: version.id,
+      comments: [
+        createFakeExternalComment({
+          filename: version.file.entries['manifest.json'].path,
+        }),
+        createFakeExternalComment({
+          filename:
+            version.file.entries['jquery-ui/js/jquery-1.7.1.min.js'].path,
+        }),
+        createFakeExternalComment({
+          filename:
+            version.file.entries['background-scripts/libs/jquery.min.js'].path,
+        }),
+        createFakeExternalComment({
+          filename: version.file.entries['lib/compat.js'].path,
+        }),
+      ],
+    });
+    return <div className="FileTreeStory-halfWidth">{render({ store })}</div>;
+  });

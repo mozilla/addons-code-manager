@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import configureStore from '../../configureStore';
 import { TreefoldRenderPropsForFileTree } from '../FileTree';
+import { actions as commentsActions } from '../../reducers/comments';
 import {
   ExternalLinterMessage,
   createInternalMessage,
@@ -17,6 +18,7 @@ import {
 } from '../../reducers/versions';
 import {
   createExternalVersionWithEntries,
+  createFakeExternalComment,
   createFakeExternalLinterResult,
   createFakeRef,
   createStoreWithVersion,
@@ -169,6 +171,46 @@ describe(__filename, () => {
       versionsActions.loadEntryStatusMap({
         version: externalVersion,
         comparedToVersionId,
+      }),
+    );
+
+    return renderWithLinterProvider({
+      ...renderProps,
+      store,
+      versionId,
+      comparedToVersionId,
+    });
+  };
+
+  const renderWithComments = ({
+    pathsWithComments = ['any-file.js'],
+    ...renderProps
+  }: {
+    pathsWithComments?: string[];
+  } & RenderWithLinterProviderParams = {}) => {
+    const versionId = 987;
+    const comparedToVersionId = null;
+
+    const version = createExternalVersionWithEntries(
+      pathsWithComments.map((p) => {
+        return { path: p };
+      }),
+      {
+        id: versionId,
+      },
+    );
+    const store = createStoreWithVersion({ version });
+
+    store.dispatch(
+      versionsActions.loadEntryStatusMap({ version, comparedToVersionId }),
+    );
+
+    store.dispatch(
+      commentsActions.setComments({
+        versionId: version.id,
+        comments: pathsWithComments.map((p) =>
+          createFakeExternalComment({ filename: p }),
+        ),
       }),
     );
 
@@ -401,6 +443,64 @@ describe(__filename, () => {
     expect(root.find(`.${styles.nodeItem}`)).not.toHaveClassName(
       styles.wasDeleted,
     );
+  });
+
+  it('adds a comment icon for a file', () => {
+    const path = 'scripts/background.js';
+
+    const root = renderWithComments({
+      pathsWithComments: [path],
+      ...getTreefoldRenderProps({ id: path, isFolder: false }),
+    });
+
+    const icons = root.find(`.${styles.nodeIcons}`).find(FontAwesomeIcon);
+    expect(icons).toHaveLength(1);
+
+    const icon = icons.at(0);
+    expect(icon.key()).toEqual('comments-icon');
+    expect(icon).toHaveProp('title', 'This file has comments');
+  });
+
+  it('adds a comment icon for a directory', () => {
+    const dir = 'scripts';
+    const path = `${dir}/background.js`;
+
+    const root = renderWithComments({
+      pathsWithComments: [path],
+      ...getTreefoldRenderProps({ id: dir, isFolder: true }),
+    });
+
+    const icons = root.find(`.${styles.nodeIcons}`).find(FontAwesomeIcon);
+    expect(icons).toHaveLength(1);
+
+    const icon = icons.at(0);
+    expect(icon.key()).toEqual('comments-icon');
+    expect(icon).toHaveProp(
+      'title',
+      'This directory contains files with comments',
+    );
+  });
+
+  it('adds a linter and comment icon for a file', () => {
+    const path = 'scripts/background.js';
+
+    const root = renderWithComments({
+      messageMap: _getMessageMap([
+        {
+          ...fakeExternalLinterMessage,
+          file: path,
+          type: 'error',
+        },
+      ]),
+      pathsWithComments: [path],
+      ...getTreefoldRenderProps({ id: path }),
+    });
+
+    const icons = root.find(`.${styles.nodeIcons}`).find(FontAwesomeIcon);
+    expect(icons).toHaveLength(2);
+
+    expect(icons.at(0).key()).toEqual('linter-icon');
+    expect(icons.at(1).key()).toEqual('comments-icon');
   });
 
   it('adds a title to the node name', () => {
