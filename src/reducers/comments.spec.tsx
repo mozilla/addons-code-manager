@@ -12,10 +12,12 @@ import reducer, {
   createInternalComment,
   deleteComment,
   fetchAndLoadComments,
+  findAllSubpaths,
   initialState,
   manageComment,
   selectComment,
   selectCommentInfo,
+  selectFilePathHasComments,
   selectVersionComments,
   selectVersionHasComments,
   stateForVersion,
@@ -1322,6 +1324,260 @@ describe(__filename, () => {
       state = reducer(state, actions.toggleSummaryOverlay());
 
       expect(state.showSummaryOverlay).toEqual(false);
+    });
+  });
+
+  describe('selectFilePathHasComments', () => {
+    const createCommentsStateForPath = ({
+      commentId = 1234,
+      path = 'any-file.js',
+      versionId = 23,
+    } = {}) => {
+      const comments = reducer(
+        undefined,
+        actions.setComments({
+          versionId,
+          comments: [
+            createFakeExternalComment({ id: commentId, filename: path }),
+          ],
+        }),
+      );
+
+      return { comments, path, versionId };
+    };
+
+    const _selectFilePathHasComments = ({
+      comments = initialState,
+      path = 'src',
+      versionId = 1,
+    } = {}) => {
+      return selectFilePathHasComments({ comments, path, versionId });
+    };
+
+    it('returns false for zero comments', () => {
+      expect(_selectFilePathHasComments({ comments: initialState })).toEqual(
+        false,
+      );
+    });
+
+    it('returns false for the wrong version', () => {
+      const { comments, path, versionId } = createCommentsStateForPath();
+
+      expect(
+        _selectFilePathHasComments({
+          comments,
+          path,
+          versionId: versionId + 1,
+        }),
+      ).toEqual(false);
+    });
+
+    it('returns false for the wrong file', () => {
+      const path = 'manifest.json';
+      const { comments, versionId } = createCommentsStateForPath({ path });
+
+      expect(
+        _selectFilePathHasComments({
+          comments,
+          path: 'not-manifest.json',
+          versionId,
+        }),
+      ).toEqual(false);
+    });
+
+    it('returns false for the wrong directory', () => {
+      const path = 'lib/manifest.json';
+      const { comments, versionId } = createCommentsStateForPath({ path });
+
+      expect(
+        _selectFilePathHasComments({
+          comments,
+          path: 'not-lib',
+          versionId,
+        }),
+      ).toEqual(false);
+    });
+
+    it('returns false for a partial directory prefix', () => {
+      const prefix = 'lib';
+      const path = `${prefix}-alt/manifest.json`;
+      const { comments, versionId } = createCommentsStateForPath({ path });
+
+      expect(
+        _selectFilePathHasComments({
+          comments,
+          path: prefix,
+          versionId,
+        }),
+      ).toEqual(false);
+    });
+
+    it('returns true for a file having comments', () => {
+      const path = 'manifest.json';
+      const { comments, versionId } = createCommentsStateForPath({ path });
+
+      expect(
+        _selectFilePathHasComments({
+          comments,
+          path,
+          versionId,
+        }),
+      ).toEqual(true);
+    });
+
+    it('returns true for a directory having comments', () => {
+      const dir = 'lib';
+      const path = `${dir}/manifest.json`;
+      const { comments, versionId } = createCommentsStateForPath({ path });
+
+      expect(
+        _selectFilePathHasComments({ comments, path: dir, versionId }),
+      ).toEqual(true);
+    });
+
+    const someLongPath = 'lib/other/place/background-script.js';
+
+    it.each(findAllSubpaths(someLongPath))(
+      'returns true for subpath "%s"',
+      (path) => {
+        const { comments, versionId } = createCommentsStateForPath({
+          path: someLongPath,
+        });
+
+        expect(
+          _selectFilePathHasComments({ comments, path, versionId }),
+        ).toEqual(true);
+      },
+    );
+
+    it('returns false for a file after deleting its comment', () => {
+      const commentId = 9876;
+      const {
+        comments: initialComments,
+        path,
+        versionId,
+      } = createCommentsStateForPath({ commentId });
+
+      const comments = reducer(
+        initialComments,
+        actions.unsetComment({ commentId }),
+      );
+
+      expect(_selectFilePathHasComments({ comments, path, versionId })).toEqual(
+        false,
+      );
+    });
+
+    it('returns false for a directory after deleting its comment', () => {
+      const dir = 'lib';
+      const path = `${dir}/manifest.json`;
+      const commentId = 9876;
+
+      const {
+        comments: initialComments,
+        versionId,
+      } = createCommentsStateForPath({ commentId, path });
+
+      const comments = reducer(
+        initialComments,
+        actions.unsetComment({ commentId }),
+      );
+
+      expect(
+        _selectFilePathHasComments({ comments, path: dir, versionId }),
+      ).toEqual(false);
+    });
+
+    it('returns true for a directory after deleting only one file comment', () => {
+      const versionId = 1;
+      const dir = 'lib';
+
+      let comments = initialState;
+
+      const _setComment = (comment: Partial<ExternalComment>) => {
+        return reducer(
+          comments,
+          actions.setComments({
+            versionId,
+            comments: [createFakeExternalComment(comment)],
+          }),
+        );
+      };
+
+      // Comment on a file in the directory.
+      comments = _setComment({ id: 1, filename: `${dir}/manifest.json` });
+
+      const commentIdToDelete = 2;
+
+      // Comment on another file in the same directory.
+      comments = _setComment({
+        id: commentIdToDelete,
+        filename: `${dir}/background.js`,
+      });
+
+      // Delete only one comment for a file in the directory.
+      comments = reducer(
+        comments,
+        actions.unsetComment({ commentId: commentIdToDelete }),
+      );
+
+      expect(
+        _selectFilePathHasComments({ comments, path: dir, versionId }),
+      ).toEqual(true);
+    });
+
+    it('ignores non-filename comments', () => {
+      const versionId = 364;
+      const comments = reducer(
+        undefined,
+        actions.setComments({
+          versionId,
+          comments: [
+            createFakeExternalComment({ filename: null, lineno: null }),
+          ],
+        }),
+      );
+
+      expect(
+        _selectFilePathHasComments({
+          comments,
+          path: 'any-file.js',
+          versionId,
+        }),
+      ).toEqual(false);
+    });
+  });
+
+  describe('findAllSubpaths', () => {
+    it('handles a file without directories', () => {
+      const path = 'file.js';
+      expect(findAllSubpaths(path)).toEqual([path]);
+    });
+
+    it('finds all sub paths', () => {
+      expect(findAllSubpaths('path/to/really/nested/file.js')).toEqual([
+        'path',
+        'path/to',
+        'path/to/really',
+        'path/to/really/nested',
+        'path/to/really/nested/file.js',
+      ]);
+    });
+
+    it('preserves leading slash when defined', () => {
+      expect(findAllSubpaths('/absolute/path/to/file.js')).toEqual([
+        '/absolute',
+        '/absolute/path',
+        '/absolute/path/to',
+        '/absolute/path/to/file.js',
+      ]);
+    });
+
+    it('ignores a trailing slash', () => {
+      expect(findAllSubpaths('absolute/path/')).toEqual([
+        'absolute',
+        'absolute/path',
+      ]);
     });
   });
 });
