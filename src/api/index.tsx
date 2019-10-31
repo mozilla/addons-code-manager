@@ -108,7 +108,8 @@ type CallApiParams<BodyDataType extends undefined | {}> = {
   _makeQueryString?: typeof makeQueryString;
   apiState: ApiState;
   bodyData?: BodyDataType;
-  endpoint: string;
+  endpoint?: string | undefined;
+  endpointUrl?: string | undefined;
   includeCredentials?: boolean;
   lang?: string;
   method?: HttpMethod;
@@ -157,6 +158,7 @@ export const callApi = async <
   apiState,
   bodyData,
   endpoint,
+  endpointUrl,
   includeCredentials = false,
   lang = process.env.REACT_APP_DEFAULT_API_LANG,
   method = HttpMethod.GET,
@@ -165,14 +167,6 @@ export const callApi = async <
 }: CallApiParams<T['requestData']>): Promise<
   CallApiResponse<T['successfulResponse']>
 > => {
-  let path = endpoint;
-  if (!path.startsWith('/')) {
-    path = `/${path}`;
-  }
-  if (!path.endsWith('/')) {
-    path = `${path}/`;
-  }
-
   const headers: Headers = {};
   if (apiState.authToken) {
     headers.Authorization = `Bearer ${apiState.authToken}`;
@@ -184,17 +178,36 @@ export const callApi = async <
     body = JSON.stringify(bodyData);
   }
 
-  type QueryWithLang = {
-    [key: string]: string;
-  };
+  if (endpointUrl && endpoint) {
+    throw new Error('endpoint and endpointUrl cannot both be defined at once');
+  }
 
-  // Add the lang parameter to the query string.
-  const queryWithLang: QueryWithLang = lang ? { ...query, lang } : query;
+  let path;
+  let url;
 
-  path = `${path}${_makeQueryString(queryWithLang)}`;
+  if (endpointUrl) {
+    url = endpointUrl;
+  } else if (endpoint) {
+    path = endpoint;
+    if (!path.startsWith('/')) {
+      path = `/${path}`;
+    }
+    if (!path.endsWith('/')) {
+      path = `${path}/`;
+    }
+
+    // Add the lang parameter to the query string.
+    const queryWithLang: Record<string, string> = lang
+      ? { ...query, lang }
+      : query;
+
+    path = `${path}${_makeQueryString(queryWithLang)}`;
+  } else {
+    throw new Error('Either endpoint or endpointUrl must be defined');
+  }
 
   try {
-    const response = await fetch(makeApiURL({ path, version }), {
+    const response = await fetch(makeApiURL({ path, url, version }), {
       body,
       credentials: includeCredentials ? 'include' : undefined,
       headers,
@@ -229,6 +242,64 @@ export type PaginatedResponse<ResultsType> = {
   page_size: number;
   previous: string | null;
   results: ResultsType;
+};
+
+export type FetchAllPagesReturnType<ResultsType> =
+  | PaginatedResponse<ResultsType[]>
+  | ErrorResponseType;
+
+export type FetchAllPagesOptions = {
+  maxAllowedPages?: number;
+};
+
+/*
+ * This repeatedly fetches the URL at response.next until there are no
+ * pages left then returns a PaginatedResponse with all accumulated
+ * results.
+ *
+ * Only use this if you know for sure the page size will be small!
+ */
+export const fetchAllPages = async <ResultsType,>(
+  getNextResponse: (
+    nextUrl: PaginatedResponse<ResultsType[]>['next'],
+  ) => Promise<FetchAllPagesReturnType<ResultsType>>,
+  { maxAllowedPages = 100 } = {},
+): Promise<FetchAllPagesReturnType<ResultsType>> => {
+  let results: ResultsType[] = [];
+  let nextUrl = null;
+
+  for (let page = 1; page <= maxAllowedPages; page++) {
+    const response: FetchAllPagesReturnType<
+      ResultsType
+    > = await getNextResponse(nextUrl);
+
+    if (isErrorResponse(response)) {
+      return response;
+    }
+
+    results = results.concat(response.results);
+
+    if (response.next) {
+      nextUrl = response.next;
+    } else {
+      return {
+        count: results.length,
+        next: null,
+        page_count: 1,
+        page_size: results.length,
+        previous: null,
+        results,
+      };
+    }
+  }
+
+  // This probably means there is an infinite loop.
+  // Possibilities:
+  // - The callback isn't advancing pages correctly
+  // - The API is responding with something unexpected.
+  throw new Error(
+    `Fetched too many pages (maxAllowedPages=${maxAllowedPages})`,
+  );
 };
 
 type GetVersionParams = {
@@ -364,23 +435,49 @@ export const createOrUpdateComment = async ({
   });
 };
 
-export type GetCommentsResponse = PaginatedResponse<ExternalComment[]>;
+type GetCommentsResultsItem = ExternalComment;
+
+export type GetCommentsResponse = PaginatedResponse<GetCommentsResultsItem[]>;
+
+export type GetCommentsParams = {
+  _callApi?: typeof callApi;
+  addonId: number;
+  apiState: ApiState;
+  endpointUrl?: GetCommentsResponse['next'];
+  versionId: number;
+};
 
 export const getComments = async ({
   _callApi = callApi,
   addonId,
   apiState,
+  endpointUrl,
   versionId,
-}: {
-  _callApi?: typeof callApi;
-  addonId: number;
-  apiState: ApiState;
-  versionId: number;
-}) => {
+}: GetCommentsParams) => {
+  let endpoint;
+
+  if (!endpointUrl) {
+    endpoint = `reviewers/addon/${addonId}/versions/${versionId}/draft_comments`;
+  }
+
   return _callApi<ResponseOnly<GetCommentsResponse>>({
     apiState,
-    endpoint: `reviewers/addon/${addonId}/versions/${versionId}/draft_comments`,
+    endpointUrl: endpointUrl || undefined,
+    endpoint,
     method: HttpMethod.GET,
+  });
+};
+
+export const getAllComments = async ({
+  _fetchAllPages = fetchAllPages,
+  _getComments = getComments,
+  ...params
+}: {
+  _fetchAllPages?: typeof fetchAllPages;
+  _getComments?: typeof getComments;
+} & Omit<GetCommentsParams, 'endpointUrl'>) => {
+  return _fetchAllPages<GetCommentsResultsItem>((nextUrl) => {
+    return _getComments({ ...params, endpointUrl: nextUrl });
   });
 };
 

@@ -872,11 +872,13 @@ describe(__filename, () => {
 
   describe('fetchAndLoadComments', () => {
     const _fetchAndLoadComments = ({
-      _getComments = jest.fn().mockResolvedValue(createFakeCommentsResponse()),
+      _getAllComments = jest
+        .fn()
+        .mockResolvedValue(createFakeCommentsResponse()),
       addonId = 1,
       versionId = 2,
     }) => {
-      return fetchAndLoadComments({ _getComments, addonId, versionId });
+      return fetchAndLoadComments({ _getAllComments, addonId, versionId });
     };
 
     it('dispatches beginFetchVersionComments', async () => {
@@ -910,11 +912,12 @@ describe(__filename, () => {
 
     it('handles API errors', async () => {
       const error = new Error('API Error');
-      const _getComments = jest.fn().mockResolvedValue({ error });
+      const _getAllComments = jest.fn().mockResolvedValue({ error });
       const versionId = 1;
 
       const { dispatch, thunk } = thunkTester({
-        createThunk: () => _fetchAndLoadComments({ _getComments, versionId }),
+        createThunk: () =>
+          _fetchAndLoadComments({ _getAllComments, versionId }),
       });
 
       await thunk();
@@ -926,7 +929,7 @@ describe(__filename, () => {
     });
 
     it('fetches version comments', async () => {
-      const _getComments = jest
+      const _getAllComments = jest
         .fn()
         .mockResolvedValue(createFakeCommentsResponse());
       const store = configureStore();
@@ -935,13 +938,13 @@ describe(__filename, () => {
 
       const { thunk } = thunkTester({
         createThunk: () =>
-          _fetchAndLoadComments({ _getComments, addonId, versionId }),
+          _fetchAndLoadComments({ _getAllComments, addonId, versionId }),
         store,
       });
 
       await thunk();
 
-      expect(_getComments).toHaveBeenCalledWith({
+      expect(_getAllComments).toHaveBeenCalledWith({
         addonId,
         apiState: store.getState().api,
         versionId,
@@ -952,12 +955,13 @@ describe(__filename, () => {
       const versionId = 1;
       const comments = [1, 2, 3].map((id) => createFakeExternalComment({ id }));
 
-      const _getComments = jest
+      const _getAllComments = jest
         .fn()
         .mockResolvedValue(createFakeCommentsResponse(comments));
 
       const { dispatch, thunk } = thunkTester({
-        createThunk: () => _fetchAndLoadComments({ _getComments, versionId }),
+        createThunk: () =>
+          _fetchAndLoadComments({ _getAllComments, versionId }),
       });
 
       await thunk();

@@ -6,16 +6,23 @@ import {
   initialState as defaultApiState,
 } from '../reducers/api';
 import {
+  createFakeApiPage,
   createFakeCommentsResponse,
   createFakeExternalComment,
+  nextUniqueId,
   setMockFetchResponseJSON,
 } from '../test-helpers';
 
 import {
+  FetchAllPagesOptions,
+  GetCommentsParams,
   HttpMethod,
+  PaginatedResponse,
   callApi,
   createOrUpdateComment,
   deleteComment,
+  fetchAllPages,
+  getAllComments,
   getApiHost,
   getComments,
   getCurrentUser,
@@ -69,6 +76,34 @@ describe(__filename, () => {
       );
     });
 
+    it('requires either endpoint or endpointUrl', async () => {
+      await expect(
+        callApiWithDefaultApiState({
+          endpoint: undefined,
+          endpointUrl: undefined,
+        }),
+      ).rejects.toThrow(/endpoint or endpointUrl must be defined/);
+    });
+
+    it('cannot accept both endpoint and endpointUrl', async () => {
+      await expect(
+        callApiWithDefaultApiState({
+          endpoint: 'api-endpoint',
+          endpointUrl: 'https://example.com/api-endpoint',
+        }),
+      ).rejects.toThrow(/endpoint and endpointUrl cannot both be defined/);
+    });
+
+    it('calls the API with an endpoint', async () => {
+      const endpoint = 'some/api/endpoint/';
+      await callApiWithDefaultApiState({ endpoint });
+
+      expect(fetch).toHaveBeenCalledWith(
+        makeApiURL({ path: `${endpoint}?lang=${defaultLang}` }),
+        expect.any(Object),
+      );
+    });
+
     it('adds a trailing slash to the endpoint if there is none', async () => {
       await callApiWithDefaultApiState({ endpoint: '/foo' });
 
@@ -83,6 +118,27 @@ describe(__filename, () => {
 
       expect(fetch).toHaveBeenCalledWith(
         expect.stringMatching('/foo/'),
+        expect.any(Object),
+      );
+    });
+
+    it('calls the API with an endpointUrl', async () => {
+      const endpointUrl = 'https://example.com/some/api/endpoint/';
+      await callApiWithDefaultApiState({ endpoint: undefined, endpointUrl });
+
+      expect(fetch).toHaveBeenCalledWith(
+        makeApiURL({ url: endpointUrl }),
+        expect.any(Object),
+      );
+    });
+
+    it('preserves the endpointUrl query string', async () => {
+      const endpointUrl =
+        'https://example.com/some/api/endpoint/?lang=de&page=35';
+      await callApiWithDefaultApiState({ endpoint: undefined, endpointUrl });
+
+      expect(fetch).toHaveBeenCalledWith(
+        makeApiURL({ url: endpointUrl }),
         expect.any(Object),
       );
     });
@@ -752,16 +808,32 @@ describe(__filename, () => {
   });
 
   describe('getComments', () => {
-    it('can get comments', async () => {
-      const addonId = 1;
+    const _getComments = ({
+      addonId = nextUniqueId(),
+      apiState = defaultApiState,
+      versionId = nextUniqueId(),
+      _callApi = jest.fn(),
+      ...params
+    }: Partial<GetCommentsParams> = {}) => {
+      return getComments({
+        _callApi,
+        addonId,
+        apiState,
+        versionId,
+        ...params,
+      });
+    };
+
+    it('can get comments with the default endpoint', async () => {
+      const addonId = nextUniqueId();
       const apiState = defaultApiState;
-      const versionId = 2;
+      const versionId = nextUniqueId();
       const results = [createFakeExternalComment()];
       const _callApi = jest
         .fn()
         .mockResolvedValue(createFakeCommentsResponse(results));
 
-      const response = await getComments({
+      const response = await _getComments({
         _callApi,
         addonId,
         apiState,
@@ -773,7 +845,55 @@ describe(__filename, () => {
       expect(_callApi).toHaveBeenCalledWith({
         apiState,
         endpoint: `reviewers/addon/${addonId}/versions/${versionId}/draft_comments`,
+        endpointUrl: undefined,
         method: HttpMethod.GET,
+      });
+    });
+
+    it('can get comments with an endpointUrl', async () => {
+      const endpointUrl = 'https://example.com/endpoint/?page=2';
+      const _callApi = jest
+        .fn()
+        .mockResolvedValue(
+          createFakeCommentsResponse([createFakeExternalComment()]),
+        );
+
+      await _getComments({ _callApi, endpointUrl });
+
+      expect(_callApi).toHaveBeenCalledWith(
+        expect.objectContaining({ endpoint: undefined, endpointUrl }),
+      );
+    });
+  });
+
+  describe('getAllComments', () => {
+    it('calls fetchAllPages', async () => {
+      const _getComments = jest.fn();
+      const _fetchAllPages = jest.fn();
+      const addonId = nextUniqueId();
+      const apiState = defaultApiState;
+      const versionId = nextUniqueId();
+
+      await getAllComments({
+        _fetchAllPages,
+        _getComments,
+        addonId,
+        apiState,
+        versionId,
+      });
+
+      expect(_fetchAllPages).toHaveBeenCalled();
+
+      const getNext = _fetchAllPages.mock.calls[0][0];
+
+      const nextUrl = 'endpoint/?page=2';
+      getNext(nextUrl);
+
+      expect(_getComments).toHaveBeenCalledWith({
+        addonId,
+        apiState,
+        endpointUrl: nextUrl,
+        versionId,
       });
     });
   });
@@ -803,6 +923,114 @@ describe(__filename, () => {
         endpoint: `reviewers/addon/${addonId}/versions/${versionId}/draft_comments/${commentId}`,
         method: HttpMethod.DELETE,
       });
+    });
+  });
+
+  describe('fetchAllPages', () => {
+    const _fetchAllPages = async <ResultsType,>(
+      createPage: (page: number) => Partial<PaginatedResponse<ResultsType[]>>,
+      options: FetchAllPagesOptions = {},
+    ) => {
+      let page = 0;
+
+      const getNextImpl = () => {
+        page += 1;
+        return Promise.resolve(createFakeApiPage(createPage(page)));
+      };
+
+      const getNext = jest.fn().mockImplementation(getNextImpl);
+
+      const response = await fetchAllPages<ResultsType>(getNext, options);
+      if (isErrorResponse(response)) {
+        throw new Error(`Unexpected error response: ${response}`);
+      }
+
+      return { getNext, response, results: response.results };
+    };
+
+    it('gets results for all pages', async () => {
+      const nextUrl = 'some/endpoint?page=2';
+      const page1results = ['one'];
+      const page2results = ['two', 'three'];
+
+      const { getNext, results } = await _fetchAllPages<string>((page) => {
+        if (page === 1) {
+          return { next: nextUrl, results: page1results };
+        }
+        return { next: null, results: page2results };
+      });
+
+      expect(results).toEqual(page1results.concat(page2results));
+
+      expect(getNext.mock.calls).toHaveLength(2);
+
+      // Make sure nextUrl is only passed on the second call.
+      expect(getNext.mock.calls[0][0]).toEqual(null);
+      expect(getNext.mock.calls[1][0]).toEqual(nextUrl);
+    });
+
+    it('calculates page metadata', async () => {
+      const page1results = ['one'];
+      const page2results = ['two', 'three'];
+
+      const { response } = await _fetchAllPages<string>((page) => {
+        const pageResponse = {
+          page_count: 2,
+          page_size: 25,
+        };
+
+        if (page === 1) {
+          return {
+            ...pageResponse,
+            count: page1results.length,
+            next: 'endpoint/?page=2',
+            results: page1results,
+          };
+        }
+
+        return {
+          ...pageResponse,
+          count: page2results.length,
+          next: null,
+          results: page2results,
+        };
+      });
+
+      const expectedResults = page1results.concat(page2results);
+
+      expect(response.count).toEqual(expectedResults.length);
+      expect(response.page_count).toEqual(1);
+      expect(response.page_size).toEqual(expectedResults.length);
+    });
+
+    it('gives up after too many page fetches', async () => {
+      const maxAllowedPages = 3;
+
+      await expect(
+        _fetchAllPages<string>(
+          (page) => {
+            return {
+              // Create an infinite fetching loop.
+              next: `endpoint?page=${page + 1}`,
+            };
+          },
+          { maxAllowedPages },
+        ),
+      ).rejects.toThrow(
+        `Fetched too many pages (maxAllowedPages=${maxAllowedPages})`,
+      );
+    });
+
+    it('passes errors through', async () => {
+      const error = new Error('API Error');
+      const getNext = jest.fn().mockImplementation(() => {
+        return { error };
+      });
+
+      const response = await fetchAllPages<string>(getNext);
+
+      expect(isErrorResponse(response)).toEqual(true);
+      expect(getNext.mock.calls).toHaveLength(1);
     });
   });
 });
