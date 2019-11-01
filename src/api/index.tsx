@@ -178,14 +178,15 @@ export const callApi = async <
     body = JSON.stringify(bodyData);
   }
 
-  if (endpointUrl && endpoint) {
-    throw new Error('endpoint and endpointUrl cannot both be defined at once');
-  }
-
   let path;
   let url;
 
   if (endpointUrl) {
+    if (endpoint) {
+      log.debug(
+        `Ignoring endpoint "${endpoint}" in favor of endpointUrl "${endpointUrl}"`,
+      );
+    }
     url = endpointUrl;
   } else if (endpoint) {
     path = endpoint;
@@ -454,16 +455,10 @@ export const getComments = async ({
   endpointUrl,
   versionId,
 }: GetCommentsParams) => {
-  let endpoint;
-
-  if (!endpointUrl) {
-    endpoint = `reviewers/addon/${addonId}/versions/${versionId}/draft_comments`;
-  }
-
   return _callApi<ResponseOnly<GetCommentsResponse>>({
     apiState,
     endpointUrl: endpointUrl || undefined,
-    endpoint,
+    endpoint: `reviewers/addon/${addonId}/versions/${versionId}/draft_comments`,
     method: HttpMethod.GET,
   });
 };

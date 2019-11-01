@@ -85,13 +85,15 @@ describe(__filename, () => {
       ).rejects.toThrow(/endpoint or endpointUrl must be defined/);
     });
 
-    it('cannot accept both endpoint and endpointUrl', async () => {
-      await expect(
-        callApiWithDefaultApiState({
-          endpoint: 'api-endpoint',
-          endpointUrl: 'https://example.com/api-endpoint',
-        }),
-      ).rejects.toThrow(/endpoint and endpointUrl cannot both be defined/);
+    it('uses endpointUrl instead of endpoint when both are defined', async () => {
+      const endpoint = 'some/api/endpoint/';
+      const endpointUrl = 'https://example.com/some/api/endpoint/';
+      await callApiWithDefaultApiState({ endpoint, endpointUrl });
+
+      expect(fetch).toHaveBeenCalledWith(
+        makeApiURL({ url: endpointUrl }),
+        expect.any(Object),
+      );
     });
 
     it('calls the API with an endpoint', async () => {
@@ -851,6 +853,8 @@ describe(__filename, () => {
     });
 
     it('can get comments with an endpointUrl', async () => {
+      const addonId = nextUniqueId();
+      const versionId = nextUniqueId();
       const endpointUrl = 'https://example.com/endpoint/?page=2';
       const _callApi = jest
         .fn()
@@ -858,10 +862,13 @@ describe(__filename, () => {
           createFakeCommentsResponse([createFakeExternalComment()]),
         );
 
-      await _getComments({ _callApi, endpointUrl });
+      await _getComments({ _callApi, addonId, endpointUrl, versionId });
 
       expect(_callApi).toHaveBeenCalledWith(
-        expect.objectContaining({ endpoint: undefined, endpointUrl }),
+        expect.objectContaining({
+          endpoint: `reviewers/addon/${addonId}/versions/${versionId}/draft_comments`,
+          endpointUrl,
+        }),
       );
     });
   });
