@@ -48,6 +48,23 @@ describe(__filename, () => {
     return api;
   };
 
+  const setUpFetchAllPagesMock = () => {
+    const _fetchAllPages = jest.fn();
+
+    type GetNextResponse = Parameters<typeof fetchAllPages>[0];
+
+    // This can be used by a test to simulate the interface of
+    // fetchAllPages(getNext) whereby it invokes getNext(nextPageUrl).
+    const getNextResponse: GetNextResponse = (nextPageUrl) => {
+      expect(_fetchAllPages).toHaveBeenCalled();
+
+      const getNext = _fetchAllPages.mock.calls[0][0] as GetNextResponse;
+      return getNext(nextPageUrl);
+    };
+
+    return { _fetchAllPages, getNextResponse };
+  };
+
   describe('callApi', () => {
     const callApiWithDefaultApiState = (params = {}) => {
       return callApi({ apiState: defaultApiState, endpoint: '/', ...params });
@@ -869,7 +886,7 @@ describe(__filename, () => {
   describe('getAllComments', () => {
     it('calls fetchAllPages', async () => {
       const _getComments = jest.fn();
-      const _fetchAllPages = jest.fn();
+      const { _fetchAllPages, getNextResponse } = setUpFetchAllPagesMock();
       const addonId = nextUniqueId();
       const apiState = defaultApiState;
       const versionId = nextUniqueId();
@@ -882,13 +899,8 @@ describe(__filename, () => {
         versionId,
       });
 
-      expect(_fetchAllPages).toHaveBeenCalled();
-
-      // Simulate the interface of fetchAllPages whereby it invokes
-      // getNext(nextPageUrl).
       const nextPageUrl = 'endpoint/?page=2';
-      const getNext = _fetchAllPages.mock.calls[0][0];
-      getNext(nextPageUrl);
+      getNextResponse(nextPageUrl);
 
       expect(_getComments).toHaveBeenCalledWith({
         addonId,
