@@ -11,7 +11,7 @@ import {
 import {
   createOrUpdateComment,
   deleteComment as apiDeleteComment,
-  getComments,
+  getAllComments,
   isErrorResponse,
 } from '../api';
 
@@ -251,11 +251,11 @@ export const selectFilePathHasComments = ({
 };
 
 export const fetchAndLoadComments = ({
-  _getComments = getComments,
+  _getAllComments = getAllComments,
   addonId,
   versionId,
 }: {
-  _getComments?: typeof getComments;
+  _getAllComments?: typeof getAllComments;
   addonId: number;
   versionId: number;
 }): ThunkActionCreator => {
@@ -270,7 +270,7 @@ export const fetchAndLoadComments = ({
 
     // TODO: fetch all pages to get all comments.
     // https://github.com/mozilla/addons-code-manager/issues/1093
-    const response = await _getComments({ addonId, apiState, versionId });
+    const response = await _getAllComments({ addonId, apiState, versionId });
 
     if (isErrorResponse(response)) {
       dispatch(actions.abortFetchVersionComments({ versionId }));
