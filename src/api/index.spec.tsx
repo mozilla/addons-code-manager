@@ -884,15 +884,16 @@ describe(__filename, () => {
 
       expect(_fetchAllPages).toHaveBeenCalled();
 
+      // Simulate the interface of fetchAllPages whereby it invokes
+      // getNext(nextPageUrl).
+      const nextPageUrl = 'endpoint/?page=2';
       const getNext = _fetchAllPages.mock.calls[0][0];
-
-      const nextUrl = 'endpoint/?page=2';
-      getNext(nextUrl);
+      getNext(nextPageUrl);
 
       expect(_getComments).toHaveBeenCalledWith({
         addonId,
         apiState,
-        endpointUrl: nextUrl,
+        endpointUrl: nextPageUrl,
         versionId,
       });
     });
