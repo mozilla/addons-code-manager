@@ -22,7 +22,7 @@ import './styles.scss';
 configureApplication();
 
 // Automatically import all files ending in *.stories.tsx
-const req = require.context('../', true, /.stories.tsx$/);
+const req = require.context('../', true, / '../',/stories.tsx$/);
 
 addDecorator(withRootAttribute);
 
