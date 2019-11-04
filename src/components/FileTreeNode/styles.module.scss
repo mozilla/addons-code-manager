@@ -50,8 +50,13 @@
 }
 
 .nodeIcons {
+  align-items: center;
   display: flex;
   justify-content: flex-end;
+
+  :not(:first-child) {
+    margin-left: 0.5rem;
+  }
 }
 
 .folderAndFileIcons {
