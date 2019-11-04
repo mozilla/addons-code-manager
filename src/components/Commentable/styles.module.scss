@@ -5,7 +5,9 @@ $shellSize: 1.3rem;
 // Firefox. A fixed pixel size works better.
 $size: 6px;
 
-.button {
+// Prefixing this selector with `button` fixes some subtle specificity
+// issues that are not apparent in all layouts.
+button.button {
   align-items: center;
   display: flex;
   height: $shellSize;
