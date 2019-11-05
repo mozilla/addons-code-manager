@@ -1,7 +1,9 @@
 @import '../../scss/variables';
 @import '../../scss/mixins';
 
-.button {
+// Prefixing this selector with `button` fixes some subtle specificity
+// issues that are not apparent in all layouts.
+button.button {
   background-color: $light-gray;
   text-align: center;
   overflow: hidden;

@@ -9,7 +9,9 @@
   padding: 0;
 }
 
-.ToggleButton {
+// Prefixing this selector with `button` fixes some subtle specificity
+// issues that are not apparent in all layouts.
+button.ToggleButton {
   height: auto;
   overflow: hidden;
   padding: $default-padding;
