@@ -195,13 +195,16 @@ type VersionAddon = {
 export type Version = {
   addon: VersionAddon;
   entries: VersionEntry[];
-  expandedPaths: string[];
   id: number;
   reviewed: string;
-  selectedPath: string;
   validationURL: string;
-  visibleSelectedPath: string | null;
   version: string;
+  // TODO: remove `expandedPaths`, `selectedPath` and `visibleSelectedPath`
+  // from `version` object once no code depends on these
+  // See https://github.com/mozilla/addons-code-manager/issues/1218
+  expandedPaths: string[];
+  selectedPath: string;
+  visibleSelectedPath: string | null;
 };
 
 export type VersionsListItem = {
@@ -332,6 +335,7 @@ export type VersionsState = {
   entryStatusMaps: {
     [entryStatusMapKey: string]: EntryStatusMap;
   };
+  expandedPaths: string[] | undefined;
   versionInfo: {
     [versionId: number]:
       | Version // data successfully loaded
@@ -359,6 +363,7 @@ export const initialState: VersionsState = {
   compareInfoIsLoading: {},
   currentVersionId: undefined,
   entryStatusMaps: {},
+  expandedPaths: undefined,
   versionFiles: {},
   versionFilesLoading: {},
   versionInfo: {},
@@ -461,6 +466,14 @@ export const getVersionFiles = (versions: VersionsState, versionId: number) => {
 
 export const getVersionInfo = (versions: VersionsState, versionId: number) => {
   return versions.versionInfo[versionId];
+};
+
+export const getPrunedExpandedPaths = (
+  expandedPaths: string[],
+  version: Version,
+) => {
+  const paths = new Set(version.entries.map((e) => e.path));
+  return expandedPaths.filter((e) => paths.has(e));
 };
 
 export const getEntryStatusMap = ({
@@ -1156,12 +1169,19 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
     }
     case getType(actions.loadVersionInfo): {
       const { version } = action.payload;
+      const internalVersion = createInternalVersion(version);
+      const { expandedPaths: expandedPathsInState } = state;
+
+      const expandedPaths = expandedPathsInState
+        ? getPrunedExpandedPaths(expandedPathsInState, internalVersion)
+        : getParentFolders(version.file.selected_file);
 
       return {
         ...state,
+        expandedPaths,
         versionInfo: {
           ...state.versionInfo,
-          [version.id]: createInternalVersion(version),
+          [version.id]: { ...internalVersion, expandedPaths },
         },
       };
     }
@@ -1256,21 +1276,27 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
         throw new Error(`Version missing for versionId: ${versionId}`);
       }
 
-      const { expandedPaths } = version;
+      const { expandedPaths } = state;
+
+      if (!expandedPaths) {
+        throw new Error('Expanded paths are undefined');
+      }
 
       const parents = getParentFolders(selectedPath);
+      const newExpandedPaths = [
+        ...expandedPaths,
+        ...parents.filter((newPath) => !expandedPaths.includes(newPath)),
+      ];
 
       return {
         ...state,
+        expandedPaths: newExpandedPaths,
         versionInfo: {
           ...state.versionInfo,
           [versionId]: {
             ...version,
+            expandedPaths: newExpandedPaths,
             selectedPath,
-            expandedPaths: [
-              ...expandedPaths,
-              ...parents.filter((newPath) => !expandedPaths.includes(newPath)),
-            ],
           },
         },
       };
@@ -1310,17 +1336,24 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
         throw new Error(`Version missing for versionId: ${versionId}`);
       }
 
-      const { expandedPaths } = version;
+      const { expandedPaths } = state;
+
+      if (expandedPaths === undefined) {
+        throw new Error('ExpandedPaths is undefined');
+      }
+
+      const newExpandedPaths = expandedPaths.includes(path)
+        ? expandedPaths.filter((storedPath) => path !== storedPath)
+        : [...expandedPaths, path];
 
       return {
         ...state,
+        expandedPaths: newExpandedPaths,
         versionInfo: {
           ...state.versionInfo,
           [versionId]: {
             ...version,
-            expandedPaths: expandedPaths.includes(path)
-              ? expandedPaths.filter((storedPath) => path !== storedPath)
-              : [...expandedPaths, path],
+            expandedPaths: newExpandedPaths,
           },
         },
       };
@@ -1341,6 +1374,7 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
 
       return {
         ...state,
+        expandedPaths,
         versionInfo: {
           ...state.versionInfo,
           [versionId]: {
@@ -1354,6 +1388,7 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
       const { versionId } = action.payload;
 
       const version = state.versionInfo[versionId];
+      const expandedPaths = [ROOT_PATH];
 
       if (!version) {
         throw new Error(`Version missing for versionId: ${versionId}`);
@@ -1361,11 +1396,12 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
 
       return {
         ...state,
+        expandedPaths,
         versionInfo: {
           ...state.versionInfo,
           [versionId]: {
             ...version,
-            expandedPaths: [ROOT_PATH],
+            expandedPaths,
           },
         },
       };
@@ -1458,9 +1494,17 @@ const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
     }
     case getType(actions.setCurrentVersionId): {
       const { versionId } = action.payload;
+      let { expandedPaths } = state;
+      const version = getVersionInfo(state, versionId);
+
+      if (version && expandedPaths) {
+        expandedPaths = getPrunedExpandedPaths(expandedPaths, version);
+      }
+
       return {
         ...state,
         currentVersionId: versionId,
+        expandedPaths,
       };
     }
     case getType(actions.unsetCurrentVersionId): {
