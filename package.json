@@ -10,7 +10,7 @@
     "@sentry/browser": "5.7.0",
     "@sentry/integrations": "5.7.0",
     "@types/classnames": "2.2.9",
-    "@types/dompurify": "0.0.33",
+    "@types/dompurify": "2.0.0",
     "@types/express": "4.17.2",
     "@types/filesize": "4.2.0",
     "@types/he": "1.1.0",
