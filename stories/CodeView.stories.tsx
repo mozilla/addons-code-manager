@@ -11,6 +11,7 @@ import CodeView, {
 import { LinterMessage, actions } from '../src/reducers/linter';
 import { createInternalVersion } from '../src/reducers/versions';
 import {
+  loremIpsum,
   newLinterMessageUID,
   rootAttributeParams,
   renderWithStoreAndRouter,
@@ -54,12 +55,17 @@ const CSS = `html, body {
   display: none;
 }`;
 
+type RenderParams = { content?: string; store?: Store } & Partial<
+  CodeViewProps
+>;
+
 const render = ({
+  content = JS_SAMPLE,
   store = configureStore(),
   ...moreProps
-}: { store?: Store } & Partial<CodeViewProps> = {}) => {
+}: RenderParams = {}) => {
   const props: CodeViewProps = {
-    content: JS_SAMPLE,
+    content,
     mimeType: 'application/javascript',
     version: createInternalVersion(fakeVersion),
     ...moreProps,
@@ -77,10 +83,12 @@ const render = ({
 
 const renderJSWithMessages = (
   messages: Partial<LinterMessage>[],
-  moreProps: Partial<CodeViewProps> = {},
+  {
+    content = JS_SAMPLE,
+    store = configureStore(),
+    ...moreProps
+  }: RenderParams = {},
 ) => {
-  const store = configureStore();
-
   const path = 'lib/some-file.js';
   const version = createInternalVersion({
     ...fakeVersion,
@@ -102,7 +110,7 @@ const renderJSWithMessages = (
 
   return render({
     store,
-    content: JS_SAMPLE,
+    content,
     mimeType: 'application/javascript',
     version,
     ...moreProps,
@@ -225,5 +233,41 @@ storiesOf('CodeView', module)
         },
       ]);
     },
+    getParams(),
+  )
+  .add(
+    'Long line with a linter message',
+    () => {
+      return renderJSWithMessages(
+        [
+          {
+            line: 1,
+            message: 'Long line detected',
+            description: ['This is a long line of code.'],
+            type: 'notice',
+          },
+        ],
+        {
+          content: `const message = "${loremIpsum
+            .trim()
+            .replace(/\n/g, ' ')}";`,
+        },
+      );
+    },
+    getParams(),
+  )
+  .add(
+    'Code with tab characters',
+    () =>
+      render({
+        mimeType: 'application/javascript',
+        content: `
+          \t// This should be indented for each code level.
+          \tfunction log(msg, debug = false) {
+          \t\tif (debug) {
+          \t\t\tconsole.log(msg);
+          \t\t}
+          \t}`,
+      }),
     getParams(),
   );
