@@ -93,6 +93,14 @@ Here are some tips for solving performance problems in addition to what's alread
 - When a React component is taking a long time to render and you don't see any other components underneath it, it's time to switch away from the _User Timing_ tab of the profiler to the _Main_ tab so you can look at actual function executions. Clicking on a function will give you information about its source.
 - You can try using the [React devtool extension](https://reactjs.org/docs/optimizing-performance.html#profiling-components-with-the-devtools-profiler) for profiling but it doesn't provide a great timeline so it's hard to visualize overall slowness.
 
+## Setting up VSCode
+
+There is a [security ~~feature~~ bug](https://github.com/microsoft/vscode/issues/30069#issuecomment-312732928) in [VSCode](https://code.visualstudio.com/) that prevents setting some defaults so you'll have to do some manual configuration to begin development on Code Manager:
+
+- Make sure you've installed all dependencies as documented.
+- Open the root folder in VSCode.
+- Open any TypeScript file and click the TypeScript version number from the bottom status bar. Choose the option _Use Workspace Version_ to make sure you are developing with the correct version of TypeScript.
+
 ## All Available Commands
 
 In the project directory, you can run the following commands. There are a few commands not mentioned here (see `package.json`) but those are only used by internal processes.
