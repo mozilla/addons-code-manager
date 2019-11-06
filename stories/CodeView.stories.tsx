@@ -10,6 +10,7 @@ import CodeView, {
 } from '../src/components/CodeView';
 import { LinterMessage, actions } from '../src/reducers/linter';
 import { createInternalVersion } from '../src/reducers/versions';
+import longUnbrokenMinifiedDiff from './fixtures/long-unbroken-minified-diff';
 import {
   loremIpsum,
   newLinterMessageUID,
@@ -269,5 +270,24 @@ storiesOf('CodeView', module)
           \t\t}
           \t}`,
       }),
+    getParams(),
+  )
+  .add(
+    'Long line without any line breaks + linter message',
+    () => {
+      return renderJSWithMessages(
+        [
+          {
+            line: 1,
+            message: 'Minified code detected',
+            description: ['You do not need to minify add-on code.'],
+            type: 'notice',
+          },
+        ],
+        {
+          content: longUnbrokenMinifiedDiff,
+        },
+      );
+    },
     getParams(),
   );
