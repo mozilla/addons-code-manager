@@ -1,0 +1,4 @@
+{
+    // Always use the locally installed version of TypeScript.
+    "typescript.tsdk": "node_modules/typescript/lib"
+}
