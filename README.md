@@ -95,7 +95,7 @@ Here are some tips for solving performance problems in addition to what's alread
 
 ## Setting up VSCode
 
-There is a [security ~~feature~~ bug](https://github.com/microsoft/vscode/issues/30069#issuecomment-312732928) in [VSCode](https://code.visualstudio.com/) that prevents setting some defaults so you'll have to do some manual configuration to begin development on Code Manager:
+If you want to use [VSCode](https://code.visualstudio.com/) to develop Code Manager, some manual configuration is required. This is due to a [security ~~feature~~ bug](https://github.com/microsoft/vscode/issues/30069#issuecomment-312732928) that prevents automatically applying a local config file.
 
 - Make sure you've installed all dependencies as documented.
 - Open the root folder in VSCode.
