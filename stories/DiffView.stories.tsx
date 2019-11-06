@@ -22,6 +22,7 @@ import {
   fakeVersionFile,
 } from '../src/test-helpers';
 import { allowSlowPagesParam } from '../src/utils';
+import longUnbrokenMinifiedDiff from './fixtures/long-unbroken-minified-diff';
 import { newLinterMessageUID, renderWithStoreAndRouter } from './utils';
 
 const render = (
@@ -47,7 +48,7 @@ const render = (
 
 const renderWithMessages = (
   messages: Partial<LinterMessage>[],
-  moreProps: Partial<DiffViewProps> = {},
+  { diff = parseDiff(basicDiff)[0], ...moreProps }: Partial<DiffViewProps> = {},
 ) => {
   const path = 'lib/some-file.js';
   const result = createFakeExternalLinterResult({
@@ -70,7 +71,7 @@ const renderWithMessages = (
   store.dispatch(actions.loadLinterResult({ versionId: version.id, result }));
 
   const props: DiffViewProps = {
-    diff: parseDiff(basicDiff)[0],
+    diff,
     mimeType: 'application/javascript',
     version,
     ...moreProps,
@@ -249,4 +250,25 @@ storiesOf('DiffView', module)
         search: queryString.stringify({ [allowSlowPagesParam]: true }),
       }),
     });
+  })
+  .add('long unbroken minified diff', () => {
+    return renderWithMessages(
+      [
+        {
+          line: 1,
+          message: 'Minified diff detected',
+          description: ['You do not need to minify add-on code.'],
+          type: 'warning',
+        },
+      ],
+      {
+        diff: parseDiff(`diff --git a/src/components/DiffView.test.tsx b/src/components/DiffView.test.tsx
+index 5ca1a30..4e2c90f 100644
+--- a/src/components/DiffView.test.tsx
++++ b/src/components/DiffView.test.tsx
+@@ -1,1 +1,1 @@
+-
++${longUnbrokenMinifiedDiff}`)[0],
+      },
+    );
   });
