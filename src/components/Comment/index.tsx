@@ -37,6 +37,7 @@ export type DefaultProps = {
 };
 
 type PropsFromState = {
+  considerDiscard: boolean;
   initialComment: Comment | null;
   initialCommentText: string | null;
   savingComment: boolean;
@@ -221,23 +222,81 @@ export class CommentBase extends React.Component<Props, State> {
     );
   }
 
+  onConsiderDiscard = () => {
+    const { dispatch, fileName, line, versionId } = this.props;
+
+    dispatch(
+      commentsActions.considerDiscardComment({ fileName, line, versionId }),
+    );
+  };
+
+  onAbortDiscard = () => {
+    const { dispatch, fileName, line, versionId } = this.props;
+
+    dispatch(
+      commentsActions.abortDiscardComment({ fileName, line, versionId }),
+    );
+  };
+
+  onDiscard = () => {
+    const { dispatch, fileName, line, versionId } = this.props;
+
+    dispatch(commentsActions.finishComment({ fileName, line, versionId }));
+  };
+
   renderForm() {
-    const { savingComment } = this.props;
+    const { considerDiscard, savingComment } = this.props;
     const { commentText } = this.state;
+
+    let onDiscard = this.onConsiderDiscard;
+    let showAbortDiscard = false;
+    let discardPrompt = gettext('Discard');
+
+    if (considerDiscard) {
+      showAbortDiscard = true;
+      onDiscard = this.onDiscard;
+      discardPrompt = gettext('Confirm discard');
+    }
 
     return (
       <Form className={styles.form} onSubmit={this.onSubmit}>
         <Textarea
-          disabled={savingComment}
+          disabled={savingComment || considerDiscard}
           onChange={this.onCommentChange}
           inputRef={this.textareaRef}
           className={styles.textarea}
           minRows={3}
           value={commentText}
         />
-        <Button disabled={savingComment} type="submit">
+        <Button
+          className={makeClassName(styles.controlButton, styles.saveButton)}
+          disabled={savingComment || considerDiscard}
+          type="submit"
+        >
           {savingComment ? gettext('Saving…') : gettext('Save')}
         </Button>
+        <Button
+          className={makeClassName(styles.controlButton, styles.discardButton)}
+          disabled={savingComment}
+          onClick={onDiscard}
+          type="button"
+          variant="danger"
+        >
+          {discardPrompt}
+        </Button>
+        {showAbortDiscard && (
+          <Button
+            className={makeClassName(
+              styles.controlButton,
+              styles.abortDiscardButton,
+            )}
+            onClick={this.onAbortDiscard}
+            type="button"
+            variant="light"
+          >
+            {gettext('Cancel')}
+          </Button>
+        )}
       </Form>
     );
   }
@@ -271,6 +330,7 @@ const mapStateToProps = (
     versionId,
   });
   return {
+    considerDiscard: info ? info.considerDiscard : false,
     initialComment: initialComment || null,
     initialCommentText: info ? info.pendingCommentText : null,
     savingComment: info ? info.savingComment : false,
