@@ -73,8 +73,3 @@ typings/
 
 # Storybook
 storybook-static/
-
-# IDE files
-# VSCode does not read local project files that might execute binaries by
-# default due to security so this config wouldn't have an effect, anyway.
-.vscode
