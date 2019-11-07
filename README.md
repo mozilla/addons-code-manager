@@ -76,12 +76,6 @@ You can configure the app by defining environment variables in `.env` files, the
 - How to override an environment variable for a hosted site
   - Define the variable in the [corresponding puppet config file](https://github.com/mozilla-services/cloudops-deployment/tree/master/projects/addons-code-manager/puppet/yaml/type). To define a variable for `code.addons-dev.allizom.org`, for example, you'd update `amo.code_manager.dev.yaml`. Adding a variable to `.env.dev` **will do nothing** since that only affects the `yarn dev` command.
 
-## Managing security vulnerabilities with Snyk
-
-The [Snyk](https://snyk.io/) service will warn us about security vulnerabilities.
-
-Occasionally, a vulnerable package won't have a patch available. If we can safely determine that the vulnerability doesn't apply to our application, we can ignore these errors. Set up an ignore rule by running `yarn snyk ignore ...` according to the [documentation](https://snyk.io/docs/cli-ignore/). The ignore rule will be added to the `.snyk` file.
-
 ## Profiling performance
 
 Here are some tips for solving performance problems in addition to what's already in the [official docs](https://reactjs.org/docs/optimizing-performance.html).
@@ -154,10 +148,6 @@ This runs [Prettier][] to automatically format the entire codebase.
 ### `yarn prettier-dev`
 
 This runs [Prettier][] on only your changed files. This is intended for development.
-
-### `yarn snyk`
-
-This runs the [`snyk`](https://snyk.io/docs/getting-started-with-our-cli/) command.
 
 ### `yarn stage`
 
