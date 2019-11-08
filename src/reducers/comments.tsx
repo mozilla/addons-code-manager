@@ -72,6 +72,7 @@ export type CommentInfo = {
   pendingCommentText: string | null;
   savingComment: boolean;
   commentIds: number[];
+  considerDiscard: boolean;
 };
 
 export type CommentsByKey = {
@@ -106,6 +107,7 @@ export const createEmptyCommentInfo = (): CommentInfo => {
     pendingCommentText: null,
     savingComment: false,
     commentIds: [],
+    considerDiscard: false,
   };
 };
 
@@ -129,6 +131,9 @@ export const createCommentKey = ({ fileName, line }: CommentKeyParams) => {
 type CommonPayload = CommentKeyParams & { versionId: number };
 
 export const actions = {
+  abortDiscardComment: createAction('ABORT_DISCARD_COMMENT', (resolve) => {
+    return (payload: CommonPayload) => resolve(payload);
+  }),
   abortDeleteComment: createAction('ABORT_DELETE_COMMENT', (resolve) => {
     return (payload: { commentId: number }) => resolve(payload);
   }),
@@ -157,6 +162,12 @@ export const actions = {
     return (payload: CommonPayload & { pendingCommentText: string | null }) =>
       resolve(payload);
   }),
+  considerDiscardComment: createAction(
+    'CONSIDER_DISCARD_COMMENT',
+    (resolve) => {
+      return (payload: CommonPayload) => resolve(payload);
+    },
+  ),
   considerDeleteComment: createAction('CONSIDER_DELETE_COMMENT', (resolve) => {
     return (payload: { commentId: number }) => resolve(payload);
   }),
@@ -540,6 +551,44 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
         },
       };
     }
+    case getType(actions.considerDiscardComment): {
+      const { versionId, ...keyParams } = action.payload;
+      const { key, info, newState } = prepareStateForKeyChange({
+        state,
+        keyParams,
+        versionId,
+      });
+
+      return {
+        ...newState,
+        byKey: {
+          ...newState.byKey,
+          [key]: {
+            ...info,
+            considerDiscard: true,
+          },
+        },
+      };
+    }
+    case getType(actions.abortDiscardComment): {
+      const { versionId, ...keyParams } = action.payload;
+      const { key, info, newState } = prepareStateForKeyChange({
+        state,
+        keyParams,
+        versionId,
+      });
+
+      return {
+        ...newState,
+        byKey: {
+          ...newState.byKey,
+          [key]: {
+            ...info,
+            considerDiscard: false,
+          },
+        },
+      };
+    }
     case getType(actions.finishComment): {
       const { versionId, ...keyParams } = action.payload;
       const { key, info, newState } = prepareStateForKeyChange({
@@ -555,6 +604,7 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
           [key]: {
             ...info,
             beginNewComment: false,
+            considerDiscard: false,
             pendingCommentText: null,
             savingComment: false,
           },
