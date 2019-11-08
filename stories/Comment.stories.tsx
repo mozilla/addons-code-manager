@@ -11,7 +11,7 @@ import {
   actions as commentsActions,
 } from '../src/reducers/comments';
 import { createFakeExternalComment } from '../src/test-helpers';
-import { renderWithStoreAndRouter } from './utils';
+import { loremIpsum, renderWithStoreAndRouter } from './utils';
 
 const fakeComment = createFakeExternalComment({
   comment: [
@@ -63,79 +63,99 @@ const render = ({
   return renderWithStoreAndRouter(<Comment {...props} />, { store });
 };
 
-storiesOf('Comment', module).addWithChapters('all variants', {
-  chapters: [
-    {
-      sections: [
-        {
-          title: 'adding a new comment',
-          sectionFn: () => render({ readOnly: false }),
-        },
-        {
-          title: 'editing a comment',
-          sectionFn: () =>
-            render({ initialComment: fakeComment, readOnly: false }),
-        },
-        {
-          title: 'saving a comment',
-          sectionFn: () => {
-            const keyParams = { fileName: null, line: null, versionId: 1 };
-            const store = configureStore();
-            store.dispatch(
-              commentsActions.beginSaveComment({
-                ...keyParams,
-                pendingCommentText:
-                  'This call to browser.getFuzzTabs() has been deprecated.',
+storiesOf('Comment', module)
+  .addWithChapters('form variants', {
+    chapters: [
+      {
+        sections: [
+          {
+            title: 'adding a new comment',
+            sectionFn: () => render({ readOnly: false }),
+          },
+          {
+            title: 'editing a comment',
+            sectionFn: () =>
+              render({ initialComment: fakeComment, readOnly: false }),
+          },
+          {
+            title: 'saving a comment',
+            sectionFn: () => {
+              const keyParams = { fileName: null, line: null, versionId: 1 };
+              const store = configureStore();
+              store.dispatch(
+                commentsActions.beginSaveComment({
+                  ...keyParams,
+                  pendingCommentText:
+                    'This call to browser.getFuzzTabs() has been deprecated.',
+                }),
+              );
+              return render({ ...keyParams, store, readOnly: false });
+            },
+          },
+        ],
+      },
+    ],
+  })
+  .addWithChapters('read-only variants', {
+    chapters: [
+      {
+        sections: [
+          {
+            title: 'viewing an existing comment',
+            sectionFn: () =>
+              render({
+                initialComment: {
+                  ...fakeComment,
+                  comment: 'This is not allowed.',
+                },
+                readOnly: true,
               }),
-            );
-            return render({ ...keyParams, store, readOnly: false });
           },
-        },
-        {
-          title: 'viewing an existing comment',
-          sectionFn: () =>
-            render({
-              initialComment: {
-                ...fakeComment,
-                comment: 'This is not allowed.',
-              },
-              readOnly: true,
-            }),
-        },
-        {
-          title: 'viewing a multi-line comment',
-          sectionFn: () =>
-            render({ initialComment: fakeComment, readOnly: true }),
-        },
-        {
-          title: 'consider deleting a comment',
-          sectionFn: () => {
-            return render({
-              considerDelete: true,
-              initialComment: {
-                ...fakeComment,
-                id: 321,
-                comment: 'This function call is dangerous.',
-              },
-              readOnly: true,
-            });
+          {
+            title: 'viewing a multi-line comment',
+            sectionFn: () =>
+              render({ initialComment: fakeComment, readOnly: true }),
           },
-        },
-        {
-          title: 'deleting a comment',
-          sectionFn: () => {
-            return render({
-              deleting: true,
-              initialComment: {
-                ...fakeComment,
-                id: 321,
-                comment: 'This function call is dangerous.',
-              },
-              readOnly: true,
-            });
+          {
+            title: 'viewing a very long comment',
+            sectionFn: () =>
+              render({
+                initialComment: {
+                  ...fakeComment,
+                  comment: loremIpsum.replace(/[\n\s]+/g, ''),
+                },
+                readOnly: true,
+              }),
           },
-        },
-      ],
-    },
-  ],
-});
+          {
+            title: 'consider deleting a comment',
+            sectionFn: () => {
+              return render({
+                considerDelete: true,
+                initialComment: {
+                  ...fakeComment,
+                  id: 321,
+                  comment: 'This function call is dangerous.',
+                },
+                readOnly: true,
+              });
+            },
+          },
+          {
+            title: 'deleting a comment',
+            sectionFn: () => {
+              return render({
+                deleting: true,
+                initialComment: {
+                  ...fakeComment,
+                  id: 321,
+                  comment: 'This function call is dangerous.',
+                },
+                readOnly: true,
+              });
+            },
+          },
+        ],
+      },
+    ],
+  });
