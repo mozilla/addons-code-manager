@@ -113,12 +113,17 @@ export const createEmptyCommentInfo = (): CommentInfo => {
 };
 
 export type CommentKeyParams = {
+  commentId: number | undefined;
   fileName: string | null;
   line: number | null;
 };
 
-export const createCommentKey = ({ fileName, line }: CommentKeyParams) => {
-  const key = `fileName:${fileName};line:${line}`;
+export const createCommentKey = ({
+  commentId,
+  fileName,
+  line,
+}: CommentKeyParams) => {
+  const key = `fileName:${fileName};line:${line};commentId:${commentId}`;
 
   if (line !== null && fileName === null) {
     // This wouldn't make sense because it's like saying "add a comment
@@ -190,6 +195,7 @@ export type SelectCommentInfoParams = {
 } & CommentKeyParams;
 
 export const selectCommentInfo = ({
+  commentId,
   comments,
   fileName,
   line,
@@ -198,7 +204,7 @@ export const selectCommentInfo = ({
   if (comments.forVersionId !== versionId) {
     return undefined;
   }
-  return comments.byKey[createCommentKey({ fileName, line })];
+  return comments.byKey[createCommentKey({ commentId, fileName, line })];
 };
 
 export const selectComment = ({
@@ -352,6 +358,7 @@ export const manageComment = ({
 
     dispatch(
       actions.beginSaveComment({
+        commentId,
         versionId,
         fileName,
         line,
@@ -371,10 +378,24 @@ export const manageComment = ({
     });
 
     if (isErrorResponse(response)) {
-      dispatch(actions.abortSaveComment({ versionId, fileName, line }));
+      dispatch(
+        actions.abortSaveComment({
+          versionId,
+          commentId,
+          fileName,
+          line,
+        }),
+      );
       dispatch(errorsActions.addError({ error: response.error }));
     } else {
-      dispatch(actions.finishComment({ versionId, fileName, line }));
+      dispatch(
+        actions.finishComment({
+          versionId,
+          commentId,
+          fileName,
+          line,
+        }),
+      );
       dispatch(actions.setComments({ versionId, comments: [response] }));
     }
   };
@@ -621,13 +642,18 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
 
         const { key, info } = getKeyAndInfo({
           byKey,
+          // Since we'll be appending to a collection of *all* comments,
+          // the commentId must always be undefined.
+          commentId: undefined,
           fileName: comment.filename || null,
           line: comment.lineno || null,
         });
 
         byKey[key] = {
           ...info,
-          commentIds: info.commentIds.concat(comment.id),
+          commentIds: info.commentIds.includes(comment.id)
+            ? info.commentIds
+            : info.commentIds.concat(comment.id),
         };
       }
 

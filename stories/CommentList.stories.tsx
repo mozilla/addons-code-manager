@@ -27,7 +27,14 @@ const render = ({
   comments?: ExternalComment[];
 } = {}) => {
   if (beginComment) {
-    store.dispatch(commentsActions.beginComment({ fileName, line, versionId }));
+    store.dispatch(
+      commentsActions.beginComment({
+        commentId: undefined,
+        fileName,
+        line,
+        versionId,
+      }),
+    );
   }
   for (const comment of comments) {
     store.dispatch(

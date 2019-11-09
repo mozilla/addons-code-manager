@@ -37,6 +37,7 @@ export type DefaultProps = {
 };
 
 type PropsFromState = {
+  beginEdit: boolean;
   considerDiscard: boolean;
   initialComment: Comment | null;
   initialCommentText: string | null;
@@ -74,14 +75,26 @@ export class CommentBase extends React.Component<Props, State> {
     event.stopPropagation();
   };
 
-  componentDidMount() {
+  setupTextarea() {
     if (this.textareaRef && this.textareaRef.current) {
       this.textareaRef.current.focus();
+      this.textareaRef.current.removeEventListener(
+        'keydown',
+        this.keydownListener,
+      );
       this.textareaRef.current.addEventListener(
         'keydown',
         this.keydownListener,
       );
     }
+  }
+
+  componentDidMount() {
+    this.setupTextarea();
+  }
+
+  componentDidUpdate() {
+    this.setupTextarea();
   }
 
   componentWillUnmount() {
@@ -197,6 +210,15 @@ export class CommentBase extends React.Component<Props, State> {
         </div>
         <div className={styles.commentControls}>
           <Button
+            className={makeClassName(styles.controlButton, styles.editButton)}
+            disabled={showCancel}
+            onClick={this.onEdit}
+            size="sm"
+            type="button"
+          >
+            {gettext('Edit')}
+          </Button>
+          <Button
             className={makeClassName(styles.controlButton, styles.deleteButton)}
             disabled={deleteIsDisabled}
             onClick={onDeleteClick}
@@ -225,26 +247,57 @@ export class CommentBase extends React.Component<Props, State> {
     );
   }
 
-  onConsiderDiscard = () => {
+  onEdit = () => {
     const { dispatch, fileName, line, versionId } = this.props;
+    const initialComment = this.getInitialCommentOrThrow();
 
     dispatch(
-      commentsActions.considerDiscardComment({ fileName, line, versionId }),
+      commentsActions.beginComment({
+        commentId: initialComment.id,
+        fileName,
+        line,
+        versionId,
+      }),
+    );
+  };
+
+  onConsiderDiscard = () => {
+    const { commentId, dispatch, fileName, line, versionId } = this.props;
+
+    dispatch(
+      commentsActions.considerDiscardComment({
+        commentId: commentId || undefined,
+        fileName,
+        line,
+        versionId,
+      }),
     );
   };
 
   onAbortDiscard = () => {
-    const { dispatch, fileName, line, versionId } = this.props;
+    const { commentId, dispatch, fileName, line, versionId } = this.props;
 
     dispatch(
-      commentsActions.abortDiscardComment({ fileName, line, versionId }),
+      commentsActions.abortDiscardComment({
+        commentId: commentId || undefined,
+        fileName,
+        line,
+        versionId,
+      }),
     );
   };
 
   onDiscard = () => {
-    const { dispatch, fileName, line, versionId } = this.props;
+    const { commentId, dispatch, fileName, line, versionId } = this.props;
 
-    dispatch(commentsActions.finishComment({ fileName, line, versionId }));
+    dispatch(
+      commentsActions.finishComment({
+        commentId: commentId || undefined,
+        fileName,
+        line,
+        versionId,
+      }),
+    );
   };
 
   renderForm() {
@@ -305,10 +358,10 @@ export class CommentBase extends React.Component<Props, State> {
   }
 
   render() {
-    const { className, readOnly } = this.props;
+    const { beginEdit, className, readOnly } = this.props;
     return (
       <div className={makeClassName(styles.container, className)}>
-        {readOnly ? this.renderComment() : this.renderForm()}
+        {readOnly && !beginEdit ? this.renderComment() : this.renderForm()}
       </div>
     );
   }
@@ -327,12 +380,14 @@ const mapStateToProps = (
   }
 
   const info = selectCommentInfo({
+    commentId: commentId || undefined,
     comments: state.comments,
     fileName,
     line,
     versionId,
   });
   return {
+    beginEdit: info ? info.beginNewComment : false,
     considerDiscard: info ? info.considerDiscard : false,
     initialComment: initialComment || null,
     initialCommentText: info ? info.pendingCommentText : null,

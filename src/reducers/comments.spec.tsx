@@ -28,6 +28,7 @@ import {
   createFakeExternalComment,
   createErrorResponse,
   fakeVersion,
+  nextUniqueId,
   thunkTester,
 } from '../test-helpers';
 
@@ -50,6 +51,7 @@ describe(__filename, () => {
   };
 
   const keyParams = Object.freeze({
+    commentId: undefined,
     versionId: 1,
     fileName: 'manifest.json',
     line: 123,
@@ -211,12 +213,51 @@ describe(__filename, () => {
       expect(state.byId[comment2.id]).toEqual(createInternalComment(comment2));
 
       expect(
-        selectCommentInfo({ comments: state, fileName, line, versionId }),
+        selectCommentInfo({
+          comments: state,
+          commentId: undefined,
+          fileName,
+          line,
+          versionId,
+        }),
       ).toMatchObject({
         commentIds: [comment1.id, comment2.id],
       });
 
       expect(state.forVersionId).toEqual(versionId);
+    });
+
+    it('sets a comment which has already been in commentIds list', () => {
+      const versionId = nextUniqueId();
+      const line = nextUniqueId();
+      const fileName = 'manifest.json';
+      const id = nextUniqueId();
+      const comment = createFakeExternalComment({
+        filename: fileName,
+        id,
+        lineno: line,
+      });
+
+      let state = reducer(
+        undefined,
+        actions.setComments({ comments: [comment], versionId }),
+      );
+      state = reducer(
+        state,
+        actions.setComments({ comments: [comment], versionId }),
+      );
+
+      expect(
+        selectCommentInfo({
+          comments: state,
+          commentId: undefined,
+          fileName,
+          line,
+          versionId,
+        }),
+      ).toMatchObject({
+        commentIds: [comment.id],
+      });
     });
 
     it('sets zero comments', () => {
@@ -258,7 +299,13 @@ describe(__filename, () => {
       );
 
       expect(
-        selectCommentInfo({ comments: state, fileName, line, versionId }),
+        selectCommentInfo({
+          comments: state,
+          commentId: undefined,
+          fileName,
+          line,
+          versionId,
+        }),
       ).toMatchObject({
         commentIds: [comment1.id, comment2.id, comment3.id],
       });
@@ -317,7 +364,13 @@ describe(__filename, () => {
 
       const select = (
         params: Pick<SelectCommentInfoParams, 'fileName' | 'line'>,
-      ) => selectCommentInfo({ comments, versionId, ...params });
+      ) =>
+        selectCommentInfo({
+          commentId: undefined,
+          comments,
+          versionId,
+          ...params,
+        });
 
       // Check version comments.
       expect(select({ fileName: null, line: null })).toMatchObject({
@@ -373,7 +426,13 @@ describe(__filename, () => {
       );
 
       const select = (params: Pick<SelectCommentInfoParams, 'line'>) =>
-        selectCommentInfo({ comments, fileName, versionId, ...params });
+        selectCommentInfo({
+          commentId: undefined,
+          comments,
+          fileName,
+          versionId,
+          ...params,
+        });
 
       // Check comments on line 1
       expect(select({ line: line1 })).toMatchObject({
@@ -392,29 +451,42 @@ describe(__filename, () => {
       const fileName = 'manifest.json';
       const line = 321;
 
-      expect(createCommentKey({ fileName, line })).toEqual(
-        `fileName:${fileName};line:${line}`,
-      );
+      expect(
+        createCommentKey({ commentId: undefined, fileName, line }),
+      ).toEqual(`fileName:${fileName};line:${line};commentId:undefined`);
     });
 
     it('creates a key from fileName', () => {
       const fileName = 'manifest.json';
 
-      expect(createCommentKey({ fileName, line: null })).toEqual(
-        `fileName:${fileName};line:null`,
-      );
+      expect(
+        createCommentKey({ commentId: undefined, fileName, line: null }),
+      ).toEqual(`fileName:${fileName};line:null;commentId:undefined`);
     });
 
     it('creates a key from a null fileName and null line', () => {
-      expect(createCommentKey({ fileName: null, line: null })).toEqual(
-        `fileName:null;line:null`,
+      expect(
+        createCommentKey({ commentId: undefined, fileName: null, line: null }),
+      ).toEqual('fileName:null;line:null;commentId:undefined');
+    });
+
+    it('creates a key from a specified commentId', () => {
+      const commentId = nextUniqueId();
+      const fileName = 'manifest.json';
+      const line = nextUniqueId();
+      expect(createCommentKey({ commentId, fileName, line })).toEqual(
+        `fileName:${fileName};line:${line};commentId:${commentId}`,
       );
     });
 
     it('cannot create a key from just a line', () => {
-      expect(() => createCommentKey({ fileName: null, line: 2 })).toThrow(
-        /Cannot create key/,
-      );
+      expect(() =>
+        createCommentKey({
+          commentId: undefined,
+          fileName: null,
+          line: nextUniqueId(),
+        }),
+      ).toThrow(/Cannot create key/);
     });
   });
 
@@ -601,16 +673,23 @@ describe(__filename, () => {
     });
 
     it('gets comment info', () => {
-      const versionId = 1;
+      const versionId = nextUniqueId();
       const fileName = 'manifest.json';
-      const line = 321;
+      const line = nextUniqueId();
+      const commentId = undefined;
       const state = reducer(
         undefined,
-        actions.beginComment({ versionId, fileName, line }),
+        actions.beginComment({ commentId, versionId, fileName, line }),
       );
 
       expect(
-        selectCommentInfo({ comments: state, versionId, fileName, line }),
+        selectCommentInfo({
+          commentId,
+          comments: state,
+          versionId,
+          fileName,
+          line,
+        }),
       ).toEqual({
         beginNewComment: true,
         commentIds: [],
@@ -621,16 +700,18 @@ describe(__filename, () => {
     });
 
     it('returns undefined when the versionId does not match', () => {
-      const versionId = 1;
+      const versionId = nextUniqueId();
       const fileName = 'manifest.json';
-      const line = 321;
+      const line = nextUniqueId();
+      const commentId = undefined;
       const state = reducer(
         undefined,
-        actions.beginComment({ versionId, fileName, line }),
+        actions.beginComment({ commentId, versionId, fileName, line }),
       );
 
       expect(
         selectCommentInfo({
+          commentId,
           comments: state,
           fileName,
           line,
@@ -1125,7 +1206,13 @@ describe(__filename, () => {
       state = reducer(state, actions.unsetComment({ commentId: comment1.id }));
 
       expect(
-        selectCommentInfo({ comments: state, fileName, line, versionId }),
+        selectCommentInfo({
+          commentId: undefined,
+          comments: state,
+          fileName,
+          line,
+          versionId,
+        }),
       ).toMatchObject({
         commentIds: [comment2.id],
       });
@@ -1161,6 +1248,7 @@ describe(__filename, () => {
       // Make sure the comment associated with file2 is still there.
       expect(
         selectCommentInfo({
+          commentId: undefined,
           comments: state,
           fileName: file2,
           line,

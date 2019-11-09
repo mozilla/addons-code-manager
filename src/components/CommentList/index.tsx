@@ -116,6 +116,7 @@ const mapStateToProps = (
     commentInfo: selectCommentInfo({
       comments: state.comments,
       versionId,
+      commentId: undefined,
       fileName,
       line,
     }),
