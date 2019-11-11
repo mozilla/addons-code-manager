@@ -92,6 +92,24 @@ storiesOf('Comment', module)
               return render({ ...keyParams, store, readOnly: false });
             },
           },
+          {
+            title: 'consider discarding a comment',
+            sectionFn: () => {
+              const keyParams = {
+                fileName: null,
+                line: null,
+                versionId: 1,
+              };
+              const store = configureStore();
+              store.dispatch(commentsActions.considerDiscardComment(keyParams));
+              return render({
+                ...keyParams,
+                initialComment: fakeComment,
+                store,
+                readOnly: false,
+              });
+            },
+          },
         ],
       },
     ],
