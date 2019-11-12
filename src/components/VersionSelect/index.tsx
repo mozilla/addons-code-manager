@@ -17,7 +17,7 @@ export type PublicProps = {
   isSelectable: (version: VersionsListItem) => boolean;
   label: string;
   listedVersions: VersionsList;
-  onChange: (version: string) => void;
+  onChange: (versionId: string) => void;
   unlistedVersions: VersionsList;
   value: string | undefined;
   withLeftArrow: boolean;

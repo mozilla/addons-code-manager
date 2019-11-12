@@ -36,13 +36,13 @@ export type DefaultProps = {
 };
 
 type PropsFromState = {
+  currentBaseVersionId: number | null | undefined | false;
+  currentVersionId: number | null | undefined | false;
   versionsMap: VersionsMap;
   versions: VersionsState;
 };
 
 export type PropsFromRouter = {
-  baseVersionId: string;
-  headVersionId: string;
   lang: string;
 };
 
@@ -90,23 +90,31 @@ export class VersionChooserBase extends React.Component<Props> {
   };
 
   onNewVersionChange = (versionId: string) => {
-    const { baseVersionId } = this.props.match.params;
-    this.onVersionChange({ baseVersionId, headVersionId: versionId });
+    const { currentBaseVersionId } = this.props;
+    this.onVersionChange({
+      baseVersionId: String(currentBaseVersionId),
+      headVersionId: versionId,
+    });
   };
 
   onOldVersionChange = (versionId: string) => {
-    const { headVersionId } = this.props.match.params;
-    this.onVersionChange({ baseVersionId: versionId, headVersionId });
+    const { currentVersionId } = this.props;
+    this.onVersionChange({
+      baseVersionId: versionId,
+      headVersionId: String(currentVersionId),
+    });
   };
 
   render() {
     const {
       _higherVersionsThan,
       _lowerVersionsThan,
-      match,
+      currentBaseVersionId,
+      currentVersionId,
       versionsMap,
     } = this.props;
-    const { baseVersionId, headVersionId } = match.params;
+    const headVersionId = String(currentVersionId);
+    const baseVersionId = String(currentBaseVersionId);
 
     const listedVersions = versionsMap ? versionsMap.listed : [];
     const unlistedVersions = versionsMap ? versionsMap.unlisted : [];
@@ -152,6 +160,8 @@ const mapStateToProps = (
   const { addonId } = ownProps;
 
   return {
+    currentBaseVersionId: state.versions.currentBaseVersionId,
+    currentVersionId: state.versions.currentVersionId,
     versions: state.versions,
     versionsMap: byAddonId[addonId],
   };

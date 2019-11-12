@@ -56,6 +56,7 @@ type PropsFromState = {
   nextFile: VersionFile | null | undefined;
   nextFileIsLoading: boolean;
   version: Version | undefined | null;
+  currentBaseVersionId: number | null | undefined | false;
   currentVersionId: number | null | undefined | false;
 };
 
@@ -85,6 +86,7 @@ export class BrowseBase extends React.Component<Props> {
     const {
       _fetchVersion,
       _fetchVersionFile,
+      currentBaseVersionId,
       currentVersionId,
       dispatch,
       file,
@@ -116,6 +118,10 @@ export class BrowseBase extends React.Component<Props> {
         }),
       );
       return;
+    }
+
+    if (currentBaseVersionId) {
+      dispatch(versionsActions.unsetCurrentBaseVersionId());
     }
 
     if (version && currentVersionId !== version.id) {
@@ -252,6 +258,7 @@ const mapStateToProps = (
         : false,
     nextFilePath,
     version,
+    currentBaseVersionId: state.versions.currentBaseVersionId,
     currentVersionId,
   };
 };

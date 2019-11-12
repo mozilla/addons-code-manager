@@ -3155,6 +3155,32 @@ describe(__filename, () => {
     });
   });
 
+  describe('setCurrentBaseVersionId', () => {
+    it('sets the current base version ID', () => {
+      const versionId = nextUniqueId();
+
+      expect(
+        reducer(undefined, actions.setCurrentBaseVersionId({ versionId })),
+      ).toMatchObject({
+        currentBaseVersionId: versionId,
+      });
+    });
+  });
+
+  describe('unsetCurrentBaseVersionId', () => {
+    it('unsets the current base version id', () => {
+      let state;
+
+      state = reducer(
+        state,
+        actions.setCurrentBaseVersionId({ versionId: nextUniqueId() }),
+      );
+      state = reducer(state, actions.unsetCurrentBaseVersionId());
+
+      expect(state).toMatchObject({ currentBaseVersionId: false });
+    });
+  });
+
   describe('selectCurrentVersionInfo', () => {
     it('returns the current version when set', () => {
       const version = { ...fakeVersion, id: 42 };

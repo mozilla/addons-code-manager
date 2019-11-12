@@ -18,6 +18,7 @@ import {
   fakeVersionFile,
   fakeVersionsList,
   fakeVersionsListItem,
+  nextUniqueId,
   shallowUntilTarget,
   spyOn,
 } from '../../test-helpers';
@@ -57,20 +58,27 @@ describe(__filename, () => {
     _higherVersionsThan,
     _lowerVersionsThan,
     addonId = 123,
-    baseVersionId = '1',
-    headVersionId = '4',
+    baseVersionId = nextUniqueId(),
+    headVersionId = nextUniqueId(),
     history = createFakeHistory(),
     store = configureStore(),
-  }: RenderParams = {}) => {
+  }: {
+    baseVersionId?: number;
+    headVersionId?: number;
+  } & RenderParams = {}) => {
+    store.dispatch(
+      versionActions.setCurrentBaseVersionId({
+        versionId: baseVersionId,
+      }),
+    );
+    store.dispatch(
+      versionActions.setCurrentVersionId({
+        versionId: headVersionId,
+      }),
+    );
     const contextWithRouter = createContextWithFakeRouter({
       history,
-      match: {
-        params: {
-          baseVersionId,
-          headVersionId,
-          lang,
-        },
-      },
+      match: { params: { lang } },
     });
     const shallowOptions = {
       ...contextWithRouter,
@@ -124,9 +132,9 @@ describe(__filename, () => {
   });
 
   it('passes a `isSelectable` function to each VersionSelect', () => {
-    const addonId = 999;
-    const baseVersionId = '3';
-    const headVersionId = '5';
+    const addonId = nextUniqueId();
+    const baseVersionId = nextUniqueId();
+    const headVersionId = nextUniqueId();
     const _higherVersionsThan = jest
       .fn()
       .mockReturnValue('_higherVersionsThan');
@@ -148,11 +156,11 @@ describe(__filename, () => {
 
     const oldVersionSelect = root.find(`.${styles.baseVersionSelect}`);
     expect(oldVersionSelect).toHaveProp('isSelectable', _lowerVersionsThan());
-    expect(_lowerVersionsThan).toHaveBeenCalledWith(headVersionId);
+    expect(_lowerVersionsThan).toHaveBeenCalledWith(String(headVersionId));
 
     const newVersionSelect = root.find(`.${styles.headVersionSelect}`);
     expect(newVersionSelect).toHaveProp('isSelectable', _higherVersionsThan());
-    expect(_higherVersionsThan).toHaveBeenCalledWith(baseVersionId);
+    expect(_higherVersionsThan).toHaveBeenCalledWith(String(baseVersionId));
   });
 
   it('splits the list of versions into listed and unlisted lists', () => {
@@ -202,7 +210,7 @@ describe(__filename, () => {
       store,
     });
 
-    expect(dispatch).not.toHaveBeenCalled();
+    expect(dispatch).not.toHaveBeenCalledWith(fakeThunk.thunk);
   });
 
   it('dispatches fetchVersionsList() on mount when a different addonId is passed', () => {
@@ -223,9 +231,9 @@ describe(__filename, () => {
   });
 
   it('pushes a new URL when the old version changes', () => {
-    const addonId = 999;
-    const baseVersionId = '3';
-    const headVersionId = '4';
+    const addonId = nextUniqueId();
+    const baseVersionId = nextUniqueId();
+    const headVersionId = nextUniqueId();
 
     const store = configureStore();
     _loadVersionsList(store, addonId, fakeVersionsList);
@@ -253,9 +261,9 @@ describe(__filename, () => {
   });
 
   it('pushes a new URL when the new version changes', () => {
-    const addonId = 999;
-    const baseVersionId = '3';
-    const headVersionId = '4';
+    const addonId = nextUniqueId();
+    const baseVersionId = nextUniqueId();
+    const headVersionId = nextUniqueId();
 
     const store = configureStore();
     _loadVersionsList(store, addonId, fakeVersionsList);
@@ -282,15 +290,15 @@ describe(__filename, () => {
   });
 
   it('pushes a new URL with a query string when the version has been loaded', () => {
-    const addonId = 999;
-    const baseVersionId = '3';
-    const headVersionId = '4';
+    const addonId = nextUniqueId();
+    const baseVersionId = nextUniqueId();
+    const headVersionId = nextUniqueId();
     const selectedFile = 'example.js';
 
     const store = createStoreWithVersion({
       version: {
         ...fakeVersion,
-        id: parseInt(headVersionId, 10),
+        id: headVersionId,
         // eslint-disable-next-line @typescript-eslint/camelcase
         file: { ...fakeVersionFile, selected_file: selectedFile },
       },
