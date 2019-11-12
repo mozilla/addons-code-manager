@@ -594,7 +594,10 @@ describe(__filename, () => {
 
   it('renders multiple inline messages on the same line', () => {
     const line = 9;
-    const externalMessages = [{ line, uid: 'first' }, { line, uid: 'second' }];
+    const externalMessages = [
+      { line, uid: 'first' },
+      { line, uid: 'second' },
+    ];
 
     const diff = parseDiff(diffWithDeletions)[0];
     const widgets = renderAndGetWidgets({
