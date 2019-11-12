@@ -899,7 +899,10 @@ describe(__filename, () => {
     const comparedToVersionId = 33;
     const versionId = 22;
     const version = createExternalVersionWithEntries(
-      [{ path: path1, status: status1 }, { path: path2, status: status2 }],
+      [
+        { path: path1, status: status1 },
+        { path: path2, status: status2 },
+      ],
       { id: versionId },
     );
 
