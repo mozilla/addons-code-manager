@@ -99,7 +99,7 @@ export class CodeViewBase extends React.Component<Props> {
     let slowAlert;
 
     if (codeLines.length >= _slowLoadingLineCount) {
-      if (!shouldAllowSlowPages(location)) {
+      if (!shouldAllowSlowPages({ location })) {
         codeLines = codeLines.slice(0, _slowLoadingLineCount);
         codeWasTrimmed = true;
       }

@@ -374,28 +374,39 @@ describe('extractNumber', () => {
 
 describe('shouldAllowSlowPages', () => {
   it('returns false without any query param', () => {
-    expect(shouldAllowSlowPages(createFakeLocation({ search: '' }))).toEqual(
-      false,
-    );
+    expect(
+      shouldAllowSlowPages({ location: createFakeLocation({ search: '' }) }),
+    ).toEqual(false);
   });
 
   it('returns true with a true query param', () => {
     expect(
-      shouldAllowSlowPages(
-        createFakeLocation({
+      shouldAllowSlowPages({
+        location: createFakeLocation({
           search: queryString.stringify({ [allowSlowPagesParam]: true }),
         }),
-      ),
+      }),
     ).toEqual(true);
   });
 
   it('returns false with a false query param', () => {
     expect(
-      shouldAllowSlowPages(
-        createFakeLocation({
+      shouldAllowSlowPages({
+        location: createFakeLocation({
           search: queryString.stringify({ [allowSlowPagesParam]: false }),
         }),
-      ),
+      }),
     ).toEqual(false);
+  });
+
+  it('can use a defaultToTrue prop', () => {
+    expect(
+      shouldAllowSlowPages({
+        defaultToTrue: true,
+        location: createFakeLocation({
+          search: '',
+        }),
+      }),
+    ).toEqual(true);
   });
 });

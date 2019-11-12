@@ -11,7 +11,8 @@ import {
 type GetTextForSlowState = (allowSlowPages: boolean) => string;
 
 export type PublicProps = {
-  _shouldAllowSlowPages?: (location: Location) => boolean;
+  _shouldAllowSlowPages?: typeof shouldAllowSlowPages;
+  defaultAllowSlowPagesToTrue?: boolean;
   getLinkText: GetTextForSlowState;
   getMessage: GetTextForSlowState;
   location: Location;
@@ -19,11 +20,15 @@ export type PublicProps = {
 
 const SlowPageAlertBase = ({
   _shouldAllowSlowPages = shouldAllowSlowPages,
+  defaultAllowSlowPagesToTrue,
   getLinkText,
   getMessage,
   location,
 }: PublicProps) => {
-  const allowSlowPages = _shouldAllowSlowPages(location);
+  const allowSlowPages = _shouldAllowSlowPages({
+    defaultToTrue: defaultAllowSlowPagesToTrue,
+    location,
+  });
 
   const newLocation = `${location.pathname}${createAdjustedQueryString(
     location,

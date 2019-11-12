@@ -678,7 +678,7 @@ describe(__filename, () => {
     expect(root.find(`.${styles.highlightingDisabled}`)).toHaveLength(0);
   });
 
-  it('trims, fades, and warns about diffs too large to display', () => {
+  it('lets you turn on diff trimming', () => {
     const change1 = { content: '// example 1' };
     const change2 = { content: '// example 2' };
     const change3 = { content: '// example 3' };
@@ -688,7 +688,14 @@ describe(__filename, () => {
       createHunkWithChanges([change2, change3]),
     ]);
 
-    const root = renderWithLinterProvider({ diff, _slowDiffChangeCount: 2 });
+    const location = createFakeLocation({
+      search: queryString.stringify({ [allowSlowPagesParam]: false }),
+    });
+    const root = renderWithLinterProvider({
+      diff,
+      location,
+      _slowDiffChangeCount: 2,
+    });
 
     const fadableShell = root.find(FadableContent);
     expect(fadableShell).toHaveProp('fade', true);
@@ -707,7 +714,7 @@ describe(__filename, () => {
     expect(message).toHaveLength(2);
   });
 
-  it('lets you override diff trimming', () => {
+  it('disables diff trimming by default', () => {
     const change1 = { content: '// example 1' };
     const change2 = { content: '// example 2' };
     const change3 = { content: '// example 3' };
@@ -717,12 +724,8 @@ describe(__filename, () => {
       createHunkWithChanges([change2, change3]),
     ]);
 
-    const location = createFakeLocation({
-      search: queryString.stringify({ [allowSlowPagesParam]: true }),
-    });
     const root = renderWithLinterProvider({
       diff,
-      location,
       _slowDiffChangeCount: 2,
     });
 
@@ -753,6 +756,7 @@ describe(__filename, () => {
 
     const message = root.find(SlowPageAlert).at(0);
 
+    expect(message).toHaveProp('defaultAllowSlowPagesToTrue', true);
     expect(message).toHaveProp('location', location);
 
     expect(message).toHaveProp('getMessage');
