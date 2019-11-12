@@ -44,6 +44,10 @@
   .diff-line .diff-code-selected {
     background-color: $light-gray;
   }
+
+  .diff-gutter:hover button.btn {
+    visibility: visible;
+  }
 }
 
 .extraMessages {
@@ -56,4 +60,13 @@
 
 .inlineLinterMessages {
   padding: 1rem 1rem 0 1rem;
+}
+
+.gutter {
+  display: flex;
+}
+
+.commentButton {
+  display: inline-flex;
+  padding-left: 5px;
 }

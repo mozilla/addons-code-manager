@@ -47,6 +47,14 @@ declare module 'react-diff-view' {
 
   export type WidgetMap = { [changeKey: string]: ReactNode };
 
+  export type RenderGutterParams = {
+    change: ChangeInfo;
+    side: 'new' | 'old';
+    renderDefault: () => ReactElement;
+    wrapInAnchor: (ReactElement) => ReactElement;
+    inHoverState: boolean;
+  };
+
   type DiffProps = {
     children: (hunks: HunkInfo[]) => ReactNode;
     className?: string;
@@ -58,6 +66,7 @@ declare module 'react-diff-view' {
     generateAnchorID?: (change: ChangeInfo) => string;
     selectedChanges?: string[];
     widgets?: WidgetMap;
+    renderGutter?: (RenderGutterParams) => ReactElement;
   };
 
   // eslint-disable-next-line no-undef
