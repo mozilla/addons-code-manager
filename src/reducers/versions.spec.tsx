@@ -19,6 +19,7 @@ import reducer, {
   createInternalVersionAddon,
   createInternalVersionEntry,
   createInternalVersionFile,
+  createReducer,
   createVersionsMap,
   fetchDiff,
   fetchVersion,
@@ -126,74 +127,38 @@ describe(__filename, () => {
       });
     });
 
-    it('prunes expandedPaths when load version info', () => {
-      const path1 = 'path/1';
-      const path2 = 'path/2';
-      const expandedPaths = [path1, path2, ROOT_PATH];
-      const oldVersionId = nextUniqueId();
-      const oldVersion = createExternalVersionWithEntries(
-        [
-          createFakeEntry('directory', path1),
-          createFakeEntry('directory', path2),
-        ],
-        { id: oldVersionId },
-      );
-      const newVersion = createExternalVersionWithEntries(
-        [createFakeEntry('directory', path1)],
-        { id: nextUniqueId() },
-      );
+    it('prunes expandedPaths when loading version info', () => {
+      const version = { ...fakeVersion, id: nextUniqueId() };
+      const newVersion = { ...fakeVersion, id: nextUniqueId() };
+      const _getPrunedExpandedPaths = jest.fn(getPrunedExpandedPaths);
+      const _reducer = createReducer({ _getPrunedExpandedPaths });
 
-      let state = reducer(
-        undefined,
-        actions.loadVersionInfo({ version: oldVersion }),
-      );
-      state = reducer(state, actions.expandTree({ versionId: oldVersionId }));
-      state = reducer(state, actions.loadVersionInfo({ version: newVersion }));
+      const state = _reducer(undefined, actions.loadVersionInfo({ version }));
+      _reducer(state, actions.loadVersionInfo({ version: newVersion }));
 
-      expect(state).toHaveProperty(
-        'expandedPaths',
-        getPrunedExpandedPaths(
-          expandedPaths,
-          createInternalVersion(newVersion),
-        ),
+      expect(_getPrunedExpandedPaths).toHaveBeenCalledWith(
+        state.expandedPaths,
+        createInternalVersion(newVersion),
       );
     });
 
     it('prunes expanded paths when setCurrentVersionId is dispatched', () => {
-      const path1 = 'path/1';
-      const path2 = 'path/2';
-      const expandedPaths = [path1, path2, ROOT_PATH];
-      const oldVersionId = nextUniqueId();
-      const oldVersion = createExternalVersionWithEntries(
-        [
-          createFakeEntry('directory', path1),
-          createFakeEntry('directory', path2),
-        ],
-        { id: oldVersionId },
-      );
-      const newVersionId = nextUniqueId();
-      const newVersion = createExternalVersionWithEntries(
-        [createFakeEntry('directory', path1)],
-        { id: newVersionId },
-      );
+      const version = { ...fakeVersion, id: nextUniqueId() };
+      const newVersion = { ...fakeVersion, id: nextUniqueId() };
+      const _getPrunedExpandedPaths = jest.fn(getPrunedExpandedPaths);
+      const _reducer = createReducer({ _getPrunedExpandedPaths });
 
-      let state = reducer(
-        undefined,
-        actions.loadVersionInfo({ version: oldVersion }),
-      );
-      state = reducer(state, actions.loadVersionInfo({ version: newVersion }));
-      state = reducer(state, actions.expandTree({ versionId: oldVersionId }));
-      state = reducer(
+      let state = _reducer(undefined, actions.loadVersionInfo({ version }));
+      state = _reducer(state, actions.loadVersionInfo({ version: newVersion }));
+      _getPrunedExpandedPaths.mockClear();
+      _reducer(
         state,
-        actions.setCurrentVersionId({ versionId: newVersionId }),
+        actions.setCurrentVersionId({ versionId: newVersion.id }),
       );
 
-      expect(state).toHaveProperty(
-        'expandedPaths',
-        getPrunedExpandedPaths(
-          expandedPaths,
-          createInternalVersion(newVersion),
-        ),
+      expect(_getPrunedExpandedPaths).toHaveBeenCalledWith(
+        state.expandedPaths,
+        expect.objectContaining({ id: newVersion.id }),
       );
     });
 
@@ -3256,10 +3221,10 @@ describe(__filename, () => {
 
       expect(
         getPrunedExpandedPaths(expandedPaths, createInternalVersion(version)),
-      ).toEqual([path1]);
+      ).toEqual(expect.arrayContaining([path1]));
     });
 
-    it('filters out the paths that do not exist in the new verison', () => {
+    it('filters out the paths that do not exist in the new version', () => {
       const path1 = 'path/1';
       const path2 = 'path/2';
       const expandedPaths = [path1, path2];
@@ -3269,7 +3234,7 @@ describe(__filename, () => {
 
       expect(
         getPrunedExpandedPaths(expandedPaths, createInternalVersion(version)),
-      ).toEqual([path1]);
+      ).toEqual(expect.not.arrayContaining([path2]));
     });
   });
 });
