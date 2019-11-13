@@ -182,6 +182,28 @@ describe(__filename, () => {
     });
   });
 
+  it('can submit an empty comment', () => {
+    const store = configureStore();
+    const dispatchSpy = spyOn(store, 'dispatch');
+
+    const fakeThunk = createFakeThunk();
+    const _manageComment = fakeThunk.createThunk;
+
+    const root = render({ _manageComment, store });
+
+    // Submit the comment before it has been typed in the input box.
+    root.find(`.${styles.form}`).simulate('submit', createFakeEvent());
+
+    expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(_manageComment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        // Make sure an empty string is passed to the API so that the
+        // API can be responsible for raising an error.
+        comment: '',
+      }),
+    );
+  });
+
   it('renders a pending state while saving a comment', () => {
     const keyParams = { fileName: null, line: null, versionId: 1 };
     const pendingCommentText = 'Example of a comment being edited';
