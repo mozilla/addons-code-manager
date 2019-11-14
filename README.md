@@ -76,12 +76,6 @@ You can configure the app by defining environment variables in `.env` files, the
 - How to override an environment variable for a hosted site
   - Define the variable in the [corresponding puppet config file](https://github.com/mozilla-services/cloudops-deployment/tree/master/projects/addons-code-manager/puppet/yaml/type). To define a variable for `code.addons-dev.allizom.org`, for example, you'd update `amo.code_manager.dev.yaml`. Adding a variable to `.env.dev` **will do nothing** since that only affects the `yarn dev` command.
 
-## Managing security vulnerabilities with Snyk
-
-The [Snyk](https://snyk.io/) service will warn us about security vulnerabilities.
-
-Occasionally, a vulnerable package won't have a patch available. If we can safely determine that the vulnerability doesn't apply to our application, we can ignore these errors. Set up an ignore rule by running `yarn snyk ignore ...` according to the [documentation](https://snyk.io/docs/cli-ignore/). The ignore rule will be added to the `.snyk` file.
-
 ## Profiling performance
 
 Here are some tips for solving performance problems in addition to what's already in the [official docs](https://reactjs.org/docs/optimizing-performance.html).
@@ -92,6 +86,14 @@ Here are some tips for solving performance problems in addition to what's alread
 - Use Chrome so you can get React integration, if needed. This is a [helpful guide](https://calibreapp.com/blog/react-performance-profiling-optimization/) for looking at the execution of React components in the _User Timing_ section.
 - When a React component is taking a long time to render and you don't see any other components underneath it, it's time to switch away from the _User Timing_ tab of the profiler to the _Main_ tab so you can look at actual function executions. Clicking on a function will give you information about its source.
 - You can try using the [React devtool extension](https://reactjs.org/docs/optimizing-performance.html#profiling-components-with-the-devtools-profiler) for profiling but it doesn't provide a great timeline so it's hard to visualize overall slowness.
+
+## Setting up VSCode
+
+If you want to use [VSCode](https://code.visualstudio.com/) to develop Code Manager, some manual configuration is required. This is due to a [security ~~feature~~ bug](https://github.com/microsoft/vscode/issues/30069#issuecomment-312732928) that prevents automatically applying a local config file.
+
+- Make sure you've installed all dependencies as documented.
+- Open the root folder in VSCode.
+- Open any TypeScript file and click the TypeScript version number from the bottom status bar. Choose the option _Use Workspace Version_ to make sure you are developing with the correct version of TypeScript.
 
 ## All Available Commands
 
@@ -146,10 +148,6 @@ This runs [Prettier][] to automatically format the entire codebase.
 ### `yarn prettier-dev`
 
 This runs [Prettier][] on only your changed files. This is intended for development.
-
-### `yarn snyk`
-
-This runs the [`snyk`](https://snyk.io/docs/getting-started-with-our-cli/) command.
 
 ### `yarn stage`
 

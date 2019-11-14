@@ -36,7 +36,14 @@ const renderHighlightedCode = (code: string, language: string) => {
 
   return (
     <pre className={styles.highlightedCode}>
-      <code className={`language-${language}`}>{value}</code>
+      <code
+        className={makeClassName(
+          styles.innerHighlightedCode,
+          `language-${language}`,
+        )}
+      >
+        {value}
+      </code>
     </pre>
   );
 };

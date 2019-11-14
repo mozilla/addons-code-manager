@@ -322,7 +322,10 @@ describe(__filename, () => {
     const line = 2;
 
     const { root, selectedMessageMap } = renderWithMessages({
-      messages: [{ line, uid: 'first' }, { line, uid: 'second' }],
+      messages: [
+        { line, uid: 'first' },
+        { line, uid: 'second' },
+      ],
     });
 
     const message = root.find(`#line-${line}-messages`).find(LinterMessage);
@@ -336,7 +339,10 @@ describe(__filename, () => {
 
   it('renders LinterMessage components on multiple lines', () => {
     const { root, selectedMessageMap } = renderWithMessages({
-      messages: [{ line: 2, uid: 'first' }, { line: 3, uid: 'second' }],
+      messages: [
+        { line: 2, uid: 'first' },
+        { line: 3, uid: 'second' },
+      ],
     });
 
     expect(root.find('#line-2-messages').find(LinterMessage)).toHaveProp(

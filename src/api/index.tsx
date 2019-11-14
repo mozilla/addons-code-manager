@@ -164,9 +164,9 @@ export const callApi = async <
   method = HttpMethod.GET,
   query = {},
   version = process.env.REACT_APP_DEFAULT_API_VERSION,
-}: CallApiParams<T['requestData']>): Promise<
-  CallApiResponse<T['successfulResponse']>
-> => {
+}: CallApiParams<T['requestData']>): Promise<CallApiResponse<
+  T['successfulResponse']
+>> => {
   const headers: Headers = {};
   if (apiState.authToken) {
     headers.Authorization = `Bearer ${apiState.authToken}`;
@@ -269,9 +269,9 @@ export const fetchAllPages = async <ResultsType,>(
   let nextUrl = null;
 
   for (let page = 1; page <= maxAllowedPages; page++) {
-    const response: FetchAllPagesReturnType<
-      ResultsType
-    > = await getNextResponse(nextUrl);
+    const response: FetchAllPagesReturnType<ResultsType> = await getNextResponse(
+      nextUrl,
+    );
 
     if (isErrorResponse(response)) {
       return response;
