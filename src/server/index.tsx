@@ -186,9 +186,9 @@ export const createServer = ({
           // not https. Without this change, the server code would not be able
           // to read the cookie that stores the authentication token.
           if (proxyResponse.headers['set-cookie']) {
-            const cookies = proxyResponse.headers['set-cookie'].map(
-              (cookie: string) => cookie.replace(/;\s*?(Secure)/i, ''),
-            );
+            const cookies = proxyResponse.headers[
+              'set-cookie'
+            ].map((cookie: string) => cookie.replace(/;\s*?(Secure)/i, ''));
             // eslint-disable-next-line no-param-reassign
             proxyResponse.headers['set-cookie'] = cookies;
           }

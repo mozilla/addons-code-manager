@@ -104,6 +104,34 @@ describe(__filename, () => {
     });
   });
 
+  describe('considerDiscardComment', () => {
+    it('sets considerDiscard to be true', () => {
+      let state = reducer(undefined, actions.beginComment({ ...keyParams }));
+
+      expect(
+        selectCommentInfo({ comments: state, ...keyParams }),
+      ).toHaveProperty('considerDiscard', false);
+
+      state = reducer(state, actions.considerDiscardComment({ ...keyParams }));
+
+      expect(
+        selectCommentInfo({ comments: state, ...keyParams }),
+      ).toHaveProperty('considerDiscard', true);
+    });
+  });
+
+  describe('abortDiscardComment', () => {
+    it('resets considerDiscard to be false', () => {
+      let state = reducer(undefined, actions.beginComment({ ...keyParams }));
+      state = reducer(state, actions.considerDiscardComment({ ...keyParams }));
+      state = reducer(state, actions.abortDiscardComment({ ...keyParams }));
+
+      expect(
+        selectCommentInfo({ comments: state, ...keyParams }),
+      ).toHaveProperty('considerDiscard', false);
+    });
+  });
+
   describe('abortSaveComment', () => {
     it('aborts saving a comment by key', () => {
       const pendingCommentText = 'Example of a comment';
@@ -149,6 +177,7 @@ describe(__filename, () => {
       expect(
         selectCommentInfo({ comments: state, ...keyParams }),
       ).toMatchObject({
+        considerDiscard: false,
         pendingCommentText: null,
         savingComment: false,
       });
@@ -584,6 +613,7 @@ describe(__filename, () => {
       ).toEqual({
         beginNewComment: true,
         commentIds: [],
+        considerDiscard: false,
         pendingCommentText: null,
         savingComment: false,
       });

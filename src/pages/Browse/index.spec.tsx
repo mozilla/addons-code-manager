@@ -618,9 +618,11 @@ describe(__filename, () => {
       const addonId = 5;
       const nextPath = 'next.js';
       const versionId = 1;
-      const { _fetchVersionFile, fakeThunk, dispatchSpy } = setUpFilesAndRender(
-        { addonId, nextPath, versionId },
-      );
+      const {
+        _fetchVersionFile,
+        fakeThunk,
+        dispatchSpy,
+      } = setUpFilesAndRender({ addonId, nextPath, versionId });
 
       expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
       expect(_fetchVersionFile).toHaveBeenCalledWith({
@@ -656,9 +658,11 @@ describe(__filename, () => {
     });
 
     it('does not dispatch fetchVersionFile when the next file is loading', () => {
-      const { _fetchVersionFile, dispatchSpy, fakeThunk } = setUpFilesAndRender(
-        { beginFetchNextFile: true },
-      );
+      const {
+        _fetchVersionFile,
+        dispatchSpy,
+        fakeThunk,
+      } = setUpFilesAndRender({ beginFetchNextFile: true });
 
       expect(dispatchSpy).not.toHaveBeenCalledWith(fakeThunk.thunk);
       expect(_fetchVersionFile).not.toHaveBeenCalled();

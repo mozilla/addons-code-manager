@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { Button } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Store } from 'redux';
 
@@ -11,6 +10,7 @@ import {
   createFakeEvent,
   createFakeThunk,
   dispatchComment,
+  nextUniqueId,
   getInstance,
   shallowUntilTarget,
   spyOn,
@@ -126,7 +126,7 @@ describe(__filename, () => {
     expect(textarea).toHaveProp('disabled', false);
     expect(textarea).toHaveProp('value', comment.comment);
 
-    const button = root.find(Button);
+    const button = root.find(`.${styles.saveButton}`);
     expect(button).toHaveProp('disabled', false);
     expect(button).toHaveText('Save');
   });
@@ -182,6 +182,28 @@ describe(__filename, () => {
     });
   });
 
+  it('can submit an empty comment', () => {
+    const store = configureStore();
+    const dispatchSpy = spyOn(store, 'dispatch');
+
+    const fakeThunk = createFakeThunk();
+    const _manageComment = fakeThunk.createThunk;
+
+    const root = render({ _manageComment, store });
+
+    // Submit the comment before it has been typed in the input box.
+    root.find(`.${styles.form}`).simulate('submit', createFakeEvent());
+
+    expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(_manageComment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        // Make sure an empty string is passed to the API so that the
+        // API can be responsible for raising an error.
+        comment: '',
+      }),
+    );
+  });
+
   it('renders a pending state while saving a comment', () => {
     const keyParams = { fileName: null, line: null, versionId: 1 };
     const pendingCommentText = 'Example of a comment being edited';
@@ -196,9 +218,11 @@ describe(__filename, () => {
     expect(textarea).toHaveProp('disabled', true);
     expect(textarea).toHaveProp('value', pendingCommentText);
 
-    const button = root.find(Button);
+    const button = root.find(`.${styles.saveButton}`);
     expect(button).toHaveProp('disabled', true);
     expect(button).toHaveText('Saving…');
+
+    expect(root.find(`.${styles.discardButton}`)).toHaveProp('disabled', true);
   });
 
   it('seeds the form with an initial comment', () => {
@@ -467,6 +491,107 @@ describe(__filename, () => {
       expect(getInstance<CommentBase>(root).getInitialCommentOrThrow()).toEqual(
         createInternalComment(comment),
       );
+    });
+  });
+
+  describe('discarding a new comment', () => {
+    const getKeyParams = () => {
+      return { versionId: nextUniqueId(), fileName: 'example.json', line: 100 };
+    };
+
+    it('renders a discard button to cancel entering a comment', () => {
+      const store = configureStore();
+      const keyParams = getKeyParams();
+      store.dispatch(actions.beginComment(keyParams));
+      const dispatchSpy = spyOn(store, 'dispatch');
+
+      const root = render({
+        store,
+        ...keyParams,
+      });
+      const discardButton = root.find(`.${styles.discardButton}`);
+
+      expect(discardButton).toHaveText('Discard');
+
+      discardButton.simulate('click');
+
+      expect(dispatchSpy).toHaveBeenCalledWith(
+        actions.considerDiscardComment(keyParams),
+      );
+    });
+
+    it('renders confirm button to discard a comment', () => {
+      const store = configureStore();
+      const keyParams = getKeyParams();
+      store.dispatch(actions.beginComment(keyParams));
+      store.dispatch(actions.considerDiscardComment(keyParams));
+      const dispatchSpy = spyOn(store, 'dispatch');
+
+      const root = render({
+        store,
+        ...keyParams,
+      });
+      const discardButton = root.find(`.${styles.discardButton}`);
+
+      expect(discardButton).toHaveText('Confirm discard');
+
+      discardButton.simulate('click');
+
+      expect(dispatchSpy).toHaveBeenCalledWith(
+        actions.finishComment(keyParams),
+      );
+    });
+
+    it('disables the save button and textarea when ask for confirmation', () => {
+      const store = configureStore();
+      const keyParams = getKeyParams();
+      store.dispatch(actions.beginComment(keyParams));
+      store.dispatch(actions.considerDiscardComment(keyParams));
+
+      const root = render({
+        store,
+        ...keyParams,
+      });
+
+      expect(root.find(`.${styles.saveButton}`)).toHaveProp('disabled', true);
+      expect(root.find(`.${styles.textarea}`)).toHaveProp('disabled', true);
+    });
+
+    it('provides a cancel button to abort discard', () => {
+      const store = configureStore();
+      const keyParams = getKeyParams();
+      store.dispatch(actions.beginComment(keyParams));
+      store.dispatch(actions.considerDiscardComment(keyParams));
+      const dispatchSpy = spyOn(store, 'dispatch');
+
+      const root = render({
+        store,
+        ...keyParams,
+      });
+      const abortDiscardButton = root.find(`.${styles.abortDiscardButton}`);
+
+      expect(abortDiscardButton).toHaveText('Cancel');
+
+      abortDiscardButton.simulate('click');
+
+      expect(dispatchSpy).toHaveBeenCalledWith(
+        actions.abortDiscardComment(keyParams),
+      );
+    });
+
+    it('does not render the cancel button after abort discard', () => {
+      const store = configureStore();
+      const keyParams = getKeyParams();
+      store.dispatch(actions.beginComment(keyParams));
+      store.dispatch(actions.considerDiscardComment(keyParams));
+      store.dispatch(actions.abortDiscardComment(keyParams));
+
+      const root = render({
+        store,
+        ...keyParams,
+      });
+
+      expect(root.find(`.${styles.abortDiscardButton}`)).toHaveLength(0);
     });
   });
 });
