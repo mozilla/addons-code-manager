@@ -1,3 +1,4 @@
+import makeClassName from 'classnames';
 import * as React from 'react';
 import { Button, Navbar } from 'react-bootstrap';
 import { connect } from 'react-redux';
@@ -14,6 +15,7 @@ import styles from './styles.module.scss';
 
 type PublicProps = {
   _requestLogOut: typeof requestLogOut;
+  reviewersHost: string;
 };
 
 type PropsFromState = {
@@ -27,6 +29,7 @@ type Props = PublicProps & PropsFromState & ConnectedReduxProps;
 export class NavbarBase extends React.Component<Props> {
   static defaultProps = {
     _requestLogOut: requestLogOut,
+    reviewersHost: process.env.REACT_APP_REVIEWERS_HOST,
   };
 
   logOut = () => {
@@ -56,16 +59,30 @@ export class NavbarBase extends React.Component<Props> {
   }
 
   render() {
-    const { user, currentVersion } = this.props;
+    const { currentVersion, reviewersHost, user } = this.props;
 
     return (
       <Navbar className={styles.Navbar} expand="lg" variant="dark">
         <Navbar.Brand className={styles.brand}>
           <div className={styles.info}>
             {currentVersion && (
-              <div className={styles.infoItem}>
-                {getLocalizedString(currentVersion.addon.name)}
-              </div>
+              <>
+                <div
+                  className={makeClassName(styles.infoItem, styles.addonName)}
+                >
+                  {getLocalizedString(currentVersion.addon.name)}
+                </div>
+                <div className={styles.infoItem}>
+                  <a
+                    className={styles.reviewerToolsLink}
+                    href={`${reviewersHost}/reviewers/review/${currentVersion.addon.slug}`}
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    {gettext('Back to reviewer tools')}
+                  </a>
+                </div>
+              </>
             )}
             {this.renderCommentsNavBar()}
           </div>

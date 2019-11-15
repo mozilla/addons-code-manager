@@ -23,18 +23,23 @@ import Navbar from '.';
 describe(__filename, () => {
   type RenderParams = {
     _requestLogOut?: typeof requestLogOut;
+    reviewersHost?: string;
     store?: Store;
   };
 
   const render = ({
     _requestLogOut = jest.fn(),
+    reviewersHost,
     store = configureStore(),
   }: RenderParams = {}) => {
     // TODO: Use shallowUntilTarget()
     // https://github.com/mozilla/addons-code-manager/issues/15
-    const root = shallow(<Navbar _requestLogOut={_requestLogOut} />, {
-      context: { store },
-    }).shallow();
+    const root = shallow(
+      <Navbar _requestLogOut={_requestLogOut} reviewersHost={reviewersHost} />,
+      {
+        context: { store },
+      },
+    ).shallow();
 
     return root;
   };
@@ -58,7 +63,25 @@ describe(__filename, () => {
       });
       const root = render({ store });
 
-      expect(root.find(`.${styles.info}`)).toHaveText(addonName);
+      expect(root.find(`.${styles.addonName}`)).toHaveText(addonName);
+    });
+
+    it('renders a link to reviewer tools', () => {
+      const reviewersHost = 'https://example.com';
+      const slug = 'some-slug';
+      const store = createStoreWithVersion({
+        version: {
+          ...fakeVersion,
+          addon: { ...fakeVersionAddon, slug },
+        },
+        makeCurrent: true,
+      });
+      const root = render({ reviewersHost, store });
+
+      expect(root.find(`.${styles.reviewerToolsLink}`)).toHaveProp(
+        'href',
+        `${reviewersHost}/reviewers/review/${slug}`,
+      );
     });
   });
 
@@ -66,7 +89,13 @@ describe(__filename, () => {
     it('does not render addon name', () => {
       const root = render();
 
-      expect(root.find(`.${styles.info}`)).toHaveText('');
+      expect(root.find(`.${styles.addonName}`)).toHaveLength(0);
+    });
+
+    it('does not render a link to reviewer tools', () => {
+      const root = render();
+
+      expect(root.find(`.${styles.reviewerToolsLink}`)).toHaveLength(0);
     });
   });
 
