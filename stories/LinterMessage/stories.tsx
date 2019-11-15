@@ -2,13 +2,13 @@ import queryString from 'query-string';
 import * as React from 'react';
 import { storiesOf } from '@storybook/react';
 
-import LinterMessage from '../src/components/LinterMessage';
-import { createInternalMessage } from '../src/reducers/linter';
+import LinterMessage from '../../src/components/LinterMessage';
+import { createInternalMessage } from '../../src/reducers/linter';
 import {
   createFakeLocation,
   fakeExternalLinterMessage,
-} from '../src/test-helpers';
-import { renderWithStoreAndRouter } from './utils';
+} from '../../src/test-helpers';
+import { renderWithStoreAndRouter } from '../utils';
 
 const createMessage = (attributes = {}) => {
   return createInternalMessage({

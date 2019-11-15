@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { storiesOf } from '@storybook/react';
 
-import Commentable from '../src/components/Commentable';
-import { renderWithStoreAndRouter } from './utils';
+import Commentable from '../../src/components/Commentable';
+import { renderWithStoreAndRouter } from '../utils';
 
 const renderRow = ({ content, line }: { content: string; line: number }) => {
   return renderWithStoreAndRouter(

@@ -2,17 +2,17 @@ import * as React from 'react';
 import { Store } from 'redux';
 import { storiesOf } from '@storybook/react';
 
-import { actions as commentsActions } from '../src/reducers/comments';
-import CommentSummaryButton from '../src/components/CommentSummaryButton';
+import { actions as commentsActions } from '../../src/reducers/comments';
+import CommentSummaryButton from '../../src/components/CommentSummaryButton';
 import {
   createStoreWithVersionComments,
   createFakeExternalComment,
-} from '../src/test-helpers';
-import { renderWithStoreAndRouter } from './utils';
+} from '../../src/test-helpers';
+import { renderWithStoreAndRouter } from '../utils';
 import {
   createOneLineComment,
   createVeryLongComments,
-} from './CommentSummary.stories';
+} from '../CommentSummary/stories';
 
 const setUpStore = ({ comments = [createFakeExternalComment()] } = {}) => {
   const store = createStoreWithVersionComments({ comments });

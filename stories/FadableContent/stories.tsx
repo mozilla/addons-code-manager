@@ -1,13 +1,13 @@
 import React from 'react';
 import { storiesOf } from '@storybook/react';
 
-import configureStore from '../src/configureStore';
-import CodeView from '../src/components/CodeView';
-import FadableContent from '../src/components/FadableContent';
-import { createInternalVersion } from '../src/reducers/versions';
-import { fakeVersion } from '../src/test-helpers';
-import { JS_SAMPLE } from './CodeView.stories';
-import { generateParagraphs, renderWithStoreAndRouter } from './utils';
+import configureStore from '../../src/configureStore';
+import CodeView from '../../src/components/CodeView';
+import FadableContent from '../../src/components/FadableContent';
+import { createInternalVersion } from '../../src/reducers/versions';
+import { fakeVersion } from '../../src/test-helpers';
+import { JS_SAMPLE } from '../CodeView/stories';
+import { generateParagraphs, renderWithStoreAndRouter } from '../utils';
 
 const renderWithContent = (content: JSX.Element) => {
   return renderWithStoreAndRouter(
