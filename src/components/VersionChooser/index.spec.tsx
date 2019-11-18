@@ -239,7 +239,7 @@ describe(__filename, () => {
     _loadVersionsList(store, addonId, fakeVersionsList);
 
     const history = createFakeHistory();
-    const selectedVersion = '2';
+    const selectedVersion = String(nextUniqueId());
 
     const root = render({
       addonId,
@@ -269,7 +269,7 @@ describe(__filename, () => {
     _loadVersionsList(store, addonId, fakeVersionsList);
 
     const history = createFakeHistory();
-    const selectedVersion = '5';
+    const selectedVersion = String(nextUniqueId());
 
     const root = render({
       addonId,
@@ -322,6 +322,37 @@ describe(__filename, () => {
 
     expect(history.push).toHaveBeenCalledWith(
       `/${lang}/compare/${addonId}/versions/${baseVersionId}...${headVersionId}/?path=${selectedFile}`,
+    );
+  });
+
+  it('dispatches setCurrentBaseVersionId() when the old version changes', () => {
+    const addonId = nextUniqueId();
+    const baseVersionId = nextUniqueId();
+    const headVersionId = nextUniqueId();
+
+    const store = configureStore();
+    _loadVersionsList(store, addonId, fakeVersionsList);
+    const dispatchSpy = spyOn(store, 'dispatch');
+
+    const selectedVersion = String(nextUniqueId());
+
+    const root = render({
+      addonId,
+      baseVersionId,
+      headVersionId,
+      store,
+    });
+
+    const onChange = root
+      // Retrieve the `VersionSelect` component with this `className`.
+      .find({ className: styles.baseVersionSelect })
+      .prop('onChange');
+    onChange(selectedVersion);
+
+    expect(dispatchSpy).toHaveBeenCalledWith(
+      versionActions.setCurrentBaseVersionId({
+        versionId: parseInt(selectedVersion, 10),
+      }),
     );
   });
 

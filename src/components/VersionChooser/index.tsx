@@ -11,6 +11,7 @@ import {
   VersionsListItem,
   VersionsMap,
   VersionsState,
+  actions as versionsActions,
   fetchVersionsList,
   getVersionInfo,
 } from '../../reducers/versions';
@@ -98,7 +99,14 @@ export class VersionChooserBase extends React.Component<Props> {
   };
 
   onOldVersionChange = (versionId: string) => {
-    const { currentVersionId } = this.props;
+    const { dispatch, currentVersionId } = this.props;
+
+    dispatch(
+      versionsActions.setCurrentBaseVersionId({
+        versionId: parseInt(versionId, 10),
+      }),
+    );
+
     this.onVersionChange({
       baseVersionId: versionId,
       headVersionId: String(currentVersionId),
