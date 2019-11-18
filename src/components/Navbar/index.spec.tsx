@@ -1,4 +1,3 @@
-import { shallow } from 'enzyme';
 import React from 'react';
 import { Store } from 'redux';
 
@@ -14,34 +13,28 @@ import {
   fakeUser,
   fakeVersion,
   fakeVersionAddon,
+  shallowUntilTarget,
   spyOn,
 } from '../../test-helpers';
-import { actions as userActions, requestLogOut } from '../../reducers/users';
+import { actions as userActions } from '../../reducers/users';
 
-import Navbar from '.';
+import Navbar, { NavbarBase, PublicProps } from '.';
 
 describe(__filename, () => {
-  type RenderParams = {
-    _requestLogOut?: typeof requestLogOut;
-    reviewersHost?: string;
-    store?: Store;
-  };
+  type RenderParams = Partial<PublicProps> & { store?: Store };
 
   const render = ({
-    _requestLogOut = jest.fn(),
-    reviewersHost,
     store = configureStore(),
+    ...moreProps
   }: RenderParams = {}) => {
-    // TODO: Use shallowUntilTarget()
-    // https://github.com/mozilla/addons-code-manager/issues/15
-    const root = shallow(
-      <Navbar _requestLogOut={_requestLogOut} reviewersHost={reviewersHost} />,
-      {
-        context: { store },
-      },
-    ).shallow();
+    const props = {
+      _requestLogOut: jest.fn(),
+      ...moreProps,
+    };
 
-    return root;
+    return shallowUntilTarget(<Navbar {...props} />, NavbarBase, {
+      shallowOptions: { context: { store } },
+    });
   };
 
   const storeWithUser = (user = fakeUser) => {

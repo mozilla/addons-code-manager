@@ -1,5 +1,4 @@
 @import '../../scss/variables';
-@import '../../scss/mixins';
 
 $bg-color: $dark-gray;
 
@@ -68,8 +67,8 @@ $bg-color: $dark-gray;
     color: $white;
     text-decoration: underline;
   }
+}
 
-  svg {
-    margin-right: 10px;
-  }
+.reviewerToolsIcon {
+  margin-right: 10px;
 }

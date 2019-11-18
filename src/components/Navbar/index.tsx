@@ -14,7 +14,7 @@ import { ConnectedReduxProps } from '../../configureStore';
 import { User, selectCurrentUser, requestLogOut } from '../../reducers/users';
 import styles from './styles.module.scss';
 
-type PublicProps = {
+export type PublicProps = {
   _requestLogOut: typeof requestLogOut;
   reviewersHost: string;
 };
@@ -75,7 +75,10 @@ export class NavbarBase extends React.Component<Props> {
                     rel="noopener noreferrer"
                     target="_blank"
                   >
-                    <FontAwesomeIcon icon={['fas', 'arrow-left']} />
+                    <FontAwesomeIcon
+                      className={styles.reviewerToolsIcon}
+                      icon={['fas', 'arrow-left']}
+                    />
                     {gettext('Reviewer Tools')}
                   </a>
                 </div>
