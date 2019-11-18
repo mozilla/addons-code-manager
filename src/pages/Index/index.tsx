@@ -72,7 +72,6 @@ export class IndexBase extends React.Component<Props> {
 
   componentDidMount() {
     const { dispatch } = this.props;
-    dispatch(versionsActions.unsetCurrentBaseVersionId());
     dispatch(versionsActions.unsetCurrentVersionId());
   }
 

@@ -188,35 +188,6 @@ describe(__filename, () => {
     expect(_fetchVersion).toHaveBeenCalledWith({ addonId, versionId });
   });
 
-  it('dispatches unsetCurrentBaseVersionId()', () => {
-    const store = configureStore();
-    store.dispatch(
-      versionsActions.setCurrentBaseVersionId({ versionId: nextUniqueId() }),
-    );
-    const { version } = _loadVersionAndFile({ store });
-    const dispatch = spyOn(store, 'dispatch');
-
-    render({ store, versionId: String(version.id) });
-
-    expect(dispatch).toHaveBeenCalledWith(
-      versionsActions.unsetCurrentBaseVersionId(),
-    );
-  });
-
-  it('does not dispatch unsetCurrentBaseVersionId() if already unset', () => {
-    const store = configureStore();
-    store.dispatch(versionsActions.unsetCurrentBaseVersionId());
-
-    const { version } = _loadVersionAndFile({ store });
-    const dispatch = spyOn(store, 'dispatch');
-
-    render({ store, versionId: String(version.id) });
-
-    expect(dispatch).not.toHaveBeenCalledWith(
-      versionsActions.unsetCurrentBaseVersionId(),
-    );
-  });
-
   it('dispatches setCurrentVersionId on mount when unset', () => {
     const store = configureStore();
     const { version } = _loadVersionAndFile({
