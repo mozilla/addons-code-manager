@@ -246,13 +246,13 @@ export const createExternalVersionWithEntries = (
       diff,
       entries: partialEntries.reduce((entries, file) => {
         return {
+          ...entries,
           [file.path]: {
             ...fakeVersionEntry,
             filename: pathLib.basename(file.path),
             path: file.path,
             ...file,
           },
-          ...entries,
         };
       }, {}),
       selected_file,
