@@ -2,6 +2,7 @@ import makeClassName from 'classnames';
 import * as React from 'react';
 import { Button, Navbar } from 'react-bootstrap';
 import { connect } from 'react-redux';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { gettext, getLocalizedString } from '../../utils';
 import CommentSummaryButton from '../CommentSummaryButton';
@@ -67,11 +68,6 @@ export class NavbarBase extends React.Component<Props> {
           <div className={styles.info}>
             {currentVersion && (
               <>
-                <div
-                  className={makeClassName(styles.infoItem, styles.addonName)}
-                >
-                  {getLocalizedString(currentVersion.addon.name)}
-                </div>
                 <div className={styles.infoItem}>
                   <a
                     className={styles.reviewerToolsLink}
@@ -79,8 +75,14 @@ export class NavbarBase extends React.Component<Props> {
                     rel="noopener noreferrer"
                     target="_blank"
                   >
-                    {gettext('Back to reviewer tools')}
+                    <FontAwesomeIcon icon={['fas', 'arrow-left']} />
+                    {gettext('Reviewer Tools')}
                   </a>
+                </div>
+                <div
+                  className={makeClassName(styles.infoItem, styles.addonName)}
+                >
+                  {getLocalizedString(currentVersion.addon.name)}
                 </div>
               </>
             )}

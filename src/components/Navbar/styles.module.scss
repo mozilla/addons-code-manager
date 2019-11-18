@@ -1,4 +1,5 @@
 @import '../../scss/variables';
+@import '../../scss/mixins';
 
 $bg-color: $dark-gray;
 
@@ -58,4 +59,17 @@ $bg-color: $dark-gray;
 
 .username {
   margin-right: $default-padding;
+}
+
+.reviewerToolsLink {
+  &,
+  &:active,
+  &:hover {
+    color: $white;
+    text-decoration: underline;
+  }
+
+  svg {
+    margin-right: 10px;
+  }
 }
