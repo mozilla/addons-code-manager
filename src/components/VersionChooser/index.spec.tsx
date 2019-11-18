@@ -7,7 +7,7 @@ import VersionSelect from '../VersionSelect';
 import {
   ExternalVersionsList,
   ExternalVersionsListItem,
-  actions as versionActions,
+  actions as versionsActions,
 } from '../../reducers/versions';
 import {
   createContextWithFakeRouter,
@@ -67,12 +67,12 @@ describe(__filename, () => {
     headVersionId?: number;
   } & RenderParams = {}) => {
     store.dispatch(
-      versionActions.setCurrentBaseVersionId({
+      versionsActions.setCurrentBaseVersionId({
         versionId: baseVersionId,
       }),
     );
     store.dispatch(
-      versionActions.setCurrentVersionId({
+      versionsActions.setCurrentVersionId({
         versionId: headVersionId,
       }),
     );
@@ -107,7 +107,7 @@ describe(__filename, () => {
     addonId: number,
     versions: ExternalVersionsList,
   ) => {
-    store.dispatch(versionActions.loadVersionsList({ addonId, versions }));
+    store.dispatch(versionsActions.loadVersionsList({ addonId, versions }));
   };
 
   it('sets the `isLoading` prop to `true`  when lists of versions are not loaded', () => {
@@ -350,7 +350,7 @@ describe(__filename, () => {
     onChange(selectedVersion);
 
     expect(dispatchSpy).toHaveBeenCalledWith(
-      versionActions.setCurrentBaseVersionId({
+      versionsActions.setCurrentBaseVersionId({
         versionId: parseInt(selectedVersion, 10),
       }),
     );
