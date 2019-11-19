@@ -3,15 +3,17 @@ import * as React from 'react';
 
 import styles from './styles.module.scss';
 
-export type Props = { _log: typeof log };
+export type PublicProps = { children: JSX.Element };
+export type DefaultProps = { _log: typeof log };
+export type Props = PublicProps & DefaultProps;
 
-type State = {
+export type State = {
   error: Error | null;
   errorInfo: React.ErrorInfo | null;
 };
 
 export class ErrorBoundaryBase extends React.Component<Props, State> {
-  static defaultProps: Props = { _log: log };
+  static defaultProps: DefaultProps = { _log: log };
 
   constructor(props: Props) {
     super(props);
@@ -22,7 +24,7 @@ export class ErrorBoundaryBase extends React.Component<Props, State> {
     const { _log } = this.props;
 
     this.setState({ error, errorInfo });
-    _log.error(error.toString());
+    _log.error('Caught application error:', error, errorInfo);
   }
 
   render() {
@@ -46,7 +48,7 @@ export class ErrorBoundaryBase extends React.Component<Props, State> {
           <details className={styles.errorDetails}>
             <div className={styles.errorText}>{error && error.toString()}</div>
             <div className={styles.componentStack}>
-              {errorInfo.componentStack}
+              {errorInfo && errorInfo.componentStack}
             </div>
           </details>
         </div>

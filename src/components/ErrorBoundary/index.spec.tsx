@@ -4,7 +4,7 @@ import * as React from 'react';
 import { createFakeLogger } from '../../test-helpers';
 import styles from './styles.module.scss';
 
-import ErrorBoundary, { Props } from '.';
+import ErrorBoundary, { Props, State } from '.';
 
 describe(__filename, () => {
   const CustomComponent = ({
@@ -13,7 +13,7 @@ describe(__filename, () => {
     children?: JSX.Element;
   }) => children;
 
-  type RenderParams = Partial<Props> & { children?: JSX.Element };
+  type RenderParams = Partial<Props>;
 
   const render = ({
     _log = createFakeLogger(),
@@ -42,11 +42,15 @@ describe(__filename, () => {
     const error = new Error('test');
 
     root.find(CustomComponent).simulateError(error);
+
+    const state = root.state() as State;
+    const expectedErrorInfo = state.errorInfo as React.ErrorInfo;
+
     expect(root.find(`.${className}`)).toHaveLength(0);
     expect(root.find(`.${styles.errorDetails}`)).toHaveLength(1);
     expect(root.find(`.${styles.errorText}`)).toHaveText(error.toString());
     expect(root.find(`.${styles.componentStack}`)).toHaveText(
-      error.componentStack,
+      expectedErrorInfo.componentStack,
     );
   });
 
