@@ -12,7 +12,7 @@ type GetTextForSlowState = (allowSlowPages: boolean) => string;
 
 export type PublicProps = {
   _shouldAllowSlowPages?: typeof shouldAllowSlowPages;
-  defaultAllowSlowPagesToTrue?: boolean;
+  allowSlowPagesByDefault?: boolean;
   getLinkText: GetTextForSlowState;
   getMessage: GetTextForSlowState;
   location: Location;
@@ -20,13 +20,13 @@ export type PublicProps = {
 
 const SlowPageAlertBase = ({
   _shouldAllowSlowPages = shouldAllowSlowPages,
-  defaultAllowSlowPagesToTrue,
+  allowSlowPagesByDefault,
   getLinkText,
   getMessage,
   location,
 }: PublicProps) => {
   const allowSlowPages = _shouldAllowSlowPages({
-    defaultToTrue: defaultAllowSlowPagesToTrue,
+    allowByDefault: allowSlowPagesByDefault,
     location,
   });
 

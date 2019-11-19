@@ -31,29 +31,29 @@ describe(__filename, () => {
     expect(root.find(Alert.Link).text()).toMatch(linkText);
   });
 
-  it('calls shouldAllowSlowPages without a defaultToTrue param', () => {
+  it('calls shouldAllowSlowPages without a allowByDefault param', () => {
     const _shouldAllowSlowPages = jest.fn();
 
     render({ _shouldAllowSlowPages });
 
     expect(_shouldAllowSlowPages).toHaveBeenCalledWith(
       expect.objectContaining({
-        defaultToTrue: undefined,
+        allowByDefault: undefined,
       }),
     );
   });
 
-  it('can override defaultToTrue in call to shouldAllowSlowPages', () => {
+  it('can override allowByDefault in call to shouldAllowSlowPages', () => {
     const _shouldAllowSlowPages = jest.fn();
-    const defaultToTrue = true;
+    const allowByDefault = true;
 
     render({
       _shouldAllowSlowPages,
-      defaultAllowSlowPagesToTrue: defaultToTrue,
+      allowSlowPagesByDefault: allowByDefault,
     });
 
     expect(_shouldAllowSlowPages).toHaveBeenCalledWith(
-      expect.objectContaining({ defaultToTrue }),
+      expect.objectContaining({ allowByDefault }),
     );
   });
 

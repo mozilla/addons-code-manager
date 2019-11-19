@@ -756,7 +756,7 @@ describe(__filename, () => {
 
     const message = root.find(SlowPageAlert).at(0);
 
-    expect(message).toHaveProp('defaultAllowSlowPagesToTrue', true);
+    expect(message).toHaveProp('allowSlowPagesByDefault', true);
     expect(message).toHaveProp('location', location);
 
     expect(message).toHaveProp('getMessage');

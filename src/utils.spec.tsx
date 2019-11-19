@@ -399,10 +399,10 @@ describe('shouldAllowSlowPages', () => {
     ).toEqual(false);
   });
 
-  it('can use a defaultToTrue prop', () => {
+  it('can use a allowByDefault prop', () => {
     expect(
       shouldAllowSlowPages({
-        defaultToTrue: true,
+        allowByDefault: true,
         location: createFakeLocation({
           search: '',
         }),

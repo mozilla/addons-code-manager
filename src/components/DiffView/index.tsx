@@ -307,13 +307,13 @@ export class DiffViewBase extends React.Component<Props> {
       });
 
       if (changeCount >= _slowDiffChangeCount) {
-        if (!shouldAllowSlowPages({ defaultToTrue: true, location })) {
+        if (!shouldAllowSlowPages({ allowByDefault: true, location })) {
           hunks = trimHunkChanges(hunks, { maxLength: _slowDiffChangeCount });
           diffWasTrimmed = true;
         }
         diffIsSlowAlert = (
           <SlowPageAlert
-            defaultAllowSlowPagesToTrue
+            allowSlowPagesByDefault
             location={location}
             getMessage={(allowSlowPages: boolean) => {
               return allowSlowPages
