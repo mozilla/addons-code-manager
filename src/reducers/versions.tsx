@@ -253,6 +253,12 @@ export const actions = {
     return (payload: { selectedPath: string; versionId: number }) =>
       resolve(payload);
   }),
+  setCurrentBaseVersionId: createAction(
+    'SET_CURRENT_BASE_VERSION_ID',
+    (resolve) => {
+      return (payload: { versionId: number }) => resolve(payload);
+    },
+  ),
   setCurrentVersionId: createAction('SET_CURRENT_VERSION_ID', (resolve) => {
     return (payload: { versionId: number }) => resolve(payload);
   }),
@@ -331,7 +337,13 @@ export type VersionsState = {
   compareInfoIsLoading: {
     [compareInfoKey: string]: boolean;
   };
-  currentVersionId: number | undefined | false;
+  currentBaseVersionId:
+    | number // data successfully loaded
+    | undefined; // data has not yet loaded
+  currentVersionId:
+    | number // data successfully loaded
+    | undefined // data has not yet loaded
+    | false; // data loaded but it is empty
   entryStatusMaps: {
     [entryStatusMapKey: string]: EntryStatusMap;
   };
@@ -361,6 +373,7 @@ export const initialState: VersionsState = {
   byAddonId: {},
   compareInfo: {},
   compareInfoIsLoading: {},
+  currentBaseVersionId: undefined,
   currentVersionId: undefined,
   entryStatusMaps: {},
   expandedPaths: undefined,
@@ -1499,6 +1512,13 @@ export const createReducer = ({
             ...state.compareInfoIsLoading,
             [compareInfoKey]: false,
           },
+        };
+      }
+      case getType(actions.setCurrentBaseVersionId): {
+        const { versionId } = action.payload;
+        return {
+          ...state,
+          currentBaseVersionId: versionId,
         };
       }
       case getType(actions.setCurrentVersionId): {

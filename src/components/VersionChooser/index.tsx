@@ -11,6 +11,7 @@ import {
   VersionsListItem,
   VersionsMap,
   VersionsState,
+  actions as versionsActions,
   fetchVersionsList,
   getVersionInfo,
 } from '../../reducers/versions';
@@ -36,13 +37,13 @@ export type DefaultProps = {
 };
 
 type PropsFromState = {
+  currentBaseVersionId: number | undefined;
+  currentVersionId: number | undefined | false;
   versionsMap: VersionsMap;
   versions: VersionsState;
 };
 
 export type PropsFromRouter = {
-  baseVersionId: string;
-  headVersionId: string;
   lang: string;
 };
 
@@ -73,12 +74,15 @@ export class VersionChooserBase extends React.Component<Props> {
     baseVersionId,
     headVersionId,
   }: {
-    baseVersionId: string;
-    headVersionId: string;
+    baseVersionId: number | undefined | false;
+    headVersionId: number | undefined | false;
   }) => {
     const { addonId, history, match, versions } = this.props;
     const { lang } = match.params;
-    const version = getVersionInfo(versions, parseInt(headVersionId, 10));
+    let version;
+    if (headVersionId) {
+      version = getVersionInfo(versions, headVersionId);
+    }
 
     const query = version
       ? `?${queryString.stringify({ path: version.selectedPath })}`
@@ -89,24 +93,39 @@ export class VersionChooserBase extends React.Component<Props> {
     );
   };
 
-  onNewVersionChange = (versionId: string) => {
-    const { baseVersionId } = this.props.match.params;
-    this.onVersionChange({ baseVersionId, headVersionId: versionId });
+  onNewVersionChange = (versionId: number) => {
+    const { currentBaseVersionId } = this.props;
+    this.onVersionChange({
+      baseVersionId: currentBaseVersionId,
+      headVersionId: versionId,
+    });
   };
 
-  onOldVersionChange = (versionId: string) => {
-    const { headVersionId } = this.props.match.params;
-    this.onVersionChange({ baseVersionId: versionId, headVersionId });
+  onOldVersionChange = (versionId: number) => {
+    const { dispatch, currentVersionId } = this.props;
+
+    dispatch(
+      versionsActions.setCurrentBaseVersionId({
+        versionId,
+      }),
+    );
+
+    this.onVersionChange({
+      baseVersionId: versionId,
+      headVersionId: currentVersionId,
+    });
   };
 
   render() {
     const {
       _higherVersionsThan,
       _lowerVersionsThan,
-      match,
+      currentBaseVersionId,
+      currentVersionId,
       versionsMap,
     } = this.props;
-    const { baseVersionId, headVersionId } = match.params;
+    const headVersionId = String(currentVersionId);
+    const baseVersionId = String(currentBaseVersionId);
 
     const listedVersions = versionsMap ? versionsMap.listed : [];
     const unlistedVersions = versionsMap ? versionsMap.unlisted : [];
@@ -152,6 +171,8 @@ const mapStateToProps = (
   const { addonId } = ownProps;
 
   return {
+    currentBaseVersionId: state.versions.currentBaseVersionId,
+    currentVersionId: state.versions.currentVersionId,
     versions: state.versions,
     versionsMap: byAddonId[addonId],
   };

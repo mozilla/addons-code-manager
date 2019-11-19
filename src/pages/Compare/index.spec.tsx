@@ -15,6 +15,7 @@ import {
   fakeVersionWithDiff,
   shallowUntilTarget,
   spyOn,
+  nextUniqueId,
 } from '../../test-helpers';
 import configureStore from '../../configureStore';
 import { actions as fileTreeActions } from '../../reducers/fileTree';
@@ -112,15 +113,25 @@ describe(__filename, () => {
   };
 
   const _loadDiff = ({
-    addonId = 1,
-    baseVersionId = 2,
-    headVersionId = 3,
+    addonId = nextUniqueId(),
+    baseVersionId = nextUniqueId(),
+    headVersionId = baseVersionId + 1,
     store = configureStore(),
-    version = fakeVersionWithDiff,
+    version = { ...fakeVersionWithDiff, id: headVersionId },
     setCurrentVersionId = true,
     loadDiff = true,
     loadEntryStatusMap = true,
     loadVersionFile = true,
+  }: {
+    addonId?: number;
+    baseVersionId?: number;
+    headVersionId?: number;
+    loadDiff?: boolean;
+    loadEntryStatusMap?: boolean;
+    loadVersionFile?: boolean;
+    setCurrentVersionId?: boolean;
+    store?: Store;
+    version?: typeof fakeVersionWithDiff;
   }) => {
     store.dispatch(
       versionsActions.loadVersionInfo({
@@ -167,6 +178,14 @@ describe(__filename, () => {
         versionsActions.setCurrentVersionId({ versionId: headVersionId }),
       );
     }
+
+    return {
+      addonId,
+      baseVersionId,
+      headVersionId,
+      store,
+      version,
+    };
   };
 
   const loadDiffAndRender = ({
@@ -444,17 +463,7 @@ describe(__filename, () => {
   });
 
   it('dispatches an action to set current version id if currentVersionId is unset', () => {
-    const addonId = 9999;
-    const baseVersionId = 1;
-    const headVersionId = baseVersionId + 1;
-    const version = { ...fakeVersionWithDiff, id: headVersionId };
-    const store = configureStore();
-    _loadDiff({
-      addonId,
-      baseVersionId,
-      headVersionId,
-      store,
-      version,
+    const { addonId, baseVersionId, headVersionId, store } = _loadDiff({
       setCurrentVersionId: false,
     });
     const dispatch = spyOn(store, 'dispatch');
@@ -470,21 +479,17 @@ describe(__filename, () => {
   });
 
   it('dispatches an action to set current version id when switching head versions', () => {
-    const addonId = 9999;
-    const baseVersionId = 1;
+    const baseVersionId = nextUniqueId();
     const newHeadVersionId = baseVersionId + 1;
     const oldHeadVersionId = baseVersionId + 2;
-    const version = { ...fakeVersionWithDiff, id: newHeadVersionId };
     const store = configureStore();
     store.dispatch(
       versionsActions.setCurrentVersionId({ versionId: oldHeadVersionId }),
     );
-    _loadDiff({
-      addonId,
+    const { addonId } = _loadDiff({
       baseVersionId,
       headVersionId: newHeadVersionId,
       store,
-      version,
       setCurrentVersionId: false,
     });
     const dispatch = spyOn(store, 'dispatch');
@@ -500,6 +505,67 @@ describe(__filename, () => {
 
     expect(dispatch).toHaveBeenCalledWith(
       versionsActions.setCurrentVersionId({ versionId: newHeadVersionId }),
+    );
+  });
+
+  it('dispatches setCurrentBaseVersionId() when unset', () => {
+    const { store, addonId, baseVersionId, headVersionId } = _loadDiff({
+      setCurrentVersionId: false,
+    });
+    const dispatch = spyOn(store, 'dispatch');
+
+    render({
+      ...getRouteParams({ addonId, baseVersionId, headVersionId }),
+      store,
+    });
+
+    expect(dispatch).toHaveBeenCalledWith(
+      versionsActions.setCurrentBaseVersionId({ versionId: baseVersionId }),
+    );
+  });
+
+  it('dispatches setCurrentBaseVersionId() when baseVersionId differs', () => {
+    const store = configureStore();
+    const oldBaseVersionId = nextUniqueId();
+    store.dispatch(
+      versionsActions.setCurrentBaseVersionId({ versionId: oldBaseVersionId }),
+    );
+
+    const baseVersionId = oldBaseVersionId + 1;
+    const headVersionId = baseVersionId + 1;
+
+    const { addonId } = _loadDiff({ baseVersionId, headVersionId, store });
+    const dispatch = spyOn(store, 'dispatch');
+
+    render({
+      ...getRouteParams({ addonId, baseVersionId, headVersionId }),
+      store,
+    });
+
+    expect(dispatch).toHaveBeenCalledWith(
+      versionsActions.setCurrentBaseVersionId({ versionId: baseVersionId }),
+    );
+  });
+
+  it('does not dispatch setCurrentBaseVersionId() when already set', () => {
+    const store = configureStore();
+    const baseVersionId = nextUniqueId();
+    const headVersionId = baseVersionId + 1;
+
+    store.dispatch(
+      versionsActions.setCurrentBaseVersionId({ versionId: baseVersionId }),
+    );
+
+    const { addonId } = _loadDiff({ baseVersionId, headVersionId, store });
+    const dispatch = spyOn(store, 'dispatch');
+
+    render({
+      ...getRouteParams({ addonId, baseVersionId, headVersionId }),
+      store,
+    });
+
+    expect(dispatch).not.toHaveBeenCalledWith(
+      versionsActions.setCurrentBaseVersionId({ versionId: baseVersionId }),
     );
   });
 
@@ -546,13 +612,16 @@ describe(__filename, () => {
     );
 
     const dispatch = spyOn(store, 'dispatch');
+    const fakeThunk = createFakeThunk();
+    const _fetchVersionFile = fakeThunk.createThunk;
 
     render({
       ...getRouteParams({ addonId, baseVersionId, headVersionId }),
+      _fetchVersionFile,
       store,
     });
 
-    expect(dispatch).not.toHaveBeenCalled();
+    expect(dispatch).not.toHaveBeenCalledWith(fakeThunk.thunk);
   });
 
   it('does not dispatch fetchVersionFile() when the file is already loaded', () => {
@@ -560,6 +629,8 @@ describe(__filename, () => {
     const baseVersionId = 1;
     const version = { ...fakeVersionWithDiff, id: baseVersionId + 1 };
     const headVersionId = version.id;
+    const fakeThunk = createFakeThunk();
+    const _fetchVersionFile = fakeThunk.createThunk;
 
     const store = configureStore();
     _loadDiff({ addonId, baseVersionId, headVersionId, store, version });
@@ -567,10 +638,11 @@ describe(__filename, () => {
 
     render({
       ...getRouteParams({ addonId, baseVersionId, headVersionId }),
+      _fetchVersionFile,
       store,
     });
 
-    expect(dispatch).not.toHaveBeenCalled();
+    expect(dispatch).not.toHaveBeenCalledWith(fakeThunk.thunk);
   });
 
   it('redirects to a new compare url when the "old" version is newer than the "new" version', () => {
@@ -601,11 +673,11 @@ describe(__filename, () => {
   });
 
   it('does not dispatch anything on update if nothing has changed', () => {
-    const { dispatchSpy, root } = loadDiffAndRender();
+    const { dispatchSpy, fakeThunk, root } = loadDiffAndRender();
 
     root.setProps({});
 
-    expect(dispatchSpy).not.toHaveBeenCalled();
+    expect(dispatchSpy).not.toHaveBeenCalledWith(fakeThunk.thunk);
   });
 
   it('dispatches fetchDiff() on update when baseVersionId changes', () => {
@@ -822,31 +894,31 @@ describe(__filename, () => {
   });
 
   it('does not dispatch fetchDiff() when the diff is already loaded', () => {
-    const { dispatchSpy } = loadDiffAndRender();
+    const { dispatchSpy, fakeThunk } = loadDiffAndRender();
 
-    expect(dispatchSpy).not.toHaveBeenCalled();
+    expect(dispatchSpy).not.toHaveBeenCalledWith(fakeThunk.thunk);
   });
 
   it('does not dispatch fetchDiff() when path remains the same on update', () => {
     const path = 'manifest.json';
-    const { dispatchSpy, root } = loadDiffAndRender({
+    const { dispatchSpy, fakeThunk, root } = loadDiffAndRender({
       selected_file: path,
     });
 
     // We set `path` to the same value again.
     root.setProps({ path });
 
-    expect(dispatchSpy).not.toHaveBeenCalled();
+    expect(dispatchSpy).not.toHaveBeenCalledWith(fakeThunk.thunk);
   });
 
   it('does not dispatch fetchDiff() when path is the default file on update', () => {
-    const { dispatchSpy, root, version } = loadDiffAndRender();
+    const { dispatchSpy, fakeThunk, root, version } = loadDiffAndRender();
 
     // Once the default file is loaded (without `path` defined), there is an
     // update with `path` being set to the default file.
     root.setProps({ path: version.file.selected_file });
 
-    expect(dispatchSpy).not.toHaveBeenCalled();
+    expect(dispatchSpy).not.toHaveBeenCalledWith(fakeThunk.thunk);
   });
 
   it('dispatches fetchDiff() with the path specified in the URL on mount', () => {

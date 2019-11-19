@@ -9,9 +9,12 @@ import { renderWithStoreAndRouter } from './utils';
 
 const render = ({
   addonId = 124,
-  params = {},
+  baseVersionId = 1,
+  headVersionId = 1,
   store = configureStore(),
 } = {}) => {
+  store.dispatch(actions.setCurrentBaseVersionId({ versionId: baseVersionId }));
+  store.dispatch(actions.setCurrentVersionId({ versionId: headVersionId }));
   return renderWithStoreAndRouter(
     <VersionChooserWithoutRouter
       addonId={addonId}
@@ -19,12 +22,7 @@ const render = ({
         isExact: true,
         path: 'some-path',
         url: 'some-url',
-        params: {
-          baseVersionId: '1',
-          headVersionId: '1',
-          lang: 'fr',
-          ...params,
-        },
+        params: { lang: 'fr' },
       }}
     />,
     { store },
@@ -79,11 +77,9 @@ storiesOf('VersionChooser', module).addWithChapters('all variants', {
 
             return render({
               addonId,
+              baseVersionId: versions[0].id,
+              headVersionId: versions[2].id,
               store,
-              params: {
-                baseVersionId: String(versions[0].id),
-                headVersionId: String(versions[2].id),
-              },
             });
           },
         },
@@ -94,14 +90,11 @@ storiesOf('VersionChooser', module).addWithChapters('all variants', {
             const versions = listedVersions;
             const store = configureStore();
             store.dispatch(actions.loadVersionsList({ addonId, versions }));
-
             return render({
               addonId,
+              baseVersionId: versions[1].id,
+              headVersionId: versions[2].id,
               store,
-              params: {
-                baseVersionId: String(versions[1].id),
-                headVersionId: String(versions[2].id),
-              },
             });
           },
         },

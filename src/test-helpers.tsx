@@ -378,7 +378,7 @@ export const fakeVersionWithDiff: ExternalVersionWithDiff = {
 };
 
 export const fakeVersionsListItem: ExternalVersionsListItem = {
-  id: 1541798,
+  id: nextUniqueId(),
   channel: 'unlisted',
   version: '1.5.0',
 };
@@ -386,19 +386,19 @@ export const fakeVersionsListItem: ExternalVersionsListItem = {
 export const fakeVersionsList: ExternalVersionsList = [
   {
     ...fakeVersionsListItem,
-    id: 1541798,
+    id: nextUniqueId(),
     channel: 'unlisted',
     version: '1.5.0',
   },
   {
     ...fakeVersionsListItem,
-    id: 1541794,
+    id: nextUniqueId(),
     channel: 'listed',
     version: '1.4.0',
   },
   {
     ...fakeVersionsListItem,
-    id: 1541786,
+    id: nextUniqueId(),
     channel: 'listed',
     version: '1.3.0',
   },

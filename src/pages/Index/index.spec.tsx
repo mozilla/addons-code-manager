@@ -27,6 +27,7 @@ describe(__filename, () => {
       shallowOptions: { context: { store } },
     });
   };
+
   it('renders a page with some links', () => {
     const root = render();
 
