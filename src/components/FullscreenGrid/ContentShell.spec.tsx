@@ -1,22 +1,36 @@
+import { Location } from 'history';
 import * as React from 'react';
 import { Store } from 'redux';
 
 import configureStore from '../../configureStore';
 import { actions as fullscreenGridActions } from '../../reducers/fullscreenGrid';
-import { spyOn, shallowUntilTarget } from '../../test-helpers';
+import {
+  createContextWithFakeRouter,
+  createFakeLocation,
+  spyOn,
+  shallowUntilTarget,
+} from '../../test-helpers';
 import ContentShell, { ContentShellBase, PublicProps } from './ContentShell';
 import { PublicProps as SidePanelProps } from '../SidePanel';
 import styles from './styles.module.scss';
 
 describe(__filename, () => {
-  type RenderParams = PublicProps & { store?: Store };
+  type RenderParams = PublicProps & { location?: Location; store?: Store };
 
   const render = ({
+    location = createFakeLocation(),
     store = configureStore(),
     ...props
   }: RenderParams = {}) => {
+    const shallowOptions = createContextWithFakeRouter({ location });
     return shallowUntilTarget(<ContentShell {...props} />, ContentShellBase, {
-      shallowOptions: { context: { store } },
+      shallowOptions: {
+        ...shallowOptions,
+        context: {
+          ...shallowOptions.context,
+          store,
+        },
+      },
     });
   };
 
@@ -181,5 +195,12 @@ describe(__filename, () => {
     expect(dispatch).toHaveBeenCalledWith(
       fullscreenGridActions.toggleAltSidePanel(),
     );
+  });
+
+  it('renders the main content panel with a location key', () => {
+    const key = 'locationKey';
+    const root = render({ location: createFakeLocation({ key }) });
+
+    expect(root.find(`.${styles.content}`).key()).toEqual(key);
   });
 });

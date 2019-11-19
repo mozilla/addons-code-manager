@@ -4,7 +4,10 @@ import { shallow } from 'enzyme';
 import ContentShell from './ContentShell';
 import configureStore from '../../configureStore';
 import { actions as fullscreenGridActions } from '../../reducers/fullscreenGrid';
-import { shallowUntilTarget } from '../../test-helpers';
+import {
+  createContextWithFakeRouter,
+  shallowUntilTarget,
+} from '../../test-helpers';
 import styles from './styles.module.scss';
 
 import FullscreenGrid, { Header, FullscreenGridBase } from '.';
@@ -15,8 +18,15 @@ describe(__filename, () => {
       element: JSX.Element,
       { store = configureStore() } = {},
     ) => {
+      const shallowOptions = createContextWithFakeRouter();
       return shallowUntilTarget(element, FullscreenGridBase, {
-        shallowOptions: { context: { store } },
+        shallowOptions: {
+          ...shallowOptions,
+          context: {
+            ...shallowOptions.context,
+            store,
+          },
+        },
       });
     };
 

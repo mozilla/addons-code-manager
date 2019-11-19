@@ -1,6 +1,7 @@
 import * as React from 'react';
 import makeClassName from 'classnames';
 import { connect } from 'react-redux';
+import { withRouter, RouteComponentProps } from 'react-router-dom';
 
 import { ConnectedReduxProps } from '../../configureStore';
 import { ApplicationState } from '../../reducers';
@@ -25,7 +26,10 @@ type PropsFromState = {
   mainSidePanelIsExpanded: boolean;
 };
 
-type Props = PublicProps & PropsFromState & ConnectedReduxProps;
+type Props = PublicProps &
+  PropsFromState &
+  ConnectedReduxProps &
+  RouteComponentProps;
 
 export enum PanelAttribs {
   altSidePanel = 'altSidePanel',
@@ -40,6 +44,7 @@ export const ContentShellBase = ({
   children,
   className,
   dispatch,
+  location,
   mainSidePanel,
   mainSidePanelClass,
   mainSidePanelIsBorderless = false,
@@ -62,7 +67,12 @@ export const ContentShellBase = ({
         {mainSidePanel}
       </SidePanel>
 
-      <main className={makeClassName(styles.content, className)}>
+      <main
+        className={makeClassName(styles.content, className)}
+        // This resets the dom node (thus scrollbars) when the location
+        // changes.
+        key={location.key}
+      >
         {children}
       </main>
 
@@ -85,4 +95,6 @@ const mapStateToProps = (state: ApplicationState): PropsFromState => {
   };
 };
 
-export default connect(mapStateToProps)(ContentShellBase);
+export default withRouter(
+  connect(mapStateToProps)(ContentShellBase),
+) as React.ComponentType<PublicProps>;
