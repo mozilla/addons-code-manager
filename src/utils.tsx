@@ -120,6 +120,17 @@ export const makeReviewersURL = ({
   return path;
 };
 
-export const shouldAllowSlowPages = (location: Location) => {
-  return queryString.parse(location.search)[allowSlowPagesParam] === 'true';
+export const shouldAllowSlowPages = ({
+  allowByDefault = false,
+  location,
+}: {
+  allowByDefault?: boolean;
+  location: Location;
+}) => {
+  const shouldAllowQueryParam = queryString.parse(location.search)[
+    allowSlowPagesParam
+  ];
+  return shouldAllowQueryParam !== undefined
+    ? shouldAllowQueryParam === 'true'
+    : allowByDefault;
 };
