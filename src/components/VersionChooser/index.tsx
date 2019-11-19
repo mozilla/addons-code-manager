@@ -74,12 +74,15 @@ export class VersionChooserBase extends React.Component<Props> {
     baseVersionId,
     headVersionId,
   }: {
-    baseVersionId: string;
-    headVersionId: string;
+    baseVersionId: number | undefined | false;
+    headVersionId: number | undefined | false;
   }) => {
     const { addonId, history, match, versions } = this.props;
     const { lang } = match.params;
-    const version = getVersionInfo(versions, parseInt(headVersionId, 10));
+    let version;
+    if (headVersionId) {
+      version = getVersionInfo(versions, headVersionId);
+    }
 
     const query = version
       ? `?${queryString.stringify({ path: version.selectedPath })}`
@@ -90,26 +93,26 @@ export class VersionChooserBase extends React.Component<Props> {
     );
   };
 
-  onNewVersionChange = (versionId: string) => {
+  onNewVersionChange = (versionId: number) => {
     const { currentBaseVersionId } = this.props;
     this.onVersionChange({
-      baseVersionId: String(currentBaseVersionId),
+      baseVersionId: currentBaseVersionId,
       headVersionId: versionId,
     });
   };
 
-  onOldVersionChange = (versionId: string) => {
+  onOldVersionChange = (versionId: number) => {
     const { dispatch, currentVersionId } = this.props;
 
     dispatch(
       versionsActions.setCurrentBaseVersionId({
-        versionId: parseInt(versionId, 10),
+        versionId,
       }),
     );
 
     this.onVersionChange({
       baseVersionId: versionId,
-      headVersionId: String(currentVersionId),
+      headVersionId: currentVersionId,
     });
   };
 

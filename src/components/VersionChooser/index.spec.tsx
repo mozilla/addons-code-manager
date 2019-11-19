@@ -239,7 +239,7 @@ describe(__filename, () => {
     _loadVersionsList(store, addonId, fakeVersionsList);
 
     const history = createFakeHistory();
-    const selectedVersion = String(nextUniqueId());
+    const selectedVersion = nextUniqueId();
 
     const root = render({
       addonId,
@@ -269,7 +269,7 @@ describe(__filename, () => {
     _loadVersionsList(store, addonId, fakeVersionsList);
 
     const history = createFakeHistory();
-    const selectedVersion = String(nextUniqueId());
+    const selectedVersion = nextUniqueId();
 
     const root = render({
       addonId,
@@ -332,7 +332,7 @@ describe(__filename, () => {
     _loadVersionsList(store, addonId, fakeVersionsList);
     const dispatchSpy = spyOn(store, 'dispatch');
 
-    const selectedVersion = String(nextUniqueId());
+    const selectedVersion = nextUniqueId();
 
     const root = render({ addonId, store });
 
@@ -344,7 +344,7 @@ describe(__filename, () => {
 
     expect(dispatchSpy).toHaveBeenCalledWith(
       versionsActions.setCurrentBaseVersionId({
-        versionId: parseInt(selectedVersion, 10),
+        versionId: selectedVersion,
       }),
     );
   });

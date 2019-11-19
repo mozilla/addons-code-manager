@@ -138,7 +138,7 @@ describe(__filename, () => {
       }),
     );
 
-    expect(onChange).toHaveBeenCalledWith(newValue);
+    expect(onChange).toHaveBeenCalledWith(parseInt(newValue, 10));
   });
 
   it('accepts a className', () => {

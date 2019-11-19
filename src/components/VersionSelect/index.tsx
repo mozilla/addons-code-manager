@@ -17,7 +17,7 @@ export type PublicProps = {
   isSelectable: (version: VersionsListItem) => boolean;
   label: string;
   listedVersions: VersionsList;
-  onChange: (versionId: string) => void;
+  onChange: (versionId: number) => void;
   unlistedVersions: VersionsList;
   value: string | undefined;
   withLeftArrow: boolean;
@@ -31,7 +31,7 @@ class VersionSelectBase extends React.Component<PublicProps> {
   onChange = (event: React.FormEvent<FormControlProps>) => {
     const value = event.currentTarget.value as string;
 
-    this.props.onChange(value);
+    this.props.onChange(parseInt(value, 10));
   };
 
   renderOption = (version: VersionsListItem) => {
