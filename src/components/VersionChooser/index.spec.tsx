@@ -327,8 +327,6 @@ describe(__filename, () => {
 
   it('dispatches setCurrentBaseVersionId() when the old version changes', () => {
     const addonId = nextUniqueId();
-    const baseVersionId = nextUniqueId();
-    const headVersionId = nextUniqueId();
 
     const store = configureStore();
     _loadVersionsList(store, addonId, fakeVersionsList);
@@ -336,12 +334,7 @@ describe(__filename, () => {
 
     const selectedVersion = String(nextUniqueId());
 
-    const root = render({
-      addonId,
-      baseVersionId,
-      headVersionId,
-      store,
-    });
+    const root = render({ addonId, store });
 
     const onChange = root
       // Retrieve the `VersionSelect` component with this `className`.
