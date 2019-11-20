@@ -117,7 +117,7 @@ type CallApiParams<BodyDataType extends undefined | {}> = {
   version?: string;
 };
 
-type ErrorResponseType = { error: Error };
+export type ErrorResponseType = { error: Error };
 
 type CallApiResponse<SuccessResponseType> =
   | SuccessResponseType

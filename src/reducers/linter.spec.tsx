@@ -2,6 +2,7 @@
 import {
   createFakeExternalLinterResult,
   createFakeLinterMessagesByPath,
+  createErrorResponse,
   fakeExternalLinterResult,
   fakeExternalLinterMessage,
   setMockFetchResponseJSON,
@@ -495,7 +496,11 @@ describe(__filename, () => {
       await thunk();
 
       expect(dispatch).toHaveBeenCalledWith(
-        errorsActions.addError({ error: expect.any(Error) }),
+        errorsActions.addError(
+          createErrorResponse({
+            error: expect.any(Error),
+          }),
+        ),
       );
       expect(dispatch).toHaveBeenCalledWith(
         actions.abortFetchLinterResult({ versionId }),
@@ -514,7 +519,11 @@ describe(__filename, () => {
       await thunk();
 
       expect(dispatch).toHaveBeenCalledWith(
-        errorsActions.addError({ error: expect.any(Error) }),
+        errorsActions.addError(
+          createErrorResponse({
+            error: expect.any(Error),
+          }),
+        ),
       );
       expect(dispatch).toHaveBeenCalledWith(
         actions.abortFetchLinterResult({ versionId }),

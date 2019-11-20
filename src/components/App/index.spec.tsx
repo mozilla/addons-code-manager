@@ -12,6 +12,7 @@ import { actions as userActions } from '../../reducers/users';
 import {
   createContextWithFakeRouter,
   createFakeThunk,
+  createErrorResponse,
   fakeUser,
   shallowUntilTarget,
   spyOn,
@@ -181,25 +182,33 @@ describe(__filename, () => {
   });
 
   it('renders application errors', () => {
-    const error1 = new Error('error 1');
-    const error2 = new Error('error 2');
+    const error1 = createErrorResponse({
+      error: new Error('error 1'),
+    });
+    const error2 = createErrorResponse({
+      error: new Error('error 2'),
+    });
     const store = configureStore();
-    store.dispatch(errorsActions.addError({ error: error1 }));
-    store.dispatch(errorsActions.addError({ error: error2 }));
+    store.dispatch(errorsActions.addError(error1));
+    store.dispatch(errorsActions.addError(error2));
 
     const root = render({ store });
 
     expect(root.find(Alert)).toHaveLength(2);
-    expect(root.find(Alert).at(0)).toIncludeText(error1.message);
-    expect(root.find(Alert).at(1)).toIncludeText(error2.message);
+    expect(root.find(Alert).at(0)).toIncludeText(error1.error.message);
+    expect(root.find(Alert).at(1)).toIncludeText(error2.error.message);
   });
 
   it('dispatches removeError() when dismissing an error', () => {
-    const error1 = new Error('first error');
-    const error2 = new Error('second error');
+    const error1 = createErrorResponse({
+      error: new Error('first error'),
+    });
+    const error2 = createErrorResponse({
+      error: new Error('second error'),
+    });
     const store = configureStore();
-    store.dispatch(errorsActions.addError({ error: error1 }));
-    store.dispatch(errorsActions.addError({ error: error2 }));
+    store.dispatch(errorsActions.addError(error1));
+    store.dispatch(errorsActions.addError(error2));
     const dispatch = spyOn(store, 'dispatch');
 
     const root = render({ store });

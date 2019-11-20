@@ -9,7 +9,7 @@ import reducer, {
   requestLogOut,
   selectCurrentUser,
 } from './users';
-import { fakeUser, thunkTester } from '../test-helpers';
+import { fakeUser, thunkTester, createErrorResponse } from '../test-helpers';
 import { actions as errorsActions } from './errors';
 
 describe(__filename, () => {
@@ -208,9 +208,11 @@ describe(__filename, () => {
 
     it('aborts loading a user when API response is not successful', async () => {
       const _getCurrentUser = jest.fn().mockReturnValue(
-        Promise.resolve({
-          error: new Error('Bad Request'),
-        }),
+        Promise.resolve(
+          createErrorResponse({
+            error: new Error('Bad Request'),
+          }),
+        ),
       );
 
       const { dispatch, thunk } = _fetchCurrentUser({ _getCurrentUser });

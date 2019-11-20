@@ -10,7 +10,11 @@ import { Store } from 'redux';
 import log from 'loglevel';
 import { createAction } from 'typesafe-actions';
 
-import { GetCommentsResponse, PaginatedResponse } from './api';
+import {
+  GetCommentsResponse,
+  PaginatedResponse,
+  ErrorResponseType,
+} from './api';
 import configureStore, { ThunkActionCreator } from './configureStore';
 import { ApplicationState } from './reducers';
 import {
@@ -965,6 +969,14 @@ export const createFakeCommentsResponse = (
   results = [createFakeExternalComment()],
 ) => {
   return createFakeApiPage<GetCommentsResponse>({ results });
+};
+
+export const createErrorResponse = (
+  errorResponse = {
+    error: new Error('Example error'),
+  },
+): ErrorResponseType => {
+  return errorResponse;
 };
 
 export const setMockFetchResponseJSON = (
