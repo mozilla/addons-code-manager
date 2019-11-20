@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Store } from 'redux';
 import { storiesOf } from '@storybook/react';
 
-import { actions as commentsActions } from '../src/reducers/comments';
+import { actions as popoverActions } from '../src/reducers/popover';
 import CommentSummaryButton from '../src/components/CommentSummaryButton';
 import {
   createStoreWithVersionComments,
@@ -16,7 +16,7 @@ import {
 
 const setUpStore = ({ comments = [createFakeExternalComment()] } = {}) => {
   const store = createStoreWithVersionComments({ comments });
-  store.dispatch(commentsActions.showSummaryOverlay());
+  store.dispatch(popoverActions.show('COMMENTS_SUMMARY'));
 
   return store;
 };
