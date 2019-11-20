@@ -26,6 +26,7 @@ import { createInternalVersion } from './versions';
 import {
   createFakeCommentsResponse,
   createFakeExternalComment,
+  createErrorResponse,
   fakeVersion,
   thunkTester,
 } from '../test-helpers';
@@ -941,8 +942,10 @@ describe(__filename, () => {
     });
 
     it('handles API errors', async () => {
-      const error = new Error('API Error');
-      const _getAllComments = jest.fn().mockResolvedValue({ error });
+      const errorResponse = createErrorResponse({
+        error: new Error('API Error'),
+      });
+      const _getAllComments = jest.fn().mockResolvedValue(errorResponse);
       const versionId = 1;
 
       const { dispatch, thunk } = thunkTester({
@@ -955,7 +958,9 @@ describe(__filename, () => {
       expect(dispatch).toHaveBeenCalledWith(
         actions.abortFetchVersionComments({ versionId }),
       );
-      expect(dispatch).toHaveBeenCalledWith(errorsActions.addError({ error }));
+      expect(dispatch).toHaveBeenCalledWith(
+        errorsActions.addError(errorResponse),
+      );
     });
 
     it('fetches version comments', async () => {
@@ -1238,8 +1243,10 @@ describe(__filename, () => {
 
     it('dispatches abortDeleteComment(), addError() on error', async () => {
       const commentId = 987;
-      const error = new Error('API Error');
-      const _apiDeleteComment = jest.fn().mockResolvedValue({ error });
+      const errorResponse = createErrorResponse({
+        error: new Error('API Error'),
+      });
+      const _apiDeleteComment = jest.fn().mockResolvedValue(errorResponse);
 
       const { dispatch, thunk } = thunkTester({
         createThunk: () => _deleteComment({ _apiDeleteComment, commentId }),
@@ -1251,7 +1258,9 @@ describe(__filename, () => {
         actions.abortDeleteComment({ commentId }),
       );
 
-      expect(dispatch).toHaveBeenCalledWith(errorsActions.addError({ error }));
+      expect(dispatch).toHaveBeenCalledWith(
+        errorsActions.addError(errorResponse),
+      );
     });
   });
 

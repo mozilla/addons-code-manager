@@ -57,6 +57,7 @@ import {
   createStoreWithVersion,
   createFakeThunk,
   createVersionAndEntryStatusMap,
+  createErrorResponse,
   fakeExternalDiff,
   fakeVersion,
   fakeVersionAddon,
@@ -1276,7 +1277,11 @@ describe(__filename, () => {
       const version = { ...fakeVersion, id: 54123 };
       const _getVersion = jest
         .fn()
-        .mockReturnValue(Promise.resolve({ error: new Error('Bad Request') }));
+        .mockReturnValue(
+          Promise.resolve(
+            createErrorResponse({ error: new Error('Bad Request') }),
+          ),
+        );
 
       const { dispatch, thunk } = _fetchVersionFile({
         _getVersion,
@@ -1862,9 +1867,11 @@ describe(__filename, () => {
       const baseVersionId = 2;
       const headVersionId = 2;
       const _getDiff = jest.fn().mockReturnValue(
-        Promise.resolve({
-          error: new Error('Bad Request'),
-        }),
+        Promise.resolve(
+          createErrorResponse({
+            error: new Error('Bad Request'),
+          }),
+        ),
       );
 
       const { dispatch, thunk } = _fetchDiff({
@@ -1887,9 +1894,11 @@ describe(__filename, () => {
     it('dispatches abortFetchVersion() when the API call has failed', async () => {
       const headVersionId = 2;
       const _getDiff = jest.fn().mockReturnValue(
-        Promise.resolve({
-          error: new Error('Bad Request'),
-        }),
+        Promise.resolve(
+          createErrorResponse({
+            error: new Error('Bad Request'),
+          }),
+        ),
       );
 
       const { dispatch, thunk } = _fetchDiff({ _getDiff, headVersionId });

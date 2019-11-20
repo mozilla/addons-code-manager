@@ -9,6 +9,7 @@ import {
   createFakeApiPage,
   createFakeCommentsResponse,
   createFakeExternalComment,
+  createErrorResponse,
   nextUniqueId,
   setMockFetchResponseJSON,
 } from '../test-helpers';
@@ -384,7 +385,9 @@ describe(__filename, () => {
 
   describe('isErrorResponse', () => {
     it('returns true if a response object is an error', () => {
-      const response = { error: 'this is an error' };
+      const response = createErrorResponse({
+        error: new Error('API Error'),
+      });
 
       expect(isErrorResponse(response)).toEqual(true);
     });
@@ -1035,9 +1038,11 @@ describe(__filename, () => {
     });
 
     it('passes errors through', async () => {
-      const error = new Error('API Error');
+      const errorResponse = createErrorResponse({
+        error: new Error('API Error'),
+      });
       const getNext = jest.fn().mockImplementation(() => {
-        return { error };
+        return errorResponse;
       });
 
       const response = await fetchAllPages<string>(getNext);
