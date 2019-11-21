@@ -89,7 +89,6 @@ export type CommentsState = {
   filePathsHavingComments: FilePathsHavingComments;
   forVersionId: undefined | number;
   isLoading: boolean;
-  showSummaryOverlay: boolean;
 };
 
 export const initialState: CommentsState = {
@@ -98,7 +97,6 @@ export const initialState: CommentsState = {
   filePathsHavingComments: {},
   forVersionId: undefined,
   isLoading: false,
-  showSummaryOverlay: false,
 };
 
 export const createEmptyCommentInfo = (): CommentInfo => {
@@ -174,13 +172,10 @@ export const actions = {
   finishComment: createAction('FINISH_COMMENT', (resolve) => {
     return (payload: CommonPayload) => resolve(payload);
   }),
-  hideSummaryOverlay: createAction('HIDE_COMMENTS_SUMMARY_OVERLAY'),
   setComments: createAction('SET_COMMENTS', (resolve) => {
     return (payload: { versionId: number; comments: ExternalComment[] }) =>
       resolve(payload);
   }),
-  showSummaryOverlay: createAction('SHOW_COMMENTS_SUMMARY_OVERLAY'),
-  toggleSummaryOverlay: createAction('TOGGLE_COMMENTS_SUMMARY_OVERLAY'),
   unsetComment: createAction('UNSET_COMMENT', (resolve) => {
     return (payload: { commentId: number }) => resolve(payload);
   }),
@@ -720,18 +715,6 @@ const reducer: Reducer<CommentsState, ActionType<typeof actions>> = (
         byId,
         byKey,
         filePathsHavingComments: findFilePathsHavingComments(byId),
-      };
-    }
-    case getType(actions.hideSummaryOverlay): {
-      return { ...state, showSummaryOverlay: false };
-    }
-    case getType(actions.showSummaryOverlay): {
-      return { ...state, showSummaryOverlay: true };
-    }
-    case getType(actions.toggleSummaryOverlay): {
-      return {
-        ...state,
-        showSummaryOverlay: !state.showSummaryOverlay,
       };
     }
     default:

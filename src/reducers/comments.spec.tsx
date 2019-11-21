@@ -1320,56 +1320,6 @@ describe(__filename, () => {
     });
   });
 
-  describe('hideSummaryOverlay', () => {
-    it('hides the overlay', () => {
-      let state;
-
-      state = reducer(state, actions.showSummaryOverlay());
-      expect(state.showSummaryOverlay).toEqual(true);
-
-      state = reducer(state, actions.hideSummaryOverlay());
-
-      expect(state.showSummaryOverlay).toEqual(false);
-    });
-  });
-
-  describe('showSummaryOverlay', () => {
-    it('shows the overlay', () => {
-      let state;
-
-      state = reducer(state, actions.hideSummaryOverlay());
-      expect(state.showSummaryOverlay).toEqual(false);
-
-      state = reducer(state, actions.showSummaryOverlay());
-
-      expect(state.showSummaryOverlay).toEqual(true);
-    });
-  });
-
-  describe('toggleSummaryOverlay', () => {
-    it('shows the overlay when it is hidden', () => {
-      let state;
-
-      state = reducer(state, actions.hideSummaryOverlay());
-      expect(state.showSummaryOverlay).toEqual(false);
-
-      state = reducer(state, actions.toggleSummaryOverlay());
-
-      expect(state.showSummaryOverlay).toEqual(true);
-    });
-
-    it('hides the overlay when it is visible', () => {
-      let state;
-
-      state = reducer(state, actions.showSummaryOverlay());
-      expect(state.showSummaryOverlay).toEqual(true);
-
-      state = reducer(state, actions.toggleSummaryOverlay());
-
-      expect(state.showSummaryOverlay).toEqual(false);
-    });
-  });
-
   describe('selectFilePathHasComments', () => {
     const createCommentsStateForPath = ({
       commentId = 1234,

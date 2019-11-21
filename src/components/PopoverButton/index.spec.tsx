@@ -1,41 +1,49 @@
-import { shallow } from 'enzyme';
 import * as React from 'react';
+import { Store } from 'redux';
 import { Button, Overlay, OverlayChildrenParams } from 'react-bootstrap';
 
-import { createFakeRef } from '../../test-helpers';
+import { createFakeRef, shallowUntilTarget, spyOn } from '../../test-helpers';
+import { actions as popoverActions } from '../../reducers/popover';
+import configureStore from '../../configureStore';
 
-import PopoverButton, { PublicProps, DefaultProps } from '.';
+import PopoverButton, { PopoverButtonBase, PublicProps, DefaultProps } from '.';
 
 describe(__filename, () => {
-  type RenderParams = { disableLifecycleMethods?: boolean } & Partial<
-    PublicProps
-  > &
+  type RenderParams = {
+    disableLifecycleMethods?: boolean;
+    store?: Store;
+  } & Partial<PublicProps> &
     Partial<DefaultProps>;
 
   const render = ({
     disableLifecycleMethods = false,
+    id = 'COMMENTS_SUMMARY',
+    store = configureStore(),
     ...moreProps
   }: RenderParams = {}) => {
     const props = {
       content: 'example content',
       createRef: createFakeRef,
-      onHide: jest.fn(),
-      onOpen: jest.fn(),
+      id,
       prompt: 'Open',
-      showPopover: true,
       ...moreProps,
     };
-    return shallow(<PopoverButton {...props} />, { disableLifecycleMethods });
+    return shallowUntilTarget(<PopoverButton {...props} />, PopoverButtonBase, {
+      shallowOptions: { context: { store }, disableLifecycleMethods },
+    });
   };
 
   const renderPopover = ({
     arrowProps = { ref: createFakeRef(), style: {} },
+    id = 'COMMENTS_SUMMARY',
     placement = 'bottom',
     ref = createFakeRef(),
+    store = configureStore(),
     style = { left: 100, top: 200 },
     ...renderProps
   }: Partial<OverlayChildrenParams> & RenderParams = {}) => {
-    const root = render({ showPopover: true, ...renderProps });
+    store.dispatch(popoverActions.show(id));
+    const root = render({ store, ...renderProps });
 
     const overlay = root.find(Overlay);
     const renderChildren = overlay.renderProp('children');
@@ -43,11 +51,22 @@ describe(__filename, () => {
     return renderChildren({ arrowProps, placement, ref, style });
   };
 
-  it('configures an Overlay', () => {
-    const showPopover = false;
-    const root = render({ showPopover });
+  it('renders an open overlay', () => {
+    const id = 'COMMENTS_SUMMARY';
+    const store = configureStore();
+    store.dispatch(popoverActions.show(id));
+    const root = render({ id, store });
 
-    expect(root.find(Overlay)).toHaveProp('show', showPopover);
+    expect(root.find(Overlay)).toHaveProp('show', true);
+  });
+
+  it('renders a closed overlay', () => {
+    const id = 'COMMENTS_SUMMARY';
+    const store = configureStore();
+    store.dispatch(popoverActions.hide(id));
+    const root = render({ id, store });
+
+    expect(root.find(Overlay)).toHaveProp('show', false);
   });
 
   it('configures a Popover', () => {
@@ -86,9 +105,11 @@ describe(__filename, () => {
     ).toThrow(/unexpectedly empty/);
   });
 
-  it('triggers the onHide callback', () => {
-    const onHide = jest.fn();
-    const root = render({ onHide });
+  it('will hide itself when the Overlay is hidden', () => {
+    const store = configureStore();
+    const dispatchSpy = spyOn(store, 'dispatch');
+    const id = 'COMMENTS_SUMMARY';
+    const root = render({ id, store });
 
     const overlay = root.find(Overlay);
 
@@ -97,22 +118,24 @@ describe(__filename, () => {
     if (!onHideOverlay) {
       throw new Error('onHideOverlay was unexpectedly empty');
     }
-    // Simulate how Overlay calls onHide().
+    // Simulate how Overlay calls onHide() internally.
     onHideOverlay();
 
-    expect(onHide).toHaveBeenCalled();
+    expect(dispatchSpy).toHaveBeenCalledWith(popoverActions.hide(id));
   });
 
-  it('triggers the onOpen callback', () => {
-    const onOpen = jest.fn();
-    const root = render({ onOpen });
+  it('opens the overlay on button click', () => {
+    const store = configureStore();
+    const dispatchSpy = spyOn(store, 'dispatch');
+    const id = 'COMMENTS_SUMMARY';
+    const root = render({ id, store });
 
     const button = root.find(Button);
     expect(button).toHaveLength(1);
 
     button.simulate('click');
 
-    expect(onOpen).toHaveBeenCalled();
+    expect(dispatchSpy).toHaveBeenCalledWith(popoverActions.show(id));
   });
 
   it('renders popover content', () => {

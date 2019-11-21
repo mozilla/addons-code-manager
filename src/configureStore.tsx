@@ -81,6 +81,7 @@ export const redactStateForSentry = (state: ApplicationState) => {
     fileTree: state.fileTree,
     fullscreenGrid: state.fullscreenGrid,
     linter: state.linter,
+    popover: state.popover,
     router: state.router,
     users: state.users,
     versions: state.versions,

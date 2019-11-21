@@ -1,6 +1,14 @@
 import * as React from 'react';
 import { Button, Overlay, Popover } from 'react-bootstrap';
+import { connect } from 'react-redux';
 
+import { ApplicationState } from '../../reducers';
+import {
+  PopoverIdType,
+  actions as popoverActions,
+  selectPopoverIsVisible,
+} from '../../reducers/popover';
+import { ConnectedReduxProps } from '../../configureStore';
 import { AnyReactNode } from '../../typeUtils';
 import styles from './styles.module.scss';
 
@@ -8,17 +16,19 @@ type State = { canAccessRefs: boolean };
 
 export type PublicProps = {
   content: AnyReactNode;
-  onHide: () => void;
-  onOpen: () => void;
+  id: PopoverIdType;
   prompt: AnyReactNode;
-  showPopover: boolean;
+};
+
+type PropsFromState = {
+  show: boolean;
 };
 
 export type DefaultProps = {
   createRef: () => React.RefObject<HTMLDivElement>;
 };
 
-type Props = PublicProps & DefaultProps;
+type Props = PublicProps & DefaultProps & PropsFromState & ConnectedReduxProps;
 
 export class PopoverButtonBase extends React.Component<Props, State> {
   private buttonRef = this.props.createRef();
@@ -37,7 +47,7 @@ export class PopoverButtonBase extends React.Component<Props, State> {
   }
 
   renderOverlay() {
-    const { onHide, content: popoverContent, showPopover } = this.props;
+    const { content, dispatch, id, show } = this.props;
     const { canAccessRefs } = this.state;
 
     if (!canAccessRefs) {
@@ -53,11 +63,11 @@ export class PopoverButtonBase extends React.Component<Props, State> {
     return (
       <Overlay
         onHide={() => {
-          onHide();
+          dispatch(popoverActions.hide(id));
         }}
         placement="bottom"
         rootClose
-        show={showPopover}
+        show={show}
         target={this.buttonRef.current}
       >
         {({ arrowProps, placement, ref, style }) => {
@@ -65,12 +75,12 @@ export class PopoverButtonBase extends React.Component<Props, State> {
             <Popover
               arrowProps={arrowProps}
               className={styles.popover}
-              id="PopoverButton-popover"
+              id={`${id}-popover`}
               placement={placement}
               ref={ref}
               style={style}
             >
-              {popoverContent}
+              {content}
             </Popover>
           );
         }}
@@ -79,13 +89,13 @@ export class PopoverButtonBase extends React.Component<Props, State> {
   }
 
   render() {
-    const { onOpen, prompt } = this.props;
+    const { dispatch, id, prompt } = this.props;
 
     return (
       <>
         <Button
           onClick={() => {
-            onOpen();
+            dispatch(popoverActions.show(id));
           }}
           // This type has a conflicting definition. See:
           // https://github.com/react-bootstrap/react-bootstrap/issues/4706
@@ -103,4 +113,16 @@ export class PopoverButtonBase extends React.Component<Props, State> {
   }
 }
 
-export default PopoverButtonBase;
+const mapStateToProps = (
+  state: ApplicationState,
+  ownProps: PublicProps,
+): PropsFromState => {
+  return {
+    show: selectPopoverIsVisible({
+      id: ownProps.id,
+      popover: state.popover,
+    }),
+  };
+};
+
+export default connect(mapStateToProps)(PopoverButtonBase);

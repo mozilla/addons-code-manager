@@ -4,11 +4,8 @@ import { connect } from 'react-redux';
 
 import { gettext } from '../../utils';
 import { ApplicationState } from '../../reducers';
-import {
-  Comment,
-  actions as commentsActions,
-  selectVersionComments,
-} from '../../reducers/comments';
+import { Comment, selectVersionComments } from '../../reducers/comments';
+import { actions as popoverActions } from '../../reducers/popover';
 import { selectCurrentVersionInfo } from '../../reducers/versions';
 import { ConnectedReduxProps } from '../../configureStore';
 import CommentSummary from '../CommentSummary';
@@ -21,18 +18,15 @@ export type DefaultProps = {};
 
 type PropsFromState = {
   comments: Comment[] | undefined;
-  showOverlay: boolean;
 };
 
 type Props = PublicProps & DefaultProps & PropsFromState & ConnectedReduxProps;
 
-export const CommentSummaryButtonBase = ({
-  comments,
-  dispatch,
-  showOverlay,
-}: Props) => {
+export const CommentSummaryButtonBase = ({ comments, dispatch }: Props) => {
+  const id = 'COMMENTS_SUMMARY';
   return (
     <PopoverButton
+      id={id}
       content={
         <>
           <Popover.Title as="h3">{gettext('Comments')}</Popover.Title>
@@ -41,7 +35,7 @@ export const CommentSummaryButtonBase = ({
             <div className={styles.summaryControls}>
               <Button
                 onClick={() => {
-                  dispatch(commentsActions.hideSummaryOverlay());
+                  dispatch(popoverActions.hide(id));
                 }}
                 size="sm"
                 variant="primary"
@@ -52,14 +46,7 @@ export const CommentSummaryButtonBase = ({
           </Popover.Content>
         </>
       }
-      onHide={() => {
-        dispatch(commentsActions.hideSummaryOverlay());
-      }}
-      onOpen={() => {
-        dispatch(commentsActions.toggleSummaryOverlay());
-      }}
       prompt={gettext('Comment Summary')}
-      showPopover={showOverlay}
     />
   );
 };
@@ -73,7 +60,6 @@ const mapStateToProps = (state: ApplicationState): PropsFromState => {
           versionId: currentVersion.id,
         })
       : undefined,
-    showOverlay: state.comments.showSummaryOverlay,
   };
 };
 
