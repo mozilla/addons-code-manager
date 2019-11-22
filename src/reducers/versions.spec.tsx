@@ -43,6 +43,7 @@ import reducer, {
   isCompareInfoLoading,
   isFileLoading,
   selectCurrentVersionInfo,
+  selectVersionIsLoading,
   viewVersionFile,
 } from './versions';
 import { ROOT_PATH, RelativePathPosition } from './fileTree';
@@ -119,13 +120,32 @@ describe(__filename, () => {
       const version = fakeVersion;
       const state = reducer(undefined, actions.loadVersionInfo({ version }));
 
-      expect(state).toEqual({
-        ...initialState,
-        expandedPaths: getParentFolders(version.file.selected_file),
-        versionInfo: {
-          [version.id]: createInternalVersion(version),
-        },
-      });
+      expect(state).toEqual(
+        expect.objectContaining({
+          expandedPaths: getParentFolders(version.file.selected_file),
+          versionInfo: {
+            [version.id]: createInternalVersion(version),
+          },
+        }),
+      );
+    });
+
+    it('clears the loading flag when loading a version', () => {
+      const versionId = nextUniqueId();
+      let state;
+      state = reducer(state, actions.beginFetchVersion({ versionId }));
+      state = reducer(
+        state,
+        actions.loadVersionInfo({
+          version: { ...fakeVersion, id: versionId },
+        }),
+      );
+
+      expect(state.versionInfoLoading).toEqual(
+        expect.objectContaining({
+          [versionId]: false,
+        }),
+      );
     });
 
     it('prunes expandedPaths when loading version info', () => {
@@ -1032,6 +1052,37 @@ describe(__filename, () => {
       expect(dispatch).toHaveBeenCalledWith(
         actions.beginFetchVersion({ versionId }),
       );
+    });
+
+    it('does not dispatch anything if a fetch is in progress', async () => {
+      const store = configureStore();
+      const versionId = nextUniqueId();
+      store.dispatch(actions.beginFetchVersion({ versionId }));
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () =>
+          _fetchVersion({ version: { ...fakeVersion, id: versionId } }),
+        store,
+      });
+
+      await thunk();
+
+      expect(dispatch).not.toHaveBeenCalled();
+    });
+
+    it('ignores a fetch in progress when it is for a different version', async () => {
+      const store = configureStore();
+      store.dispatch(actions.beginFetchVersion({ versionId: nextUniqueId() }));
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () =>
+          _fetchVersion({ version: { ...fakeVersion, id: nextUniqueId() } }),
+        store,
+      });
+
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalled();
     });
 
     it('dispatches setCurrentVersionId()', async () => {
@@ -2266,6 +2317,23 @@ describe(__filename, () => {
       expect(state.versionInfo[beginFetchVersionId]).toEqual(undefined);
       expect(state.versionInfo[abortFetchVersionId]).toEqual(null);
     });
+
+    it('clears the loading flag for a version', () => {
+      const versionId = nextUniqueId();
+
+      let state;
+      state = reducer(
+        state,
+        actions.loadVersionInfo({ version: { ...fakeVersion, id: versionId } }),
+      );
+      state = reducer(state, actions.abortFetchVersion({ versionId }));
+
+      expect(state.versionInfoLoading).toEqual(
+        expect.objectContaining({
+          [versionId]: false,
+        }),
+      );
+    });
   });
 
   describe('beginFetchVersion', () => {
@@ -2312,6 +2380,21 @@ describe(__filename, () => {
 
       expect(state.versionInfo[abortFetchVersionId]).toEqual(null);
       expect(state.versionInfo[beginFetchVersionId]).toEqual(undefined);
+    });
+
+    it('sets a loading flag for the version', () => {
+      const versionId = nextUniqueId();
+
+      const state = reducer(
+        undefined,
+        actions.beginFetchVersion({ versionId }),
+      );
+
+      expect(state.versionInfoLoading).toEqual(
+        expect.objectContaining({
+          [versionId]: true,
+        }),
+      );
     });
   });
 
@@ -3256,6 +3339,43 @@ describe(__filename, () => {
       expect(
         getPrunedExpandedPaths(expandedPaths, createInternalVersion(version)),
       ).toEqual(expect.not.arrayContaining([path2]));
+    });
+  });
+
+  describe('selectVersionIsLoading', () => {
+    it('returns false without any loaded versions', () => {
+      expect(selectVersionIsLoading(initialState, nextUniqueId())).toEqual(
+        false,
+      );
+    });
+
+    it('returns true when loading', () => {
+      const versionId = nextUniqueId();
+      const state = reducer(
+        undefined,
+        actions.beginFetchVersion({ versionId }),
+      );
+
+      expect(selectVersionIsLoading(state, versionId)).toEqual(true);
+    });
+
+    it('returns false when not loading', () => {
+      const versionId = nextUniqueId();
+      let state;
+      state = reducer(state, actions.beginFetchVersion({ versionId }));
+      state = reducer(state, actions.abortFetchVersion({ versionId }));
+
+      expect(selectVersionIsLoading(state, versionId)).toEqual(false);
+    });
+
+    it('returns false when not loading the exact version', () => {
+      const versionId = nextUniqueId();
+      const state = reducer(
+        undefined,
+        actions.beginFetchVersion({ versionId }),
+      );
+
+      expect(selectVersionIsLoading(state, nextUniqueId())).toEqual(false);
     });
   });
 });

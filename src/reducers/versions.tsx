@@ -354,6 +354,9 @@ export type VersionsState = {
       | null // an error has occured
       | undefined; // data not fetched yet
   };
+  versionInfoLoading: {
+    [versionId: number]: boolean;
+  };
   versionFiles: {
     [versionId: number]: {
       [path: string]:
@@ -380,6 +383,7 @@ export const initialState: VersionsState = {
   versionFiles: {},
   versionFilesLoading: {},
   versionInfo: {},
+  versionInfoLoading: {},
 };
 
 export const getParentFolders = (path: string): string[] => {
@@ -513,6 +517,13 @@ export const selectCurrentVersionInfo = (
     return versions.currentVersionId === undefined ? undefined : false;
   }
   return getVersionInfo(versions, versions.currentVersionId);
+};
+
+export const selectVersionIsLoading = (
+  versions: VersionsState,
+  versionId: number,
+): boolean => {
+  return versions.versionInfoLoading[versionId] || false;
 };
 
 export const getMostRelevantEntryStatus = ({
@@ -733,7 +744,11 @@ export const fetchVersion = ({
   path,
 }: FetchVersionParams): ThunkActionCreator => {
   return async (dispatch, getState) => {
-    const { api: apiState } = getState();
+    const { api: apiState, versions } = getState();
+
+    if (selectVersionIsLoading(versions, versionId)) {
+      return;
+    }
 
     dispatch(actions.beginFetchVersion({ versionId }));
     // Set this as the current version so that components can track its
@@ -1181,6 +1196,10 @@ export const createReducer = ({
             ...state.versionInfo,
             [versionId]: undefined,
           },
+          versionInfoLoading: {
+            ...state.versionInfoLoading,
+            [versionId]: true,
+          },
         };
       }
       case getType(actions.loadVersionInfo): {
@@ -1199,6 +1218,10 @@ export const createReducer = ({
             ...state.versionInfo,
             [version.id]: { ...internalVersion, expandedPaths },
           },
+          versionInfoLoading: {
+            ...state.versionInfoLoading,
+            [version.id]: false,
+          },
         };
       }
       case getType(actions.abortFetchVersion): {
@@ -1209,6 +1232,10 @@ export const createReducer = ({
           versionInfo: {
             ...state.versionInfo,
             [versionId]: null,
+          },
+          versionInfoLoading: {
+            ...state.versionInfoLoading,
+            [versionId]: false,
           },
         };
       }
