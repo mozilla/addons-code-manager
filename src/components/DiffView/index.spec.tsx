@@ -17,6 +17,7 @@ import { History, Location } from 'history';
 import basicDiff from './fixtures/basicDiff';
 import multipleDiff from './fixtures/multipleDiff';
 import diffWithDeletions from './fixtures/diffWithDeletions';
+import CommentList from '../CommentList';
 import FadableContent from '../FadableContent';
 import LinterMessage from '../LinterMessage';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
@@ -38,6 +39,7 @@ import {
   createFakeLocation,
   fakeExternalDiff,
   fakeVersion,
+  nextUniqueId,
   shallowUntilTarget,
   simulateLinterProvider,
 } from '../../test-helpers';
@@ -573,23 +575,44 @@ describe(__filename, () => {
     );
   });
 
-  it('renders just the right amount of widgets', () => {
+  it('renders just the right amount of widgets with messages', () => {
+    const firstLine = nextUniqueId();
+    const secondLine = nextUniqueId();
+    const thirdLine = nextUniqueId();
+    const lines = [firstLine, secondLine, thirdLine];
     const externalMessages = [
-      { line: 1, uid: 'first' },
-      { line: 2, uid: 'second' },
+      { line: firstLine, uid: 'first' },
+      { line: secondLine, uid: 'second' },
     ];
-
+    const version = createInternalVersion({
+      ...fakeVersion,
+      id: nextUniqueId(),
+    });
+    const diff = createDiffWithHunks([
+      createHunkWithChanges([
+        { type: 'insert', new_line_number: firstLine },
+        { type: 'insert', new_line_number: secondLine },
+        { type: 'insert', new_line_number: thirdLine },
+      ]),
+    ]);
     const widgets = renderAndGetWidgets({
-      diff: parseDiff(diffWithDeletions)[0],
+      diff,
+      enableCommenting: true,
       selectedMessageMap: createFakeLinterMessagesByPath({
         messages: externalMessages,
       }),
+      version,
     });
 
-    // As a sanity check on how the widgets are mapped,
-    // make sure we have truthy React nodes for exactly the same
-    // number of lines containing messages.
-    expect(getWidgetNodes(widgets).length).toEqual(externalMessages.length);
+    // We should have one widget per line.
+    expect(getWidgetNodes(widgets).length).toEqual(lines.length);
+
+    // We should have one widget with a message per message.
+    const widgetsWithMessages = lines.filter(
+      (line) =>
+        renderWidget(diff.hunks, widgets, line).find(LinterMessage).length,
+    );
+    expect(widgetsWithMessages.length).toEqual(externalMessages.length);
   });
 
   it('renders multiple inline messages on the same line', () => {
@@ -627,12 +650,80 @@ describe(__filename, () => {
     );
   });
 
-  it('does not render widgets without linter messages', () => {
-    const widgets = renderAndGetWidgets({
-      diff: parseDiff(diffWithDeletions)[0],
-      selectedMessageMap: null,
+  describe('comment list', () => {
+    it('renders inline comments for inserted lines', () => {
+      const firstLine = nextUniqueId();
+      const secondLine = nextUniqueId();
+      const version = createInternalVersion({
+        ...fakeVersion,
+        id: nextUniqueId(),
+      });
+      const diff = createDiffWithHunks([
+        createHunkWithChanges([
+          { type: 'insert', new_line_number: firstLine },
+          { type: 'insert', new_line_number: secondLine },
+        ]),
+      ]);
+      const widgets = renderAndGetWidgets({
+        diff,
+        enableCommenting: true,
+        version,
+      });
+
+      for (const line of [firstLine, secondLine]) {
+        const commentList = renderWidget(diff.hunks, widgets, line).find(
+          CommentList,
+        );
+        expect(commentList).toHaveProp('addonId', version.addon.id);
+        expect(commentList).toHaveProp('fileName', version.selectedPath);
+        expect(commentList).toHaveProp('line', line);
+        expect(commentList).toHaveProp('versionId', version.id);
+      }
     });
-    expect(getWidgetNodes(widgets).length).toEqual(0);
+
+    it('does not render inline comments for normal or deleted lines', () => {
+      const firstLine = nextUniqueId();
+      const secondLine = nextUniqueId();
+      const version = createInternalVersion({
+        ...fakeVersion,
+        id: nextUniqueId(),
+      });
+      const diff = createDiffWithHunks([
+        createHunkWithChanges([
+          { type: 'delete', old_line_number: firstLine },
+          { type: 'normal', old_line_number: secondLine },
+        ]),
+      ]);
+      const widgets = renderAndGetWidgets({
+        diff,
+        enableCommenting: true,
+        version,
+      });
+
+      for (const line of [firstLine, secondLine]) {
+        const widget = renderWidget(diff.hunks, widgets, line);
+        expect(widget.find(CommentList)).toHaveLength(0);
+      }
+    });
+
+    it('does not render inline comments when the feature is disabled', () => {
+      const line = nextUniqueId();
+      const version = createInternalVersion({
+        ...fakeVersion,
+        id: nextUniqueId(),
+      });
+      const diff = createDiffWithHunks([
+        createHunkWithChanges([{ type: 'insert', new_line_number: line }]),
+      ]);
+      const widgets = renderAndGetWidgets({
+        diff,
+        enableCommenting: false,
+        version,
+      });
+
+      const widget = renderWidget(diff.hunks, widgets, line);
+      expect(widget.find(CommentList)).toHaveLength(0);
+    });
   });
 
   it('enables syntax highlighting for diffs when possible', () => {
