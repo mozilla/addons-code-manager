@@ -206,11 +206,11 @@ export class DiffViewBase extends React.Component<Props> {
 
       let widget = (
         <>
-          {enableCommenting && change.isInsert && (
+          {enableCommenting && line && change.isInsert && (
             <CommentList
               addonId={version.addon.id}
               fileName={version.selectedPath}
-              line={line || null}
+              line={line}
               versionId={version.id}
             >
               {(commentList) => <div>{commentList}</div>}
@@ -219,12 +219,15 @@ export class DiffViewBase extends React.Component<Props> {
         </>
       );
       if (messages && messages.length) {
-        widget = widget && (
-          <div className={styles.inlineLinterMessages}>
-            {messages.map((msg) => {
-              return <LinterMessage key={msg.uid} message={msg} inline />;
-            })}
-          </div>
+        widget = (
+          <>
+            {widget}
+            <div className={styles.inlineLinterMessages}>
+              {messages.map((msg) => {
+                return <LinterMessage key={msg.uid} message={msg} inline />;
+              })}
+            </div>
+          </>
         );
       }
       allWidgets[changeKey] = widget;
@@ -295,22 +298,25 @@ export class DiffViewBase extends React.Component<Props> {
     const { isInsert, lineNumber } = change;
     const changeKey = getChangeKey(change);
 
-    let gutter = wrapInAnchor(renderDefault());
+    const defaultGutter = wrapInAnchor(renderDefault());
+    let gutter = defaultGutter;
     if (enableCommenting && isInsert && lineNumber && side === 'new') {
       gutter = (
-        <div className={styles.gutter}>
-          {gutter}
-          <Commentable
-            as="span"
-            id={changeKey}
-            className={styles.commentButton}
-            line={lineNumber}
-            fileName={version.selectedPath}
-            versionId={version.id}
-          >
-            {(addCommentButton) => <>{addCommentButton}</>}
-          </Commentable>
-        </div>
+        <Commentable
+          as="div"
+          id={changeKey}
+          className={styles.gutter}
+          line={lineNumber}
+          fileName={version.selectedPath}
+          versionId={version.id}
+        >
+          {(addCommentButton) => (
+            <>
+              {defaultGutter}
+              <span className={styles.commentButton}>{addCommentButton}</span>
+            </>
+          )}
+        </Commentable>
       );
     }
 
