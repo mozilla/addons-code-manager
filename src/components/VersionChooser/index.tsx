@@ -37,7 +37,7 @@ export type DefaultProps = {
 };
 
 type PropsFromState = {
-  currentBaseVersionId: number | undefined;
+  currentBaseVersionId: number | undefined | false;
   currentVersionId: number | undefined | false;
   versionsMap: VersionsMap;
   versions: VersionsState;

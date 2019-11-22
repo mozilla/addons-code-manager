@@ -262,6 +262,7 @@ export const actions = {
   setCurrentVersionId: createAction('SET_CURRENT_VERSION_ID', (resolve) => {
     return (payload: { versionId: number }) => resolve(payload);
   }),
+  unsetCurrentBaseVersionId: createAction('UNSET_CURRENT_BASE_VERSION_ID'),
   unsetCurrentVersionId: createAction('UNSET_CURRENT_VERSION_ID', (resolve) => {
     return () => resolve();
   }),
@@ -339,7 +340,8 @@ export type VersionsState = {
   };
   currentBaseVersionId:
     | number // data successfully loaded
-    | undefined; // data has not yet loaded
+    | undefined // data has not yet loaded
+    | false; // data loaded but it is empty
   currentVersionId:
     | number // data successfully loaded
     | undefined // data has not yet loaded
@@ -719,11 +721,12 @@ export const getRelativeDiff = ({
   return result;
 };
 
-type FetchVersionParams = {
+export type FetchVersionParams = {
   _getVersion?: typeof getVersion;
   addonId: number;
   versionId: number;
   path?: string;
+  setAsCurrent?: boolean;
 };
 
 export const fetchVersion = ({
@@ -731,14 +734,17 @@ export const fetchVersion = ({
   addonId,
   versionId,
   path,
+  setAsCurrent = true,
 }: FetchVersionParams): ThunkActionCreator => {
   return async (dispatch, getState) => {
     const { api: apiState } = getState();
 
     dispatch(actions.beginFetchVersion({ versionId }));
-    // Set this as the current version so that components can track its
-    // loading progress.
-    dispatch(actions.setCurrentVersionId({ versionId }));
+    if (setAsCurrent) {
+      // Set this as the current version so that components can track its
+      // loading progress.
+      dispatch(actions.setCurrentVersionId({ versionId }));
+    }
 
     const response = await _getVersion({
       addonId,
@@ -1534,6 +1540,12 @@ export const createReducer = ({
           ...state,
           currentVersionId: versionId,
           expandedPaths,
+        };
+      }
+      case getType(actions.unsetCurrentBaseVersionId): {
+        return {
+          ...state,
+          currentBaseVersionId: false,
         };
       }
       case getType(actions.unsetCurrentVersionId): {

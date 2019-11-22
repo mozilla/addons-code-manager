@@ -29,14 +29,14 @@ import VersionFileViewer from '../../components/VersionFileViewer';
 import { makeReviewersURL } from '../../utils';
 import styles from './styles.module.scss';
 
-import Browse, { BrowseBase, Props as BrowseProps } from '.';
+import Browse, { BrowseBase, DefaultProps, PublicProps } from '.';
 
 describe(__filename, () => {
   const createFakeRouteComponentProps = ({
     history = createFakeHistory(),
     params = {
-      addonId: '999',
-      versionId: '123',
+      addonId: String(nextUniqueId()),
+      versionId: String(nextUniqueId()),
     },
   } = {}) => {
     return {
@@ -51,26 +51,23 @@ describe(__filename, () => {
     };
   };
 
-  type RenderParams = {
-    _fetchVersion?: BrowseProps['_fetchVersion'];
-    _fetchVersionFile?: BrowseProps['_fetchVersionFile'];
-    _log?: BrowseProps['_log'];
-    _viewVersionFile?: BrowseProps['_viewVersionFile'];
-    addonId?: string;
-    history?: History;
-    store?: Store;
-    versionId?: string;
-  };
+  type RenderParams = Partial<PublicProps> &
+    Partial<DefaultProps> & {
+      addonId?: string;
+      history?: History;
+      store?: Store;
+      versionId?: string;
+    };
 
   const render = ({
     _fetchVersion,
     _fetchVersionFile,
     _log,
     _viewVersionFile,
-    addonId = '999',
+    addonId = String(nextUniqueId()),
     history = createFakeHistory(),
     store = configureStore(),
-    versionId = '123',
+    versionId = String(nextUniqueId()),
   }: RenderParams = {}) => {
     const props = {
       ...createFakeRouteComponentProps({
@@ -115,12 +112,12 @@ describe(__filename, () => {
   };
 
   const setUpVersionFileUpdate = ({
-    addonId = 9876,
+    addonId = nextUniqueId(),
     extraFileEntries = {},
     initialPath = 'manifest.json',
     loadVersionAndFile = true,
     loadVersionFile = true,
-    versionId = 1234,
+    versionId = nextUniqueId(),
   } = {}) => {
     const version = {
       ...fakeVersion,
@@ -186,6 +183,35 @@ describe(__filename, () => {
 
     expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
     expect(_fetchVersion).toHaveBeenCalledWith({ addonId, versionId });
+  });
+
+  it('dispatches unsetCurrentBaseVersionId()', () => {
+    const store = configureStore();
+    store.dispatch(
+      versionsActions.setCurrentBaseVersionId({ versionId: nextUniqueId() }),
+    );
+    const { version } = _loadVersionAndFile({ store });
+    const dispatch = spyOn(store, 'dispatch');
+
+    render({ store, versionId: String(version.id) });
+
+    expect(dispatch).toHaveBeenCalledWith(
+      versionsActions.unsetCurrentBaseVersionId(),
+    );
+  });
+
+  it('does not dispatch unsetCurrentBaseVersionId() if already unset', () => {
+    const store = configureStore();
+    store.dispatch(versionsActions.unsetCurrentBaseVersionId());
+
+    const { version } = _loadVersionAndFile({ store });
+    const dispatch = spyOn(store, 'dispatch');
+
+    render({ store, versionId: String(version.id) });
+
+    expect(dispatch).not.toHaveBeenCalledWith(
+      versionsActions.unsetCurrentBaseVersionId(),
+    );
   });
 
   it('dispatches setCurrentVersionId on mount when unset', () => {

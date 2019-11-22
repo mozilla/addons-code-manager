@@ -8,6 +8,7 @@ import reducer, {
   ScrollTarget,
   ExternalVersionWithDiff,
   ExternalVersionsList,
+  FetchVersionParams,
   Version,
   VersionEntryStatus,
   VersionEntryType,
@@ -1004,49 +1005,60 @@ describe(__filename, () => {
 
   describe('fetchVersion', () => {
     const _fetchVersion = ({
-      addonId = 123,
-      version = fakeVersion,
+      addonId = nextUniqueId(),
+      version = { ...fakeVersion, id: nextUniqueId() },
       _getVersion = jest.fn().mockReturnValue(Promise.resolve(version)),
-      path = undefined as string | undefined,
-    } = {}) => {
+      path = undefined,
+      ...params
+    }: { version?: typeof fakeVersion } & Partial<FetchVersionParams> = {}) => {
       return fetchVersion({
         _getVersion,
         addonId,
         path,
         versionId: version.id,
+        ...params,
       });
     };
 
     it('dispatches beginFetchVersion()', async () => {
-      const version = { ...fakeVersion, id: fakeVersion.id + 1 };
-      const _getVersion = jest.fn().mockReturnValue(Promise.resolve(version));
-      const versionId = version.id;
+      const version = { ...fakeVersion, id: nextUniqueId() };
 
       const { dispatch, thunk } = thunkTester({
-        createThunk: () =>
-          fetchVersion({ _getVersion, addonId: 123, versionId }),
+        createThunk: () => _fetchVersion({ version }),
       });
 
       await thunk();
 
       expect(dispatch).toHaveBeenCalledWith(
-        actions.beginFetchVersion({ versionId }),
+        actions.beginFetchVersion({ versionId: version.id }),
       );
     });
 
     it('dispatches setCurrentVersionId()', async () => {
-      const version = { ...fakeVersion, id: fakeVersion.id + 1 };
-      const _getVersion = jest.fn().mockReturnValue(Promise.resolve(version));
-      const versionId = version.id;
+      const version = { ...fakeVersion, id: nextUniqueId() };
 
       const { dispatch, thunk } = thunkTester({
-        createThunk: () => fetchVersion({ _getVersion, addonId: 1, versionId }),
+        createThunk: () => _fetchVersion({ version }),
       });
 
       await thunk();
 
       expect(dispatch).toHaveBeenCalledWith(
-        actions.setCurrentVersionId({ versionId }),
+        actions.setCurrentVersionId({ versionId: version.id }),
+      );
+    });
+
+    it('can be configured to not dispatch setCurrentVersionId()', async () => {
+      const version = { ...fakeVersion, id: nextUniqueId() };
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () => _fetchVersion({ setAsCurrent: false, version }),
+      });
+
+      await thunk();
+
+      expect(dispatch).not.toHaveBeenCalledWith(
+        actions.setCurrentVersionId({ versionId: version.id }),
       );
     });
 
@@ -1054,11 +1066,11 @@ describe(__filename, () => {
       const version = fakeVersion;
       const _getVersion = jest.fn().mockReturnValue(Promise.resolve(version));
 
-      const addonId = 123;
+      const addonId = nextUniqueId();
       const versionId = version.id;
 
       const { store, thunk } = thunkTester({
-        createThunk: () => fetchVersion({ _getVersion, addonId, versionId }),
+        createThunk: () => _fetchVersion({ _getVersion, addonId, versionId }),
       });
 
       await thunk();
@@ -1091,43 +1103,23 @@ describe(__filename, () => {
 
     it('dispatches loadVersionInfo() when API response is successful', async () => {
       const version = fakeVersion;
-      const _getVersion = jest.fn().mockReturnValue(Promise.resolve(version));
-
-      const addonId = 123;
-      const versionId = version.id;
 
       const { dispatch, thunk } = thunkTester({
-        createThunk: () =>
-          fetchVersion({
-            _getVersion,
-            addonId,
-            versionId,
-          }),
+        createThunk: () => _fetchVersion({ version }),
       });
 
       await thunk();
 
       expect(dispatch).toHaveBeenCalledWith(
-        actions.loadVersionInfo({
-          version,
-        }),
+        actions.loadVersionInfo({ version }),
       );
     });
 
     it('dispatches loadVersionFile() when API response is successful', async () => {
       const version = fakeVersion;
-      const _getVersion = jest.fn().mockReturnValue(Promise.resolve(version));
-
-      const addonId = 123;
-      const versionId = version.id;
 
       const { dispatch, thunk } = thunkTester({
-        createThunk: () =>
-          fetchVersion({
-            _getVersion,
-            addonId,
-            versionId,
-          }),
+        createThunk: () => _fetchVersion({ version }),
       });
 
       await thunk();
@@ -1142,18 +1134,14 @@ describe(__filename, () => {
 
     it('dispatches abortFetchVersion when API response is not successful', async () => {
       const error = new Error('Bad Request');
-      const _getVersion = jest.fn().mockReturnValue(Promise.resolve({ error }));
+      const _getVersion = jest
+        .fn()
+        .mockReturnValue(Promise.resolve(createErrorResponse({ error })));
 
-      const addonId = 123;
-      const versionId = 456;
+      const versionId = nextUniqueId();
 
       const { dispatch, thunk } = thunkTester({
-        createThunk: () =>
-          fetchVersion({
-            _getVersion,
-            addonId,
-            versionId,
-          }),
+        createThunk: () => _fetchVersion({ _getVersion, versionId }),
       });
 
       await thunk();
@@ -1165,18 +1153,12 @@ describe(__filename, () => {
 
     it('dispatches addError when API response is not successful', async () => {
       const error = new Error('Bad Request');
-      const _getVersion = jest.fn().mockReturnValue(Promise.resolve({ error }));
-
-      const addonId = 123;
-      const versionId = 456;
+      const _getVersion = jest
+        .fn()
+        .mockReturnValue(Promise.resolve(createErrorResponse({ error })));
 
       const { dispatch, thunk } = thunkTester({
-        createThunk: () =>
-          fetchVersion({
-            _getVersion,
-            addonId,
-            versionId,
-          }),
+        createThunk: () => _fetchVersion({ _getVersion }),
       });
 
       await thunk();
@@ -3173,6 +3155,18 @@ describe(__filename, () => {
       ).toMatchObject({
         currentBaseVersionId: versionId,
       });
+    });
+  });
+
+  describe('unsetCurrentBaseVersionId', () => {
+    it('unsets the current base version ID', () => {
+      const versionId = nextUniqueId();
+
+      let state;
+      state = reducer(state, actions.setCurrentBaseVersionId({ versionId }));
+      state = reducer(state, actions.unsetCurrentBaseVersionId());
+
+      expect(state).toMatchObject({ currentBaseVersionId: false });
     });
   });
 
