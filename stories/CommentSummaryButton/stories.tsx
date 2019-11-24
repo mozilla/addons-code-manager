@@ -2,8 +2,8 @@ import * as React from 'react';
 import { Store } from 'redux';
 import { storiesOf } from '@storybook/react';
 
-import { actions as popoverActions } from '../src/reducers/popover';
-import CommentSummaryButton from '../src/components/CommentSummaryButton';
+import { actions as popoverActions } from '../../src/reducers/popover';
+import CommentSummaryButton from '../../src/components/CommentSummaryButton';
 import {
   createStoreWithVersionComments,
   createFakeExternalComment,
