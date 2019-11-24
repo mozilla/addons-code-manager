@@ -9,6 +9,7 @@ import errors, { ErrorsState } from './errors';
 import fileTree, { FileTreeState } from './fileTree';
 import fullscreenGrid, { FullscreenGridState } from './fullscreenGrid';
 import linter, { LinterState } from './linter';
+import popover, { PopoverState } from './popover';
 import users, { UsersState } from './users';
 import versions, { VersionsState } from './versions';
 
@@ -20,6 +21,7 @@ export type ApplicationState = {
   fileTree: FileTreeState;
   fullscreenGrid: FullscreenGridState;
   linter: LinterState;
+  popover: PopoverState;
   router: RouterState;
   users: UsersState;
   versions: VersionsState;
@@ -34,6 +36,7 @@ const createRootReducer = (history: History) => {
     fileTree,
     fullscreenGrid,
     linter,
+    popover,
     router: connectRouter(history),
     users,
     versions,

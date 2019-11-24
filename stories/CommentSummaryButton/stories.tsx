@@ -2,8 +2,13 @@ import * as React from 'react';
 import { Store } from 'redux';
 import { storiesOf } from '@storybook/react';
 
+<<<<<<< HEAD:stories/CommentSummaryButton/stories.tsx
 import { actions as commentsActions } from '../../src/reducers/comments';
 import CommentSummaryButton from '../../src/components/CommentSummaryButton';
+=======
+import { actions as popoverActions } from '../src/reducers/popover';
+import CommentSummaryButton from '../src/components/CommentSummaryButton';
+>>>>>>> a020855373d98bd2dbce6bb94cbc97535c121f18:stories/CommentSummaryButton.stories.tsx
 import {
   createStoreWithVersionComments,
   createFakeExternalComment,
@@ -16,7 +21,7 @@ import {
 
 const setUpStore = ({ comments = [createFakeExternalComment()] } = {}) => {
   const store = createStoreWithVersionComments({ comments });
-  store.dispatch(commentsActions.showSummaryOverlay());
+  store.dispatch(popoverActions.show('COMMENTS_SUMMARY'));
 
   return store;
 };

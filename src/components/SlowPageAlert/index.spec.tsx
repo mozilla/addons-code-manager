@@ -31,6 +31,32 @@ describe(__filename, () => {
     expect(root.find(Alert.Link).text()).toMatch(linkText);
   });
 
+  it('calls shouldAllowSlowPages without a allowByDefault param', () => {
+    const _shouldAllowSlowPages = jest.fn();
+
+    render({ _shouldAllowSlowPages });
+
+    expect(_shouldAllowSlowPages).toHaveBeenCalledWith(
+      expect.objectContaining({
+        allowByDefault: undefined,
+      }),
+    );
+  });
+
+  it('can override allowByDefault in call to shouldAllowSlowPages', () => {
+    const _shouldAllowSlowPages = jest.fn();
+    const allowByDefault = true;
+
+    render({
+      _shouldAllowSlowPages,
+      allowSlowPagesByDefault: allowByDefault,
+    });
+
+    expect(_shouldAllowSlowPages).toHaveBeenCalledWith(
+      expect.objectContaining({ allowByDefault }),
+    );
+  });
+
   it('calls text getters with slowness state', () => {
     const location = createFakeLocation();
     const getMessage = jest.fn(() => 'example message');
@@ -46,7 +72,9 @@ describe(__filename, () => {
       location,
     });
 
-    expect(_shouldAllowSlowPages).toHaveBeenCalledWith(location);
+    expect(_shouldAllowSlowPages).toHaveBeenCalledWith(
+      expect.objectContaining({ location }),
+    );
 
     expect(getMessage).toHaveBeenCalledWith(allowSlowPages);
     expect(getLinkText).toHaveBeenCalledWith(allowSlowPages);

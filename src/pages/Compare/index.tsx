@@ -53,6 +53,8 @@ type PropsFromRouter = {
 type PropsFromState = {
   addonId: number;
   compareInfo: CompareInfo | null | undefined;
+  currentBaseVersionId: number | null | undefined | false;
+  currentVersionId: number | null | undefined | false;
   nextCompareInfo: CompareInfo | null | undefined;
   nextFile: VersionFile | null | undefined;
   nextFileIsLoading: boolean;
@@ -62,7 +64,6 @@ type PropsFromState = {
   version: Version | undefined | null;
   versionFile: VersionFile | undefined | null;
   versionFileIsLoading: boolean;
-  currentVersionId: number | null | undefined | false;
 };
 
 type Props = RouteComponentProps<PropsFromRouter> &
@@ -90,6 +91,7 @@ export class CompareBase extends React.Component<Props> {
       _fetchDiff,
       _fetchVersionFile,
       compareInfo,
+      currentBaseVersionId,
       currentVersionId,
       entryStatusMap,
       dispatch,
@@ -137,6 +139,14 @@ export class CompareBase extends React.Component<Props> {
         }),
       );
       return;
+    }
+
+    if (oldVersionId !== currentBaseVersionId) {
+      dispatch(
+        versionsActions.setCurrentBaseVersionId({
+          versionId: oldVersionId,
+        }),
+      );
     }
 
     if (version) {
@@ -337,6 +347,7 @@ export const mapStateToProps = (
   return {
     addonId,
     compareInfo,
+    currentBaseVersionId: state.versions.currentBaseVersionId,
     currentVersionId,
     entryStatusMap,
     nextCompareInfo,

@@ -7,7 +7,7 @@ import VersionSelect from '../VersionSelect';
 import {
   ExternalVersionsList,
   ExternalVersionsListItem,
-  actions as versionActions,
+  actions as versionsActions,
 } from '../../reducers/versions';
 import {
   createContextWithFakeRouter,
@@ -18,6 +18,7 @@ import {
   fakeVersionFile,
   fakeVersionsList,
   fakeVersionsListItem,
+  nextUniqueId,
   shallowUntilTarget,
   spyOn,
 } from '../../test-helpers';
@@ -57,20 +58,27 @@ describe(__filename, () => {
     _higherVersionsThan,
     _lowerVersionsThan,
     addonId = 123,
-    baseVersionId = '1',
-    headVersionId = '4',
+    baseVersionId = nextUniqueId(),
+    headVersionId = nextUniqueId(),
     history = createFakeHistory(),
     store = configureStore(),
-  }: RenderParams = {}) => {
+  }: {
+    baseVersionId?: number;
+    headVersionId?: number;
+  } & RenderParams = {}) => {
+    store.dispatch(
+      versionsActions.setCurrentBaseVersionId({
+        versionId: baseVersionId,
+      }),
+    );
+    store.dispatch(
+      versionsActions.setCurrentVersionId({
+        versionId: headVersionId,
+      }),
+    );
     const contextWithRouter = createContextWithFakeRouter({
       history,
-      match: {
-        params: {
-          baseVersionId,
-          headVersionId,
-          lang,
-        },
-      },
+      match: { params: { lang } },
     });
     const shallowOptions = {
       ...contextWithRouter,
@@ -99,7 +107,7 @@ describe(__filename, () => {
     addonId: number,
     versions: ExternalVersionsList,
   ) => {
-    store.dispatch(versionActions.loadVersionsList({ addonId, versions }));
+    store.dispatch(versionsActions.loadVersionsList({ addonId, versions }));
   };
 
   it('sets the `isLoading` prop to `true`  when lists of versions are not loaded', () => {
@@ -124,9 +132,9 @@ describe(__filename, () => {
   });
 
   it('passes a `isSelectable` function to each VersionSelect', () => {
-    const addonId = 999;
-    const baseVersionId = '3';
-    const headVersionId = '5';
+    const addonId = nextUniqueId();
+    const baseVersionId = nextUniqueId();
+    const headVersionId = nextUniqueId();
     const _higherVersionsThan = jest
       .fn()
       .mockReturnValue('_higherVersionsThan');
@@ -148,11 +156,11 @@ describe(__filename, () => {
 
     const oldVersionSelect = root.find(`.${styles.baseVersionSelect}`);
     expect(oldVersionSelect).toHaveProp('isSelectable', _lowerVersionsThan());
-    expect(_lowerVersionsThan).toHaveBeenCalledWith(headVersionId);
+    expect(_lowerVersionsThan).toHaveBeenCalledWith(String(headVersionId));
 
     const newVersionSelect = root.find(`.${styles.headVersionSelect}`);
     expect(newVersionSelect).toHaveProp('isSelectable', _higherVersionsThan());
-    expect(_higherVersionsThan).toHaveBeenCalledWith(baseVersionId);
+    expect(_higherVersionsThan).toHaveBeenCalledWith(String(baseVersionId));
   });
 
   it('splits the list of versions into listed and unlisted lists', () => {
@@ -202,7 +210,7 @@ describe(__filename, () => {
       store,
     });
 
-    expect(dispatch).not.toHaveBeenCalled();
+    expect(dispatch).not.toHaveBeenCalledWith(fakeThunk.thunk);
   });
 
   it('dispatches fetchVersionsList() on mount when a different addonId is passed', () => {
@@ -223,15 +231,15 @@ describe(__filename, () => {
   });
 
   it('pushes a new URL when the old version changes', () => {
-    const addonId = 999;
-    const baseVersionId = '3';
-    const headVersionId = '4';
+    const addonId = nextUniqueId();
+    const baseVersionId = nextUniqueId();
+    const headVersionId = nextUniqueId();
 
     const store = configureStore();
     _loadVersionsList(store, addonId, fakeVersionsList);
 
     const history = createFakeHistory();
-    const selectedVersion = '2';
+    const selectedVersion = nextUniqueId();
 
     const root = render({
       addonId,
@@ -253,15 +261,15 @@ describe(__filename, () => {
   });
 
   it('pushes a new URL when the new version changes', () => {
-    const addonId = 999;
-    const baseVersionId = '3';
-    const headVersionId = '4';
+    const addonId = nextUniqueId();
+    const baseVersionId = nextUniqueId();
+    const headVersionId = nextUniqueId();
 
     const store = configureStore();
     _loadVersionsList(store, addonId, fakeVersionsList);
 
     const history = createFakeHistory();
-    const selectedVersion = '5';
+    const selectedVersion = nextUniqueId();
 
     const root = render({
       addonId,
@@ -282,15 +290,15 @@ describe(__filename, () => {
   });
 
   it('pushes a new URL with a query string when the version has been loaded', () => {
-    const addonId = 999;
-    const baseVersionId = '3';
-    const headVersionId = '4';
+    const addonId = nextUniqueId();
+    const baseVersionId = nextUniqueId();
+    const headVersionId = nextUniqueId();
     const selectedFile = 'example.js';
 
     const store = createStoreWithVersion({
       version: {
         ...fakeVersion,
-        id: parseInt(headVersionId, 10),
+        id: headVersionId,
         // eslint-disable-next-line @typescript-eslint/camelcase
         file: { ...fakeVersionFile, selected_file: selectedFile },
       },
@@ -314,6 +322,30 @@ describe(__filename, () => {
 
     expect(history.push).toHaveBeenCalledWith(
       `/${lang}/compare/${addonId}/versions/${baseVersionId}...${headVersionId}/?path=${selectedFile}`,
+    );
+  });
+
+  it('dispatches setCurrentBaseVersionId() when the old version changes', () => {
+    const addonId = nextUniqueId();
+
+    const store = configureStore();
+    _loadVersionsList(store, addonId, fakeVersionsList);
+    const dispatchSpy = spyOn(store, 'dispatch');
+
+    const selectedVersion = nextUniqueId();
+
+    const root = render({ addonId, store });
+
+    const onChange = root
+      // Retrieve the `VersionSelect` component with this `className`.
+      .find({ className: styles.baseVersionSelect })
+      .prop('onChange');
+    onChange(selectedVersion);
+
+    expect(dispatchSpy).toHaveBeenCalledWith(
+      versionsActions.setCurrentBaseVersionId({
+        versionId: selectedVersion,
+      }),
     );
   });
 

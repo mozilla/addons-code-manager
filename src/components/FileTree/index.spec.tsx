@@ -276,7 +276,7 @@ describe(__filename, () => {
       expect(shallow(<div>{node}</div>).find(Loading)).toHaveLength(1);
     });
 
-    it('throws an error when isNodeExpanded is called without a version', () => {
+    it('throws an error when isNodeExpanded is called without expandedPaths set', () => {
       const node = {
         id: 'some/path',
         name: 'some name',
@@ -288,7 +288,7 @@ describe(__filename, () => {
 
       expect(() => {
         isNodeExpanded(node);
-      }).toThrow('Cannot check if node is expanded without a version');
+      }).toThrow('Cannot check if node is expanded without expandedPaths set');
     });
 
     it('throws an error when onToggleExpand is called without a version', () => {

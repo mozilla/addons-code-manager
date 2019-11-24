@@ -14,6 +14,7 @@ import {
   fakeVersionFile,
   shallowUntilTarget,
   spyOn,
+  nextUniqueId,
 } from '../../test-helpers';
 import configureStore from '../../configureStore';
 import {
@@ -91,7 +92,7 @@ describe(__filename, () => {
 
   const _loadVersionAndFile = ({
     store = configureStore(),
-    version = fakeVersion,
+    version = { ...fakeVersion, id: nextUniqueId() },
     setCurrentVersionId = true,
     loadVersionFile = true,
   }) => {
@@ -109,6 +110,8 @@ describe(__filename, () => {
         versionsActions.setCurrentVersionId({ versionId: version.id }),
       );
     }
+
+    return { version };
   };
 
   const setUpVersionFileUpdate = ({
@@ -185,13 +188,15 @@ describe(__filename, () => {
     expect(_fetchVersion).toHaveBeenCalledWith({ addonId, versionId });
   });
 
-  it('dispatches setCurrentVersionId on mount if the currentVersionId is unset', () => {
-    const version = fakeVersion;
+  it('dispatches setCurrentVersionId on mount when unset', () => {
     const store = configureStore();
-    _loadVersionAndFile({ store, version, setCurrentVersionId: false });
+    const { version } = _loadVersionAndFile({
+      store,
+      setCurrentVersionId: false,
+    });
     const dispatch = spyOn(store, 'dispatch');
 
-    render({ store });
+    render({ store, versionId: String(version.id) });
 
     expect(dispatch).toHaveBeenCalledWith(
       versionsActions.setCurrentVersionId({ versionId: version.id }),
@@ -336,11 +341,11 @@ describe(__filename, () => {
     expect(dispatchSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('does not dispatch anything on update when nothing has changed', () => {
-    const { renderAndUpdate } = setUpVersionFileUpdate();
+  it('does not dispatch fetchVersion on update when nothing has changed', () => {
+    const { fakeThunk, renderAndUpdate } = setUpVersionFileUpdate();
     const { dispatchSpy } = renderAndUpdate();
 
-    expect(dispatchSpy).not.toHaveBeenCalled();
+    expect(dispatchSpy).not.toHaveBeenCalledWith(fakeThunk.thunk);
   });
 
   it('dispatches fetchVersionFile when path is updated', () => {
@@ -373,7 +378,12 @@ describe(__filename, () => {
   });
 
   it('does not dispatch fetchVersionFile on update if a file is loading', () => {
-    const { version, store, renderAndUpdate } = setUpVersionFileUpdate({
+    const {
+      fakeThunk,
+      version,
+      store,
+      renderAndUpdate,
+    } = setUpVersionFileUpdate({
       initialPath: 'scripts/content.js',
     });
 
@@ -393,13 +403,18 @@ describe(__filename, () => {
 
     const { dispatchSpy } = renderAndUpdate();
 
-    expect(dispatchSpy).not.toHaveBeenCalled();
+    expect(dispatchSpy).not.toHaveBeenCalledWith(fakeThunk.thunk);
   });
 
   it('does not dispatch fetchVersionFile when switching paths to a loaded file', () => {
     const selectedPath = 'scripts/background.js';
 
-    const { version, store, renderAndUpdate } = setUpVersionFileUpdate({
+    const {
+      fakeThunk,
+      version,
+      store,
+      renderAndUpdate,
+    } = setUpVersionFileUpdate({
       extraFileEntries: {
         [selectedPath]: { ...fakeVersionEntry, path: selectedPath },
       },
@@ -423,11 +438,16 @@ describe(__filename, () => {
 
     const { dispatchSpy } = renderAndUpdate();
 
-    expect(dispatchSpy).not.toHaveBeenCalled();
+    expect(dispatchSpy).not.toHaveBeenCalledWith(fakeThunk.thunk);
   });
 
   it('does not dispatch fetchVersionFile when operation has been aborted', () => {
-    const { version, store, renderAndUpdate } = setUpVersionFileUpdate({
+    const {
+      fakeThunk,
+      version,
+      store,
+      renderAndUpdate,
+    } = setUpVersionFileUpdate({
       initialPath: 'scripts/content.js',
     });
 
@@ -454,22 +474,28 @@ describe(__filename, () => {
 
     const { dispatchSpy } = renderAndUpdate();
 
-    expect(dispatchSpy).not.toHaveBeenCalled();
+    expect(dispatchSpy).not.toHaveBeenCalledWith(fakeThunk.thunk);
   });
 
-  it('does not dispatch anything on mount if a version is already loaded', () => {
+  it('does not dispatch fetchVersion on mount if a version is already loaded', () => {
     const version = fakeVersion;
 
     const store = configureStore();
     _loadVersionAndFile({ store, version });
     const dispatch = spyOn(store, 'dispatch');
 
-    render({ store, versionId: String(version.id) });
+    const fakeThunk = createFakeThunk();
 
-    expect(dispatch).not.toHaveBeenCalled();
+    render({
+      _fetchVersion: fakeThunk.createThunk,
+      store,
+      versionId: String(version.id),
+    });
+
+    expect(dispatch).not.toHaveBeenCalledWith(fakeThunk.thunk);
   });
 
-  it('does not dispatch anything on mount when an API error has occured', () => {
+  it('does not dispatch fetchVersion on mount when an API error has occured', () => {
     const versionId = 4321;
     const store = configureStore();
     store.dispatch(versionsActions.beginFetchVersion({ versionId }));
@@ -477,9 +503,15 @@ describe(__filename, () => {
     store.dispatch(versionsActions.abortFetchVersion({ versionId }));
     const dispatch = spyOn(store, 'dispatch');
 
-    render({ store, versionId: String(versionId) });
+    const fakeThunk = createFakeThunk();
 
-    expect(dispatch).not.toHaveBeenCalled();
+    render({
+      _fetchVersion: fakeThunk.createThunk,
+      store,
+      versionId: String(versionId),
+    });
+
+    expect(dispatch).not.toHaveBeenCalledWith(fakeThunk.thunk);
   });
 
   it('does not dispatch anything on update when an API error has occured', () => {

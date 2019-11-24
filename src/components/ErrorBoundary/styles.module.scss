@@ -1,0 +1,9 @@
+@import '../../scss/variables';
+
+.container {
+  padding: $default-padding;
+}
+
+.errorDetails {
+  white-space: pre-wrap;
+}

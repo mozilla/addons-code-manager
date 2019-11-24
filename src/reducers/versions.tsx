@@ -195,13 +195,16 @@ type VersionAddon = {
 export type Version = {
   addon: VersionAddon;
   entries: VersionEntry[];
-  expandedPaths: string[];
   id: number;
   reviewed: string;
-  selectedPath: string;
   validationURL: string;
-  visibleSelectedPath: string | null;
   version: string;
+  // TODO: remove `expandedPaths`, `selectedPath` and `visibleSelectedPath`
+  // from `version` object once no code depends on these
+  // See https://github.com/mozilla/addons-code-manager/issues/1218
+  expandedPaths: string[];
+  selectedPath: string;
+  visibleSelectedPath: string | null;
 };
 
 export type VersionsListItem = {
@@ -250,6 +253,12 @@ export const actions = {
     return (payload: { selectedPath: string; versionId: number }) =>
       resolve(payload);
   }),
+  setCurrentBaseVersionId: createAction(
+    'SET_CURRENT_BASE_VERSION_ID',
+    (resolve) => {
+      return (payload: { versionId: number }) => resolve(payload);
+    },
+  ),
   setCurrentVersionId: createAction('SET_CURRENT_VERSION_ID', (resolve) => {
     return (payload: { versionId: number }) => resolve(payload);
   }),
@@ -328,10 +337,17 @@ export type VersionsState = {
   compareInfoIsLoading: {
     [compareInfoKey: string]: boolean;
   };
-  currentVersionId: number | undefined | false;
+  currentBaseVersionId:
+    | number // data successfully loaded
+    | undefined; // data has not yet loaded
+  currentVersionId:
+    | number // data successfully loaded
+    | undefined // data has not yet loaded
+    | false; // data loaded but it is empty
   entryStatusMaps: {
     [entryStatusMapKey: string]: EntryStatusMap;
   };
+  expandedPaths: string[] | undefined;
   versionInfo: {
     [versionId: number]:
       | Version // data successfully loaded
@@ -357,8 +373,10 @@ export const initialState: VersionsState = {
   byAddonId: {},
   compareInfo: {},
   compareInfoIsLoading: {},
+  currentBaseVersionId: undefined,
   currentVersionId: undefined,
   entryStatusMaps: {},
+  expandedPaths: undefined,
   versionFiles: {},
   versionFilesLoading: {},
   versionInfo: {},
@@ -461,6 +479,14 @@ export const getVersionFiles = (versions: VersionsState, versionId: number) => {
 
 export const getVersionInfo = (versions: VersionsState, versionId: number) => {
   return versions.versionInfo[versionId];
+};
+
+export const getPrunedExpandedPaths = (
+  expandedPaths: string[],
+  version: Version,
+) => {
+  const paths = new Set(version.entries.map((e) => e.path));
+  return expandedPaths.filter((p) => paths.has(p));
 };
 
 export const getEntryStatusMap = ({
@@ -1138,340 +1164,389 @@ export const goToRelativeDiff = ({
   };
 };
 
-const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
-  state = initialState,
-  action,
-): VersionsState => {
-  switch (action.type) {
-    case getType(actions.beginFetchVersion): {
-      const { versionId } = action.payload;
+export const createReducer = ({
+  _getPrunedExpandedPaths = getPrunedExpandedPaths,
+} = {}) => {
+  const reducer: Reducer<VersionsState, ActionType<typeof actions>> = (
+    state = initialState,
+    action,
+  ): VersionsState => {
+    switch (action.type) {
+      case getType(actions.beginFetchVersion): {
+        const { versionId } = action.payload;
 
-      return {
-        ...state,
-        versionInfo: {
-          ...state.versionInfo,
-          [versionId]: undefined,
-        },
-      };
-    }
-    case getType(actions.loadVersionInfo): {
-      const { version } = action.payload;
-
-      return {
-        ...state,
-        versionInfo: {
-          ...state.versionInfo,
-          [version.id]: createInternalVersion(version),
-        },
-      };
-    }
-    case getType(actions.abortFetchVersion): {
-      const { versionId } = action.payload;
-
-      return {
-        ...state,
-        versionInfo: {
-          ...state.versionInfo,
-          [versionId]: null,
-        },
-      };
-    }
-    case getType(actions.loadEntryStatusMap): {
-      const { version, comparedToVersionId } = action.payload;
-      const key = getEntryStatusMapKey({
-        versionId: version.id,
-        comparedToVersionId,
-      });
-
-      return {
-        ...state,
-        entryStatusMaps: {
-          ...state.entryStatusMaps,
-          [key]: createEntryStatusMap(version),
-        },
-      };
-    }
-    case getType(actions.loadVersionFile): {
-      const { path, version } = action.payload;
-
-      return {
-        ...state,
-        versionFiles: {
-          ...state.versionFiles,
-          [version.id]: {
-            ...state.versionFiles[version.id],
-            [path]: createInternalVersionFile(version.file),
+        return {
+          ...state,
+          versionInfo: {
+            ...state.versionInfo,
+            [versionId]: undefined,
           },
-        },
-        versionFilesLoading: {
-          ...state.versionFilesLoading,
-          [version.id]: {
-            ...state.versionFilesLoading[version.id],
-            [path]: false,
-          },
-        },
-      };
-    }
-    case getType(actions.beginFetchVersionFile): {
-      const { path, versionId } = action.payload;
-
-      return {
-        ...state,
-        versionFilesLoading: {
-          ...state.versionFilesLoading,
-          [versionId]: {
-            ...state.versionFilesLoading[versionId],
-            [path]: true,
-          },
-        },
-      };
-    }
-    case getType(actions.abortFetchVersionFile): {
-      const { path, versionId } = action.payload;
-
-      return {
-        ...state,
-        versionFiles: {
-          ...state.versionFiles,
-          [versionId]: {
-            ...state.versionFiles[versionId],
-            [path]: null,
-          },
-        },
-        versionFilesLoading: {
-          ...state.versionFilesLoading,
-          [versionId]: {
-            ...state.versionFilesLoading[versionId],
-            [path]: false,
-          },
-        },
-      };
-    }
-    case getType(actions.updateSelectedPath): {
-      const { selectedPath, versionId } = action.payload;
-
-      const version = state.versionInfo[versionId];
-
-      if (!version) {
-        throw new Error(`Version missing for versionId: ${versionId}`);
+        };
       }
+      case getType(actions.loadVersionInfo): {
+        const { version } = action.payload;
+        const internalVersion = createInternalVersion(version);
+        const { expandedPaths: expandedPathsInState } = state;
 
-      const { expandedPaths } = version;
+        const expandedPaths = expandedPathsInState
+          ? _getPrunedExpandedPaths(expandedPathsInState, internalVersion)
+          : getParentFolders(version.file.selected_file);
 
-      const parents = getParentFolders(selectedPath);
-
-      return {
-        ...state,
-        versionInfo: {
-          ...state.versionInfo,
-          [versionId]: {
-            ...version,
-            selectedPath,
-            expandedPaths: [
-              ...expandedPaths,
-              ...parents.filter((newPath) => !expandedPaths.includes(newPath)),
-            ],
+        return {
+          ...state,
+          expandedPaths,
+          versionInfo: {
+            ...state.versionInfo,
+            [version.id]: { ...internalVersion, expandedPaths },
           },
-        },
-      };
-    }
-    case getType(actions.setVisibleSelectedPath): {
-      const { path, versionId } = action.payload;
-
-      const version = state.versionInfo[versionId];
-
-      if (!version) {
-        throw new Error(`Version missing for versionId: ${versionId}`);
+        };
       }
+      case getType(actions.abortFetchVersion): {
+        const { versionId } = action.payload;
 
-      if (path && !version.entries.find((e) => e.path === path)) {
-        throw new Error(
-          `Path "${path}" is an unknown path for version ID ${versionId}`,
-        );
-      }
-
-      return {
-        ...state,
-        versionInfo: {
-          ...state.versionInfo,
-          [versionId]: {
-            ...version,
-            visibleSelectedPath: path,
+        return {
+          ...state,
+          versionInfo: {
+            ...state.versionInfo,
+            [versionId]: null,
           },
-        },
-      };
-    }
-    case getType(actions.toggleExpandedPath): {
-      const { path, versionId } = action.payload;
-
-      const version = state.versionInfo[versionId];
-
-      if (!version) {
-        throw new Error(`Version missing for versionId: ${versionId}`);
+        };
       }
+      case getType(actions.loadEntryStatusMap): {
+        const { version, comparedToVersionId } = action.payload;
+        const key = getEntryStatusMapKey({
+          versionId: version.id,
+          comparedToVersionId,
+        });
 
-      const { expandedPaths } = version;
-
-      return {
-        ...state,
-        versionInfo: {
-          ...state.versionInfo,
-          [versionId]: {
-            ...version,
-            expandedPaths: expandedPaths.includes(path)
-              ? expandedPaths.filter((storedPath) => path !== storedPath)
-              : [...expandedPaths, path],
+        return {
+          ...state,
+          entryStatusMaps: {
+            ...state.entryStatusMaps,
+            [key]: createEntryStatusMap(version),
           },
-        },
-      };
-    }
-    case getType(actions.expandTree): {
-      const { versionId } = action.payload;
-
-      const version = state.versionInfo[versionId];
-
-      if (!version) {
-        throw new Error(`Version missing for versionId: ${versionId}`);
+        };
       }
+      case getType(actions.loadVersionFile): {
+        const { path, version } = action.payload;
 
-      const expandedPaths = version.entries
-        .filter((entry) => entry.type === 'directory')
-        .map((entry) => entry.path);
-      expandedPaths.push(ROOT_PATH);
-
-      return {
-        ...state,
-        versionInfo: {
-          ...state.versionInfo,
-          [versionId]: {
-            ...version,
-            expandedPaths,
+        return {
+          ...state,
+          versionFiles: {
+            ...state.versionFiles,
+            [version.id]: {
+              ...state.versionFiles[version.id],
+              [path]: createInternalVersionFile(version.file),
+            },
           },
-        },
-      };
-    }
-    case getType(actions.collapseTree): {
-      const { versionId } = action.payload;
-
-      const version = state.versionInfo[versionId];
-
-      if (!version) {
-        throw new Error(`Version missing for versionId: ${versionId}`);
-      }
-
-      return {
-        ...state,
-        versionInfo: {
-          ...state.versionInfo,
-          [versionId]: {
-            ...version,
-            expandedPaths: [ROOT_PATH],
+          versionFilesLoading: {
+            ...state.versionFilesLoading,
+            [version.id]: {
+              ...state.versionFilesLoading[version.id],
+              [path]: false,
+            },
           },
-        },
-      };
-    }
-    case getType(actions.loadVersionsList): {
-      const { addonId, versions } = action.payload;
-
-      return {
-        ...state,
-        byAddonId: {
-          ...state.byAddonId,
-          [addonId]: createVersionsMap(versions),
-        },
-      };
-    }
-    case getType(actions.beginFetchDiff): {
-      const key = getCompareInfoKey(action.payload);
-
-      return {
-        ...state,
-        compareInfo: {
-          ...state.compareInfo,
-          [key]: undefined,
-        },
-        compareInfoIsLoading: {
-          ...state.compareInfoIsLoading,
-          [key]: true,
-        },
-      };
-    }
-    case getType(actions.abortFetchDiff): {
-      const key = getCompareInfoKey(action.payload);
-
-      return {
-        ...state,
-        compareInfo: {
-          ...state.compareInfo,
-          [key]: null,
-        },
-        compareInfoIsLoading: {
-          ...state.compareInfoIsLoading,
-          [key]: false,
-        },
-      };
-    }
-    case getType(actions.loadDiff): {
-      const {
-        addonId,
-        baseVersionId,
-        headVersionId,
-        path,
-        version,
-      } = action.payload;
-
-      const compareInfoKey = getCompareInfoKey({
-        addonId,
-        baseVersionId,
-        headVersionId,
-        path,
-      });
-
-      const headVersion = getVersionInfo(state, headVersionId);
-      if (!headVersion) {
-        throw new Error(`Version missing for headVersionId: ${headVersionId}`);
+        };
       }
+      case getType(actions.beginFetchVersionFile): {
+        const { path, versionId } = action.payload;
 
-      const { entries, selectedPath } = headVersion;
-      const entry = entries.find((e) => e.path === selectedPath);
-
-      if (!entry) {
-        throw new Error(`Entry missing for headVersionId: ${headVersionId}`);
+        return {
+          ...state,
+          versionFilesLoading: {
+            ...state.versionFilesLoading,
+            [versionId]: {
+              ...state.versionFilesLoading[versionId],
+              [path]: true,
+            },
+          },
+        };
       }
+      case getType(actions.abortFetchVersionFile): {
+        const { path, versionId } = action.payload;
 
-      return {
-        ...state,
-        compareInfo: {
-          ...state.compareInfo,
-          [compareInfoKey]: createInternalCompareInfo({
-            baseVersionId,
-            headVersionId,
-            entry,
-            version,
-          }),
-        },
-        compareInfoIsLoading: {
-          ...state.compareInfoIsLoading,
-          [compareInfoKey]: false,
-        },
-      };
+        return {
+          ...state,
+          versionFiles: {
+            ...state.versionFiles,
+            [versionId]: {
+              ...state.versionFiles[versionId],
+              [path]: null,
+            },
+          },
+          versionFilesLoading: {
+            ...state.versionFilesLoading,
+            [versionId]: {
+              ...state.versionFilesLoading[versionId],
+              [path]: false,
+            },
+          },
+        };
+      }
+      case getType(actions.updateSelectedPath): {
+        const { selectedPath, versionId } = action.payload;
+
+        const version = state.versionInfo[versionId];
+
+        if (!version) {
+          throw new Error(`Version missing for versionId: ${versionId}`);
+        }
+
+        const { expandedPaths } = state;
+
+        if (!expandedPaths) {
+          // TODO: this is not possible to test until expanded paths are
+          // decoupled from versions.
+          // See https://github.com/mozilla/addons-code-manager/issues/1218
+          /* istanbul ignore next */
+          throw new Error('Expanded paths are undefined');
+        }
+
+        const parents = getParentFolders(selectedPath);
+        const newExpandedPaths = [
+          ...expandedPaths,
+          ...parents.filter((newPath) => !expandedPaths.includes(newPath)),
+        ];
+
+        return {
+          ...state,
+          expandedPaths: newExpandedPaths,
+          versionInfo: {
+            ...state.versionInfo,
+            [versionId]: {
+              ...version,
+              expandedPaths: newExpandedPaths,
+              selectedPath,
+            },
+          },
+        };
+      }
+      case getType(actions.setVisibleSelectedPath): {
+        const { path, versionId } = action.payload;
+
+        const version = state.versionInfo[versionId];
+
+        if (!version) {
+          throw new Error(`Version missing for versionId: ${versionId}`);
+        }
+
+        if (path && !version.entries.find((e) => e.path === path)) {
+          throw new Error(
+            `Path "${path}" is an unknown path for version ID ${versionId}`,
+          );
+        }
+
+        return {
+          ...state,
+          versionInfo: {
+            ...state.versionInfo,
+            [versionId]: {
+              ...version,
+              visibleSelectedPath: path,
+            },
+          },
+        };
+      }
+      case getType(actions.toggleExpandedPath): {
+        const { path, versionId } = action.payload;
+
+        const version = state.versionInfo[versionId];
+
+        if (!version) {
+          throw new Error(`Version missing for versionId: ${versionId}`);
+        }
+
+        const { expandedPaths } = state;
+
+        if (expandedPaths === undefined) {
+          throw new Error('ExpandedPaths is undefined');
+        }
+
+        const newExpandedPaths = expandedPaths.includes(path)
+          ? expandedPaths.filter((storedPath) => path !== storedPath)
+          : [...expandedPaths, path];
+
+        return {
+          ...state,
+          expandedPaths: newExpandedPaths,
+          versionInfo: {
+            ...state.versionInfo,
+            [versionId]: {
+              ...version,
+              expandedPaths: newExpandedPaths,
+            },
+          },
+        };
+      }
+      case getType(actions.expandTree): {
+        const { versionId } = action.payload;
+
+        const version = state.versionInfo[versionId];
+
+        if (!version) {
+          throw new Error(`Version missing for versionId: ${versionId}`);
+        }
+
+        const expandedPaths = version.entries
+          .filter((entry) => entry.type === 'directory')
+          .map((entry) => entry.path);
+        expandedPaths.push(ROOT_PATH);
+
+        return {
+          ...state,
+          expandedPaths,
+          versionInfo: {
+            ...state.versionInfo,
+            [versionId]: {
+              ...version,
+              expandedPaths,
+            },
+          },
+        };
+      }
+      case getType(actions.collapseTree): {
+        const { versionId } = action.payload;
+
+        const version = state.versionInfo[versionId];
+        const expandedPaths = [ROOT_PATH];
+
+        if (!version) {
+          throw new Error(`Version missing for versionId: ${versionId}`);
+        }
+
+        return {
+          ...state,
+          expandedPaths,
+          versionInfo: {
+            ...state.versionInfo,
+            [versionId]: {
+              ...version,
+              expandedPaths,
+            },
+          },
+        };
+      }
+      case getType(actions.loadVersionsList): {
+        const { addonId, versions } = action.payload;
+
+        return {
+          ...state,
+          byAddonId: {
+            ...state.byAddonId,
+            [addonId]: createVersionsMap(versions),
+          },
+        };
+      }
+      case getType(actions.beginFetchDiff): {
+        const key = getCompareInfoKey(action.payload);
+
+        return {
+          ...state,
+          compareInfo: {
+            ...state.compareInfo,
+            [key]: undefined,
+          },
+          compareInfoIsLoading: {
+            ...state.compareInfoIsLoading,
+            [key]: true,
+          },
+        };
+      }
+      case getType(actions.abortFetchDiff): {
+        const key = getCompareInfoKey(action.payload);
+
+        return {
+          ...state,
+          compareInfo: {
+            ...state.compareInfo,
+            [key]: null,
+          },
+          compareInfoIsLoading: {
+            ...state.compareInfoIsLoading,
+            [key]: false,
+          },
+        };
+      }
+      case getType(actions.loadDiff): {
+        const {
+          addonId,
+          baseVersionId,
+          headVersionId,
+          path,
+          version,
+        } = action.payload;
+
+        const compareInfoKey = getCompareInfoKey({
+          addonId,
+          baseVersionId,
+          headVersionId,
+          path,
+        });
+
+        const headVersion = getVersionInfo(state, headVersionId);
+        if (!headVersion) {
+          throw new Error(
+            `Version missing for headVersionId: ${headVersionId}`,
+          );
+        }
+
+        const { entries, selectedPath } = headVersion;
+        const entry = entries.find((e) => e.path === selectedPath);
+
+        if (!entry) {
+          throw new Error(`Entry missing for headVersionId: ${headVersionId}`);
+        }
+
+        return {
+          ...state,
+          compareInfo: {
+            ...state.compareInfo,
+            [compareInfoKey]: createInternalCompareInfo({
+              baseVersionId,
+              headVersionId,
+              entry,
+              version,
+            }),
+          },
+          compareInfoIsLoading: {
+            ...state.compareInfoIsLoading,
+            [compareInfoKey]: false,
+          },
+        };
+      }
+      case getType(actions.setCurrentBaseVersionId): {
+        const { versionId } = action.payload;
+        return {
+          ...state,
+          currentBaseVersionId: versionId,
+        };
+      }
+      case getType(actions.setCurrentVersionId): {
+        const { versionId } = action.payload;
+        let { expandedPaths } = state;
+        const version = getVersionInfo(state, versionId);
+
+        if (version && expandedPaths) {
+          expandedPaths = _getPrunedExpandedPaths(expandedPaths, version);
+        }
+
+        return {
+          ...state,
+          currentVersionId: versionId,
+          expandedPaths,
+        };
+      }
+      case getType(actions.unsetCurrentVersionId): {
+        return {
+          ...state,
+          currentVersionId: false,
+        };
+      }
+      default:
+        return state;
     }
-    case getType(actions.setCurrentVersionId): {
-      const { versionId } = action.payload;
-      return {
-        ...state,
-        currentVersionId: versionId,
-      };
-    }
-    case getType(actions.unsetCurrentVersionId): {
-      return {
-        ...state,
-        currentVersionId: false,
-      };
-    }
-    default:
-      return state;
-  }
+  };
+  return reducer;
 };
 
-export default reducer;
+export default createReducer();

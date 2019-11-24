@@ -6,6 +6,7 @@ import { createBrowserHistory } from 'history';
 
 import './styles.scss';
 import App from './components/App';
+import ErrorBoundary from './components/ErrorBoundary';
 import configureApplication from './configureApplication';
 import configureStore from './configureStore';
 
@@ -25,11 +26,13 @@ if (authToken === process.env.REACT_APP_AUTH_TOKEN_PLACEHOLDER) {
 
 const render = (AppComponent: typeof App) => {
   ReactDOM.render(
-    <Provider store={store}>
-      <ConnectedRouter history={history}>
-        <AppComponent authToken={authToken} />
-      </ConnectedRouter>
-    </Provider>,
+    <ErrorBoundary>
+      <Provider store={store}>
+        <ConnectedRouter history={history}>
+          <AppComponent authToken={authToken} />
+        </ConnectedRouter>
+      </Provider>
+    </ErrorBoundary>,
     rootElement,
   );
 };

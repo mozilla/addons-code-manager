@@ -19,6 +19,7 @@ import reducer, {
   createInternalVersionAddon,
   createInternalVersionEntry,
   createInternalVersionFile,
+  createReducer,
   createVersionsMap,
   fetchDiff,
   fetchVersion,
@@ -31,6 +32,7 @@ import reducer, {
   getEntryStatusMap,
   getMostRelevantEntryStatus,
   getParentFolders,
+  getPrunedExpandedPaths,
   getRelativeDiff,
   getRelativeDiffAnchor,
   getVersionFile,
@@ -55,6 +57,7 @@ import {
   createStoreWithVersion,
   createFakeThunk,
   createVersionAndEntryStatusMap,
+  createErrorResponse,
   fakeExternalDiff,
   fakeVersion,
   fakeVersionAddon,
@@ -64,6 +67,7 @@ import {
   fakeVersionsList,
   fakeVersionsListItem,
   getFakeVersionAndPathList,
+  nextUniqueId,
   thunkTester,
 } from '../test-helpers';
 
@@ -117,10 +121,46 @@ describe(__filename, () => {
 
       expect(state).toEqual({
         ...initialState,
+        expandedPaths: getParentFolders(version.file.selected_file),
         versionInfo: {
           [version.id]: createInternalVersion(version),
         },
       });
+    });
+
+    it('prunes expandedPaths when loading version info', () => {
+      const version = { ...fakeVersion, id: nextUniqueId() };
+      const newVersion = { ...fakeVersion, id: nextUniqueId() };
+      const _getPrunedExpandedPaths = jest.fn(getPrunedExpandedPaths);
+      const _reducer = createReducer({ _getPrunedExpandedPaths });
+
+      const state = _reducer(undefined, actions.loadVersionInfo({ version }));
+      _reducer(state, actions.loadVersionInfo({ version: newVersion }));
+
+      expect(_getPrunedExpandedPaths).toHaveBeenCalledWith(
+        state.expandedPaths,
+        createInternalVersion(newVersion),
+      );
+    });
+
+    it('prunes expanded paths when setCurrentVersionId is dispatched', () => {
+      const version = { ...fakeVersion, id: nextUniqueId() };
+      const newVersion = { ...fakeVersion, id: nextUniqueId() };
+      const _getPrunedExpandedPaths = jest.fn(getPrunedExpandedPaths);
+      const _reducer = createReducer({ _getPrunedExpandedPaths });
+
+      let state = _reducer(undefined, actions.loadVersionInfo({ version }));
+      state = _reducer(state, actions.loadVersionInfo({ version: newVersion }));
+      _getPrunedExpandedPaths.mockClear();
+      _reducer(
+        state,
+        actions.setCurrentVersionId({ versionId: newVersion.id }),
+      );
+
+      expect(_getPrunedExpandedPaths).toHaveBeenCalledWith(
+        state.expandedPaths,
+        expect.objectContaining({ id: newVersion.id }),
+      );
     });
 
     it('loads entry status map', () => {
@@ -187,6 +227,10 @@ describe(__filename, () => {
         `versionInfo.${version.id}.expandedPaths`,
         getParentFolders(selectedPath),
       );
+      expect(state).toHaveProperty(
+        'expandedPaths',
+        getParentFolders(selectedPath),
+      );
     });
 
     it('retains all expanded folders when updateSelectedPath is dispatched', () => {
@@ -218,6 +262,11 @@ describe(__filename, () => {
         initialPath,
         newFolder,
       ]);
+      expect(state).toHaveProperty('expandedPaths', [
+        ...expandedPaths,
+        initialPath,
+        newFolder,
+      ]);
     });
 
     it('throws an error when toggleExpandedPath is called for an unknown version', () => {
@@ -227,6 +276,19 @@ describe(__filename, () => {
           actions.toggleExpandedPath({ path: 'pa/th', versionId: 123 }),
         );
       }).toThrow(/Version missing/);
+    });
+
+    it('throws an error when expandedPaths is undefined', () => {
+      const versionId = nextUniqueId();
+      const version = { ...fakeVersion, id: versionId };
+      const state = reducer(undefined, actions.loadVersionInfo({ version }));
+
+      expect(() => {
+        reducer(
+          { ...state, expandedPaths: undefined },
+          actions.toggleExpandedPath({ path: 'path.js', versionId }),
+        );
+      }).toThrow('ExpandedPaths is undefined');
     });
 
     it('does not duplicate paths in expandedPaths when updateSelectedPath is dispatched', () => {
@@ -256,6 +318,7 @@ describe(__filename, () => {
         ...expandedPaths,
         path,
       ]);
+      expect(state).toHaveProperty('expandedPaths', [...expandedPaths, path]);
     });
 
     it('adds a path to expandedPaths', () => {
@@ -274,6 +337,7 @@ describe(__filename, () => {
         ...expandedPaths,
         path,
       ]);
+      expect(state).toHaveProperty('expandedPaths', [...expandedPaths, path]);
     });
 
     it('removes a path from expandedPaths', () => {
@@ -297,6 +361,7 @@ describe(__filename, () => {
         `versionInfo.${version.id}.expandedPaths`,
         expandedPaths,
       );
+      expect(state).toHaveProperty('expandedPaths', expandedPaths);
     });
 
     it('maintains other paths when removing a path from expandedPaths', () => {
@@ -323,6 +388,11 @@ describe(__filename, () => {
         path1,
         path2,
       ]);
+      expect(state).toHaveProperty('expandedPaths', [
+        ...expandedPaths,
+        path1,
+        path2,
+      ]);
 
       // Remove the first path.
       state = reducer(
@@ -334,6 +404,7 @@ describe(__filename, () => {
         ...expandedPaths,
         path2,
       ]);
+      expect(state).toHaveProperty('expandedPaths', [...expandedPaths, path2]);
     });
 
     it('adds all paths to expandedPaths when expandTree is dispatched', () => {
@@ -354,6 +425,7 @@ describe(__filename, () => {
         path2,
         ROOT_PATH,
       ]);
+      expect(state).toHaveProperty('expandedPaths', [path1, path2, ROOT_PATH]);
     });
 
     it('throws an error when expandTree is called for an unknown version', () => {
@@ -379,6 +451,7 @@ describe(__filename, () => {
         path1,
         ROOT_PATH,
       ]);
+      expect(state).toHaveProperty('expandedPaths', [path1, ROOT_PATH]);
     });
 
     it('removes all paths from expandedPaths when collapseTree is dispatched', () => {
@@ -400,6 +473,7 @@ describe(__filename, () => {
       expect(state).toHaveProperty(`versionInfo.${version.id}.expandedPaths`, [
         ROOT_PATH,
       ]);
+      expect(state).toHaveProperty('expandedPaths', [ROOT_PATH]);
     });
 
     it('throws an error when collapseTree is called for an unknown version', () => {
@@ -1203,7 +1277,11 @@ describe(__filename, () => {
       const version = { ...fakeVersion, id: 54123 };
       const _getVersion = jest
         .fn()
-        .mockReturnValue(Promise.resolve({ error: new Error('Bad Request') }));
+        .mockReturnValue(
+          Promise.resolve(
+            createErrorResponse({ error: new Error('Bad Request') }),
+          ),
+        );
 
       const { dispatch, thunk } = _fetchVersionFile({
         _getVersion,
@@ -1789,9 +1867,11 @@ describe(__filename, () => {
       const baseVersionId = 2;
       const headVersionId = 2;
       const _getDiff = jest.fn().mockReturnValue(
-        Promise.resolve({
-          error: new Error('Bad Request'),
-        }),
+        Promise.resolve(
+          createErrorResponse({
+            error: new Error('Bad Request'),
+          }),
+        ),
       );
 
       const { dispatch, thunk } = _fetchDiff({
@@ -1814,9 +1894,11 @@ describe(__filename, () => {
     it('dispatches abortFetchVersion() when the API call has failed', async () => {
       const headVersionId = 2;
       const _getDiff = jest.fn().mockReturnValue(
-        Promise.resolve({
-          error: new Error('Bad Request'),
-        }),
+        Promise.resolve(
+          createErrorResponse({
+            error: new Error('Bad Request'),
+          }),
+        ),
       );
 
       const { dispatch, thunk } = _fetchDiff({ _getDiff, headVersionId });
@@ -3082,6 +3164,18 @@ describe(__filename, () => {
     });
   });
 
+  describe('setCurrentBaseVersionId', () => {
+    it('sets the current base version ID', () => {
+      const versionId = nextUniqueId();
+
+      expect(
+        reducer(undefined, actions.setCurrentBaseVersionId({ versionId })),
+      ).toMatchObject({
+        currentBaseVersionId: versionId,
+      });
+    });
+  });
+
   describe('selectCurrentVersionInfo', () => {
     it('returns the current version when set', () => {
       const version = { ...fakeVersion, id: 42 };
@@ -3133,6 +3227,35 @@ describe(__filename, () => {
       const state = reducer(undefined, actions.unsetCurrentVersionId());
 
       expect(selectCurrentVersionInfo(state)).toEqual(false);
+    });
+  });
+
+  describe('getPrunedExpandedPaths', () => {
+    it('perserves the paths that exist in the new version', () => {
+      const path1 = 'path/1';
+      const path2 = 'path/2';
+      const expandedPaths = [path1];
+      const version = createExternalVersionWithEntries([
+        createFakeEntry('directory', path1),
+        createFakeEntry('directory', path2),
+      ]);
+
+      expect(
+        getPrunedExpandedPaths(expandedPaths, createInternalVersion(version)),
+      ).toEqual(expect.arrayContaining([path1]));
+    });
+
+    it('filters out the paths that do not exist in the new version', () => {
+      const path1 = 'path/1';
+      const path2 = 'path/2';
+      const expandedPaths = [path1, path2];
+      const version = createExternalVersionWithEntries([
+        createFakeEntry('directory', path1),
+      ]);
+
+      expect(
+        getPrunedExpandedPaths(expandedPaths, createInternalVersion(version)),
+      ).toEqual(expect.not.arrayContaining([path2]));
     });
   });
 });
