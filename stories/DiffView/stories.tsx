@@ -4,26 +4,26 @@ import React from 'react';
 import { storiesOf } from '@storybook/react';
 import { parseDiff } from 'react-diff-view';
 
-import configureStore from '../../src/configureStore';
+import configureStore from '../src/configureStore';
 import DiffView, {
   PublicProps as DiffViewProps,
-} from '../../src/components/DiffView';
-import basicDiff from '../../src/components/DiffView/fixtures/basicDiff';
-import minifiedDiff from '../../src/components/DiffView/fixtures/minifiedDiff';
-import diffWithDeletions from '../../src/components/DiffView/fixtures/diffWithDeletions';
-import largeDiff from '../../src/components/DiffView/fixtures/largeDiff';
-import { LinterMessage, actions } from '../../src/reducers/linter';
-import { createInternalVersion } from '../../src/reducers/versions';
+} from '../src/components/DiffView';
+import basicDiff from '../src/components/DiffView/fixtures/basicDiff';
+import minifiedDiff from '../src/components/DiffView/fixtures/minifiedDiff';
+import diffWithDeletions from '../src/components/DiffView/fixtures/diffWithDeletions';
+import largeDiff from '../src/components/DiffView/fixtures/largeDiff';
+import { LinterMessage, actions } from '../src/reducers/linter';
+import { createInternalVersion } from '../src/reducers/versions';
 import {
   createFakeExternalLinterResult,
   createFakeLocation,
   fakeVersion,
   fakeVersionEntry,
   fakeVersionFile,
-} from '../../src/test-helpers';
-import { allowSlowPagesParam } from '../../src/utils';
-import longUnbrokenMinifiedDiff from '../fixtures/long-unbroken-minified-diff';
-import { newLinterMessageUID, renderWithStoreAndRouter } from '../utils';
+} from '../src/test-helpers';
+import { allowSlowPagesParam } from '../src/utils';
+import longUnbrokenMinifiedDiff from './fixtures/long-unbroken-minified-diff';
+import { newLinterMessageUID, renderWithStoreAndRouter } from './utils';
 
 const render = (
   moreProps: Partial<DiffViewProps> & { location?: Location } = {},

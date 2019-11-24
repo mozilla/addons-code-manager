@@ -2,15 +2,15 @@ import * as React from 'react';
 import { Store } from 'redux';
 import { storiesOf } from '@storybook/react';
 
-import configureStore from '../../src/configureStore';
-import { AnyReactNode } from '../../src/typeUtils';
-import CommentList, { PublicProps } from '../../src/components/CommentList';
+import configureStore from '../src/configureStore';
+import { AnyReactNode } from '../src/typeUtils';
+import CommentList, { PublicProps } from '../src/components/CommentList';
 import {
   ExternalComment,
   actions as commentsActions,
-} from '../../src/reducers/comments';
-import { createFakeExternalComment } from '../../src/test-helpers';
-import { renderWithStoreAndRouter } from '../utils';
+} from '../src/reducers/comments';
+import { createFakeExternalComment } from '../src/test-helpers';
+import { renderWithStoreAndRouter } from './utils';
 
 const render = ({
   addonId = 1,

@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { storiesOf } from '@storybook/react';
 
-import Navbar from '../../src/components/Navbar';
-import configureStore from '../../src/configureStore';
-import { actions as userActions } from '../../src/reducers/users';
+import Navbar from '../src/components/Navbar';
+import configureStore from '../src/configureStore';
+import { actions as userActions } from '../src/reducers/users';
 import {
   createFakeExternalComment,
   createStoreWithVersion,
@@ -11,8 +11,8 @@ import {
   fakeUser,
   fakeVersion,
   fakeVersionAddon,
-} from '../../src/test-helpers';
-import { renderWithStoreAndRouter } from '../utils';
+} from '../src/test-helpers';
+import { renderWithStoreAndRouter } from './utils';
 
 const render = ({ store = configureStore(), ...props } = {}) => {
   return renderWithStoreAndRouter(<Navbar {...props} />, { store });

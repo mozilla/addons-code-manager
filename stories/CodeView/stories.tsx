@@ -2,27 +2,27 @@ import * as React from 'react';
 import { Store } from 'redux';
 import { storiesOf } from '@storybook/react';
 
-import configureStore from '../../src/configureStore';
-import ContentShell from '../../src/components/FullscreenGrid/ContentShell';
-import FullscreenGrid, { Header } from '../../src/components/FullscreenGrid';
+import configureStore from '../src/configureStore';
+import ContentShell from '../src/components/FullscreenGrid/ContentShell';
+import FullscreenGrid, { Header } from '../src/components/FullscreenGrid';
 import CodeView, {
   PublicProps as CodeViewProps,
-} from '../../src/components/CodeView';
-import { LinterMessage, actions } from '../../src/reducers/linter';
-import { createInternalVersion } from '../../src/reducers/versions';
-import longUnbrokenMinifiedDiff from '../fixtures/long-unbroken-minified-diff';
+} from '../src/components/CodeView';
+import { LinterMessage, actions } from '../src/reducers/linter';
+import { createInternalVersion } from '../src/reducers/versions';
+import longUnbrokenMinifiedDiff from './fixtures/long-unbroken-minified-diff';
 import {
   loremIpsum,
   newLinterMessageUID,
   rootAttributeParams,
   renderWithStoreAndRouter,
-} from '../utils';
+} from './utils';
 import {
   createFakeExternalLinterResult,
   fakeVersion,
   fakeVersionEntry,
   fakeVersionFile,
-} from '../../src/test-helpers';
+} from '../src/test-helpers';
 
 const getParams = () => rootAttributeParams({ fullscreen: true });
 

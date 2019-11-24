@@ -2,8 +2,8 @@ import { Location } from 'history';
 import * as React from 'react';
 import { storiesOf } from '@storybook/react';
 
-import SlowPageAlert, { PublicProps } from '../../src/components/SlowPageAlert';
-import { createFakeLocation } from '../../src/test-helpers';
+import SlowPageAlert, { PublicProps } from '../src/components/SlowPageAlert';
+import { createFakeLocation } from '../src/test-helpers';
 
 const render = (otherProps: Partial<PublicProps> = {}) => {
   const props = {

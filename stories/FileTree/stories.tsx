@@ -5,15 +5,15 @@ import { storiesOf } from '@storybook/react';
 
 import FileTree, {
   PublicProps as FileTreeProps,
-} from '../../src/components/FileTree';
+} from '../src/components/FileTree';
 import {
   VersionEntryType,
   actions as versionsActions,
-} from '../../src/reducers/versions';
+} from '../src/reducers/versions';
 import {
   ExternalLinterMessage,
   actions as linterActions,
-} from '../../src/reducers/linter';
+} from '../src/reducers/linter';
 import {
   createFakeExternalComment,
   createStoreWithVersion,
@@ -22,8 +22,8 @@ import {
   fakeExternalLinterMessage,
   fakeVersion,
   fakeVersionEntry,
-} from '../../src/test-helpers';
-import { renderWithStoreAndRouter } from '../utils';
+} from '../src/test-helpers';
+import { renderWithStoreAndRouter } from './utils';
 
 const fakeDirectoryEntry = {
   ...fakeVersionEntry,

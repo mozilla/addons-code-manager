@@ -2,17 +2,17 @@
 import React from 'react';
 import { storiesOf } from '@storybook/react';
 
-import FileMetadata from '../../src/components/FileMetadata';
+import FileMetadata from '../src/components/FileMetadata';
 import {
   actions as versionActions,
   getVersionFile,
   VersionFile,
-} from '../../src/reducers/versions';
+} from '../src/reducers/versions';
 import {
   createStoreWithVersion,
   fakeVersion,
   fakeVersionEntry,
-} from '../../src/test-helpers';
+} from '../src/test-helpers';
 
 const loadVersionFile = (version = fakeVersion) => {
   const store = createStoreWithVersion({ version });

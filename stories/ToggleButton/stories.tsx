@@ -1,7 +1,7 @@
 import React from 'react';
 import { storiesOf } from '@storybook/react';
 
-import ToggleButton from '../../src/components/ToggleButton';
+import ToggleButton from '../src/components/ToggleButton';
 
 const renderToggleButton = (props = {}) => {
   return <ToggleButton onClick={() => {}} {...props} />;

@@ -2,10 +2,10 @@
 import * as React from 'react';
 import { storiesOf } from '@storybook/react';
 
-import CommentSummary from '../../src/components/CommentSummary';
-import { createInternalComment } from '../../src/reducers/comments';
-import { createFakeExternalComment } from '../../src/test-helpers';
-import { loremIpsum } from '../utils';
+import CommentSummary from '../src/components/CommentSummary';
+import { createInternalComment } from '../src/reducers/comments';
+import { createFakeExternalComment } from '../src/test-helpers';
+import { loremIpsum } from './utils';
 
 const render = ({ comments = [createFakeExternalComment()] } = {}) => {
   return (
