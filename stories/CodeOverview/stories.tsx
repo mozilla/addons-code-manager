@@ -2,26 +2,26 @@ import * as React from 'react';
 import { Store } from 'redux';
 import { storiesOf } from '@storybook/react';
 
-import { LinterMessage, actions } from '../src/reducers/linter';
-import longFileSample from './fixtures/long-file-sample';
-import ContentShell from '../src/components/FullscreenGrid/ContentShell';
-import FullscreenGrid, { Header } from '../src/components/FullscreenGrid';
-import CodeOverview from '../src/components/CodeOverview';
-import CodeView from '../src/components/CodeView';
-import configureStore from '../src/configureStore';
-import { JS_SAMPLE } from './CodeView.stories';
-import { createInternalVersion } from '../src/reducers/versions';
+import { LinterMessage, actions } from '../../src/reducers/linter';
+import longFileSample from '../fixtures/long-file-sample';
+import ContentShell from '../../src/components/FullscreenGrid/ContentShell';
+import FullscreenGrid, { Header } from '../../src/components/FullscreenGrid';
+import CodeOverview from '../../src/components/CodeOverview';
+import CodeView from '../../src/components/CodeView';
+import configureStore from '../../src/configureStore';
+import { JS_SAMPLE } from '../CodeView/stories';
+import { createInternalVersion } from '../../src/reducers/versions';
 import {
   createFakeExternalLinterResult,
   fakeVersion,
   fakeVersionFile,
   fakeVersionEntry,
-} from '../src/test-helpers';
+} from '../../src/test-helpers';
 import {
   newLinterMessageUID,
   renderWithStoreAndRouter,
   rootAttributeParams,
-} from './utils';
+} from '../utils';
 
 const render = ({
   content = JS_SAMPLE,

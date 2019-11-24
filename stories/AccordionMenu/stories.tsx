@@ -1,15 +1,15 @@
 import React from 'react';
 import { storiesOf } from '@storybook/react';
 
-import ContentShell from '../src/components/FullscreenGrid/ContentShell';
-import FullscreenGrid, { Header } from '../src/components/FullscreenGrid';
-import AccordionMenu, { AccordionItem } from '../src/components/AccordionMenu';
+import ContentShell from '../../src/components/FullscreenGrid/ContentShell';
+import FullscreenGrid, { Header } from '../../src/components/FullscreenGrid';
+import AccordionMenu, { AccordionItem } from '../../src/components/AccordionMenu';
 import {
   generateParagraphs,
   loremIpsum,
   renderWithStoreAndRouter,
   rootAttributeParams,
-} from './utils';
+} from '../utils';
 
 const getParams = () => rootAttributeParams({ fullscreen: true });
 

@@ -2,9 +2,9 @@ import React from 'react';
 import { Store } from 'redux';
 import { storiesOf } from '@storybook/react';
 
-import FileTreeNode, { PublicProps } from '../src/components/FileTreeNode';
-import { createStoreWithVersion, fakeVersion } from '../src/test-helpers';
-import { renderWithStoreAndRouter } from './utils';
+import FileTreeNode, { PublicProps } from '../../src/components/FileTreeNode';
+import { createStoreWithVersion, fakeVersion } from '../../src/test-helpers';
+import { renderWithStoreAndRouter } from '../utils';
 
 type GetPropsParams = {
   nodeId?: PublicProps['node']['id'];

@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { storiesOf } from '@storybook/react';
 
-import configureStore from '../src/configureStore';
-import { VersionChooserWithoutRouter } from '../src/components/VersionChooser';
-import { ExternalVersionsList, actions } from '../src/reducers/versions';
-import { fakeVersionsListItem } from '../src/test-helpers';
-import { renderWithStoreAndRouter } from './utils';
+import configureStore from '../../src/configureStore';
+import { VersionChooserWithoutRouter } from '../../src/components/VersionChooser';
+import { ExternalVersionsList, actions } from '../../src/reducers/versions';
+import { fakeVersionsListItem } from '../../src/test-helpers';
+import { renderWithStoreAndRouter } from '../utils';
 
 const render = ({
   addonId = 124,

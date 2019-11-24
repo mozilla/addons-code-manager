@@ -2,16 +2,16 @@ import * as React from 'react';
 import { Store } from 'redux';
 import { storiesOf } from '@storybook/react';
 
-import configureStore from '../src/configureStore';
+import configureStore from '../../src/configureStore';
 import Comment, {
   PublicProps as CommentProps,
-} from '../src/components/Comment';
+} from '../../src/components/Comment';
 import {
   ExternalComment,
   actions as commentsActions,
-} from '../src/reducers/comments';
-import { createFakeExternalComment } from '../src/test-helpers';
-import { loremIpsum, renderWithStoreAndRouter } from './utils';
+} from '../../src/reducers/comments';
+import { createFakeExternalComment } from '../../src/test-helpers';
+import { loremIpsum, renderWithStoreAndRouter } from '../utils';
 
 const fakeComment = createFakeExternalComment({
   comment: [

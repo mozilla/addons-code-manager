@@ -2,13 +2,13 @@ import makeClassName from 'classnames';
 import React from 'react';
 import { storiesOf } from '@storybook/react';
 
-import ContentShell from '../src/components/FullscreenGrid/ContentShell';
-import FullscreenGrid, { Header } from '../src/components/FullscreenGrid';
+import ContentShell from '../../src/components/FullscreenGrid/ContentShell';
+import FullscreenGrid, { Header } from '../../src/components/FullscreenGrid';
 import {
   generateParagraphs,
   renderWithStoreAndRouter,
   rootAttributeParams,
-} from './utils';
+} from '../utils';
 
 const getParams = () => rootAttributeParams({ fullscreen: true });
 
