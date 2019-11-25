@@ -1,8 +1,6 @@
 import * as React from 'react';
 import makeClassName from 'classnames';
 import { Col, Form } from 'react-bootstrap';
-// eslint-disable-next-line import/no-unresolved
-import { FormControlProps } from 'react-bootstrap/lib/FormControl';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import Skeleton from '../Skeleton';
@@ -28,7 +26,7 @@ class VersionSelectBase extends React.Component<PublicProps> {
     withLeftArrow: false,
   };
 
-  onChange = (event: React.FormEvent<FormControlProps>) => {
+  onChange = (event: React.FormEvent<HTMLSelectElement>) => {
     const value = event.currentTarget.value as string;
 
     this.props.onChange(parseInt(value, 10));
