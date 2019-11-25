@@ -1,10 +1,13 @@
 import log from 'loglevel';
 import { Reducer } from 'redux';
-import { ActionType, createAction, getType } from 'typesafe-actions';
+import { ActionType, deprecated, getType } from 'typesafe-actions';
 
 import { ThunkActionCreator } from '../configureStore';
 import { actions as errorsActions } from './errors';
 import { makeApiURL } from '../api';
+
+// See: https://github.com/piotrwitek/typesafe-actions/issues/143
+const { createAction } = deprecated;
 
 type LinterMessageBase = {
   column: number | null;

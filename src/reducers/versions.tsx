@@ -1,5 +1,5 @@
 import { Reducer } from 'redux';
-import { ActionType, createAction, getType } from 'typesafe-actions';
+import { ActionType, deprecated, getType } from 'typesafe-actions';
 import log from 'loglevel';
 import {
   ChangeInfo,
@@ -23,6 +23,9 @@ import {
   RelativePathPosition,
   findRelativePathWithDiff,
 } from './fileTree';
+
+// See: https://github.com/piotrwitek/typesafe-actions/issues/143
+const { createAction } = deprecated;
 
 export enum ScrollTarget {
   firstDiff = 'firstDiff',
