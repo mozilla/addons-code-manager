@@ -3,10 +3,8 @@ import url from 'url';
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace, no-redeclare
   namespace jest {
-    interface Matchers<R> {
-      urlWithTheseParams(params: {
-        [key: string]: string | undefined;
-      }): CustomMatcherResult;
+    interface Matchers<R, T> {
+      urlWithTheseParams(params: { [key: string]: string | undefined }): R;
     }
 
     interface Expect {
