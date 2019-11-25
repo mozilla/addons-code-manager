@@ -8,6 +8,7 @@ import { History, Location } from 'history';
 import { ShallowRendererProps, ShallowWrapper, shallow } from 'enzyme';
 import { Store } from 'redux';
 import log from 'loglevel';
+import { ChangeInfo } from 'react-diff-view';
 import { createAction } from 'typesafe-actions';
 
 import {
@@ -1004,3 +1005,14 @@ export const simulatePopover = (root: ShallowWrapper) => {
     popover,
   };
 };
+
+export const fakeChangeInfo: ChangeInfo = Object.freeze({
+  content: 'change-content',
+  isDelete: false,
+  isInsert: true,
+  isNormal: false,
+  lineNumber: 1,
+  newLineNumber: undefined,
+  oldLineNumber: 1,
+  type: 'insert',
+});

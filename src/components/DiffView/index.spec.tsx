@@ -6,6 +6,7 @@ import {
   Diff,
   HunkInfo,
   Hunks,
+  RenderGutterParams,
   WidgetMap,
   parseDiff,
   getChangeKey,
@@ -17,6 +18,7 @@ import { History, Location } from 'history';
 import basicDiff from './fixtures/basicDiff';
 import multipleDiff from './fixtures/multipleDiff';
 import diffWithDeletions from './fixtures/diffWithDeletions';
+import CommentableBase from '../Commentable';
 import CommentList from '../CommentList';
 import FadableContent from '../FadableContent';
 import LinterMessage from '../LinterMessage';
@@ -37,6 +39,7 @@ import {
   createFakeHistory,
   createFakeLinterMessagesByPath,
   createFakeLocation,
+  fakeChangeInfo,
   fakeExternalDiff,
   fakeVersion,
   nextUniqueId,
@@ -999,6 +1002,143 @@ describe(__filename, () => {
       expect(trimmed[1].changes).toEqual(
         createInternalHunkWithChanges([change2, change3]).changes,
       );
+    });
+  });
+
+  describe('renderGutter', () => {
+    const _renderGutter = ({
+      change = fakeChangeInfo,
+      defaultGutter = <div />,
+      enableCommenting = true,
+      renderDefault = jest.fn(),
+      shallowRender = true,
+      side = 'new',
+      version = createInternalVersion(fakeVersion),
+      wrapInAnchor = jest.fn().mockReturnValue(defaultGutter),
+    }: Partial<RenderGutterParams> &
+      Partial<DefaultProps> &
+      Partial<PublicProps> & {
+        defaultGutter?: React.ReactElement;
+        shallowRender?: boolean;
+      } = {}) => {
+      const diff = createDiffWithHunks([
+        createHunkWithChanges([{ content: change.content }]),
+      ]);
+
+      const root = renderWithLinterProvider({
+        diff,
+        enableCommenting,
+        version,
+      });
+      const { renderGutter } = root.find(Diff).props();
+      if (renderGutter) {
+        const gutter = renderGutter({
+          change,
+          renderDefault,
+          inHoverState: false,
+          side,
+          wrapInAnchor,
+        });
+        if (shallowRender) {
+          return shallow(<div>{gutter}</div>);
+        }
+        return gutter;
+      }
+      throw new Error('renderGutter was undefined, but it should not be');
+    };
+
+    it('adds a commentable div to the gutter', () => {
+      const change = fakeChangeInfo;
+      const className = 'test-class';
+      const defaultGutter = <div className={className} />;
+      const renderDefault = jest.fn();
+      const version = createInternalVersion(fakeVersion);
+      const wrapInAnchor = jest.fn().mockReturnValue(defaultGutter);
+      const gutter = _renderGutter({
+        change,
+        enableCommenting: true,
+        renderDefault,
+        version,
+        wrapInAnchor,
+      });
+
+      const commentableDiv = gutter.find(CommentableBase);
+
+      expect(commentableDiv).toHaveLength(1);
+      expect(commentableDiv).toHaveProp('id', getChangeKey(change));
+      expect(commentableDiv).toHaveProp('line', change.lineNumber);
+      expect(commentableDiv).toHaveProp('fileName', version.selectedPath);
+      expect(commentableDiv).toHaveProp('versionId', version.id);
+
+      expect(renderDefault).toHaveBeenCalled();
+      expect(wrapInAnchor).toHaveBeenCalled();
+    });
+
+    it('passes expected children to the commentable div', () => {
+      const className = 'test-class';
+      const defaultGutter = <div className={className} />;
+      const gutter = _renderGutter({
+        defaultGutter,
+        enableCommenting: true,
+        shallowRender: false,
+      });
+
+      const commentableChildren = shallow(<div>{gutter.props.children()}</div>);
+
+      expect(commentableChildren.find(`.${className}`)).toHaveLength(1);
+      expect(commentableChildren.find(`.${styles.commentButton}`)).toHaveLength(
+        1,
+      );
+    });
+
+    it('does not change the gutter when the feature is turned off', () => {
+      const className = 'test-class';
+      const defaultGutter = <div className={className} />;
+      const gutter = _renderGutter({ defaultGutter, enableCommenting: false });
+
+      expect(gutter.find(CommentableBase)).toHaveLength(0);
+      expect(gutter.find(`.${className}`)).toHaveLength(1);
+    });
+
+    it('does not change the gutter when the change is not an insert', () => {
+      const className = 'test-class';
+      const defaultGutter = <div className={className} />;
+      const change = { ...fakeChangeInfo, isInsert: false };
+      const gutter = _renderGutter({
+        change,
+        defaultGutter,
+        enableCommenting: true,
+      });
+
+      expect(gutter.find(CommentableBase)).toHaveLength(0);
+      expect(gutter.find(`.${className}`)).toHaveLength(1);
+    });
+
+    it('does not change the gutter when lineNumber is falsey', () => {
+      const className = 'test-class';
+      const defaultGutter = <div className={className} />;
+      const change = { ...fakeChangeInfo, lineNumber: undefined };
+      const gutter = _renderGutter({
+        change,
+        defaultGutter,
+        enableCommenting: true,
+      });
+
+      expect(gutter.find(CommentableBase)).toHaveLength(0);
+      expect(gutter.find(`.${className}`)).toHaveLength(1);
+    });
+
+    it('does not change the gutter when side is not "new"', () => {
+      const className = 'test-class';
+      const defaultGutter = <div className={className} />;
+      const gutter = _renderGutter({
+        defaultGutter,
+        enableCommenting: true,
+        side: 'old',
+      });
+
+      expect(gutter.find(CommentableBase)).toHaveLength(0);
+      expect(gutter.find(`.${className}`)).toHaveLength(1);
     });
   });
 });
