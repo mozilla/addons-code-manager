@@ -225,7 +225,12 @@ describe(__filename, () => {
       const props = { _fetchVersion, store, ...moreProps };
       const root = render(props);
 
-      return { _fetchVersion, dispatch, root, fakeThunk };
+      return {
+        _fetchVersion,
+        _fetchVersionThunk: fakeThunk.thunk,
+        dispatch,
+        root,
+      };
     };
 
     it('loads data on mount', () => {
@@ -258,11 +263,13 @@ describe(__filename, () => {
         }),
       );
 
-      const { _fetchVersion, dispatch, fakeThunk } = renderForFetching({
-        store,
-      });
+      const { _fetchVersion, _fetchVersionThunk, dispatch } = renderForFetching(
+        {
+          store,
+        },
+      );
 
-      expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+      expect(dispatch).toHaveBeenCalledWith(_fetchVersionThunk);
       expect(_fetchVersion).toHaveBeenCalledWith({
         addonId,
         path: undefined,
@@ -273,16 +280,16 @@ describe(__filename, () => {
 
     it('does not fetch the base version without a current version', () => {
       const store = createStoreWithVersion({ makeCurrent: false });
-      const { dispatch, fakeThunk } = renderForFetching({ store });
+      const { _fetchVersionThunk, dispatch } = renderForFetching({ store });
 
-      expect(dispatch).not.toHaveBeenCalledWith(fakeThunk.thunk);
+      expect(dispatch).not.toHaveBeenCalledWith(_fetchVersionThunk);
     });
 
     it('does not fetch the base version without an ID', () => {
       const store = createStoreWithVersion({ makeCurrent: true });
-      const { dispatch, fakeThunk } = renderForFetching({ store });
+      const { _fetchVersionThunk, dispatch } = renderForFetching({ store });
 
-      expect(dispatch).not.toHaveBeenCalledWith(fakeThunk.thunk);
+      expect(dispatch).not.toHaveBeenCalledWith(_fetchVersionThunk);
     });
 
     it('does not fetch the base version when it already exists', () => {
@@ -299,9 +306,9 @@ describe(__filename, () => {
           versionId: currentBaseVersionId,
         }),
       );
-      const { dispatch, fakeThunk } = renderForFetching({ store });
+      const { _fetchVersionThunk, dispatch } = renderForFetching({ store });
 
-      expect(dispatch).not.toHaveBeenCalledWith(fakeThunk.thunk);
+      expect(dispatch).not.toHaveBeenCalledWith(_fetchVersionThunk);
     });
 
     it('does not fetch the base version when there was an error fetching it', () => {
@@ -317,9 +324,9 @@ describe(__filename, () => {
       store.dispatch(
         versionsActions.abortFetchVersion({ versionId: currentBaseVersionId }),
       );
-      const { dispatch, fakeThunk } = renderForFetching({ store });
+      const { _fetchVersionThunk, dispatch } = renderForFetching({ store });
 
-      expect(dispatch).not.toHaveBeenCalledWith(fakeThunk.thunk);
+      expect(dispatch).not.toHaveBeenCalledWith(_fetchVersionThunk);
     });
   });
 
