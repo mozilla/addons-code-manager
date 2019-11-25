@@ -67,7 +67,7 @@
     "redux-thunk": "2.3.0",
     "refractor": "2.10.0",
     "ts-node": "8.5.2",
-    "typesafe-actions": "4.4.2",
+    "typesafe-actions": "5.1.0",
     "typescript": "3.7.2",
     "universal-cookie": "4.0.2",
     "universal-cookie-express": "4.0.1"

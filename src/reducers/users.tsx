@@ -1,9 +1,12 @@
 import { Reducer } from 'redux';
-import { ActionType, createAction, getType } from 'typesafe-actions';
+import { ActionType, deprecated, getType } from 'typesafe-actions';
 
 import { ThunkActionCreator } from '../configureStore';
 import { getCurrentUser, isErrorResponse, logOutFromServer } from '../api';
 import { actions as errorsActions } from './errors';
+
+// See: https://github.com/piotrwitek/typesafe-actions/issues/143
+const { createAction } = deprecated;
 
 type UserId = number;
 

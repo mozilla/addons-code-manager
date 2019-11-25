@@ -1,7 +1,7 @@
 import { push } from 'connected-react-router';
 import log from 'loglevel';
 import { Reducer } from 'redux';
-import { ActionType, createAction, getType } from 'typesafe-actions';
+import { ActionType, deprecated, getType } from 'typesafe-actions';
 
 import { EntryStatusMap, Version, viewVersionFile } from './versions';
 import { ThunkActionCreator } from '../configureStore';
@@ -13,6 +13,9 @@ import {
 } from '../utils';
 import { LinterMessage, LinterMessageMap, getMessagesForPath } from './linter';
 import { GetCodeLineAnchor } from '../components/CodeView/utils';
+
+// See: https://github.com/piotrwitek/typesafe-actions/issues/143
+const { createAction } = deprecated;
 
 export const ROOT_PATH = '~root~';
 

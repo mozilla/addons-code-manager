@@ -1,5 +1,8 @@
 import { Reducer } from 'redux';
-import { ActionType, createAction, getType } from 'typesafe-actions';
+import { ActionType, deprecated, getType } from 'typesafe-actions';
+
+// See: https://github.com/piotrwitek/typesafe-actions/issues/143
+const { createAction } = deprecated;
 
 export const actions = {
   toggleAltSidePanel: createAction('TOGGLE_ALT_SIDE_PANEL'),
