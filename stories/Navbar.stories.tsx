@@ -1,9 +1,11 @@
-import * as React from 'react';
+import React, { useEffect } from 'react';
+import { Store } from 'redux';
 import { storiesOf } from '@storybook/react';
 
-import Navbar from '../src/components/Navbar';
+import Navbar, { PublicProps } from '../src/components/Navbar';
 import configureStore from '../src/configureStore';
 import { actions as userActions } from '../src/reducers/users';
+import { actions as versionsActions } from '../src/reducers/versions';
 import {
   createFakeExternalComment,
   createStoreWithVersion,
@@ -11,11 +13,42 @@ import {
   fakeUser,
   fakeVersion,
   fakeVersionAddon,
+  nextUniqueId,
 } from '../src/test-helpers';
 import { renderWithStoreAndRouter } from './utils';
+import { number } from 'prop-types';
 
-const render = ({ store = configureStore(), ...props } = {}) => {
-  return renderWithStoreAndRouter(<Navbar {...props} />, { store });
+const render = ({
+  afterMount,
+  store = configureStore(),
+  ...props
+}: Partial<PublicProps> & { afterMount?: () => void; store?: Store } = {}) => {
+  const Shell = () => {
+    useEffect(() => {
+      if (afterMount) {
+        afterMount();
+      }
+    }, [afterMount]);
+
+    return <Navbar {...props} />;
+  };
+  return renderWithStoreAndRouter(<Shell />, { store });
+};
+
+const dispatchBaseVersion = ({
+  id = nextUniqueId(),
+  store,
+  versionString = '1.0',
+}: {
+  id?: number;
+  store: Store;
+  versionString?: string;
+}) => {
+  const baseVersion = { ...fakeVersion, id, version: versionString };
+  store.dispatch(versionsActions.loadVersionInfo({ version: baseVersion }));
+  store.dispatch(
+    versionsActions.setCurrentBaseVersionId({ versionId: baseVersion.id }),
+  );
 };
 
 storiesOf('Navbar', module)
@@ -33,6 +66,39 @@ storiesOf('Navbar', module)
     };
     const store = createStoreWithVersion({ version, makeCurrent: true });
     return render({ store });
+  })
+  .add('with base version, current version', () => {
+    const version = {
+      ...fakeVersion,
+      id: nextUniqueId(),
+      version: '2.0',
+      addon: { ...fakeVersionAddon, name: { 'en-US': 'uBlock Origin' } },
+    };
+    const store = createStoreWithVersion({ version, makeCurrent: true });
+    dispatchBaseVersion({ store, versionString: '1.0' });
+
+    return render({ store });
+  })
+  .add('with new base version loading', () => {
+    const version = {
+      ...fakeVersion,
+      version: '2.0',
+      addon: { ...fakeVersionAddon, name: { 'en-US': 'uBlock Origin' } },
+    };
+    const store = createStoreWithVersion({ version, makeCurrent: true });
+    dispatchBaseVersion({ store, versionString: '1.0' });
+
+    return render({
+      afterMount: () => {
+        // Set a different base version ID to enter a loading state.
+        store.dispatch(
+          versionsActions.setCurrentBaseVersionId({
+            versionId: nextUniqueId(),
+          }),
+        );
+      },
+      store,
+    });
   })
   .add('user has entered comments', () => {
     const store = createStoreWithVersionComments({

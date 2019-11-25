@@ -101,13 +101,16 @@ describe(__filename, () => {
     expect(root.find('title')).toHaveText('Addons Code Manager');
   });
 
-  it('dispatches an action to unset current version id', () => {
+  it('dispatches actions to unset current versions', () => {
     const store = configureStore();
     const dispatch = spyOn(store, 'dispatch');
     render({ store });
 
     expect(dispatch).toHaveBeenCalledWith(
       versionsActions.unsetCurrentVersionId(),
+    );
+    expect(dispatch).toHaveBeenCalledWith(
+      versionsActions.unsetCurrentBaseVersionId(),
     );
   });
 });

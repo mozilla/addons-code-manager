@@ -9,7 +9,12 @@ import CommentSummaryButton from '../CommentSummaryButton';
 import LoginButton from '../LoginButton';
 import { ApplicationState } from '../../reducers';
 import { Comment, selectVersionComments } from '../../reducers/comments';
-import { Version, selectCurrentVersionInfo } from '../../reducers/versions';
+import {
+  Version,
+  fetchVersion,
+  getVersionInfo,
+  selectCurrentVersionInfo,
+} from '../../reducers/versions';
 import { ConnectedReduxProps } from '../../configureStore';
 import { User, selectCurrentUser, requestLogOut } from '../../reducers/users';
 import styles from './styles.module.scss';
@@ -19,19 +24,82 @@ export type PublicProps = {
   reviewersHost: string;
 };
 
+export type DefaultProps = {
+  _fetchVersion: typeof fetchVersion;
+};
+
 type PropsFromState = {
   comments: Comment[] | undefined;
   user: User | null;
+  currentBaseVersion: Version | null | undefined | false;
+  currentBaseVersionId: number | undefined | false;
   currentVersion: Version | null | undefined | false;
 };
 
-type Props = PublicProps & PropsFromState & ConnectedReduxProps;
+type Props = PublicProps & DefaultProps & PropsFromState & ConnectedReduxProps;
 
-export class NavbarBase extends React.Component<Props> {
+type State = {
+  nextBaseVersionImprint: string | undefined;
+};
+
+export class NavbarBase extends React.Component<Props, State> {
   static defaultProps = {
+    _fetchVersion: fetchVersion,
     _requestLogOut: requestLogOut,
     reviewersHost: process.env.REACT_APP_REVIEWERS_HOST,
   };
+
+  constructor(props: Props) {
+    super(props);
+    this.state = {
+      nextBaseVersionImprint: undefined,
+    };
+  }
+
+  componentDidMount() {
+    this.loadData();
+  }
+
+  componentDidUpdate() {
+    this.loadData();
+  }
+
+  loadData() {
+    const {
+      _fetchVersion,
+      currentVersion,
+      currentBaseVersion,
+      currentBaseVersionId,
+      dispatch,
+    } = this.props;
+    const { nextBaseVersionImprint } = this.state;
+
+    if (
+      currentBaseVersion &&
+      nextBaseVersionImprint !== currentBaseVersion.version
+    ) {
+      this.setState({ nextBaseVersionImprint: currentBaseVersion.version });
+    }
+
+    if (
+      currentVersion &&
+      currentBaseVersion === undefined &&
+      currentBaseVersionId
+    ) {
+      dispatch(
+        _fetchVersion({
+          addonId: currentVersion.addon.id,
+          path: undefined,
+          setAsCurrent: false,
+          versionId: currentBaseVersionId,
+        }),
+      );
+    }
+
+    if (currentBaseVersionId === false && nextBaseVersionImprint) {
+      this.setState({ nextBaseVersionImprint: undefined });
+    }
+  }
 
   logOut = () => {
     const { _requestLogOut, dispatch } = this.props;
@@ -50,7 +118,9 @@ export class NavbarBase extends React.Component<Props> {
       <>
         <div className={styles.infoItem}>
           {gettext('Comments:')}
-          <div className={styles.commentCount}>{comments.length}</div>
+          <div className={makeClassName(styles.itemData, styles.commentCount)}>
+            {comments.length}
+          </div>
         </div>
         <div className={styles.infoItem}>
           <CommentSummaryButton />
@@ -60,7 +130,13 @@ export class NavbarBase extends React.Component<Props> {
   }
 
   render() {
-    const { currentVersion, reviewersHost, user } = this.props;
+    const {
+      currentBaseVersion,
+      currentVersion,
+      reviewersHost,
+      user,
+    } = this.props;
+    const { nextBaseVersionImprint } = this.state;
 
     return (
       <Navbar className={styles.Navbar} expand="lg" variant="dark">
@@ -86,6 +162,30 @@ export class NavbarBase extends React.Component<Props> {
                   className={makeClassName(styles.infoItem, styles.addonName)}
                 >
                   {getLocalizedString(currentVersion.addon.name)}
+                  <div
+                    className={makeClassName(
+                      styles.versionIndicator,
+                      styles.itemData,
+                    )}
+                  >
+                    {
+                      // Render a version range like `base…current`
+                      // or just `current`
+                    }
+                    {currentBaseVersion || nextBaseVersionImprint ? (
+                      <span
+                        className={makeClassName({
+                          [styles.baseVersionIsLoading]:
+                            !currentBaseVersion && nextBaseVersionImprint,
+                        })}
+                      >
+                        {`${(currentBaseVersion &&
+                          currentBaseVersion.version) ||
+                          nextBaseVersionImprint}…`}
+                      </span>
+                    ) : null}
+                    {currentVersion.version}
+                  </div>
                 </div>
               </>
             )}
@@ -107,8 +207,15 @@ export class NavbarBase extends React.Component<Props> {
   }
 }
 
-const mapStateToProps = (state: ApplicationState): PropsFromState => {
+export const mapStateToProps = (state: ApplicationState): PropsFromState => {
+  const { currentBaseVersionId } = state.versions;
+  let currentBaseVersion;
+  if (currentBaseVersionId) {
+    currentBaseVersion = getVersionInfo(state.versions, currentBaseVersionId);
+  }
+
   const currentVersion = selectCurrentVersionInfo(state.versions);
+
   return {
     comments: currentVersion
       ? selectVersionComments({
@@ -117,6 +224,8 @@ const mapStateToProps = (state: ApplicationState): PropsFromState => {
         })
       : undefined,
     user: selectCurrentUser(state.users),
+    currentBaseVersion,
+    currentBaseVersionId,
     currentVersion,
   };
 };

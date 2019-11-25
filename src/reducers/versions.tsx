@@ -265,6 +265,7 @@ export const actions = {
   setCurrentVersionId: createAction('SET_CURRENT_VERSION_ID', (resolve) => {
     return (payload: { versionId: number }) => resolve(payload);
   }),
+  unsetCurrentBaseVersionId: createAction('UNSET_CURRENT_BASE_VERSION_ID'),
   unsetCurrentVersionId: createAction('UNSET_CURRENT_VERSION_ID', (resolve) => {
     return () => resolve();
   }),
@@ -341,12 +342,13 @@ export type VersionsState = {
     [compareInfoKey: string]: boolean;
   };
   currentBaseVersionId:
-    | number // data successfully loaded
-    | undefined; // data has not yet loaded
+    | number // This is an existing version ID.
+    | undefined // This indicates that the version may or may not exist.
+    | false; // This indicates that the version does not exist.
   currentVersionId:
-    | number // data successfully loaded
-    | undefined // data has not yet loaded
-    | false; // data loaded but it is empty
+    | number // This is an existing version ID.
+    | undefined // This indicates that the version may or may not exist.
+    | false; // This indicates that the version does not exist.
   entryStatusMaps: {
     [entryStatusMapKey: string]: EntryStatusMap;
   };
@@ -733,11 +735,12 @@ export const getRelativeDiff = ({
   return result;
 };
 
-type FetchVersionParams = {
+export type FetchVersionParams = {
   _getVersion?: typeof getVersion;
   addonId: number;
   versionId: number;
   path?: string;
+  setAsCurrent?: boolean;
 };
 
 export const fetchVersion = ({
@@ -745,6 +748,7 @@ export const fetchVersion = ({
   addonId,
   versionId,
   path,
+  setAsCurrent = true,
 }: FetchVersionParams): ThunkActionCreator => {
   return async (dispatch, getState) => {
     const { api: apiState, versions } = getState();
@@ -754,9 +758,11 @@ export const fetchVersion = ({
     }
 
     dispatch(actions.beginFetchVersion({ versionId }));
-    // Set this as the current version so that components can track its
-    // loading progress.
-    dispatch(actions.setCurrentVersionId({ versionId }));
+    if (setAsCurrent) {
+      // Set this as the current version so that components can track its
+      // loading progress.
+      dispatch(actions.setCurrentVersionId({ versionId }));
+    }
 
     const response = await _getVersion({
       addonId,
@@ -1564,6 +1570,12 @@ export const createReducer = ({
           ...state,
           currentVersionId: versionId,
           expandedPaths,
+        };
+      }
+      case getType(actions.unsetCurrentBaseVersionId): {
+        return {
+          ...state,
+          currentBaseVersionId: false,
         };
       }
       case getType(actions.unsetCurrentVersionId): {

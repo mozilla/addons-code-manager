@@ -43,7 +43,7 @@ $bg-color: $dark-gray;
   }
 }
 
-.commentCount {
+.itemData {
   align-items: center;
   background-color: $white;
   border-radius: 2px;
@@ -51,9 +51,28 @@ $bg-color: $dark-gray;
   display: flex;
   justify-content: center;
   margin-left: 5px;
+  padding: 0 5px;
+}
+
+.commentCount {
   // Fix the width to minimize jumpiness.
   min-width: 20px;
-  padding: 0 5px;
+}
+
+@keyframes pulseBaseVersion {
+  0%,
+  100% {
+    opacity: 0.1;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.baseVersionIsLoading {
+  animation: pulseBaseVersion 1s infinite;
+  transition: opacity ease-in-out;
 }
 
 .username {
