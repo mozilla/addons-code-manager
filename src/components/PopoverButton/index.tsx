@@ -1,3 +1,4 @@
+import makeClassName from 'classnames';
 import * as React from 'react';
 import { Button, Overlay, Popover } from 'react-bootstrap';
 import { connect } from 'react-redux';
@@ -17,6 +18,7 @@ type State = { canAccessRefs: boolean };
 export type PublicProps = {
   content: AnyReactNode;
   id: PopoverIdType;
+  popoverClassName?: string;
   prompt: AnyReactNode;
 };
 
@@ -47,7 +49,7 @@ export class PopoverButtonBase extends React.Component<Props, State> {
   }
 
   renderOverlay() {
-    const { content, dispatch, id, show } = this.props;
+    const { content, dispatch, id, popoverClassName, show } = this.props;
     const { canAccessRefs } = this.state;
 
     if (!canAccessRefs) {
@@ -74,7 +76,7 @@ export class PopoverButtonBase extends React.Component<Props, State> {
           return (
             <Popover
               arrowProps={arrowProps}
-              className={styles.popover}
+              className={makeClassName(styles.popover, popoverClassName)}
               id={`${id}-popover`}
               placement={placement}
               ref={ref}

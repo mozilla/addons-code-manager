@@ -1,10 +1,8 @@
 import * as React from 'react';
-import { shallow } from 'enzyme';
 import { Button } from 'react-bootstrap';
 import { Store } from 'redux';
 
 import CommentSummary from '../CommentSummary';
-import PopoverButton from '../PopoverButton';
 import configureStore from '../../configureStore';
 import { actions as popoverActions } from '../../reducers/popover';
 import { createInternalComment } from '../../reducers/comments';
@@ -13,6 +11,7 @@ import {
   createStoreWithVersionComments,
   shallowUntilTarget,
   spyOn,
+  simulatePopover,
 } from '../../test-helpers';
 
 import CommentSummaryButton, {
@@ -43,12 +42,8 @@ describe(__filename, () => {
     ...props
   }: Partial<RenderParams> = {}) => {
     const root = render({ store, ...props });
-    const popover = root.find(PopoverButton);
-
-    expect(popover).toHaveProp('content');
-    const content = popover.prop('content');
-
-    return { summary: shallow(<div>{content}</div>), popover };
+    const { content, ...result } = simulatePopover(root);
+    return { summary: content, ...result };
   };
 
   it('configures CommentSummary', () => {
