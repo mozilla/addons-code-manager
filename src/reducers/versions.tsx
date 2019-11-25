@@ -339,13 +339,13 @@ export type VersionsState = {
     [compareInfoKey: string]: boolean;
   };
   currentBaseVersionId:
-    | number // data successfully loaded
-    | undefined // data has not yet loaded
-    | false; // data loaded but it is empty
+    | number // This is an existing version ID.
+    | undefined // This indicates that the version may or may not exist.
+    | false; // This indicates that the version does not exist.
   currentVersionId:
-    | number // data successfully loaded
-    | undefined // data has not yet loaded
-    | false; // data loaded but it is empty
+    | number // This is an existing version ID.
+    | undefined // This indicates that the version may or may not exist.
+    | false; // This indicates that the version does not exist.
   entryStatusMaps: {
     [entryStatusMapKey: string]: EntryStatusMap;
   };
