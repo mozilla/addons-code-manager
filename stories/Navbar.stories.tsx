@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useEffect } from 'react';
 import { Store } from 'redux';
 import { storiesOf } from '@storybook/react';
 
@@ -16,12 +16,39 @@ import {
   nextUniqueId,
 } from '../src/test-helpers';
 import { renderWithStoreAndRouter } from './utils';
+import { number } from 'prop-types';
 
 const render = ({
+  afterMount,
   store = configureStore(),
   ...props
-}: Partial<PublicProps> & { store?: Store } = {}) => {
-  return renderWithStoreAndRouter(<Navbar {...props} />, { store });
+}: Partial<PublicProps> & { afterMount?: () => void; store?: Store } = {}) => {
+  const Shell = () => {
+    useEffect(() => {
+      if (afterMount) {
+        afterMount();
+      }
+    }, [afterMount]);
+
+    return <Navbar {...props} />;
+  };
+  return renderWithStoreAndRouter(<Shell />, { store });
+};
+
+const dispatchBaseVersion = ({
+  id = nextUniqueId(),
+  store,
+  versionString = '1.0',
+}: {
+  id?: number;
+  store: Store;
+  versionString?: string;
+}) => {
+  const baseVersion = { ...fakeVersion, id, version: versionString };
+  store.dispatch(versionsActions.loadVersionInfo({ version: baseVersion }));
+  store.dispatch(
+    versionsActions.setCurrentBaseVersionId({ versionId: baseVersion.id }),
+  );
 };
 
 storiesOf('Navbar', module)
@@ -48,12 +75,8 @@ storiesOf('Navbar', module)
       addon: { ...fakeVersionAddon, name: { 'en-US': 'uBlock Origin' } },
     };
     const store = createStoreWithVersion({ version, makeCurrent: true });
+    dispatchBaseVersion({ store, versionString: '1.0' });
 
-    const baseVersion = { ...fakeVersion, id: nextUniqueId(), version: '1.0' };
-    store.dispatch(versionsActions.loadVersionInfo({ version: baseVersion }));
-    store.dispatch(
-      versionsActions.setCurrentBaseVersionId({ versionId: baseVersion.id }),
-    );
     return render({ store });
   })
   .add('with new base version loading', () => {
@@ -63,7 +86,19 @@ storiesOf('Navbar', module)
       addon: { ...fakeVersionAddon, name: { 'en-US': 'uBlock Origin' } },
     };
     const store = createStoreWithVersion({ version, makeCurrent: true });
-    return render({ store, _nextBaseVersionImprint: '1.0' });
+    dispatchBaseVersion({ store, versionString: '1.0' });
+
+    return render({
+      afterMount: () => {
+        // Set a different base version ID to enter a loading state.
+        store.dispatch(
+          versionsActions.setCurrentBaseVersionId({
+            versionId: nextUniqueId(),
+          }),
+        );
+      },
+      store,
+    });
   })
   .add('user has entered comments', () => {
     const store = createStoreWithVersionComments({

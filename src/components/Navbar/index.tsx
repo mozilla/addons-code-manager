@@ -20,7 +20,6 @@ import { User, selectCurrentUser, requestLogOut } from '../../reducers/users';
 import styles from './styles.module.scss';
 
 export type PublicProps = {
-  _nextBaseVersionImprint?: string;
   _requestLogOut: typeof requestLogOut;
   reviewersHost: string;
 };
@@ -53,7 +52,7 @@ export class NavbarBase extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
-      nextBaseVersionImprint: props._nextBaseVersionImprint || undefined,
+      nextBaseVersionImprint: undefined,
     };
   }
 
