@@ -6,7 +6,7 @@ declare global {
     interface Matchers<R, T> {
       urlWithTheseParams(params: {
         [key: string]: string | undefined;
-      }): CustomMatcherResult;
+      }): R;
     }
 
     interface Expect {
