@@ -11,6 +11,7 @@ import styles from './styles.module.scss';
 export type PublicProps = {
   className?: string;
   controlId: string;
+  formControlClassName?: string;
   isLoading: boolean;
   isSelectable: (version: VersionsListItem) => boolean;
   label: string;
@@ -51,6 +52,7 @@ class VersionSelectBase extends React.Component<PublicProps> {
     const {
       className,
       controlId,
+      formControlClassName,
       isLoading,
       label,
       listedVersions,
@@ -74,13 +76,19 @@ class VersionSelectBase extends React.Component<PublicProps> {
                 // `.form-control` is a Bootstrap CSS class used by the
                 // `Form.Control` React component.
                 'form-control',
+                formControlClassName,
                 styles.simulatedFormControl,
               )}
             >
               <Skeleton className={styles.simulatedFormControlSkeleton} />
             </div>
           ) : (
-            <Form.Control as="select" value={value} onChange={this.onChange}>
+            <Form.Control
+              as="select"
+              className={formControlClassName}
+              value={value}
+              onChange={this.onChange}
+            >
               {listedVersions.length && (
                 <optgroup
                   className={styles.listedGroup}
