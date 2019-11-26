@@ -46,6 +46,7 @@ export const CommentSummaryButtonBase = ({ comments, dispatch }: Props) => {
           </Popover.Content>
         </>
       }
+      popoverClassName={styles.popover}
       prompt={gettext('Comment Summary')}
     />
   );

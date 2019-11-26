@@ -1,6 +1,11 @@
 import * as React from 'react';
 import { Store } from 'redux';
-import { Button, Overlay, OverlayChildrenParams } from 'react-bootstrap';
+import {
+  Button,
+  Overlay,
+  OverlayChildrenParams,
+  Popover,
+} from 'react-bootstrap';
 
 import { createFakeRef, shallowUntilTarget, spyOn } from '../../test-helpers';
 import { actions as popoverActions } from '../../reducers/popover';
@@ -79,6 +84,13 @@ describe(__filename, () => {
     // Make sure the props from the Overlay children function are passed
     // to Popover.
     expect(popover).toHaveProp({ arrowProps, placement, style });
+  });
+
+  it('can add a class to Popover', () => {
+    const popoverClassName = 'ExampleClass';
+    const popover = renderPopover({ popoverClassName });
+
+    expect(popover.find(Popover)).toHaveClassName(popoverClassName);
   });
 
   it('waits for mount before rendering an overlay', () => {

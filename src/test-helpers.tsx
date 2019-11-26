@@ -60,6 +60,7 @@ import LinterProvider, {
 import ContentShell, {
   PanelAttribs,
 } from './components/FullscreenGrid/ContentShell';
+import PopoverButton from './components/PopoverButton';
 
 let _uniqueId = 0;
 
@@ -994,3 +995,12 @@ export const setMockFetchResponseJSON = (
 export const getInstance = <ComponentType extends React.Component>(
   root: ShallowWrapper,
 ) => root.instance() as ComponentType;
+
+export const simulatePopover = (root: ShallowWrapper) => {
+  const popover = root.find(PopoverButton);
+  expect(popover).toHaveProp('content');
+  return {
+    content: shallow(<div>{popover.prop('content')}</div>),
+    popover,
+  };
+};
