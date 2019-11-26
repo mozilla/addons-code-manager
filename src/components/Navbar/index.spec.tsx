@@ -5,6 +5,7 @@ import { Store } from 'redux';
 import configureStore, { ConnectedReduxProps } from '../../configureStore';
 import CommentSummaryButton from '../CommentSummaryButton';
 import LoginButton from '../LoginButton';
+import VersionChooser from '../VersionChooser';
 import styles from './styles.module.scss';
 import {
   createFakeExternalComment,
@@ -96,6 +97,16 @@ describe(__filename, () => {
         'href',
         `${reviewersHost}/reviewers/review/${slug}`,
       );
+    });
+
+    it('renders VersionChooser', () => {
+      const addonId = nextUniqueId();
+      const store = createStoreWithCurrentVersion({ addonId });
+      const root = render({ store });
+
+      const chooser = root.find(VersionChooser);
+      expect(chooser).toHaveLength(1);
+      expect(chooser).toHaveProp('addonId', addonId);
     });
   });
 

@@ -52,15 +52,15 @@
 }
 
 .extraMessages {
-  margin: $default-padding;
+  margin-bottom: $default-padding;
 }
 
 .globalLinterMessages {
-  padding: $default-padding $default-padding 0 $default-padding;
+  padding: 0;
 }
 
 .inlineLinterMessages {
-  padding: 1rem 1rem 0 1rem;
+  padding: 1rem 0 0 0;
 }
 
 .gutter {

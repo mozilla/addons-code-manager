@@ -7,7 +7,6 @@ import { ApplicationState } from '../../reducers';
 import { ConnectedReduxProps } from '../../configureStore';
 import DiffView from '../../components/DiffView';
 import Loading from '../../components/Loading';
-import VersionChooser from '../../components/VersionChooser';
 import VersionFileViewer from '../../components/VersionFileViewer';
 import {
   CompareInfo,
@@ -35,7 +34,6 @@ import {
   getPathFromQueryString,
   gettext,
 } from '../../utils';
-import styles from './styles.module.scss';
 
 export type PublicProps = {
   _fetchDiff: typeof fetchDiff;
@@ -125,6 +123,14 @@ export class CompareBase extends React.Component<Props> {
       return;
     }
 
+    if (oldVersionId !== currentBaseVersionId) {
+      dispatch(
+        versionsActions.setCurrentBaseVersionId({
+          versionId: oldVersionId,
+        }),
+      );
+    }
+
     if (
       compareInfo === undefined ||
       version === undefined ||
@@ -139,14 +145,6 @@ export class CompareBase extends React.Component<Props> {
         }),
       );
       return;
-    }
-
-    if (oldVersionId !== currentBaseVersionId) {
-      dispatch(
-        versionsActions.setCurrentBaseVersionId({
-          versionId: oldVersionId,
-        }),
-      );
     }
 
     if (version) {
@@ -210,11 +208,7 @@ export class CompareBase extends React.Component<Props> {
     const { compareInfo } = this.props;
 
     if (compareInfo === null) {
-      return (
-        <p className={styles.error}>
-          {gettext('Ooops, an error has occured.')}
-        </p>
-      );
+      return <p>{gettext('Oops, an error has occurred.')}</p>;
     }
 
     return (
@@ -226,14 +220,7 @@ export class CompareBase extends React.Component<Props> {
   }
 
   render() {
-    const {
-      addonId,
-      compareInfo,
-      match,
-      path,
-      version,
-      versionFile,
-    } = this.props;
+    const { compareInfo, match, path, version, versionFile } = this.props;
 
     const { baseVersionId, headVersionId } = match.params;
     const comparedToVersionId = parseInt(baseVersionId, 10);
@@ -259,21 +246,17 @@ export class CompareBase extends React.Component<Props> {
           onSelectFile={this.viewVersionFile}
           version={version}
         >
-          <div className={styles.diffShell}>
-            <VersionChooser addonId={addonId} />
-            {version && compareInfo ? (
-              <div key={`${version.id}:${path}`} className={styles.diffContent}>
-                {/* The key in this ^ resets scrollbars between files */}
-                <DiffView
-                  diff={compareInfo.diff}
-                  mimeType={compareInfo.mimeType}
-                  version={version}
-                />
-              </div>
-            ) : (
-              this.renderLoadingMessageOrError(gettext('Loading diff...'))
-            )}
-          </div>
+          {version && compareInfo ? (
+            <DiffView
+              diff={compareInfo.diff}
+              // This key resets scrollbars between files
+              key={`${version.id}:${path}`}
+              mimeType={compareInfo.mimeType}
+              version={version}
+            />
+          ) : (
+            this.renderLoadingMessageOrError(gettext('Loading diff...'))
+          )}
         </VersionFileViewer>
       </>
     );

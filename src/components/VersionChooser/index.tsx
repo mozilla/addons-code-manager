@@ -1,21 +1,28 @@
+import makeClassName from 'classnames';
 import queryString from 'query-string';
 import * as React from 'react';
-import { Form } from 'react-bootstrap';
+import { Button, Form } from 'react-bootstrap';
 import { connect } from 'react-redux';
 import { withRouter, RouteComponentProps } from 'react-router-dom';
 
 import { ApplicationState } from '../../reducers';
 import { ConnectedReduxProps } from '../../configureStore';
+import PopoverButton from '../PopoverButton';
 import VersionSelect from '../VersionSelect';
+import {
+  actions as popoverActions,
+  PopoverIdType,
+} from '../../reducers/popover';
 import {
   VersionsListItem,
   VersionsMap,
   VersionsState,
-  actions as versionsActions,
   fetchVersionsList,
 } from '../../reducers/versions';
 import { gettext } from '../../utils';
 import styles from './styles.module.scss';
+
+export const POPOVER_ID: PopoverIdType = 'COMPARE_VERSIONS';
 
 export const higherVersionsThan = (versionId: string) => {
   return (version: VersionsListItem) => version.id > parseInt(versionId, 10);
@@ -43,11 +50,7 @@ type PropsFromState = {
   selectedPath: string | null;
 };
 
-export type PropsFromRouter = {
-  lang: string;
-};
-
-type RouterProps = RouteComponentProps<PropsFromRouter>;
+type RouterProps = RouteComponentProps<{}>;
 
 type Props = PublicProps &
   ConnectedReduxProps &
@@ -55,12 +58,22 @@ type Props = PublicProps &
   PropsFromState &
   RouterProps;
 
-export class VersionChooserBase extends React.Component<Props> {
+type State = {
+  baseVersionId: number | undefined;
+  headVersionId: number | undefined;
+};
+
+export class VersionChooserBase extends React.Component<Props, State> {
   static defaultProps: DefaultProps = {
     _fetchVersionsList: fetchVersionsList,
     _higherVersionsThan: higherVersionsThan,
     _lowerVersionsThan: lowerVersionsThan,
   };
+
+  constructor(props: Props) {
+    super(props);
+    this.state = { baseVersionId: undefined, headVersionId: undefined };
+  }
 
   componentDidMount() {
     const { _fetchVersionsList, addonId, dispatch, versionsMap } = this.props;
@@ -68,93 +81,137 @@ export class VersionChooserBase extends React.Component<Props> {
     if (!versionsMap) {
       dispatch(_fetchVersionsList({ addonId }));
     }
+
+    this.initializeBaseVersion();
   }
 
-  onVersionChange = ({
-    baseVersionId,
-    headVersionId,
-  }: {
-    baseVersionId: number | undefined | false;
-    headVersionId: number | undefined | false;
-  }) => {
-    const { addonId, history, match, selectedPath } = this.props;
-    const { lang } = match.params;
+  componentDidUpdate() {
+    this.initializeBaseVersion();
+  }
+
+  initializeBaseVersion() {
+    const { versionsMap } = this.props;
+
+    if (this.getBaseVersionId()) {
+      return;
+    }
+
+    const allBaseVersions = versionsMap
+      ? versionsMap.listed.concat(versionsMap.unlisted)
+      : [];
+
+    if (allBaseVersions.length) {
+      // When nothing in the base version dropdown is selected,
+      // choose the last item in the dropdown, the lowest base version.
+      this.setState({
+        baseVersionId: allBaseVersions[allBaseVersions.length - 1].id,
+      });
+    }
+  }
+
+  getBaseVersionId() {
+    const { currentBaseVersionId } = this.props;
+    const { baseVersionId } = this.state;
+    return baseVersionId || currentBaseVersionId;
+  }
+
+  getHeadVersionId() {
+    const { currentVersionId } = this.props;
+    const { headVersionId } = this.state;
+    return headVersionId || currentVersionId;
+  }
+
+  onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const headVersionId = this.getHeadVersionId();
+    const baseVersionId = this.getBaseVersionId();
+
+    const { addonId, dispatch, history, selectedPath } = this.props;
 
     const query = selectedPath
       ? `?${queryString.stringify({ path: selectedPath })}`
       : '';
 
+    dispatch(popoverActions.hide(POPOVER_ID));
+
+    const lang = process.env.REACT_APP_DEFAULT_API_LANG;
     history.push(
       `/${lang}/compare/${addonId}/versions/${baseVersionId}...${headVersionId}/${query}`,
     );
   };
 
   onNewVersionChange = (versionId: number) => {
-    const { currentBaseVersionId } = this.props;
-    this.onVersionChange({
-      baseVersionId: currentBaseVersionId,
-      headVersionId: versionId,
-    });
+    this.setState({ headVersionId: versionId });
   };
 
   onOldVersionChange = (versionId: number) => {
-    const { dispatch, currentVersionId } = this.props;
-
-    dispatch(
-      versionsActions.setCurrentBaseVersionId({
-        versionId,
-      }),
-    );
-
-    this.onVersionChange({
-      baseVersionId: versionId,
-      headVersionId: currentVersionId,
-    });
+    this.setState({ baseVersionId: versionId });
   };
 
   render() {
-    const {
-      _higherVersionsThan,
-      _lowerVersionsThan,
-      currentBaseVersionId,
-      currentVersionId,
-      versionsMap,
-    } = this.props;
-    const headVersionId = String(currentVersionId);
-    const baseVersionId = String(currentBaseVersionId);
+    const { _higherVersionsThan, _lowerVersionsThan, versionsMap } = this.props;
+    const headVersionId = String(this.getHeadVersionId() || '');
+    const baseVersionId = String(this.getBaseVersionId() || '');
 
     const listedVersions = versionsMap ? versionsMap.listed : [];
     const unlistedVersions = versionsMap ? versionsMap.unlisted : [];
 
-    return (
-      <div className={styles.VersionChooser}>
-        <Form className={styles.form}>
-          <VersionSelect
-            className={styles.baseVersionSelect}
-            controlId="VersionSelect-oldVersion"
-            isLoading={!versionsMap}
-            isSelectable={_lowerVersionsThan(headVersionId)}
-            label={gettext('Old version')}
-            listedVersions={listedVersions}
-            onChange={this.onOldVersionChange}
-            unlistedVersions={unlistedVersions}
-            value={baseVersionId}
-          />
+    const isLoading = !versionsMap;
 
-          <VersionSelect
-            className={styles.headVersionSelect}
-            controlId="VersionSelect-newVersion"
-            isLoading={!versionsMap}
-            isSelectable={_higherVersionsThan(baseVersionId)}
-            label={gettext('New version')}
-            listedVersions={listedVersions}
-            onChange={this.onNewVersionChange}
-            unlistedVersions={unlistedVersions}
-            value={headVersionId}
-            withLeftArrow
-          />
-        </Form>
-      </div>
+    return (
+      <PopoverButton
+        id={POPOVER_ID}
+        content={
+          <Form className={styles.VersionChooser} onSubmit={this.onSubmit}>
+            <div className={styles.formRow}>
+              <VersionSelect
+                className={makeClassName(
+                  styles.versionSelect,
+                  styles.baseVersionSelect,
+                )}
+                controlId="VersionSelect-oldVersion"
+                formControlClassName={styles.versionSelectControl}
+                isLoading={isLoading}
+                isSelectable={_lowerVersionsThan(headVersionId)}
+                label={gettext('Old version')}
+                listedVersions={listedVersions}
+                onChange={this.onOldVersionChange}
+                unlistedVersions={unlistedVersions}
+                value={baseVersionId}
+              />
+            </div>
+
+            <div className={styles.formRow}>
+              <VersionSelect
+                className={makeClassName(
+                  styles.versionSelect,
+                  styles.headVersionSelect,
+                )}
+                controlId="VersionSelect-newVersion"
+                formControlClassName={styles.versionSelectControl}
+                isLoading={isLoading}
+                isSelectable={_higherVersionsThan(baseVersionId)}
+                label={gettext('New version')}
+                listedVersions={listedVersions}
+                onChange={this.onNewVersionChange}
+                unlistedVersions={unlistedVersions}
+                value={headVersionId}
+              />
+            </div>
+
+            <Button
+              className={styles.submitButton}
+              disabled={baseVersionId === headVersionId}
+              type="submit"
+              variant="primary"
+            >
+              {gettext('Compare')}
+            </Button>
+          </Form>
+        }
+        popoverClassName={styles.popover}
+        prompt={gettext('Compare Versions')}
+      />
     );
   }
 }

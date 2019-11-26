@@ -2,6 +2,7 @@ import * as React from 'react';
 import { storiesOf } from '@storybook/react';
 
 import configureStore from '../src/configureStore';
+import { actions as popoverActions } from '../src/reducers/popover';
 import { VersionChooserWithoutRouter } from '../src/components/VersionChooser';
 import { ExternalVersionsList, actions } from '../src/reducers/versions';
 import { fakeVersionsListItem } from '../src/test-helpers';
@@ -15,6 +16,7 @@ const render = ({
 } = {}) => {
   store.dispatch(actions.setCurrentBaseVersionId({ versionId: baseVersionId }));
   store.dispatch(actions.setCurrentVersionId({ versionId: headVersionId }));
+  store.dispatch(popoverActions.show('COMPARE_VERSIONS'));
   return renderWithStoreAndRouter(
     <VersionChooserWithoutRouter
       addonId={addonId}
@@ -50,55 +52,41 @@ const listedVersions: ExternalVersionsList = [
   },
 ];
 
-storiesOf('VersionChooser', module).addWithChapters('all variants', {
-  chapters: [
-    {
-      sections: [
-        {
-          title: 'loading state',
-          sectionFn: () => render(),
-        },
-        {
-          title: 'with listed and unlisted versions',
-          sectionFn: () => {
-            const addonId = 124;
-            const versions: ExternalVersionsList = [
-              ...listedVersions,
-              {
-                ...fakeVersionsListItem,
-                id: 130,
-                channel: 'unlisted',
-                version: '1.3.0',
-              },
-            ];
+storiesOf('VersionChooser', module)
+  .add('loading state', () => {
+    return render();
+  })
+  .add('with listed and unlisted versions', () => {
+    const addonId = 124;
+    const versions: ExternalVersionsList = [
+      ...listedVersions,
+      {
+        ...fakeVersionsListItem,
+        id: 130,
+        channel: 'unlisted',
+        version: '1.3.0',
+      },
+    ];
 
-            const store = configureStore();
-            store.dispatch(actions.loadVersionsList({ addonId, versions }));
+    const store = configureStore();
+    store.dispatch(actions.loadVersionsList({ addonId, versions }));
 
-            return render({
-              addonId,
-              baseVersionId: versions[0].id,
-              headVersionId: versions[2].id,
-              store,
-            });
-          },
-        },
-        {
-          title: 'with some new versions disabled',
-          sectionFn: () => {
-            const addonId = 124;
-            const versions = listedVersions;
-            const store = configureStore();
-            store.dispatch(actions.loadVersionsList({ addonId, versions }));
-            return render({
-              addonId,
-              baseVersionId: versions[1].id,
-              headVersionId: versions[2].id,
-              store,
-            });
-          },
-        },
-      ],
-    },
-  ],
-});
+    return render({
+      addonId,
+      baseVersionId: versions[0].id,
+      headVersionId: versions[2].id,
+      store,
+    });
+  })
+  .add('with some new versions disabled', () => {
+    const addonId = 124;
+    const versions = listedVersions;
+    const store = configureStore();
+    store.dispatch(actions.loadVersionsList({ addonId, versions }));
+    return render({
+      addonId,
+      baseVersionId: versions[1].id,
+      headVersionId: versions[2].id,
+      store,
+    });
+  });

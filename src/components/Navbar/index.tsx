@@ -7,6 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { gettext, getLocalizedString } from '../../utils';
 import CommentSummaryButton from '../CommentSummaryButton';
 import LoginButton from '../LoginButton';
+import VersionChooser from '../VersionChooser';
 import { ApplicationState } from '../../reducers';
 import { Comment, selectVersionComments } from '../../reducers/comments';
 import {
@@ -188,6 +189,11 @@ export class NavbarBase extends React.Component<Props, State> {
                   </div>
                 </div>
               </>
+            )}
+            {currentVersion && (
+              <div className={styles.infoItem}>
+                <VersionChooser addonId={currentVersion.addon.id} />
+              </div>
             )}
             {this.renderCommentsNavBar()}
           </div>
