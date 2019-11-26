@@ -64,9 +64,9 @@ declare module 'react-diff-view' {
     viewType: ViewType;
     gutterType?: 'default' | 'anchor' | 'none';
     generateAnchorID?: (change: ChangeInfo) => string;
+    renderGutter?: (RenderGutterParams) => ReactElement;
     selectedChanges?: string[];
     widgets?: WidgetMap;
-    renderGutter?: (RenderGutterParams) => ReactElement;
   };
 
   // eslint-disable-next-line no-undef

@@ -18,7 +18,7 @@ import { History, Location } from 'history';
 import basicDiff from './fixtures/basicDiff';
 import multipleDiff from './fixtures/multipleDiff';
 import diffWithDeletions from './fixtures/diffWithDeletions';
-import CommentableBase from '../Commentable';
+import Commentable from '../Commentable';
 import CommentList from '../CommentList';
 import FadableContent from '../FadableContent';
 import LinterMessage from '../LinterMessage';
@@ -44,6 +44,8 @@ import {
   fakeVersion,
   nextUniqueId,
   shallowUntilTarget,
+  simulateCommentable,
+  simulateCommentList,
   simulateLinterProvider,
 } from '../../test-helpers';
 import styles from './styles.module.scss';
@@ -63,6 +65,7 @@ describe(__filename, () => {
   >;
 
   const render = ({
+    enableCommenting = true,
     history = createFakeHistory(),
     location = createFakeLocation(),
     ...props
@@ -72,6 +75,7 @@ describe(__filename, () => {
     return shallowUntilTarget(
       <DiffView
         diff={parseDiff(basicDiff)[0]}
+        enableCommenting={enableCommenting}
         mimeType="text/plain"
         version={createInternalVersion(fakeVersion)}
         {...props}
@@ -600,7 +604,6 @@ describe(__filename, () => {
     ]);
     const widgets = renderAndGetWidgets({
       diff,
-      enableCommenting: true,
       selectedMessageMap: createFakeLinterMessagesByPath({
         messages: externalMessages,
       }),
@@ -654,7 +657,8 @@ describe(__filename, () => {
   });
 
   describe('comment list', () => {
-    it('renders inline comments for inserted lines', () => {
+    it('renders inline comments for normal and inserted lines', () => {
+      const CommentListResult = () => <div />;
       const firstLine = nextUniqueId();
       const secondLine = nextUniqueId();
       const version = createInternalVersion({
@@ -663,20 +667,30 @@ describe(__filename, () => {
       });
       const diff = createDiffWithHunks([
         createHunkWithChanges([
-          { type: 'insert', new_line_number: firstLine },
+          {
+            type: 'normal',
+            new_line_number: firstLine,
+            old_line_number: firstLine,
+          },
           { type: 'insert', new_line_number: secondLine },
         ]),
       ]);
       const widgets = renderAndGetWidgets({
         diff,
-        enableCommenting: true,
         version,
       });
 
       for (const line of [firstLine, secondLine]) {
-        const commentList = renderWidget(diff.hunks, widgets, line).find(
-          CommentList,
-        );
+        const widget = renderWidget(diff.hunks, widgets, line);
+
+        const { shell, renderContent } = simulateCommentList({
+          commentList: <CommentListResult />,
+          root: widget,
+        });
+        const commentWidget = renderContent(shell.at(0));
+        expect(commentWidget.find(CommentListResult)).toHaveLength(1);
+
+        const commentList = widget.find(CommentList);
         expect(commentList).toHaveProp('addonId', version.addon.id);
         expect(commentList).toHaveProp('fileName', version.selectedPath);
         expect(commentList).toHaveProp('line', line);
@@ -684,29 +698,43 @@ describe(__filename, () => {
       }
     });
 
-    it('does not render inline comments for normal or deleted lines', () => {
-      const firstLine = nextUniqueId();
-      const secondLine = nextUniqueId();
+    it('can render a comment and a message for a line', () => {
+      const line = nextUniqueId();
+      const diff = createDiffWithHunks([
+        createHunkWithChanges([{ type: 'insert', new_line_number: line }]),
+      ]);
+      const externalMessages = [{ line, uid: 'message-uid' }];
+
+      const widgets = renderAndGetWidgets({
+        diff,
+        selectedMessageMap: createFakeLinterMessagesByPath({
+          messages: externalMessages,
+          path: diff.oldPath,
+        }),
+      });
+
+      const widget = renderWidget(diff.hunks, widgets, line);
+
+      expect(widget.find(CommentList)).toHaveLength(1);
+      expect(widget.find(LinterMessage)).toHaveLength(1);
+    });
+
+    it('does not render inline comments for deleted lines', () => {
+      const line = nextUniqueId();
       const version = createInternalVersion({
         ...fakeVersion,
         id: nextUniqueId(),
       });
       const diff = createDiffWithHunks([
-        createHunkWithChanges([
-          { type: 'delete', old_line_number: firstLine },
-          { type: 'normal', old_line_number: secondLine },
-        ]),
+        createHunkWithChanges([{ type: 'delete', old_line_number: line }]),
       ]);
       const widgets = renderAndGetWidgets({
         diff,
-        enableCommenting: true,
         version,
       });
 
-      for (const line of [firstLine, secondLine]) {
-        const widget = renderWidget(diff.hunks, widgets, line);
-        expect(widget.find(CommentList)).toHaveLength(0);
-      }
+      const widget = renderWidget(diff.hunks, widgets, line);
+      expect(widget.find(CommentList)).toHaveLength(0);
     });
 
     it('does not render inline comments when the feature is disabled', () => {
@@ -1011,13 +1039,11 @@ describe(__filename, () => {
       defaultGutter = <div />,
       enableCommenting = true,
       renderDefault = jest.fn(),
-      shallowRender = true,
       side = 'new',
       version = createInternalVersion(fakeVersion),
       wrapInAnchor = jest.fn().mockReturnValue(defaultGutter),
     }: Partial<RenderGutterParams> &
-      Partial<DefaultProps> &
-      Partial<PublicProps> & {
+      RenderParams & {
         defaultGutter?: React.ReactElement;
         shallowRender?: boolean;
       } = {}) => {
@@ -1032,63 +1058,68 @@ describe(__filename, () => {
       });
       const { renderGutter } = root.find(Diff).props();
       if (renderGutter) {
-        const gutter = renderGutter({
+        const params: RenderGutterParams = {
           change,
           renderDefault,
           inHoverState: false,
           side,
           wrapInAnchor,
-        });
-        if (shallowRender) {
-          return shallow(<div>{gutter}</div>);
-        }
-        return gutter;
+        };
+        return shallow(<div>{renderGutter(params)}</div>);
       }
       throw new Error('renderGutter was undefined, but it should not be');
     };
 
-    it('adds a commentable div to the gutter', () => {
-      const change = fakeChangeInfo;
-      const className = 'test-class';
-      const defaultGutter = <div className={className} />;
-      const renderDefault = jest.fn();
-      const version = createInternalVersion(fakeVersion);
-      const wrapInAnchor = jest.fn().mockReturnValue(defaultGutter);
-      const gutter = _renderGutter({
-        change,
-        enableCommenting: true,
-        renderDefault,
-        version,
-        wrapInAnchor,
-      });
+    it.each(['insert', 'normal'])(
+      'adds a commentable div to the gutter for a(n) %s change',
+      (changeType) => {
+        const change = {
+          ...fakeChangeInfo,
+          isDelete: false,
+          isInsert: changeType === 'insert',
+          isNormal: changeType === 'normal',
+        };
+        const className = 'test-class';
+        const defaultGutter = <div className={className} />;
+        const renderDefault = jest.fn();
+        const version = createInternalVersion(fakeVersion);
+        const wrapInAnchor = jest.fn().mockReturnValue(defaultGutter);
+        const gutter = _renderGutter({
+          change,
+          renderDefault,
+          version,
+          wrapInAnchor,
+        });
 
-      const commentableDiv = gutter.find(CommentableBase);
+        const commentableDiv = gutter.find(Commentable);
 
-      expect(commentableDiv).toHaveLength(1);
-      expect(commentableDiv).toHaveProp('id', getChangeKey(change));
-      expect(commentableDiv).toHaveProp('line', change.lineNumber);
-      expect(commentableDiv).toHaveProp('fileName', version.selectedPath);
-      expect(commentableDiv).toHaveProp('versionId', version.id);
+        expect(commentableDiv).toHaveLength(1);
+        expect(commentableDiv).toHaveProp('id', getChangeKey(change));
+        expect(commentableDiv).toHaveProp('line', change.lineNumber);
+        expect(commentableDiv).toHaveProp('fileName', version.selectedPath);
+        expect(commentableDiv).toHaveProp('versionId', version.id);
 
-      expect(renderDefault).toHaveBeenCalled();
-      expect(wrapInAnchor).toHaveBeenCalled();
-    });
+        expect(renderDefault).toHaveBeenCalled();
+        expect(wrapInAnchor).toHaveBeenCalled();
+      },
+    );
 
     it('passes expected children to the commentable div', () => {
+      const AddComment = () => <button type="button">Add</button>;
       const className = 'test-class';
       const defaultGutter = <div className={className} />;
       const gutter = _renderGutter({
         defaultGutter,
-        enableCommenting: true,
-        shallowRender: false,
       });
 
-      const commentableChildren = shallow(<div>{gutter.props.children()}</div>);
+      const { renderContent } = simulateCommentable({
+        addCommentButton: <AddComment />,
+        root: gutter,
+      });
+      const commentableChildren = renderContent();
 
       expect(commentableChildren.find(`.${className}`)).toHaveLength(1);
-      expect(commentableChildren.find(`.${styles.commentButton}`)).toHaveLength(
-        1,
-      );
+      expect(commentableChildren.find(AddComment)).toHaveLength(1);
     });
 
     it('does not change the gutter when the feature is turned off', () => {
@@ -1096,21 +1127,25 @@ describe(__filename, () => {
       const defaultGutter = <div className={className} />;
       const gutter = _renderGutter({ defaultGutter, enableCommenting: false });
 
-      expect(gutter.find(CommentableBase)).toHaveLength(0);
+      expect(gutter.find(Commentable)).toHaveLength(0);
       expect(gutter.find(`.${className}`)).toHaveLength(1);
     });
 
-    it('does not change the gutter when the change is not an insert', () => {
+    it('does not change the gutter when the change is a delete', () => {
       const className = 'test-class';
       const defaultGutter = <div className={className} />;
-      const change = { ...fakeChangeInfo, isInsert: false };
+      const change = {
+        ...fakeChangeInfo,
+        isDelete: true,
+        isInsert: false,
+        isNormal: false,
+      };
       const gutter = _renderGutter({
         change,
         defaultGutter,
-        enableCommenting: true,
       });
 
-      expect(gutter.find(CommentableBase)).toHaveLength(0);
+      expect(gutter.find(Commentable)).toHaveLength(0);
       expect(gutter.find(`.${className}`)).toHaveLength(1);
     });
 
@@ -1121,10 +1156,9 @@ describe(__filename, () => {
       const gutter = _renderGutter({
         change,
         defaultGutter,
-        enableCommenting: true,
       });
 
-      expect(gutter.find(CommentableBase)).toHaveLength(0);
+      expect(gutter.find(Commentable)).toHaveLength(0);
       expect(gutter.find(`.${className}`)).toHaveLength(1);
     });
 
@@ -1133,11 +1167,10 @@ describe(__filename, () => {
       const defaultGutter = <div className={className} />;
       const gutter = _renderGutter({
         defaultGutter,
-        enableCommenting: true,
         side: 'old',
       });
 
-      expect(gutter.find(CommentableBase)).toHaveLength(0);
+      expect(gutter.find(Commentable)).toHaveLength(0);
       expect(gutter.find(`.${className}`)).toHaveLength(1);
     });
   });

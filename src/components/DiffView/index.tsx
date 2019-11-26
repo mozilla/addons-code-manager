@@ -206,7 +206,7 @@ export class DiffViewBase extends React.Component<Props> {
 
       let widget = (
         <>
-          {enableCommenting && line && change.isInsert && (
+          {enableCommenting && line && !change.isDelete && (
             <CommentList
               addonId={version.addon.id}
               fileName={version.selectedPath}
@@ -295,12 +295,12 @@ export class DiffViewBase extends React.Component<Props> {
   }: RenderGutterParams) => {
     const { enableCommenting, version } = this.props;
 
-    const { isInsert, lineNumber } = change;
+    const { isDelete, lineNumber } = change;
     const changeKey = getChangeKey(change);
 
     const defaultGutter = wrapInAnchor(renderDefault());
     let gutter = defaultGutter;
-    if (enableCommenting && isInsert && lineNumber && side === 'new') {
+    if (enableCommenting && !isDelete && lineNumber && side === 'new') {
       gutter = (
         <Commentable
           as="div"

@@ -37,12 +37,17 @@
   .diff-gutter {
     font-family: $code-font-family;
     font-size: $code-font-size;
+    height: 100%;
     line-height: $code-line-height;
   }
 
-  .diff-line .diff-gutter-selected,
-  .diff-line .diff-code-selected {
-    background-color: $light-gray;
+  .diff-line {
+    height: 100%;
+
+    .diff-gutter-selected,
+    .diff-code-selected {
+      background-color: $light-gray;
+    }
   }
 }
 
@@ -60,6 +65,7 @@
 
 .gutter {
   display: flex;
+  height: 100%;
 }
 
 .commentButton {
