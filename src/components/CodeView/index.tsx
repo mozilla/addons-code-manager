@@ -25,7 +25,7 @@ import GlobalLinterMessages from '../GlobalLinterMessages';
 import SlowPageAlert from '../SlowPageAlert';
 
 // This is how many lines of code it takes to slow down the UI.
-const SLOW_LOADING_LINE_COUNT = 500;
+const SLOW_LOADING_LINE_COUNT = 1000;
 
 // This function mimics what https://github.com/rexxars/react-refractor does,
 // but we need a different layout to inline comments so we cannot use this
