@@ -55,6 +55,22 @@ describe(__filename, () => {
     expect(root.find(Form.Label)).toIncludeText(label);
   });
 
+  it('can add a custom class to Form.Control', () => {
+    const formControlClassName = 'ExampleClass';
+    const root = render({ formControlClassName });
+
+    expect(root.find(Form.Control)).toHaveClassName(formControlClassName);
+  });
+
+  it('adds the custom form control class to the loading skeleton', () => {
+    const formControlClassName = 'ExampleClass';
+    const root = render({ formControlClassName, isLoading: true });
+
+    expect(root.find(`.${styles.simulatedFormControl}`)).toHaveClassName(
+      formControlClassName,
+    );
+  });
+
   it('assigns a controlId', () => {
     const controlId = 'SomeIdString';
     const root = render({ controlId });
