@@ -353,6 +353,8 @@ export type VersionsState = {
     [entryStatusMapKey: string]: EntryStatusMap;
   };
   expandedPaths: string[] | undefined;
+  selectedPath: string | null;
+  visibleSelectedPath: string | null;
   versionInfo: {
     [versionId: number]:
       | Version // data successfully loaded
@@ -385,6 +387,8 @@ export const initialState: VersionsState = {
   currentVersionId: undefined,
   entryStatusMaps: {},
   expandedPaths: undefined,
+  selectedPath: null,
+  visibleSelectedPath: null,
   versionFiles: {},
   versionFilesLoading: {},
   versionInfo: {},
@@ -490,12 +494,22 @@ export const getVersionInfo = (versions: VersionsState, versionId: number) => {
   return versions.versionInfo[versionId];
 };
 
+export const createVersionPathChecker = (version: Version) => {
+  const paths = new Set(version.entries.map((e) => e.path));
+  return (path: string) => paths.has(path);
+};
+
 export const getPrunedExpandedPaths = (
   expandedPaths: string[],
   version: Version,
 ) => {
-  const paths = new Set(version.entries.map((e) => e.path));
-  return expandedPaths.filter((p) => paths.has(p));
+  const doesPathExist = createVersionPathChecker(version);
+  return expandedPaths.filter(doesPathExist);
+};
+
+export const versionPathExists = (path: string, version: Version) => {
+  const doesPathExist = createVersionPathChecker(version);
+  return doesPathExist(path);
 };
 
 export const getEntryStatusMap = ({
@@ -697,6 +711,7 @@ export type GetRelativeDiffParams = {
   entryStatusMap: EntryStatusMap;
   pathList: string[];
   position: RelativePathPosition;
+  selectedPath: string | null;
   version: Version;
 };
 
@@ -713,6 +728,7 @@ export const getRelativeDiff = ({
   entryStatusMap,
   pathList,
   position,
+  selectedPath,
   version,
 }: GetRelativeDiffParams): RelativeDiffResult => {
   const result: RelativeDiffResult = {
@@ -722,9 +738,9 @@ export const getRelativeDiff = ({
     path: null,
   };
 
-  if (!result.anchor) {
+  if (!result.anchor && selectedPath) {
     result.path = _findRelativePathWithDiff({
-      currentPath: version.selectedPath,
+      currentPath: selectedPath,
       entryStatusMap,
       pathList,
       position,
@@ -1141,6 +1157,7 @@ export const goToRelativeDiff = ({
   return async (dispatch, getState) => {
     const { router, versions: versionsState } = getState();
     const version = getVersionInfo(versionsState, versionId);
+    const { selectedPath } = versionsState;
     const entryStatusMap = getEntryStatusMap({
       comparedToVersionId,
       versions: versionsState,
@@ -1162,6 +1179,7 @@ export const goToRelativeDiff = ({
       entryStatusMap,
       pathList,
       position,
+      selectedPath,
       version,
     });
 
@@ -1214,18 +1232,27 @@ export const createReducer = ({
       case getType(actions.loadVersionInfo): {
         const { version } = action.payload;
         const internalVersion = createInternalVersion(version);
-        const { expandedPaths: expandedPathsInState } = state;
-
+        const {
+          expandedPaths: expandedPathsInState,
+          selectedPath: selectedPathInState,
+        } = state;
         const expandedPaths = expandedPathsInState
           ? _getPrunedExpandedPaths(expandedPathsInState, internalVersion)
           : getParentFolders(version.file.selected_file);
+        const selectedPath =
+          selectedPathInState &&
+          versionPathExists(selectedPathInState, internalVersion)
+            ? selectedPathInState
+            : version.file.selected_file;
 
         return {
           ...state,
           expandedPaths,
+          selectedPath,
+          visibleSelectedPath: null,
           versionInfo: {
             ...state.versionInfo,
-            [version.id]: { ...internalVersion, expandedPaths },
+            [version.id]: { ...internalVersion, expandedPaths, selectedPath },
           },
           versionInfoLoading: {
             ...state.versionInfoLoading,
@@ -1347,6 +1374,7 @@ export const createReducer = ({
         return {
           ...state,
           expandedPaths: newExpandedPaths,
+          selectedPath,
           versionInfo: {
             ...state.versionInfo,
             [versionId]: {
@@ -1374,6 +1402,7 @@ export const createReducer = ({
 
         return {
           ...state,
+          visibleSelectedPath: path,
           versionInfo: {
             ...state.versionInfo,
             [versionId]: {
@@ -1559,17 +1588,38 @@ export const createReducer = ({
       }
       case getType(actions.setCurrentVersionId): {
         const { versionId } = action.payload;
-        let { expandedPaths } = state;
+        let { expandedPaths, selectedPath, versionInfo } = state;
+        const { visibleSelectedPath } = state;
         const version = getVersionInfo(state, versionId);
 
         if (version && expandedPaths) {
           expandedPaths = _getPrunedExpandedPaths(expandedPaths, version);
         }
 
+        // TODO: remove this conditional statement once no code depends
+        // on `selectedPath` and `visibleSelectedPath` in version
+        // See https://github.com/mozilla/addons-code-manager/issues/1258
+        if (version) {
+          selectedPath =
+            selectedPath && versionPathExists(selectedPath, version)
+              ? selectedPath
+              : version.selectedPath;
+          versionInfo = {
+            ...versionInfo,
+            [version.id]: {
+              ...version,
+              selectedPath,
+              visibleSelectedPath,
+            },
+          };
+        }
+
         return {
           ...state,
           currentVersionId: versionId,
           expandedPaths,
+          selectedPath,
+          versionInfo,
         };
       }
       case getType(actions.unsetCurrentBaseVersionId): {

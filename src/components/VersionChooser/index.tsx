@@ -13,7 +13,6 @@ import {
   VersionsState,
   actions as versionsActions,
   fetchVersionsList,
-  getVersionInfo,
 } from '../../reducers/versions';
 import { gettext } from '../../utils';
 import styles from './styles.module.scss';
@@ -41,6 +40,7 @@ type PropsFromState = {
   currentVersionId: number | undefined | false;
   versionsMap: VersionsMap;
   versions: VersionsState;
+  selectedPath: string | null;
 };
 
 export type PropsFromRouter = {
@@ -77,15 +77,11 @@ export class VersionChooserBase extends React.Component<Props> {
     baseVersionId: number | undefined | false;
     headVersionId: number | undefined | false;
   }) => {
-    const { addonId, history, match, versions } = this.props;
+    const { addonId, history, match, selectedPath } = this.props;
     const { lang } = match.params;
-    let version;
-    if (headVersionId) {
-      version = getVersionInfo(versions, headVersionId);
-    }
 
-    const query = version
-      ? `?${queryString.stringify({ path: version.selectedPath })}`
+    const query = selectedPath
+      ? `?${queryString.stringify({ path: selectedPath })}`
       : '';
 
     history.push(
@@ -167,12 +163,13 @@ const mapStateToProps = (
   state: ApplicationState,
   ownProps: PublicProps,
 ): PropsFromState => {
-  const { byAddonId } = state.versions;
+  const { byAddonId, selectedPath } = state.versions;
   const { addonId } = ownProps;
 
   return {
     currentBaseVersionId: state.versions.currentBaseVersionId,
     currentVersionId: state.versions.currentVersionId,
+    selectedPath,
     versions: state.versions,
     versionsMap: byAddonId[addonId],
   };

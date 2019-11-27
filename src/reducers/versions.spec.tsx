@@ -1,3 +1,4 @@
+/* eslint @typescript-eslint/camelcase: 0 */
 import { push } from 'connected-react-router';
 import { createBrowserHistory } from 'history';
 import { ChangeInfo, DiffInfo, parseDiff } from 'react-diff-view';
@@ -45,6 +46,7 @@ import reducer, {
   isFileLoading,
   selectCurrentVersionInfo,
   selectVersionIsLoading,
+  versionPathExists,
   viewVersionFile,
 } from './versions';
 import { ROOT_PATH, RelativePathPosition } from './fileTree';
@@ -124,6 +126,7 @@ describe(__filename, () => {
       expect(state).toEqual(
         expect.objectContaining({
           expandedPaths: getParentFolders(version.file.selected_file),
+          selectedPath: version.file.selected_file,
           versionInfo: {
             [version.id]: createInternalVersion(version),
           },
@@ -145,6 +148,70 @@ describe(__filename, () => {
       expect(state.versionInfoLoading).toEqual(
         expect.objectContaining({
           [versionId]: false,
+        }),
+      );
+    });
+
+    it('preserves selectedPath when loading a new version', () => {
+      const path1 = 'path/1';
+      const path2 = 'path/2';
+      const oldVersion = createExternalVersionWithEntries([{ path: path1 }], {
+        selected_file: path1,
+      });
+      const newVersion = createExternalVersionWithEntries(
+        [{ path: path1 }, { path: path2 }],
+        { selected_file: path2 },
+      );
+      let state = reducer(
+        undefined,
+        actions.loadVersionInfo({ version: oldVersion }),
+      );
+      state = reducer(state, actions.loadVersionInfo({ version: newVersion }));
+
+      expect(state).toEqual(
+        expect.objectContaining({
+          selectedPath: path1,
+        }),
+      );
+    });
+
+    it('resets selectedPath if the old selected path does not exist in the new version', () => {
+      const path1 = 'path/1';
+      const path2 = 'path/2';
+      const oldVersion = createExternalVersionWithEntries([{ path: path1 }], {
+        selected_file: path1,
+      });
+      const newVersion = createExternalVersionWithEntries([{ path: path2 }], {
+        selected_file: path2,
+      });
+      let state = reducer(
+        undefined,
+        actions.loadVersionInfo({ version: oldVersion }),
+      );
+      state = reducer(state, actions.loadVersionInfo({ version: newVersion }));
+
+      expect(state).toEqual(
+        expect.objectContaining({
+          selectedPath: path2,
+        }),
+      );
+    });
+
+    it('sets visibleSelectedPath to null when loading a new version', () => {
+      const version = fakeVersion;
+      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+      state = reducer(
+        state,
+        actions.setVisibleSelectedPath({
+          path: version.file.selected_file,
+          versionId: version.id,
+        }),
+      );
+      state = reducer(state, actions.loadVersionInfo({ version }));
+
+      expect(state).toEqual(
+        expect.objectContaining({
+          visibleSelectedPath: null,
         }),
       );
     });
@@ -222,6 +289,7 @@ describe(__filename, () => {
         `versionInfo.${version.id}.selectedPath`,
         selectedPath,
       );
+      expect(state).toHaveProperty('selectedPath', selectedPath);
     });
 
     it('throws an error when updateSelectedPath is called for an unknown version', () => {
@@ -2716,6 +2784,7 @@ describe(__filename, () => {
         entryStatusMap: createEntryStatusMap(fakeVersion),
         pathList: [fakeVersion.file.selected_file],
         position: RelativePathPosition.next,
+        selectedPath: fakeVersion.file.selected_file,
         version: createInternalVersion(fakeVersion),
         ...params,
       });
@@ -2761,11 +2830,12 @@ describe(__filename, () => {
         entryStatusMap,
         pathList,
         position,
+        selectedPath: path,
         version,
       });
 
       expect(_findRelativePathWithDiff).toHaveBeenCalledWith({
-        currentPath: version.selectedPath,
+        currentPath: path,
         entryStatusMap,
         pathList,
         position,
@@ -2788,17 +2858,26 @@ describe(__filename, () => {
         entryStatusMap,
         pathList,
         position,
+        selectedPath: path,
         version,
       });
 
       expect(_findRelativePathWithDiff).toHaveBeenCalledWith({
-        currentPath: version.selectedPath,
+        currentPath: path,
         entryStatusMap,
         pathList,
         position,
         version,
       });
       expect(result).toEqual({ anchor: null, path });
+    });
+
+    it('returns null result when both selectedPath and diff are null', () => {
+      const result = _getRelativeDiff({
+        diff: null,
+        selectedPath: null,
+      });
+      expect(result).toEqual({ anchor: null, path: null });
     });
 
     it('returns the next diff anchor', () => {
@@ -2863,6 +2942,7 @@ describe(__filename, () => {
         );
       }
       expect(version.visibleSelectedPath).toEqual(path);
+      expect(state.visibleSelectedPath).toEqual(path);
     });
 
     it('requires the version to exist in state', () => {
@@ -3033,12 +3113,20 @@ describe(__filename, () => {
       const position = RelativePathPosition.next;
       const versionId = 123;
       const comparedToVersionId = 31;
+      const selectedPath = 'select.js';
 
       const history = createBrowserHistory();
       const location = createFakeLocation({ pathname: path });
       history.push(location);
       const store = configureStore({ history });
-      const externalVersion = { ...fakeVersion, id: versionId };
+      const externalVersion = {
+        ...fakeVersion,
+        id: versionId,
+        file: {
+          ...fakeVersion.file,
+          selected_file: selectedPath,
+        },
+      };
       const entryStatusMap = createEntryStatusMap(externalVersion);
       store.dispatch(actions.loadVersionInfo({ version: externalVersion }));
       store.dispatch(
@@ -3075,6 +3163,7 @@ describe(__filename, () => {
         entryStatusMap,
         pathList,
         position,
+        selectedPath,
         version,
       });
 
@@ -3217,6 +3306,100 @@ describe(__filename, () => {
         currentVersionId: versionId,
       });
     });
+
+    it('syncs version.selectedPath with the one in state', () => {
+      const path1 = 'path/1';
+      const path2 = 'path/2';
+      const oldVersion = createExternalVersionWithEntries([{ path: path1 }], {
+        id: nextUniqueId(),
+        selected_file: path1,
+      });
+      const newVersion = createExternalVersionWithEntries(
+        [{ path: path1 }, { path: path2 }],
+        {
+          id: nextUniqueId(),
+          selected_file: path2,
+        },
+      );
+
+      let state = reducer(
+        undefined,
+        actions.loadVersionInfo({ version: newVersion }),
+      );
+      state = reducer(state, actions.loadVersionInfo({ version: oldVersion }));
+      state = reducer(
+        state,
+        actions.setCurrentVersionId({ versionId: newVersion.id }),
+      );
+
+      expect(state).toHaveProperty('selectedPath', path1);
+      expect(state).toHaveProperty(
+        `versionInfo.${newVersion.id}.selectedPath`,
+        state.selectedPath,
+      );
+    });
+
+    it('sets selectedPath to version.selectedPath if it does not exist in the new version', () => {
+      const path1 = 'path/1';
+      const path2 = 'path/2';
+      const oldVersion = createExternalVersionWithEntries([{ path: path1 }], {
+        id: nextUniqueId(),
+        selected_file: path1,
+      });
+      const newVersion = createExternalVersionWithEntries([{ path: path2 }], {
+        id: nextUniqueId(),
+        selected_file: path2,
+      });
+
+      let state = reducer(
+        undefined,
+        actions.loadVersionInfo({ version: newVersion }),
+      );
+      state = reducer(state, actions.loadVersionInfo({ version: oldVersion }));
+      state = reducer(
+        state,
+        actions.setCurrentVersionId({ versionId: newVersion.id }),
+      );
+
+      expect(state).toHaveProperty('selectedPath', path2);
+      expect(state).toHaveProperty(
+        `versionInfo.${newVersion.id}.selectedPath`,
+        state.selectedPath,
+      );
+    });
+
+    it('syncs version.visibleSelectedPath with the one in state', () => {
+      const path1 = 'path/1';
+      const path2 = 'path/2';
+      const oldVersion = createExternalVersionWithEntries([{ path: path1 }], {
+        id: nextUniqueId(),
+      });
+      const newVersion = createExternalVersionWithEntries([{ path: path2 }], {
+        id: nextUniqueId(),
+      });
+
+      let state = reducer(
+        undefined,
+        actions.loadVersionInfo({ version: newVersion }),
+      );
+      state = reducer(state, actions.loadVersionInfo({ version: oldVersion }));
+      state = reducer(
+        state,
+        actions.setVisibleSelectedPath({
+          path: path1,
+          versionId: oldVersion.id,
+        }),
+      );
+      state = reducer(
+        state,
+        actions.setCurrentVersionId({ versionId: newVersion.id }),
+      );
+
+      expect(state).toHaveProperty(
+        `versionInfo.${newVersion.id}.visibleSelectedPath`,
+        state.visibleSelectedPath,
+      );
+    });
   });
 
   describe('unsetCurrentVersionId', () => {
@@ -3304,6 +3487,26 @@ describe(__filename, () => {
       const state = reducer(undefined, actions.unsetCurrentVersionId());
 
       expect(selectCurrentVersionInfo(state)).toEqual(false);
+    });
+  });
+
+  describe('versionPathExists', () => {
+    it('returns true if the path exists', () => {
+      const path = 'path.js';
+      const version = createExternalVersionWithEntries([{ path }]);
+      expect(versionPathExists(path, createInternalVersion(version))).toBe(
+        true,
+      );
+    });
+
+    it('returns false if the path does not exist', () => {
+      const path = 'path.not.exist';
+      const version = createExternalVersionWithEntries([
+        { path: 'path.in.verison' },
+      ]);
+      expect(versionPathExists(path, createInternalVersion(version))).toBe(
+        false,
+      );
     });
   });
 
