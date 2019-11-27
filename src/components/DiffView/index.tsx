@@ -204,20 +204,17 @@ export class DiffViewBase extends React.Component<Props> {
         messages = selectedMessageMap.byLine[line];
       }
 
-      let widget = (
-        <>
-          {enableCommenting && line && !change.isDelete && (
-            <CommentList
-              addonId={version.addon.id}
-              fileName={version.selectedPath}
-              line={line}
-              versionId={version.id}
-            >
-              {(commentList) => <div>{commentList}</div>}
-            </CommentList>
-          )}
-        </>
+      let widget = enableCommenting && line && !change.isDelete && (
+        <CommentList
+          addonId={version.addon.id}
+          fileName={version.selectedPath}
+          line={line}
+          versionId={version.id}
+        >
+          {(commentList) => <div>{commentList}</div>}
+        </CommentList>
       );
+
       if (messages && messages.length) {
         widget = (
           <>
