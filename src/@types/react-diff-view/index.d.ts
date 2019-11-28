@@ -47,6 +47,14 @@ declare module 'react-diff-view' {
 
   export type WidgetMap = { [changeKey: string]: ReactNode };
 
+  export type RenderGutterParams = {
+    change: ChangeInfo;
+    side: 'new' | 'old';
+    renderDefault: () => ReactElement;
+    wrapInAnchor: (ReactElement) => ReactElement;
+    inHoverState: boolean;
+  };
+
   type DiffProps = {
     children: (hunks: HunkInfo[]) => ReactNode;
     className?: string;
@@ -56,6 +64,7 @@ declare module 'react-diff-view' {
     viewType: ViewType;
     gutterType?: 'default' | 'anchor' | 'none';
     generateAnchorID?: (change: ChangeInfo) => string;
+    renderGutter?: (RenderGutterParams) => ReactElement;
     selectedChanges?: string[];
     widgets?: WidgetMap;
   };

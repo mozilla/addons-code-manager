@@ -9,6 +9,7 @@ import {
   Hunk,
   Hunks,
   HunkInfo,
+  RenderGutterParams,
   WidgetMap,
   getChangeKey,
   tokenize,
@@ -17,6 +18,8 @@ import { Alert } from 'react-bootstrap';
 import { withRouter, RouteComponentProps } from 'react-router-dom';
 import makeClassName from 'classnames';
 
+import Commentable from '../Commentable';
+import CommentList from '../CommentList';
 import FadableContent from '../FadableContent';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import LinterMessage from '../LinterMessage';
@@ -107,6 +110,7 @@ export type DefaultProps = {
   _getRelativeDiffAnchor: typeof getRelativeDiffAnchor;
   _slowDiffChangeCount: number;
   _tokenize: typeof tokenize;
+  enableCommenting: boolean;
   viewType: DiffProps['viewType'];
 };
 
@@ -122,6 +126,7 @@ export class DiffViewBase extends React.Component<Props> {
     _getRelativeDiffAnchor: getRelativeDiffAnchor,
     _slowDiffChangeCount: SLOW_DIFF_CHANGE_COUNT,
     _tokenize: tokenize,
+    enableCommenting: process.env.REACT_APP_ENABLE_COMMENTING === 'true',
     viewType: 'unified',
   };
 
@@ -186,6 +191,8 @@ export class DiffViewBase extends React.Component<Props> {
     hunks: Hunks,
     selectedMessageMap: LinterProviderInfo['selectedMessageMap'],
   ) => {
+    const { enableCommenting, version } = this.props;
+
     const allWidgets: WidgetMap = {};
 
     for (const change of getAllHunkChanges(hunks)) {
@@ -197,17 +204,30 @@ export class DiffViewBase extends React.Component<Props> {
         messages = selectedMessageMap.byLine[line];
       }
 
-      let widget = null;
+      let widget =
+        enableCommenting && line && !change.isDelete ? (
+          <CommentList
+            addonId={version.addon.id}
+            fileName={version.selectedPath}
+            line={line}
+            versionId={version.id}
+          >
+            {(allComments) => allComments}
+          </CommentList>
+        ) : null;
+
       if (messages && messages.length) {
         widget = (
-          <div className={styles.inlineLinterMessages}>
-            {messages.map((msg) => {
-              return <LinterMessage key={msg.uid} message={msg} inline />;
-            })}
-          </div>
+          <>
+            {widget}
+            <div className={styles.inlineLinterMessages}>
+              {messages.map((msg) => {
+                return <LinterMessage key={msg.uid} message={msg} inline />;
+              })}
+            </div>
+          </>
         );
       }
-
       allWidgets[changeKey] = widget;
     }
 
@@ -263,6 +283,40 @@ export class DiffViewBase extends React.Component<Props> {
 
   renderExtraMessages = (messages: React.ReactNode) => {
     return <div className={styles.extraMessages}>{messages}</div>;
+  };
+
+  renderGutter = ({
+    change,
+    renderDefault,
+    side,
+    wrapInAnchor,
+  }: RenderGutterParams) => {
+    const { enableCommenting, version } = this.props;
+
+    const { isDelete, lineNumber } = change;
+
+    const defaultGutter = wrapInAnchor(renderDefault());
+    let gutter = defaultGutter;
+    if (enableCommenting && !isDelete && lineNumber && side === 'new') {
+      gutter = (
+        <Commentable
+          as="div"
+          className={styles.gutter}
+          line={lineNumber}
+          fileName={version.selectedPath}
+          versionId={version.id}
+        >
+          {(addCommentButton) => (
+            <>
+              {defaultGutter}
+              <span className={styles.commentButton}>{addCommentButton}</span>
+            </>
+          )}
+        </Commentable>
+      );
+    }
+
+    return gutter;
   };
 
   renderWithMessages = ({ selectedMessageMap }: LinterProviderInfo) => {
@@ -371,6 +425,7 @@ export class DiffViewBase extends React.Component<Props> {
                 generateAnchorID={getChangeKey}
                 selectedChanges={selectedChanges}
                 widgets={this.getWidgets(hunks, selectedMessageMap)}
+                renderGutter={this.renderGutter}
               >
                 {this.renderHunks}
               </Diff>
