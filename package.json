@@ -30,7 +30,7 @@
     "@types/react-textarea-autosize": "4.3.5",
     "@types/redux-logger": "3.0.6",
     "@types/redux-sentry-middleware": "0.1.1",
-    "bootstrap": "4.3.1",
+    "bootstrap": "4.4.1",
     "chalk": "3.0.0",
     "classnames": "2.2.6",
     "connected-react-router": "5.0.1",
