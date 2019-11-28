@@ -204,16 +204,17 @@ export class DiffViewBase extends React.Component<Props> {
         messages = selectedMessageMap.byLine[line];
       }
 
-      let widget = enableCommenting && line && !change.isDelete && (
-        <CommentList
-          addonId={version.addon.id}
-          fileName={version.selectedPath}
-          line={line}
-          versionId={version.id}
-        >
-          {(commentList) => <div>{commentList}</div>}
-        </CommentList>
-      );
+      let widget =
+        enableCommenting && line && !change.isDelete ? (
+          <CommentList
+            addonId={version.addon.id}
+            fileName={version.selectedPath}
+            line={line}
+            versionId={version.id}
+          >
+            {(allComments) => allComments}
+          </CommentList>
+        ) : null;
 
       if (messages && messages.length) {
         widget = (
@@ -293,7 +294,6 @@ export class DiffViewBase extends React.Component<Props> {
     const { enableCommenting, version } = this.props;
 
     const { isDelete, lineNumber } = change;
-    const changeKey = getChangeKey(change);
 
     const defaultGutter = wrapInAnchor(renderDefault());
     let gutter = defaultGutter;
@@ -301,7 +301,6 @@ export class DiffViewBase extends React.Component<Props> {
       gutter = (
         <Commentable
           as="div"
-          id={changeKey}
           className={styles.gutter}
           line={lineNumber}
           fileName={version.selectedPath}

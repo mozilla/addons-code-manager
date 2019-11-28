@@ -683,11 +683,11 @@ describe(__filename, () => {
       for (const line of [firstLine, secondLine]) {
         const widget = renderWidget(diff.hunks, widgets, line);
 
-        const { shell, renderContent } = simulateCommentList({
+        const { renderContent } = simulateCommentList({
           commentList: <CommentListResult />,
           root: widget,
         });
-        const commentWidget = renderContent(shell.at(0));
+        const commentWidget = renderContent();
         expect(commentWidget.find(CommentListResult)).toHaveLength(1);
 
         const commentList = widget.find(CommentList);
@@ -1045,7 +1045,6 @@ describe(__filename, () => {
     }: Partial<RenderGutterParams> &
       RenderParams & {
         defaultGutter?: React.ReactElement;
-        shallowRender?: boolean;
       } = {}) => {
       const diff = createDiffWithHunks([
         createHunkWithChanges([{ content: change.content }]),
@@ -1094,7 +1093,6 @@ describe(__filename, () => {
         const commentableDiv = gutter.find(Commentable);
 
         expect(commentableDiv).toHaveLength(1);
-        expect(commentableDiv).toHaveProp('id', getChangeKey(change));
         expect(commentableDiv).toHaveProp('line', change.lineNumber);
         expect(commentableDiv).toHaveProp('fileName', version.selectedPath);
         expect(commentableDiv).toHaveProp('versionId', version.id);
