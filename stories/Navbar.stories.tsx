@@ -16,7 +16,6 @@ import {
   nextUniqueId,
 } from '../src/test-helpers';
 import { renderWithStoreAndRouter } from './utils';
-import { number } from 'prop-types';
 
 const render = ({
   afterMount,
