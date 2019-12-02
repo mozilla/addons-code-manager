@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/camelcase */
-import { ShallowWrapper } from 'enzyme';
+import { ShallowWrapper, shallow } from 'enzyme';
 import * as React from 'react';
 import { Form } from 'react-bootstrap';
 import { Store } from 'redux';
@@ -396,6 +396,45 @@ describe(__filename, () => {
     );
   });
 
+  it('clears the form after submitting', () => {
+    const selectedBaseVersionId = nextUniqueId();
+    const selectedHeadVersionId = nextUniqueId();
+
+    const { addonId, store } = _loadVersionsList({
+      versions: [
+        { ...fakeListedVersion, id: selectedBaseVersionId },
+        { ...fakeListedVersion, id: selectedHeadVersionId },
+      ],
+    });
+
+    const { content, root } = renderForm({ addonId, store });
+
+    changeSelectValue(
+      content.find(`.${styles.baseVersionSelect}`),
+      selectedBaseVersionId,
+    );
+
+    changeSelectValue(
+      content.find(`.${styles.headVersionSelect}`),
+      selectedHeadVersionId,
+    );
+
+    submitForm(content);
+
+    // Get an updated wrapper after the form selection state changes.
+    const { content: updatedContent } = simulatePopover(root);
+
+    // Make sure the form was reset.
+    expect(updatedContent.find(`.${styles.baseVersionSelect}`)).not.toHaveProp(
+      'value',
+      String(selectedBaseVersionId),
+    );
+    expect(updatedContent.find(`.${styles.headVersionSelect}`)).not.toHaveProp(
+      'value',
+      String(selectedHeadVersionId),
+    );
+  });
+
   it('pushes a new URL with a query string when the version has been loaded', () => {
     const baseVersionId = nextUniqueId();
     const headVersionId = nextUniqueId();
@@ -486,6 +525,77 @@ describe(__filename, () => {
       'isLoading',
       true,
     );
+  });
+
+  describe('renderBrowseButton', () => {
+    const _renderBrowseButton = ({
+      versionId = String(nextUniqueId()),
+      ...props
+    }: { versionId?: string } & RenderParams = {}) => {
+      const root = render(props);
+      return shallow(
+        (root.instance() as VersionChooserBase).renderBrowseButton(versionId),
+      );
+    };
+
+    it('renders a browse button for the base version and head version', () => {
+      const baseVersionId = nextUniqueId();
+      const headVersionId = nextUniqueId();
+      const renderBrowseButton = jest.spyOn(
+        VersionChooserBase.prototype,
+        'renderBrowseButton',
+      );
+      const { addonId, store } = _loadVersionsList();
+
+      renderForm({
+        addonId,
+        baseVersionId,
+        headVersionId,
+        store,
+      });
+
+      expect(renderBrowseButton).toHaveBeenCalledWith(String(baseVersionId));
+      expect(renderBrowseButton).toHaveBeenCalledWith(String(headVersionId));
+    });
+
+    it('links to a browse page', () => {
+      const addonId = nextUniqueId();
+      const versionId = String(nextUniqueId());
+      const history = createFakeHistory();
+      const store = configureStore();
+      const dispatchSpy = spyOn(store, 'dispatch');
+      const fakeEvent = createFakeEvent();
+
+      const button = _renderBrowseButton({
+        addonId,
+        history,
+        store,
+        versionId,
+      });
+
+      const expectedHref = `/${process.env.REACT_APP_DEFAULT_API_LANG}/browse/${addonId}/versions/${versionId}/`;
+
+      expect(button).toHaveProp('disabled', false);
+      expect(button).toHaveProp('href', expectedHref);
+
+      button.simulate('click', fakeEvent);
+
+      expect(history.push).toHaveBeenCalledWith(expectedHref);
+      expect(fakeEvent.preventDefault).toHaveBeenCalled();
+      expect(fakeEvent.stopPropagation).toHaveBeenCalled();
+      expect(dispatchSpy).toHaveBeenCalledWith(popoverActions.hide(POPOVER_ID));
+    });
+
+    it('renders a disabled button when the version ID is empty', () => {
+      const history = createFakeHistory();
+      const button = _renderBrowseButton({ history, versionId: '' });
+
+      expect(button).toHaveProp('disabled', true);
+      expect(button).toHaveProp('href', undefined);
+
+      button.simulate('click', createFakeEvent());
+      expect(history.push).not.toHaveBeenCalled();
+    });
   });
 
   describe('higherVersionsThan', () => {
