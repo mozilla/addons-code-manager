@@ -122,6 +122,12 @@ describe(__filename, () => {
 
       expect(root.find(`.${styles.reviewerToolsLink}`)).toHaveLength(0);
     });
+
+    it('does not render VersionChooser', () => {
+      const root = render();
+
+      expect(root.find(VersionChooser)).toHaveLength(0);
+    });
   });
 
   describe('when a user is provided', () => {

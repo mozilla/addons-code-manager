@@ -212,7 +212,7 @@ export class CompareBase extends React.Component<Props> {
     }
 
     return (
-      // Use a container so that `display: flex` doesn't disturb the contents.
+      // Use a container since Loading renders a fragment.
       <div>
         <Loading message={message} />
       </div>

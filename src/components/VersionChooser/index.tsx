@@ -140,11 +140,11 @@ export class VersionChooserBase extends React.Component<Props, State> {
     );
   };
 
-  onNewVersionChange = (versionId: number) => {
+  onHeadVersionChange = (versionId: number) => {
     this.setState({ headVersionId: versionId });
   };
 
-  onOldVersionChange = (versionId: number) => {
+  onBaseVersionChange = (versionId: number) => {
     this.setState({ baseVersionId: versionId });
   };
 
@@ -175,7 +175,7 @@ export class VersionChooserBase extends React.Component<Props, State> {
                 isSelectable={_lowerVersionsThan(headVersionId)}
                 label={gettext('Old version')}
                 listedVersions={listedVersions}
-                onChange={this.onOldVersionChange}
+                onChange={this.onBaseVersionChange}
                 unlistedVersions={unlistedVersions}
                 value={baseVersionId}
               />
@@ -193,7 +193,7 @@ export class VersionChooserBase extends React.Component<Props, State> {
                 isSelectable={_higherVersionsThan(baseVersionId)}
                 label={gettext('New version')}
                 listedVersions={listedVersions}
-                onChange={this.onNewVersionChange}
+                onChange={this.onHeadVersionChange}
                 unlistedVersions={unlistedVersions}
                 value={headVersionId}
               />

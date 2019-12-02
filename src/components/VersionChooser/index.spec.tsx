@@ -42,7 +42,7 @@ import VersionChooser, {
 } from '.';
 
 describe(__filename, () => {
-  const lang = 'en-US';
+  const lang = process.env.REACT_APP_DEFAULT_API_LANG;
 
   const fakeListedVersion: ExternalVersionsListItem = {
     ...fakeVersionsListItem,
@@ -91,10 +91,7 @@ describe(__filename, () => {
         }),
       );
     }
-    const contextWithRouter = createContextWithFakeRouter({
-      history,
-      match: { params: { lang } },
-    });
+    const contextWithRouter = createContextWithFakeRouter({ history });
     const shallowOptions = {
       ...contextWithRouter,
       context: {
@@ -162,10 +159,12 @@ describe(__filename, () => {
       'label',
       'Old version',
     );
+    expect(content.find(VersionSelect).at(0)).toHaveProp('isLoading', false);
     expect(content.find(VersionSelect).at(1)).toHaveProp(
       'label',
       'New version',
     );
+    expect(content.find(VersionSelect).at(1)).toHaveProp('isLoading', false);
   });
 
   it('passes a `isSelectable` function to each VersionSelect', () => {
@@ -227,8 +226,7 @@ describe(__filename, () => {
       { ...fakeListedVersion, id: nextUniqueId() },
     ];
 
-    const store = configureStore();
-    const { addonId } = _loadVersionsList({ store, versions });
+    const { addonId, store } = _loadVersionsList({ versions });
 
     const { content } = renderForm({ addonId, setBaseVersion: false, store });
 
@@ -245,8 +243,7 @@ describe(__filename, () => {
       { ...fakeListedVersion, id: nextUniqueId() },
     ];
 
-    const store = configureStore();
-    const { addonId } = _loadVersionsList({ store, versions });
+    const { addonId, store } = _loadVersionsList({ versions });
 
     const baseVersionId = nextUniqueId();
     const { content } = renderForm({
@@ -284,7 +281,7 @@ describe(__filename, () => {
     expect(spy).toHaveBeenCalled();
   });
 
-  it('considers unlisted versions when initializing a base version', () => {
+  it('accounts for unlisted versions when initializing a base version', () => {
     const unlistedId = nextUniqueId();
     const versions = [
       { ...fakeUnlistedVersion, id: unlistedId },
@@ -340,7 +337,7 @@ describe(__filename, () => {
     expect(dispatch).not.toHaveBeenCalledWith(fakeThunk.thunk);
   });
 
-  it('dispatches fetchVersionsList() on mount when a different addonId is passed', () => {
+  it('dispatches fetchVersionsList() on mount when a different unfetched addonId is passed in', () => {
     const store = configureStore();
     _loadVersionsList({ store, versions: [] });
 
@@ -360,15 +357,15 @@ describe(__filename, () => {
     const baseVersionId = nextUniqueId();
     const headVersionId = nextUniqueId();
 
-    const selectedBaseVersion = nextUniqueId();
-    const selectedHeadVersion = nextUniqueId();
+    const selectedBaseVersionId = nextUniqueId();
+    const selectedHeadVersionId = nextUniqueId();
 
     const { addonId, store } = _loadVersionsList({
       versions: [
         { ...fakeListedVersion, id: baseVersionId },
         { ...fakeListedVersion, id: headVersionId },
-        { ...fakeListedVersion, id: selectedBaseVersion },
-        { ...fakeListedVersion, id: selectedHeadVersion },
+        { ...fakeListedVersion, id: selectedBaseVersionId },
+        { ...fakeListedVersion, id: selectedHeadVersionId },
       ],
     });
 
@@ -384,23 +381,22 @@ describe(__filename, () => {
 
     changeSelectValue(
       content.find(`.${styles.baseVersionSelect}`),
-      selectedBaseVersion,
+      selectedBaseVersionId,
     );
 
     changeSelectValue(
       content.find(`.${styles.headVersionSelect}`),
-      selectedHeadVersion,
+      selectedHeadVersionId,
     );
 
     submitForm(content);
 
     expect(history.push).toHaveBeenCalledWith(
-      `/${lang}/compare/${addonId}/versions/${selectedBaseVersion}...${selectedHeadVersion}/`,
+      `/${lang}/compare/${addonId}/versions/${selectedBaseVersionId}...${selectedHeadVersionId}/`,
     );
   });
 
   it('pushes a new URL with a query string when the version has been loaded', () => {
-    const addonId = nextUniqueId();
     const baseVersionId = nextUniqueId();
     const headVersionId = nextUniqueId();
     const selectedFile = 'example.js';
@@ -412,7 +408,7 @@ describe(__filename, () => {
         file: { ...fakeVersionFile, selected_file: selectedFile },
       },
     });
-    _loadVersionsList({ store, addonId });
+    const { addonId } = _loadVersionsList({ store });
 
     const history = createFakeHistory();
 
@@ -459,27 +455,21 @@ describe(__filename, () => {
 
   it('disables the submit button when versions are identical', () => {
     const versionId = nextUniqueId();
+    const baseVersionId = versionId;
+    const headVersionId = versionId;
+
     const { addonId, store } = _loadVersionsList({
-      versions: [
-        { ...fakeListedVersion, id: versionId },
-        { ...fakeListedVersion, id: nextUniqueId() },
-      ],
+      versions: [{ ...fakeListedVersion, id: versionId }],
     });
 
-    const { content, root } = renderForm({
+    const { content } = renderForm({
       addonId,
-      setBaseVersion: false,
+      baseVersionId,
+      headVersionId,
       store,
     });
 
-    changeSelectValue(content.find(`.${styles.baseVersionSelect}`), versionId);
-
-    changeSelectValue(content.find(`.${styles.headVersionSelect}`), versionId);
-
-    // Re-render the form with updated state.
-    const { content: updatedContent } = simulatePopover(root);
-
-    expect(updatedContent.find(`.${styles.submitButton}`)).toHaveProp(
+    expect(content.find(`.${styles.submitButton}`)).toHaveProp(
       'disabled',
       true,
     );
