@@ -30,7 +30,6 @@ import DiffView from '../../components/DiffView';
 import Loading from '../../components/Loading';
 import VersionFileViewer from '../../components/VersionFileViewer';
 import { createCodeLineAnchorGetter } from '../../utils';
-import styles from './styles.module.scss';
 
 import Compare, { CompareBase, PublicProps, mapStateToProps } from '.';
 
@@ -384,7 +383,12 @@ describe(__filename, () => {
       store,
     });
 
-    expect(root.find(`.${styles.error}`)).toHaveLength(1);
+    expect(
+      root
+        .find(VersionFileViewer)
+        .children()
+        .text(),
+    ).toEqual('Oops, an error has occurred.');
   });
 
   it('dispatches fetchDiff() on mount', () => {
@@ -542,6 +546,30 @@ describe(__filename, () => {
       store,
     });
 
+    expect(dispatch).toHaveBeenCalledWith(
+      versionsActions.setCurrentBaseVersionId({ versionId: baseVersionId }),
+    );
+  });
+
+  it('dispatches setCurrentBaseVersionId() even before the head version has loaded', () => {
+    const store = configureStore();
+    const oldBaseVersionId = nextUniqueId();
+    store.dispatch(
+      versionsActions.setCurrentBaseVersionId({ versionId: oldBaseVersionId }),
+    );
+
+    const baseVersionId = oldBaseVersionId + 1;
+    const headVersionId = baseVersionId + 1;
+
+    const dispatch = spyOn(store, 'dispatch');
+
+    render({
+      ...getRouteParams({ baseVersionId, headVersionId }),
+      store,
+    });
+
+    // It's important to set the base version ID in this case so that
+    // the NavBar shows a loading indicator.
     expect(dispatch).toHaveBeenCalledWith(
       versionsActions.setCurrentBaseVersionId({ versionId: baseVersionId }),
     );
