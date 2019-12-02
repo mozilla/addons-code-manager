@@ -3,6 +3,7 @@ import queryString from 'query-string';
 import React from 'react';
 import { Alert } from 'react-bootstrap';
 import {
+  ChangeType,
   Diff,
   HunkInfo,
   Hunks,
@@ -54,6 +55,7 @@ import DiffView, {
   DefaultProps,
   DiffViewBase,
   PublicProps,
+  changeCanBeCommentedUpon,
   diffCanBeHighlighted,
   getAllHunkChanges,
   trimHunkChanges,
@@ -657,51 +659,46 @@ describe(__filename, () => {
   });
 
   describe('comment list', () => {
-    it('renders inline comments for normal and inserted lines', () => {
+    it('renders inline comments for commentable lines', () => {
       const CommentListResult = () => <div />;
-      const firstLine = nextUniqueId();
-      const secondLine = nextUniqueId();
+      const lineNumber = nextUniqueId();
       const version = createInternalVersion({
         ...fakeVersion,
         id: nextUniqueId(),
       });
       const diff = createDiffWithHunks([
         createHunkWithChanges([
-          {
-            type: 'normal',
-            new_line_number: firstLine,
-            old_line_number: firstLine,
-          },
-          { type: 'insert', new_line_number: secondLine },
+          { new_line_number: lineNumber, old_line_number: lineNumber },
         ]),
       ]);
+
       const widgets = renderAndGetWidgets({
         diff,
         version,
       });
 
-      for (const line of [firstLine, secondLine]) {
-        const widget = renderWidget(diff.hunks, widgets, line);
+      const widget = renderWidget(diff.hunks, widgets, lineNumber);
 
-        const { renderContent } = simulateCommentList({
-          commentList: <CommentListResult />,
-          root: widget,
-        });
-        const commentWidget = renderContent();
-        expect(commentWidget.find(CommentListResult)).toHaveLength(1);
+      const { renderContent } = simulateCommentList({
+        commentList: <CommentListResult />,
+        root: widget,
+      });
+      const commentWidget = renderContent();
+      expect(commentWidget.find(CommentListResult)).toHaveLength(1);
 
-        const commentList = widget.find(CommentList);
-        expect(commentList).toHaveProp('addonId', version.addon.id);
-        expect(commentList).toHaveProp('fileName', version.selectedPath);
-        expect(commentList).toHaveProp('line', line);
-        expect(commentList).toHaveProp('versionId', version.id);
-      }
+      const commentList = widget.find(CommentList);
+      expect(commentList).toHaveProp('addonId', version.addon.id);
+      expect(commentList).toHaveProp('fileName', version.selectedPath);
+      expect(commentList).toHaveProp('line', lineNumber);
+      expect(commentList).toHaveProp('versionId', version.id);
     });
 
     it('can render a comment and a message for a line', () => {
       const line = nextUniqueId();
       const diff = createDiffWithHunks([
-        createHunkWithChanges([{ type: 'insert', new_line_number: line }]),
+        createHunkWithChanges([
+          { new_line_number: line, old_line_number: line },
+        ]),
       ]);
       const externalMessages = [{ line, uid: 'message-uid' }];
 
@@ -719,21 +716,25 @@ describe(__filename, () => {
       expect(widget.find(LinterMessage)).toHaveLength(1);
     });
 
-    it('does not render inline comments for deleted lines', () => {
-      const line = nextUniqueId();
+    it('does not render inline comments for uncommentable lines', () => {
+      const _changeCanBeCommentedUpon = jest.fn().mockReturnValue(false);
+      const lineNumber = nextUniqueId();
       const version = createInternalVersion({
         ...fakeVersion,
         id: nextUniqueId(),
       });
       const diff = createDiffWithHunks([
-        createHunkWithChanges([{ type: 'delete', old_line_number: line }]),
+        createHunkWithChanges([
+          { new_line_number: lineNumber, old_line_number: lineNumber },
+        ]),
       ]);
       const widgets = renderAndGetWidgets({
+        _changeCanBeCommentedUpon,
         diff,
         version,
       });
 
-      const widget = renderWidget(diff.hunks, widgets, line);
+      const widget = renderWidget(diff.hunks, widgets, lineNumber);
       expect(widget.find(CommentList)).toHaveLength(0);
     });
 
@@ -744,7 +745,9 @@ describe(__filename, () => {
         id: nextUniqueId(),
       });
       const diff = createDiffWithHunks([
-        createHunkWithChanges([{ type: 'insert', new_line_number: line }]),
+        createHunkWithChanges([
+          { new_line_number: line, old_line_number: line },
+        ]),
       ]);
       const widgets = renderAndGetWidgets({
         diff,
@@ -1035,6 +1038,7 @@ describe(__filename, () => {
 
   describe('renderGutter', () => {
     const _renderGutter = ({
+      _changeCanBeCommentedUpon = jest.fn().mockReturnValue(true),
       change = fakeChangeInfo,
       defaultGutter = <div />,
       enableCommenting = true,
@@ -1051,6 +1055,7 @@ describe(__filename, () => {
       ]);
 
       const root = renderWithLinterProvider({
+        _changeCanBeCommentedUpon,
         diff,
         enableCommenting,
         version,
@@ -1069,38 +1074,30 @@ describe(__filename, () => {
       throw new Error('renderGutter was undefined, but it should not be');
     };
 
-    it.each(['insert', 'normal'])(
-      'adds a commentable div to the gutter for a(n) %s change',
-      (changeType) => {
-        const change = {
-          ...fakeChangeInfo,
-          isDelete: false,
-          isInsert: changeType === 'insert',
-          isNormal: changeType === 'normal',
-        };
-        const className = 'test-class';
-        const defaultGutter = <div className={className} />;
-        const renderDefault = jest.fn();
-        const version = createInternalVersion(fakeVersion);
-        const wrapInAnchor = jest.fn().mockReturnValue(defaultGutter);
-        const gutter = _renderGutter({
-          change,
-          renderDefault,
-          version,
-          wrapInAnchor,
-        });
+    it('adds a commentable div to the gutter for a change that can be commented upon', () => {
+      const change = fakeChangeInfo;
+      const className = 'test-class';
+      const defaultGutter = <div className={className} />;
+      const renderDefault = jest.fn();
+      const version = createInternalVersion(fakeVersion);
+      const wrapInAnchor = jest.fn().mockReturnValue(defaultGutter);
+      const gutter = _renderGutter({
+        change,
+        renderDefault,
+        version,
+        wrapInAnchor,
+      });
 
-        const commentableDiv = gutter.find(Commentable);
+      const commentableDiv = gutter.find(Commentable);
 
-        expect(commentableDiv).toHaveLength(1);
-        expect(commentableDiv).toHaveProp('line', change.lineNumber);
-        expect(commentableDiv).toHaveProp('fileName', version.selectedPath);
-        expect(commentableDiv).toHaveProp('versionId', version.id);
+      expect(commentableDiv).toHaveLength(1);
+      expect(commentableDiv).toHaveProp('line', change.lineNumber);
+      expect(commentableDiv).toHaveProp('fileName', version.selectedPath);
+      expect(commentableDiv).toHaveProp('versionId', version.id);
 
-        expect(renderDefault).toHaveBeenCalled();
-        expect(wrapInAnchor).toHaveBeenCalled();
-      },
-    );
+      expect(renderDefault).toHaveBeenCalled();
+      expect(wrapInAnchor).toHaveBeenCalled();
+    });
 
     it('passes expected children to the commentable div', () => {
       const AddComment = () => <button type="button">Add</button>;
@@ -1129,17 +1126,12 @@ describe(__filename, () => {
       expect(gutter.find(`.${className}`)).toHaveLength(1);
     });
 
-    it('does not change the gutter when the change is a delete', () => {
+    it('does not change the gutter when the change cannot be commented upon', () => {
+      const _changeCanBeCommentedUpon = jest.fn().mockReturnValue(false);
       const className = 'test-class';
       const defaultGutter = <div className={className} />;
-      const change = {
-        ...fakeChangeInfo,
-        isDelete: true,
-        isInsert: false,
-        isNormal: false,
-      };
       const gutter = _renderGutter({
-        change,
+        _changeCanBeCommentedUpon,
         defaultGutter,
       });
 
@@ -1171,5 +1163,31 @@ describe(__filename, () => {
       expect(gutter.find(Commentable)).toHaveLength(0);
       expect(gutter.find(`.${className}`)).toHaveLength(1);
     });
+  });
+
+  describe('changeCanBeCommentedUpon', () => {
+    it.each(['insert', 'normal'])(
+      'returns true for a(n) %s change',
+      (changeType) => {
+        const change = {
+          ...fakeChangeInfo,
+          type: changeType as ChangeType,
+        };
+
+        expect(changeCanBeCommentedUpon(change)).toEqual(true);
+      },
+    );
+
+    it.each(['delete', 'delete-eofnl', 'insert-eofnl', 'normal-eofnl'])(
+      'returns true for a(n) %s change',
+      (changeType) => {
+        const change = {
+          ...fakeChangeInfo,
+          type: changeType as ChangeType,
+        };
+
+        expect(changeCanBeCommentedUpon(change)).toEqual(false);
+      },
+    );
   });
 });

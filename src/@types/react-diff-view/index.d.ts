@@ -1,7 +1,13 @@
 /* eslint react/no-multi-comp: 0, max-classes-per-file: 0 */
 
 declare module 'react-diff-view' {
-  type ChangeType = 'delete' | 'insert' | 'normal';
+  type ChangeType =
+    | 'delete'
+    | 'delete-eofnl'
+    | 'insert'
+    | 'insert-eofnl'
+    | 'normal'
+    | 'normal-eofnl';
 
   export type ChangeInfo = {
     content: string;
