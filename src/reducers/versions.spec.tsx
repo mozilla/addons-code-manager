@@ -801,6 +801,16 @@ describe(__filename, () => {
         type: entry.mime_category,
       });
     });
+
+    it('can handle a null sha256', () => {
+      const entry = { ...fakeVersionEntry, sha256: null };
+
+      expect(createInternalVersionEntry(entry)).toEqual(
+        expect.objectContaining({
+          sha256: null,
+        }),
+      );
+    });
   });
 
   describe('createInternalVersion', () => {
@@ -938,6 +948,30 @@ describe(__filename, () => {
       // condition that checks for a file will return undefined before we reach
       // this test under normal circumstances.
       (state.versionInfo[version.id] as Version).entries = [];
+      expect(
+        getVersionFile(state, version.id, version.file.selected_file),
+      ).toEqual(undefined);
+    });
+
+    it('returns undefined if there is no sha256 for the entry', () => {
+      const path = 'some/dir/test.js';
+      const version = {
+        ...fakeVersion,
+        file: {
+          ...fakeVersionFile,
+          entries: {
+            [path]: {
+              ...fakeVersionEntry,
+              path,
+              sha256: null,
+            },
+          },
+          selected_file: path,
+        },
+      };
+      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+      state = reducer(state, actions.loadVersionFile({ version, path }));
+
       expect(
         getVersionFile(state, version.id, version.file.selected_file),
       ).toEqual(undefined);
