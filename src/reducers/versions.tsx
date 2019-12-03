@@ -57,7 +57,7 @@ export type ExternalVersionEntry = {
   mimetype: string;
   modified: string;
   path: string;
-  sha256: string;
+  sha256: string | null;
   size: number | null;
   status?: VersionEntryStatus;
 };
@@ -184,7 +184,7 @@ export type VersionEntry = {
   mimeType: string;
   modified: string;
   path: string;
-  sha256: string;
+  sha256: string | null;
   type: VersionEntryType;
 };
 
@@ -591,6 +591,13 @@ export const getVersionFile = (
 
     if (!entry) {
       _log.debug(`Entry missing for path: ${path}, versionId: ${versionId}`);
+      return undefined;
+    }
+
+    if (!entry.sha256) {
+      _log.debug(
+        `sha256 missing for entry for path: ${path}, versionId: ${versionId}`,
+      );
       return undefined;
     }
 
