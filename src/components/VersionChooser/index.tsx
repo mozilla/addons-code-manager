@@ -138,6 +138,8 @@ export class VersionChooserBase extends React.Component<Props, State> {
     history.push(
       `/${lang}/compare/${addonId}/versions/${baseVersionId}...${headVersionId}/${query}`,
     );
+
+    this.setState({ baseVersionId: undefined, headVersionId: undefined });
   };
 
   onHeadVersionChange = (versionId: number) => {
@@ -147,6 +149,31 @@ export class VersionChooserBase extends React.Component<Props, State> {
   onBaseVersionChange = (versionId: number) => {
     this.setState({ baseVersionId: versionId });
   };
+
+  renderBrowseButton(versionId: string) {
+    const { addonId, dispatch, history } = this.props;
+    const lang = process.env.REACT_APP_DEFAULT_API_LANG;
+    const href = versionId
+      ? `/${lang}/browse/${addonId}/versions/${versionId}/`
+      : undefined;
+
+    return (
+      <Button
+        disabled={!versionId}
+        onClick={(event: React.FormEvent<HTMLButtonElement>) => {
+          event.preventDefault();
+          event.stopPropagation();
+          dispatch(popoverActions.hide(POPOVER_ID));
+          if (href) {
+            history.push(href);
+          }
+        }}
+        href={href}
+      >
+        {gettext('Browse')}
+      </Button>
+    );
+  }
 
   render() {
     const { _higherVersionsThan, _lowerVersionsThan, versionsMap } = this.props;
@@ -179,6 +206,7 @@ export class VersionChooserBase extends React.Component<Props, State> {
                 unlistedVersions={unlistedVersions}
                 value={baseVersionId}
               />
+              {this.renderBrowseButton(baseVersionId)}
             </div>
 
             <div className={styles.formRow}>
@@ -197,6 +225,7 @@ export class VersionChooserBase extends React.Component<Props, State> {
                 unlistedVersions={unlistedVersions}
                 value={headVersionId}
               />
+              {this.renderBrowseButton(headVersionId)}
             </div>
 
             <Button
