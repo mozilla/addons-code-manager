@@ -80,7 +80,12 @@ storiesOf('Comment', module)
           {
             title: 'saving a comment',
             sectionFn: () => {
-              const keyParams = { fileName: null, line: null, versionId: 1 };
+              const keyParams = {
+                commentId: undefined,
+                fileName: null,
+                line: null,
+                versionId: 1,
+              };
               const store = configureStore();
               store.dispatch(
                 commentsActions.beginSaveComment({
@@ -96,6 +101,7 @@ storiesOf('Comment', module)
             title: 'consider discarding a comment',
             sectionFn: () => {
               const keyParams = {
+                commentId: undefined,
                 fileName: null,
                 line: null,
                 versionId: 1,

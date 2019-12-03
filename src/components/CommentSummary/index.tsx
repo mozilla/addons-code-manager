@@ -39,6 +39,7 @@ const CommentSummary = ({ comments, className }: PublicProps) => {
   // Group comments by file / line so they appear under the same header.
   for (const comment of fileComments) {
     const key = createCommentKey({
+      commentId: undefined,
       fileName: comment.filename,
       line: comment.lineno,
     });

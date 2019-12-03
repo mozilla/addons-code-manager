@@ -12,6 +12,7 @@ import {
   createFakeThunk,
   dispatchComments,
   fakeAction,
+  nextUniqueId,
   shallowUntilTarget,
   spyOn,
 } from '../../test-helpers';
@@ -46,7 +47,12 @@ describe(__filename, () => {
     });
   };
 
-  const keyParams = Object.freeze({ fileName: null, line: null, versionId: 1 });
+  const keyParams = Object.freeze({
+    commentId: undefined,
+    fileName: null,
+    line: null,
+    versionId: nextUniqueId(),
+  });
 
   const renderComments = ({
     comments = [createFakeExternalComment()],
@@ -181,7 +187,7 @@ describe(__filename, () => {
   });
 
   it('does not render comments for different keys', () => {
-    const keyBase = { fileName: null, line: null };
+    const keyBase = { commentId: undefined, fileName: null, line: null };
     const versionId1 = 1;
     const versionId2 = 2;
 

@@ -37,6 +37,7 @@ describe(__filename, () => {
 
     expect(dispatch).toHaveBeenCalledWith(
       commentsActions.beginComment({
+        commentId: undefined,
         fileName,
         line,
         versionId,

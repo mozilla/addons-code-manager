@@ -205,7 +205,12 @@ describe(__filename, () => {
   });
 
   it('renders a pending state while saving a comment', () => {
-    const keyParams = { fileName: null, line: null, versionId: 1 };
+    const keyParams = {
+      commentId: undefined,
+      fileName: null,
+      line: null,
+      versionId: nextUniqueId(),
+    };
     const pendingCommentText = 'Example of a comment being edited';
     const store = configureStore();
     store.dispatch(
@@ -240,7 +245,12 @@ describe(__filename, () => {
   });
 
   it('seeds the form with initialCommentText', () => {
-    const keyParams = { fileName: null, line: null, versionId: 1 };
+    const keyParams = {
+      commentId: undefined,
+      fileName: null,
+      line: null,
+      versionId: nextUniqueId(),
+    };
     const pendingCommentText = 'Example of a comment being edited';
     const store = configureStore();
     store.dispatch(
@@ -320,6 +330,19 @@ describe(__filename, () => {
       listenToKeydown(fakeEvent);
 
       expect(fakeEvent.stopPropagation).toHaveBeenCalled();
+    });
+
+    it('removes and adds keydown event listener on update', () => {
+      const fakeRef = createFakeTextareaRef();
+      const root = render({ createTextareaRef: () => fakeRef });
+      const { addEventListener, removeEventListener } = fakeRef.current;
+      addEventListener.mockClear();
+      removeEventListener.mockClear();
+
+      root.setProps({});
+
+      expect(addEventListener).toHaveBeenCalled();
+      expect(removeEventListener).toHaveBeenCalled();
     });
 
     it('removes keydown event listeners on unmount', () => {
@@ -495,103 +518,221 @@ describe(__filename, () => {
   });
 
   describe('discarding a new comment', () => {
-    const getKeyParams = () => {
-      return { versionId: nextUniqueId(), fileName: 'example.json', line: 100 };
+    const setUpForDiscard = ({
+      commentId,
+    }: {
+      commentId: undefined | number;
+    }) => {
+      const store = configureStore();
+      const versionId = nextUniqueId();
+      const keyParams = {
+        commentId,
+        fileName: 'example.json',
+        line: nextUniqueId(),
+        versionId,
+      };
+
+      if (commentId) {
+        dispatchComment({
+          comment: createFakeExternalComment({ id: commentId }),
+          store,
+          versionId,
+        });
+      }
+      store.dispatch(actions.beginComment(keyParams));
+
+      return {
+        keyParams,
+        store,
+      };
     };
 
-    it('renders a discard button to cancel entering a comment', () => {
-      const store = configureStore();
-      const keyParams = getKeyParams();
-      store.dispatch(actions.beginComment(keyParams));
+    it.each([undefined, nextUniqueId()])(
+      'renders a discard button to cancel entering a comment with id=%s',
+      (commentId) => {
+        const { keyParams, store } = setUpForDiscard({ commentId });
+        const dispatchSpy = spyOn(store, 'dispatch');
+
+        const root = render({
+          store,
+          ...keyParams,
+        });
+        const discardButton = root.find(`.${styles.discardButton}`);
+
+        expect(discardButton).toHaveText('Discard');
+
+        discardButton.simulate('click');
+
+        expect(dispatchSpy).toHaveBeenCalledWith(
+          actions.considerDiscardComment(keyParams),
+        );
+      },
+    );
+
+    it.each([undefined, nextUniqueId()])(
+      'renders confirm button to discard a comment with id=%s',
+      (commentId) => {
+        const { keyParams, store } = setUpForDiscard({ commentId });
+        store.dispatch(actions.considerDiscardComment(keyParams));
+        const dispatchSpy = spyOn(store, 'dispatch');
+
+        const root = render({
+          store,
+          ...keyParams,
+        });
+        const discardButton = root.find(`.${styles.discardButton}`);
+
+        expect(discardButton).toHaveText('Confirm discard');
+
+        discardButton.simulate('click');
+
+        expect(dispatchSpy).toHaveBeenCalledWith(
+          actions.finishComment(keyParams),
+        );
+      },
+    );
+
+    it.each([undefined, nextUniqueId()])(
+      'disables the save button and textarea when ask for confirmation when commentId=%s',
+      (commentId) => {
+        const { keyParams, store } = setUpForDiscard({ commentId });
+        store.dispatch(actions.considerDiscardComment(keyParams));
+
+        const root = render({
+          store,
+          ...keyParams,
+        });
+
+        expect(root.find(`.${styles.saveButton}`)).toHaveProp('disabled', true);
+        expect(root.find(`.${styles.textarea}`)).toHaveProp('disabled', true);
+      },
+    );
+
+    it.each([undefined, nextUniqueId()])(
+      'provides a cancel button to abort discard when commentid=%s',
+      (commentId) => {
+        const { keyParams, store } = setUpForDiscard({ commentId });
+        store.dispatch(actions.considerDiscardComment(keyParams));
+        const dispatchSpy = spyOn(store, 'dispatch');
+
+        const root = render({
+          store,
+          ...keyParams,
+        });
+        const abortDiscardButton = root.find(`.${styles.abortDiscardButton}`);
+
+        expect(abortDiscardButton).toHaveText('Cancel');
+
+        abortDiscardButton.simulate('click');
+
+        expect(dispatchSpy).toHaveBeenCalledWith(
+          actions.abortDiscardComment(keyParams),
+        );
+      },
+    );
+
+    it.each([undefined, nextUniqueId()])(
+      'does not render the cancel button after abort discard when commentId=%s',
+      (commentId) => {
+        const { keyParams, store } = setUpForDiscard({ commentId });
+        store.dispatch(actions.beginComment(keyParams));
+        store.dispatch(actions.considerDiscardComment(keyParams));
+        store.dispatch(actions.abortDiscardComment(keyParams));
+
+        const root = render({
+          store,
+          ...keyParams,
+        });
+
+        expect(root.find(`.${styles.abortDiscardButton}`)).toHaveLength(0);
+      },
+    );
+  });
+
+  describe('editing a comment', () => {
+    const getKeyParams = () => {
+      return {
+        versionId: nextUniqueId(),
+        commentId: nextUniqueId(),
+        fileName: 'example.js',
+        line: nextUniqueId(),
+      };
+    };
+
+    const renderCommentToEdit = ({
+      beginEdit = false,
+      commentId = nextUniqueId(),
+      considerDelete = false,
+      fileName = 'example.json',
+      line = nextUniqueId(),
+      store = configureStore(),
+      versionId = nextUniqueId(),
+      ...params
+    }: RenderParams & {
+      beginEdit?: boolean;
+      commentId?: number;
+      considerDelete?: boolean;
+    } = {}) => {
+      const comment = createFakeExternalComment({
+        id: commentId,
+        filename: fileName,
+        lineno: line,
+        comment: 'Example of a comment',
+      });
+
+      dispatchComment({ comment, store, versionId });
+
+      if (considerDelete) {
+        store.dispatch(actions.considerDeleteComment({ commentId }));
+      }
+
+      if (beginEdit) {
+        store.dispatch(
+          actions.beginComment({
+            commentId,
+            fileName,
+            line,
+            versionId,
+          }),
+        );
+      }
       const dispatchSpy = spyOn(store, 'dispatch');
 
-      const root = render({
-        store,
-        ...keyParams,
-      });
-      const discardButton = root.find(`.${styles.discardButton}`);
+      return {
+        dispatchSpy,
+        root: render({
+          commentId,
+          fileName,
+          line,
+          readOnly: true,
+          store,
+          versionId,
+          ...params,
+        }),
+      };
+    };
 
-      expect(discardButton).toHaveText('Discard');
+    it('provides a button to start editing a comment', () => {
+      const keyParams = getKeyParams();
+      const { dispatchSpy, root } = renderCommentToEdit(keyParams);
+      const editButton = root.find(`.${styles.editButton}`);
 
-      discardButton.simulate('click');
+      expect(editButton).toHaveLength(1);
 
-      expect(dispatchSpy).toHaveBeenCalledWith(
-        actions.considerDiscardComment(keyParams),
-      );
+      editButton.simulate('click');
+
+      expect(dispatchSpy).toHaveBeenCalledWith(actions.beginComment(keyParams));
     });
 
-    it('renders confirm button to discard a comment', () => {
-      const store = configureStore();
+    it('disables the edit button when considering deletion', () => {
       const keyParams = getKeyParams();
-      store.dispatch(actions.beginComment(keyParams));
-      store.dispatch(actions.considerDiscardComment(keyParams));
-      const dispatchSpy = spyOn(store, 'dispatch');
-
-      const root = render({
-        store,
+      const { root } = renderCommentToEdit({
         ...keyParams,
+        considerDelete: true,
       });
-      const discardButton = root.find(`.${styles.discardButton}`);
+      const editButton = root.find(`.${styles.editButton}`);
 
-      expect(discardButton).toHaveText('Confirm discard');
-
-      discardButton.simulate('click');
-
-      expect(dispatchSpy).toHaveBeenCalledWith(
-        actions.finishComment(keyParams),
-      );
-    });
-
-    it('disables the save button and textarea when ask for confirmation', () => {
-      const store = configureStore();
-      const keyParams = getKeyParams();
-      store.dispatch(actions.beginComment(keyParams));
-      store.dispatch(actions.considerDiscardComment(keyParams));
-
-      const root = render({
-        store,
-        ...keyParams,
-      });
-
-      expect(root.find(`.${styles.saveButton}`)).toHaveProp('disabled', true);
-      expect(root.find(`.${styles.textarea}`)).toHaveProp('disabled', true);
-    });
-
-    it('provides a cancel button to abort discard', () => {
-      const store = configureStore();
-      const keyParams = getKeyParams();
-      store.dispatch(actions.beginComment(keyParams));
-      store.dispatch(actions.considerDiscardComment(keyParams));
-      const dispatchSpy = spyOn(store, 'dispatch');
-
-      const root = render({
-        store,
-        ...keyParams,
-      });
-      const abortDiscardButton = root.find(`.${styles.abortDiscardButton}`);
-
-      expect(abortDiscardButton).toHaveText('Cancel');
-
-      abortDiscardButton.simulate('click');
-
-      expect(dispatchSpy).toHaveBeenCalledWith(
-        actions.abortDiscardComment(keyParams),
-      );
-    });
-
-    it('does not render the cancel button after abort discard', () => {
-      const store = configureStore();
-      const keyParams = getKeyParams();
-      store.dispatch(actions.beginComment(keyParams));
-      store.dispatch(actions.considerDiscardComment(keyParams));
-      store.dispatch(actions.abortDiscardComment(keyParams));
-
-      const root = render({
-        store,
-        ...keyParams,
-      });
-
-      expect(root.find(`.${styles.abortDiscardButton}`)).toHaveLength(0);
+      expect(editButton).toHaveProp('disabled', true);
     });
   });
 });

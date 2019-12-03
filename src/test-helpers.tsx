@@ -914,12 +914,18 @@ export const createFakeComment = (comment: Partial<Comment> = {}) => {
 
 export const fakeAction = createAction('FAKE_ACTION');
 
+type DispatchCommentsParams = {
+  store?: Store;
+  comments?: ExternalComment[];
+  versionId?: number;
+};
+
 export const dispatchComments = ({
   store = configureStore(),
   /* istanbul ignore next */
   comments = [createFakeExternalComment()],
-  versionId = 1,
-} = {}) => {
+  versionId = nextUniqueId(),
+}: DispatchCommentsParams = {}) => {
   store.dispatch(commentsActions.setComments({ versionId, comments }));
 
   return { store };
@@ -930,7 +936,9 @@ export const dispatchComment = ({
   comment = createFakeExternalComment(),
   store = configureStore(),
   ...params
-} = {}) => {
+}: {
+  comment?: ExternalComment;
+} & Partial<Omit<DispatchCommentsParams, 'comments'>> = {}) => {
   return dispatchComments({ comments: [comment], store, ...params });
 };
 

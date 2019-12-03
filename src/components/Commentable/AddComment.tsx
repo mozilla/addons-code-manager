@@ -30,6 +30,7 @@ export const AddCommentBase = ({
         dispatch(
           commentsActions.beginComment({
             versionId,
+            commentId: undefined,
             fileName,
             line,
           }),
