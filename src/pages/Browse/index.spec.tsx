@@ -636,6 +636,7 @@ describe(__filename, () => {
       if (buildTree) {
         store.dispatch(
           fileTreeActions.buildTree({
+            comparedToVersionId: null,
             version: createInternalVersion(version),
           }),
         );

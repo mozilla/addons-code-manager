@@ -69,10 +69,10 @@ export class FileTreeBase extends React.Component<Props> {
   }
 
   _loadData = () => {
-    const { dispatch, tree, version } = this.props;
+    const { comparedToVersionId, dispatch, tree, version } = this.props;
 
     if (version && !tree) {
-      dispatch(fileTreeActions.buildTree({ version }));
+      dispatch(fileTreeActions.buildTree({ comparedToVersionId, version }));
     }
   };
 

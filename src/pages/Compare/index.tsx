@@ -58,6 +58,8 @@ type PropsFromState = {
   nextFileIsLoading: boolean;
   nextFilePath: string | undefined;
   entryStatusMap: EntryStatusMap | undefined;
+  fileTreeComparedToVersionId: number | null;
+  fileTreeVersionId: number | undefined;
   path: string | undefined;
   version: Version | undefined | null;
   versionFile: VersionFile | undefined | null;
@@ -92,6 +94,8 @@ export class CompareBase extends React.Component<Props> {
       currentBaseVersionId,
       currentVersionId,
       entryStatusMap,
+      fileTreeComparedToVersionId,
+      fileTreeVersionId,
       dispatch,
       history,
       match,
@@ -131,10 +135,17 @@ export class CompareBase extends React.Component<Props> {
       );
     }
 
+    // Force-reload a version so the file tree rebuilds itself.
+    const forceReloadVersion = fileTreeVersionId
+      ? oldVersionId !== fileTreeComparedToVersionId ||
+        newVersionId !== fileTreeVersionId
+      : false;
+
     if (
       compareInfo === undefined ||
       version === undefined ||
-      entryStatusMap === undefined
+      entryStatusMap === undefined ||
+      forceReloadVersion
     ) {
       dispatch(
         _fetchDiff({
@@ -142,6 +153,7 @@ export class CompareBase extends React.Component<Props> {
           baseVersionId: oldVersionId,
           headVersionId: newVersionId,
           path: path || undefined,
+          forceReloadVersion,
         }),
       );
       return;
@@ -268,7 +280,7 @@ export const mapStateToProps = (
   ownProps: RouteComponentProps<PropsFromRouter>,
 ): PropsFromState => {
   const { history, match } = ownProps;
-  const { versions } = state;
+  const { fileTree, versions } = state;
   const addonId = parseInt(match.params.addonId, 10);
   const baseVersionId = parseInt(match.params.baseVersionId, 10);
   const headVersionId = parseInt(match.params.headVersionId, 10);
@@ -333,6 +345,8 @@ export const mapStateToProps = (
     currentBaseVersionId: state.versions.currentBaseVersionId,
     currentVersionId,
     entryStatusMap,
+    fileTreeComparedToVersionId: fileTree.comparedToVersionId,
+    fileTreeVersionId: fileTree.forVersionId,
     nextCompareInfo,
     nextFile: nextFilePath
       ? getVersionFile(state.versions, headVersionId, nextFilePath)

@@ -3,7 +3,12 @@ import log from 'loglevel';
 import { Reducer } from 'redux';
 import { ActionType, deprecated, getType } from 'typesafe-actions';
 
-import { EntryStatusMap, Version, viewVersionFile } from './versions';
+import {
+  actions as versionsActions,
+  EntryStatusMap,
+  Version,
+  viewVersionFile,
+} from './versions';
 import { ThunkActionCreator } from '../configureStore';
 import {
   createAdjustedQueryString,
@@ -466,18 +471,23 @@ export type FileTree = {
 };
 
 export type FileTreeState = {
+  comparedToVersionId: null | number;
   forVersionId: undefined | number;
   tree: undefined | FileTree;
 };
 
 export const initialState: FileTreeState = {
+  comparedToVersionId: null,
   forVersionId: undefined,
   tree: undefined,
 };
 
 export const actions = {
   buildTree: createAction('BUILD_TREE', (resolve) => {
-    return (payload: { version: Version }) => resolve(payload);
+    return (payload: {
+      comparedToVersionId: number | null;
+      version: Version;
+    }) => resolve(payload);
   }),
 };
 
@@ -491,19 +501,35 @@ export const getTree = (
   return treeState.tree;
 };
 
-const reducer: Reducer<FileTreeState, ActionType<typeof actions>> = (
-  state = initialState,
-  action,
-): FileTreeState => {
+const reducer: Reducer<
+  FileTreeState,
+  ActionType<typeof actions | typeof versionsActions>
+> = (state = initialState, action): FileTreeState => {
   switch (action.type) {
     case getType(actions.buildTree): {
-      const { version } = action.payload;
+      const { comparedToVersionId, version } = action.payload;
       const tree = buildFileTree(version);
 
       return {
         ...state,
+        comparedToVersionId,
         forVersionId: version.id,
         tree,
+      };
+    }
+    case getType(versionsActions.loadVersionInfo): {
+      let { forVersionId } = state;
+      const { version } = action.payload;
+
+      if (forVersionId === version.id) {
+        // When *re-loading* a version, invalidate the current tree. This
+        // will force it to be rebuilt using the reloaded version object.
+        forVersionId = undefined;
+      }
+
+      return {
+        ...state,
+        forVersionId,
       };
     }
     default:

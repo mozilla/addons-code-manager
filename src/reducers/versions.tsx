@@ -964,6 +964,7 @@ type FetchDiffParams = {
   _getDiff?: typeof getDiff;
   addonId: number;
   baseVersionId: number;
+  forceReloadVersion?: boolean;
   headVersionId: number;
   path?: string;
 };
@@ -1045,6 +1046,7 @@ export const fetchDiff = ({
   baseVersionId,
   headVersionId,
   path,
+  forceReloadVersion,
 }: FetchDiffParams): ThunkActionCreator => {
   return async (dispatch, getState) => {
     const { api: apiState, versions: versionsState } = getState();
@@ -1085,7 +1087,7 @@ export const fetchDiff = ({
       dispatch(actions.abortFetchVersion({ versionId: headVersionId }));
       dispatch(errorsActions.addError({ error: response.error }));
     } else {
-      if (!getVersionInfo(versionsState, response.id)) {
+      if (forceReloadVersion || !getVersionInfo(versionsState, response.id)) {
         dispatch(
           actions.loadVersionInfo({
             version: response,

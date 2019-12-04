@@ -18,7 +18,11 @@ import reducer, {
   goToRelativeMessage,
   initialState,
 } from './fileTree';
-import { createInternalVersion, createInternalVersionEntry } from './versions';
+import {
+  actions as versionsActions,
+  createInternalVersion,
+  createInternalVersionEntry,
+} from './versions';
 import { getMessageMap } from './linter';
 import configureStore from '../configureStore';
 import {
@@ -30,6 +34,7 @@ import {
   fakeVersion,
   fakeVersionEntry,
   getFakeVersionAndPathList,
+  nextUniqueId,
   thunkTester,
 } from '../test-helpers';
 import { getLocalizedString } from '../utils';
@@ -38,20 +43,72 @@ describe(__filename, () => {
   describe('reducer', () => {
     it('builds and loads a tree', () => {
       const version = createInternalVersion(fakeVersion);
-      const state = reducer(undefined, actions.buildTree({ version }));
+      const comparedToVersionId = nextUniqueId();
+      const state = reducer(
+        undefined,
+        actions.buildTree({ comparedToVersionId, version }),
+      );
 
       expect(state).toEqual({
         ...initialState,
+        comparedToVersionId,
         forVersionId: version.id,
         tree: buildFileTree(version),
       });
+    });
+
+    it('invalidates the tree when reloading a version', () => {
+      let state = reducer(
+        undefined,
+        actions.buildTree({
+          comparedToVersionId: null,
+          version: createInternalVersion(fakeVersion),
+        }),
+      );
+      state = reducer(
+        state,
+        versionsActions.loadVersionInfo({ version: fakeVersion }),
+      );
+
+      expect(state).toEqual(
+        expect.objectContaining({
+          forVersionId: undefined,
+        }),
+      );
+    });
+
+    it('does not reset the tree when loading another version', () => {
+      const oldVerisonId = nextUniqueId();
+      const newVersionId = nextUniqueId();
+      let state = reducer(
+        undefined,
+        actions.buildTree({
+          comparedToVersionId: null,
+          version: createInternalVersion({ ...fakeVersion, id: oldVerisonId }),
+        }),
+      );
+      state = reducer(
+        state,
+        versionsActions.loadVersionInfo({
+          version: { ...fakeVersion, id: newVersionId },
+        }),
+      );
+
+      expect(state).toEqual(
+        expect.objectContaining({
+          forVersionId: oldVerisonId,
+        }),
+      );
     });
   });
 
   describe('getTree', () => {
     it('returns a tree', () => {
       const version = createInternalVersion(fakeVersion);
-      const state = reducer(undefined, actions.buildTree({ version }));
+      const state = reducer(
+        undefined,
+        actions.buildTree({ comparedToVersionId: null, version }),
+      );
 
       expect(getTree(state, version.id)).toEqual(buildFileTree(version));
     });
@@ -68,7 +125,7 @@ describe(__filename, () => {
       const version2 = createInternalVersion({ ...fakeVersion, id: 2 });
       const state = reducer(
         undefined,
-        actions.buildTree({ version: version2 }),
+        actions.buildTree({ comparedToVersionId: null, version: version2 }),
       );
 
       expect(getTree(state, version1.id)).toEqual(undefined);
