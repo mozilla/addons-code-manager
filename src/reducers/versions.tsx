@@ -326,6 +326,18 @@ export const actions = {
   abortFetchVersion: createAction('ABORT_FETCH_VERSION', (resolve) => {
     return (payload: { versionId: number }) => resolve(payload);
   }),
+  setPendingBaseVersionId: createAction(
+    'SET_PENDING_BASE_VERSION_ID',
+    (resolve) => {
+      return (payload: { versionId: number }) => resolve(payload);
+    },
+  ),
+  setPendingHeadVersionId: createAction(
+    'SET_PENDING_HEAD_VERSION_ID',
+    (resolve) => {
+      return (payload: { versionId: number }) => resolve(payload);
+    },
+  ),
 };
 
 export type VersionsState = {
@@ -353,6 +365,8 @@ export type VersionsState = {
     [entryStatusMapKey: string]: EntryStatusMap;
   };
   expandedPaths: string[] | undefined;
+  pendingBaseVersionId: number | undefined;
+  pendingHeadVersionId: number | undefined;
   selectedPath: string | null;
   visibleSelectedPath: string | null;
   versionInfo: {
@@ -387,6 +401,8 @@ export const initialState: VersionsState = {
   currentVersionId: undefined,
   entryStatusMaps: {},
   expandedPaths: undefined,
+  pendingBaseVersionId: undefined,
+  pendingHeadVersionId: undefined,
   selectedPath: null,
   visibleSelectedPath: null,
   versionFiles: {},
@@ -1591,6 +1607,20 @@ export const createReducer = ({
         return {
           ...state,
           currentBaseVersionId: versionId,
+        };
+      }
+      case getType(actions.setPendingBaseVersionId): {
+        const { versionId } = action.payload;
+        return {
+          ...state,
+          pendingBaseVersionId: versionId,
+        };
+      }
+      case getType(actions.setPendingHeadVersionId): {
+        const { versionId } = action.payload;
+        return {
+          ...state,
+          pendingHeadVersionId: versionId,
         };
       }
       case getType(actions.setCurrentVersionId): {

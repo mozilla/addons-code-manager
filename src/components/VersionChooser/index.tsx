@@ -14,6 +14,7 @@ import {
   PopoverIdType,
 } from '../../reducers/popover';
 import {
+  actions as versionsActions,
   VersionsListItem,
   VersionsMap,
   VersionsState,
@@ -45,6 +46,8 @@ export type DefaultProps = {
 type PropsFromState = {
   currentBaseVersionId: number | undefined | false;
   currentVersionId: number | undefined | false;
+  pendingBaseVersionId: number | undefined;
+  pendingHeadVersionId: number | undefined;
   versionsMap: VersionsMap;
   versions: VersionsState;
   selectedPath: string | null;
@@ -58,22 +61,12 @@ type Props = PublicProps &
   PropsFromState &
   RouterProps;
 
-type State = {
-  baseVersionId: number | undefined;
-  headVersionId: number | undefined;
-};
-
-export class VersionChooserBase extends React.Component<Props, State> {
+export class VersionChooserBase extends React.Component<Props> {
   static defaultProps: DefaultProps = {
     _fetchVersionsList: fetchVersionsList,
     _higherVersionsThan: higherVersionsThan,
     _lowerVersionsThan: lowerVersionsThan,
   };
-
-  constructor(props: Props) {
-    super(props);
-    this.state = { baseVersionId: undefined, headVersionId: undefined };
-  }
 
   componentDidMount() {
     const { _fetchVersionsList, addonId, dispatch, versionsMap } = this.props;
@@ -82,17 +75,42 @@ export class VersionChooserBase extends React.Component<Props, State> {
       dispatch(_fetchVersionsList({ addonId }));
     }
 
-    this.initializeBaseVersion();
+    this.synchronize();
   }
 
   componentDidUpdate() {
-    this.initializeBaseVersion();
+    this.synchronize();
   }
 
-  initializeBaseVersion() {
-    const { versionsMap } = this.props;
+  synchronize() {
+    const {
+      currentBaseVersionId,
+      currentVersionId,
+      dispatch,
+      pendingBaseVersionId,
+      pendingHeadVersionId,
+      versionsMap,
+    } = this.props;
 
-    if (this.getBaseVersionId()) {
+    if (pendingBaseVersionId === undefined && currentBaseVersionId) {
+      dispatch(
+        versionsActions.setPendingBaseVersionId({
+          versionId: currentBaseVersionId,
+        }),
+      );
+      return;
+    }
+
+    if (pendingHeadVersionId === undefined && currentVersionId) {
+      dispatch(
+        versionsActions.setPendingHeadVersionId({
+          versionId: currentVersionId,
+        }),
+      );
+      return;
+    }
+
+    if (pendingBaseVersionId) {
       return;
     }
 
@@ -103,30 +121,24 @@ export class VersionChooserBase extends React.Component<Props, State> {
     if (allBaseVersions.length) {
       // When nothing in the base version dropdown is selected,
       // choose the last item in the dropdown, the lowest base version.
-      this.setState({
-        baseVersionId: allBaseVersions[allBaseVersions.length - 1].id,
-      });
+      dispatch(
+        versionsActions.setPendingBaseVersionId({
+          versionId: allBaseVersions[allBaseVersions.length - 1].id,
+        }),
+      );
     }
-  }
-
-  getBaseVersionId() {
-    const { currentBaseVersionId } = this.props;
-    const { baseVersionId } = this.state;
-    return baseVersionId || currentBaseVersionId;
-  }
-
-  getHeadVersionId() {
-    const { currentVersionId } = this.props;
-    const { headVersionId } = this.state;
-    return headVersionId || currentVersionId;
   }
 
   onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const headVersionId = this.getHeadVersionId();
-    const baseVersionId = this.getBaseVersionId();
-
-    const { addonId, dispatch, history, selectedPath } = this.props;
+    const {
+      addonId,
+      dispatch,
+      history,
+      pendingBaseVersionId,
+      pendingHeadVersionId,
+      selectedPath,
+    } = this.props;
 
     const query = selectedPath
       ? `?${queryString.stringify({ path: selectedPath })}`
@@ -136,18 +148,18 @@ export class VersionChooserBase extends React.Component<Props, State> {
 
     const lang = process.env.REACT_APP_DEFAULT_API_LANG;
     history.push(
-      `/${lang}/compare/${addonId}/versions/${baseVersionId}...${headVersionId}/${query}`,
+      `/${lang}/compare/${addonId}/versions/${pendingBaseVersionId}...${pendingHeadVersionId}/${query}`,
     );
-
-    this.setState({ baseVersionId: undefined, headVersionId: undefined });
   };
 
   onHeadVersionChange = (versionId: number) => {
-    this.setState({ headVersionId: versionId });
+    const { dispatch } = this.props;
+    dispatch(versionsActions.setPendingHeadVersionId({ versionId }));
   };
 
   onBaseVersionChange = (versionId: number) => {
-    this.setState({ baseVersionId: versionId });
+    const { dispatch } = this.props;
+    dispatch(versionsActions.setPendingBaseVersionId({ versionId }));
   };
 
   renderBrowseButton(versionId: string) {
@@ -176,9 +188,15 @@ export class VersionChooserBase extends React.Component<Props, State> {
   }
 
   render() {
-    const { _higherVersionsThan, _lowerVersionsThan, versionsMap } = this.props;
-    const headVersionId = String(this.getHeadVersionId() || '');
-    const baseVersionId = String(this.getBaseVersionId() || '');
+    const {
+      _higherVersionsThan,
+      _lowerVersionsThan,
+      pendingBaseVersionId,
+      pendingHeadVersionId,
+      versionsMap,
+    } = this.props;
+    const headVersionId = String(pendingHeadVersionId || '');
+    const baseVersionId = String(pendingBaseVersionId || '');
 
     const listedVersions = versionsMap ? versionsMap.listed : [];
     const unlistedVersions = versionsMap ? versionsMap.unlisted : [];
@@ -255,6 +273,8 @@ const mapStateToProps = (
   return {
     currentBaseVersionId: state.versions.currentBaseVersionId,
     currentVersionId: state.versions.currentVersionId,
+    pendingBaseVersionId: state.versions.pendingBaseVersionId,
+    pendingHeadVersionId: state.versions.pendingHeadVersionId,
     selectedPath,
     versions: state.versions,
     versionsMap: byAddonId[addonId],
