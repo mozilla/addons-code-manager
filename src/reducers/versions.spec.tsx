@@ -1674,6 +1674,9 @@ describe(__filename, () => {
       };
     };
 
+    const oldLineNumber = nextUniqueId();
+    const newLineNumber = nextUniqueId();
+
     it('creates an internal hunk', () => {
       const externalHunk = fakeExternalDiff.hunks[0];
       const hunk = createInternalHunk(externalHunk);
@@ -1716,35 +1719,18 @@ describe(__filename, () => {
       });
     });
 
-    it('creates "delete" changes', () => {
-      const type = 'delete';
-      const oldLineNumber = 123;
+    it.each([
+      'delete',
+      'insert',
+      'normal',
+      'delete-eofnl',
+      'insert-eofnl',
+      'normal-eofnl',
+    ])('creates "%s" changes', (type) => {
       const hunk = createInternalHunk(
         createExternalHunkWithChange({
           // eslint-disable-next-line @typescript-eslint/camelcase
           old_line_number: oldLineNumber,
-          // eslint-disable-next-line @typescript-eslint/camelcase
-          new_line_number: oldLineNumber + 1,
-          type,
-        }),
-      );
-
-      const change = hunk.changes[0];
-
-      expect(change).toHaveProperty('type', type);
-      expect(change).toHaveProperty('isDelete', true);
-      expect(change).toHaveProperty('isInsert', false);
-      expect(change).toHaveProperty('isNormal', false);
-      expect(change).toHaveProperty('lineNumber', oldLineNumber);
-    });
-
-    it('creates "insert" changes', () => {
-      const type = 'insert';
-      const newLineNumber = 123;
-      const hunk = createInternalHunk(
-        createExternalHunkWithChange({
-          // eslint-disable-next-line @typescript-eslint/camelcase
-          old_line_number: newLineNumber - 1,
           // eslint-disable-next-line @typescript-eslint/camelcase
           new_line_number: newLineNumber,
           type,
@@ -1754,32 +1740,15 @@ describe(__filename, () => {
       const change = hunk.changes[0];
 
       expect(change).toHaveProperty('type', type);
-      expect(change).toHaveProperty('isDelete', false);
-      expect(change).toHaveProperty('isInsert', true);
-      expect(change).toHaveProperty('isNormal', false);
-      expect(change).toHaveProperty('lineNumber', newLineNumber);
-    });
-
-    it('creates "normal" changes', () => {
-      const type = 'normal';
-      const oldLineNumber = 123;
-      const hunk = createInternalHunk(
-        createExternalHunkWithChange({
-          // eslint-disable-next-line @typescript-eslint/camelcase
-          old_line_number: oldLineNumber,
-          // eslint-disable-next-line @typescript-eslint/camelcase
-          new_line_number: oldLineNumber + 1,
-          type,
-        }),
+      expect(change).toHaveProperty('isDelete', type === 'delete');
+      expect(change).toHaveProperty('isInsert', type === 'insert');
+      expect(change).toHaveProperty('isNormal', type === 'normal');
+      expect(change).toHaveProperty(
+        'lineNumber',
+        ['delete', 'delete-eofnl'].includes(type)
+          ? oldLineNumber
+          : newLineNumber,
       );
-
-      const change = hunk.changes[0];
-
-      expect(change).toHaveProperty('type', type);
-      expect(change).toHaveProperty('isDelete', false);
-      expect(change).toHaveProperty('isInsert', false);
-      expect(change).toHaveProperty('isNormal', true);
-      expect(change).toHaveProperty('lineNumber', oldLineNumber);
     });
   });
 

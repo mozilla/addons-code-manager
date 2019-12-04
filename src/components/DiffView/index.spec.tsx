@@ -658,6 +658,31 @@ describe(__filename, () => {
     );
   });
 
+  it.each(['delete-eofnl', 'insert-eofnl', 'normal-eofnl'])(
+    'does not render a widget for %s changes',
+    (type) => {
+      const changeType = type as ChangeType;
+      const line = nextUniqueId();
+      const externalMessages = [{ line, uid: 'first' }];
+      const version = createInternalVersion({
+        ...fakeVersion,
+        id: nextUniqueId(),
+      });
+      const diff = createDiffWithHunks([
+        createHunkWithChanges([{ type: changeType, new_line_number: line }]),
+      ]);
+      const widgets = renderAndGetWidgets({
+        diff,
+        selectedMessageMap: createFakeLinterMessagesByPath({
+          messages: externalMessages,
+        }),
+        version,
+      });
+
+      expect(getWidgetNodes(widgets).length).toEqual(0);
+    },
+  );
+
   describe('comment list', () => {
     it('renders inline comments for commentable lines', () => {
       const CommentListResult = () => <div />;
