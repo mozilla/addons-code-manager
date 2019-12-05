@@ -1,5 +1,4 @@
 import makeClassName from 'classnames';
-import queryString from 'query-string';
 import * as React from 'react';
 import { Button, Form } from 'react-bootstrap';
 import { connect } from 'react-redux';
@@ -50,7 +49,6 @@ type PropsFromState = {
   pendingHeadVersionId: number | undefined;
   versionsMap: VersionsMap;
   versions: VersionsState;
-  selectedPath: string | null;
 };
 
 type RouterProps = RouteComponentProps<{}>;
@@ -129,6 +127,16 @@ export class VersionChooserBase extends React.Component<Props> {
     }
   }
 
+  addLocationQueryString(url: string) {
+    const { history } = this.props;
+    if (!url.endsWith('/')) {
+      // This is probably a URL with an existing query string.
+      // We do not currently need to support this.
+      throw new Error(`The URL '${url}' must end in a trailing slash`);
+    }
+    return `${url}${history.location.search}`;
+  }
+
   onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const {
@@ -137,18 +145,15 @@ export class VersionChooserBase extends React.Component<Props> {
       history,
       pendingBaseVersionId,
       pendingHeadVersionId,
-      selectedPath,
     } = this.props;
-
-    const query = selectedPath
-      ? `?${queryString.stringify({ path: selectedPath })}`
-      : '';
 
     dispatch(popoverActions.hide(POPOVER_ID));
 
     const lang = process.env.REACT_APP_DEFAULT_API_LANG;
     history.push(
-      `/${lang}/compare/${addonId}/versions/${pendingBaseVersionId}...${pendingHeadVersionId}/${query}`,
+      this.addLocationQueryString(
+        `/${lang}/compare/${addonId}/versions/${pendingBaseVersionId}...${pendingHeadVersionId}/`,
+      ),
     );
   };
 
@@ -166,7 +171,9 @@ export class VersionChooserBase extends React.Component<Props> {
     const { addonId, dispatch, history } = this.props;
     const lang = process.env.REACT_APP_DEFAULT_API_LANG;
     const href = versionId
-      ? `/${lang}/browse/${addonId}/versions/${versionId}/`
+      ? this.addLocationQueryString(
+          `/${lang}/browse/${addonId}/versions/${versionId}/`,
+        )
       : undefined;
 
     return (
@@ -267,7 +274,7 @@ const mapStateToProps = (
   state: ApplicationState,
   ownProps: PublicProps,
 ): PropsFromState => {
-  const { byAddonId, selectedPath } = state.versions;
+  const { byAddonId } = state.versions;
   const { addonId } = ownProps;
 
   return {
@@ -275,7 +282,6 @@ const mapStateToProps = (
     currentVersionId: state.versions.currentVersionId,
     pendingBaseVersionId: state.versions.pendingBaseVersionId,
     pendingHeadVersionId: state.versions.pendingHeadVersionId,
-    selectedPath,
     versions: state.versions,
     versionsMap: byAddonId[addonId],
   };

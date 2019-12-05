@@ -15,13 +15,13 @@ import {
   ExternalVersionsListItem,
   actions as versionsActions,
 } from '../../reducers/versions';
+import { pathQueryParam } from '../../utils';
 import {
   createContextWithFakeRouter,
   createFakeHistory,
   createFakeThunk,
   createStoreWithVersion,
   fakeVersion,
-  fakeVersionFile,
   fakeVersionsList,
   fakeVersionsListItem,
   nextUniqueId,
@@ -29,6 +29,7 @@ import {
   spyOn,
   simulatePopover,
   createFakeEvent,
+  createFakeLocation,
 } from '../../test-helpers';
 import styles from './styles.module.scss';
 
@@ -130,6 +131,10 @@ describe(__filename, () => {
 
   const submitForm = (wrapper: ShallowWrapper) => {
     wrapper.find(Form).simulate('submit', createFakeEvent());
+  };
+
+  const getInstance = (root: ShallowWrapper) => {
+    return root.instance() as VersionChooserBase;
   };
 
   const _loadVersionsList = ({
@@ -519,14 +524,9 @@ describe(__filename, () => {
   it('pushes a new URL with a query string when the version has been loaded', () => {
     const baseVersionId = nextUniqueId();
     const headVersionId = nextUniqueId();
-    const selectedFile = 'example.js';
 
     const store = createStoreWithVersion({
-      version: {
-        ...fakeVersion,
-        id: headVersionId,
-        file: { ...fakeVersionFile, selected_file: selectedFile },
-      },
+      version: { ...fakeVersion, id: headVersionId },
     });
     const { addonId } = _loadVersionsList({ store });
 
@@ -539,7 +539,12 @@ describe(__filename, () => {
 
     const history = createFakeHistory();
 
-    const { content } = renderForm({
+    const addLocationQueryStringSpy = jest.spyOn(
+      VersionChooserBase.prototype,
+      'addLocationQueryString',
+    );
+
+    const { content, root } = renderForm({
       addonId,
       setBaseVersion: false,
       setHeadVersion: false,
@@ -549,8 +554,10 @@ describe(__filename, () => {
 
     submitForm(content);
 
+    const expectedUrl = `/${lang}/compare/${addonId}/versions/${baseVersionId}...${headVersionId}/`;
+    expect(addLocationQueryStringSpy).toHaveBeenCalledWith(expectedUrl);
     expect(history.push).toHaveBeenCalledWith(
-      `/${lang}/compare/${addonId}/versions/${baseVersionId}...${headVersionId}/?path=${selectedFile}`,
+      getInstance(root).addLocationQueryString(expectedUrl),
     );
   });
 
@@ -616,9 +623,10 @@ describe(__filename, () => {
       ...props
     }: { versionId?: string } & RenderParams = {}) => {
       const root = render(props);
-      return shallow(
-        (root.instance() as VersionChooserBase).renderBrowseButton(versionId),
-      );
+      return {
+        button: shallow(getInstance(root).renderBrowseButton(versionId)),
+        root,
+      };
     };
 
     it('renders a browse button for the base version and head version', () => {
@@ -649,7 +657,12 @@ describe(__filename, () => {
       const dispatchSpy = spyOn(store, 'dispatch');
       const fakeEvent = createFakeEvent();
 
-      const button = _renderBrowseButton({
+      const addLocationQueryStringSpy = jest.spyOn(
+        VersionChooserBase.prototype,
+        'addLocationQueryString',
+      );
+
+      const { button, root } = _renderBrowseButton({
         addonId,
         history,
         store,
@@ -657,13 +670,19 @@ describe(__filename, () => {
       });
 
       const expectedHref = `/${process.env.REACT_APP_DEFAULT_API_LANG}/browse/${addonId}/versions/${versionId}/`;
+      expect(addLocationQueryStringSpy).toHaveBeenCalledWith(expectedHref);
 
       expect(button).toHaveProp('disabled', false);
-      expect(button).toHaveProp('href', expectedHref);
+      expect(button).toHaveProp(
+        'href',
+        getInstance(root).addLocationQueryString(expectedHref),
+      );
 
       button.simulate('click', fakeEvent);
 
-      expect(history.push).toHaveBeenCalledWith(expectedHref);
+      expect(history.push).toHaveBeenCalledWith(
+        getInstance(root).addLocationQueryString(expectedHref),
+      );
       expect(fakeEvent.preventDefault).toHaveBeenCalled();
       expect(fakeEvent.stopPropagation).toHaveBeenCalled();
       expect(dispatchSpy).toHaveBeenCalledWith(popoverActions.hide(POPOVER_ID));
@@ -671,7 +690,7 @@ describe(__filename, () => {
 
     it('renders a disabled button when the version ID is empty', () => {
       const history = createFakeHistory();
-      const button = _renderBrowseButton({ history, versionId: '' });
+      const { button } = _renderBrowseButton({ history, versionId: '' });
 
       expect(button).toHaveProp('disabled', true);
       expect(button).toHaveProp('href', undefined);
@@ -740,6 +759,37 @@ describe(__filename, () => {
       };
 
       expect(lowerVersionsThan(versionId)(version)).toEqual(false);
+    });
+  });
+
+  describe('addLocationQueryString', () => {
+    it('adds the location query string', () => {
+      const location = createFakeLocation({
+        searchQuery: {
+          [pathQueryParam]: 'manifest.json',
+        },
+      });
+      const root = render({ history: createFakeHistory({ location }) });
+
+      const url = 'any/path/';
+      expect(getInstance(root).addLocationQueryString(url)).toEqual(
+        `${url}${location.search}`,
+      );
+    });
+
+    it('handles an empty location query string', () => {
+      const root = render();
+
+      const url = 'any/path/';
+      expect(getInstance(root).addLocationQueryString(url)).toEqual(url);
+    });
+
+    it('does not support URLs with existing query strings', () => {
+      const root = render();
+
+      expect(() => {
+        getInstance(root).addLocationQueryString('/some/path/?existing=query');
+      }).toThrow(/must end in a trailing slash/);
     });
   });
 });
