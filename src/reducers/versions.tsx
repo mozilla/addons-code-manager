@@ -198,6 +198,7 @@ type VersionAddon = {
 
 export type Version = {
   addon: VersionAddon;
+  initialPath: string;
   entries: VersionEntry[];
   id: number;
   reviewed: string;
@@ -491,6 +492,7 @@ export const createInternalVersion = (
 ): Version => {
   return {
     addon: createInternalVersionAddon(version.addon),
+    initialPath: version.file.selected_file,
     entries: Object.keys(version.file.entries).map((nodeName) => {
       return createInternalVersionEntry(version.file.entries[nodeName]);
     }),
