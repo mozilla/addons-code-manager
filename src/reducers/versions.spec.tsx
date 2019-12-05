@@ -3609,4 +3609,26 @@ describe(__filename, () => {
       expect(selectVersionIsLoading(state, nextUniqueId())).toEqual(false);
     });
   });
+
+  describe('setPendingBaseVersionId', () => {
+    it('sets a pending base version ID', () => {
+      const versionId = nextUniqueId();
+      expect(
+        reducer(undefined, actions.setPendingBaseVersionId({ versionId })),
+      ).toMatchObject({
+        pendingBaseVersionId: versionId,
+      });
+    });
+  });
+
+  describe('setPendingHeadVersionId', () => {
+    it('sets a pending head version ID', () => {
+      const versionId = nextUniqueId();
+      expect(
+        reducer(undefined, actions.setPendingHeadVersionId({ versionId })),
+      ).toMatchObject({
+        pendingHeadVersionId: versionId,
+      });
+    });
+  });
 });

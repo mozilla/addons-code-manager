@@ -54,7 +54,12 @@ describe(__filename, () => {
     channel: 'unlisted',
   };
 
-  type RenderParams = Partial<PublicProps> &
+  type RenderParams = {
+    baseVersionId?: number;
+    headVersionId?: number;
+    setBaseVersion?: boolean;
+    setHeadVersion?: boolean;
+  } & Partial<PublicProps> &
     Partial<DefaultProps> & {
       store?: Store;
       history?: History;
@@ -64,29 +69,24 @@ describe(__filename, () => {
     _fetchVersionsList,
     _higherVersionsThan,
     _lowerVersionsThan,
-    addonId = 123,
+    addonId = nextUniqueId(),
     baseVersionId = nextUniqueId(),
     headVersionId = nextUniqueId(),
     history = createFakeHistory(),
     setBaseVersion = true,
     setHeadVersion = true,
     store = configureStore(),
-  }: {
-    baseVersionId?: number;
-    headVersionId?: number;
-    setBaseVersion?: boolean;
-    setHeadVersion?: boolean;
-  } & RenderParams = {}) => {
+  }: RenderParams = {}) => {
     if (setBaseVersion) {
       store.dispatch(
-        versionsActions.setCurrentBaseVersionId({
+        versionsActions.setPendingBaseVersionId({
           versionId: baseVersionId,
         }),
       );
     }
     if (setHeadVersion) {
       store.dispatch(
-        versionsActions.setCurrentVersionId({
+        versionsActions.setPendingHeadVersionId({
           versionId: headVersionId,
         }),
       );
@@ -227,12 +227,14 @@ describe(__filename, () => {
     ];
 
     const { addonId, store } = _loadVersionsList({ versions });
+    const dispatchSpy = spyOn(store, 'dispatch');
 
-    const { content } = renderForm({ addonId, setBaseVersion: false, store });
+    renderForm({ addonId, setBaseVersion: false, store });
 
-    expect(content.find(`.${styles.baseVersionSelect}`)).toHaveProp(
-      'value',
-      String(versions[versions.length - 1].id),
+    expect(dispatchSpy).toHaveBeenCalledWith(
+      versionsActions.setPendingBaseVersionId({
+        versionId: versions[versions.length - 1].id,
+      }),
     );
   });
 
@@ -259,21 +261,15 @@ describe(__filename, () => {
     );
   });
 
-  it('initializes the base version on mount', () => {
-    const spy = jest.spyOn(
-      VersionChooserBase.prototype,
-      'initializeBaseVersion',
-    );
+  it('synchronizes on mount', () => {
+    const spy = jest.spyOn(VersionChooserBase.prototype, 'synchronize');
     render();
 
     expect(spy).toHaveBeenCalled();
   });
 
-  it('initializes the base version on update', () => {
-    const spy = jest.spyOn(
-      VersionChooserBase.prototype,
-      'initializeBaseVersion',
-    );
+  it('synchronizes on update', () => {
+    const spy = jest.spyOn(VersionChooserBase.prototype, 'synchronize');
     const root = render();
     spy.mockClear();
     root.setProps({});
@@ -289,12 +285,12 @@ describe(__filename, () => {
     ];
 
     const { addonId, store } = _loadVersionsList({ versions });
+    const dispatchSpy = spyOn(store, 'dispatch');
 
-    const { content } = renderForm({ addonId, setBaseVersion: false, store });
+    renderForm({ addonId, setBaseVersion: false, store });
 
-    expect(content.find(`.${styles.baseVersionSelect}`)).toHaveProp(
-      'value',
-      String(unlistedId),
+    expect(dispatchSpy).toHaveBeenCalledWith(
+      versionsActions.setPendingBaseVersionId({ versionId: unlistedId }),
     );
   });
 
@@ -307,6 +303,111 @@ describe(__filename, () => {
       'value',
       '',
     );
+  });
+
+  describe('synchronizing pending versions', () => {
+    const setUpVersionsAndRender = ({
+      currentBaseVersionId,
+      currentVersionId,
+      ...params
+    }: {
+      currentBaseVersionId?: number | undefined;
+      currentVersionId?: number | undefined;
+    } & RenderParams = {}) => {
+      const versions = [
+        // Add extra versions at the top and bottom since those are used
+        // as default initializers in some cases.
+        { ...fakeListedVersion, id: nextUniqueId() },
+        { ...fakeListedVersion, id: currentBaseVersionId || nextUniqueId() },
+        { ...fakeListedVersion, id: currentVersionId || nextUniqueId() },
+        { ...fakeListedVersion, id: nextUniqueId() },
+      ];
+      const { addonId, store } = _loadVersionsList({ versions });
+
+      if (currentBaseVersionId) {
+        store.dispatch(
+          versionsActions.setCurrentBaseVersionId({
+            versionId: currentBaseVersionId,
+          }),
+        );
+      }
+      if (currentVersionId) {
+        store.dispatch(
+          versionsActions.setCurrentVersionId({ versionId: currentVersionId }),
+        );
+      }
+      const dispatchSpy = spyOn(store, 'dispatch');
+
+      const root = render({
+        addonId,
+        setBaseVersion: false,
+        setHeadVersion: false,
+        store,
+        ...params,
+      });
+
+      return { dispatchSpy, root, store };
+    };
+
+    it('sets pendingBaseVersionId when undefined to currentBaseVersionId', () => {
+      const currentBaseVersionId = nextUniqueId();
+      const { dispatchSpy } = setUpVersionsAndRender({ currentBaseVersionId });
+
+      expect(dispatchSpy).toHaveBeenCalledWith(
+        versionsActions.setPendingBaseVersionId({
+          versionId: currentBaseVersionId,
+        }),
+      );
+    });
+
+    it('sets pendingHeadVersionId when undefined to currentVersionId', () => {
+      const currentVersionId = nextUniqueId();
+      const { dispatchSpy } = setUpVersionsAndRender({ currentVersionId });
+
+      expect(dispatchSpy).toHaveBeenCalledWith(
+        versionsActions.setPendingHeadVersionId({
+          versionId: currentVersionId,
+        }),
+      );
+    });
+
+    it('does not set pending versions when current versions are undefined', () => {
+      const { addonId, store } = _loadVersionsList({ versions: [] });
+      const dispatchSpy = spyOn(store, 'dispatch');
+
+      render({ addonId, setBaseVersion: false, setHeadVersion: false, store });
+
+      expect(dispatchSpy).not.toHaveBeenCalled();
+    });
+
+    it('does not set pending versions when they are already defined', () => {
+      const { addonId, store } = _loadVersionsList({ versions: [] });
+      store.dispatch(
+        versionsActions.setCurrentBaseVersionId({ versionId: nextUniqueId() }),
+      );
+      store.dispatch(
+        versionsActions.setCurrentVersionId({ versionId: nextUniqueId() }),
+      );
+      store.dispatch(
+        versionsActions.setPendingBaseVersionId({ versionId: nextUniqueId() }),
+      );
+      store.dispatch(
+        versionsActions.setPendingHeadVersionId({ versionId: nextUniqueId() }),
+      );
+      const dispatchSpy = spyOn(store, 'dispatch');
+
+      const root = render({
+        addonId,
+        setBaseVersion: false,
+        setHeadVersion: false,
+        store,
+      });
+
+      dispatchSpy.mockClear();
+      root.setProps({});
+
+      expect(dispatchSpy).not.toHaveBeenCalled();
+    });
   });
 
   it('dispatches fetchVersionsList() on mount', () => {
@@ -353,19 +454,48 @@ describe(__filename, () => {
     expect(_fetchVersionsList).toHaveBeenCalledWith({ addonId: secondAddonId });
   });
 
+  it('dispatches setPendingBaseVersionId when selecting a base version', () => {
+    const baseVersionId = nextUniqueId();
+    const { addonId, store } = _loadVersionsList();
+    const dispatchSpy = spyOn(store, 'dispatch');
+
+    const { content } = renderForm({ addonId, store });
+
+    changeSelectValue(
+      content.find(`.${styles.baseVersionSelect}`),
+      baseVersionId,
+    );
+
+    expect(dispatchSpy).toHaveBeenCalledWith(
+      versionsActions.setPendingBaseVersionId({ versionId: baseVersionId }),
+    );
+  });
+
+  it('dispatches setPendingHeadVersionId when selecting a head version', () => {
+    const headVersionId = nextUniqueId();
+    const { addonId, store } = _loadVersionsList();
+    const dispatchSpy = spyOn(store, 'dispatch');
+
+    const { content } = renderForm({ addonId, store });
+
+    changeSelectValue(
+      content.find(`.${styles.headVersionSelect}`),
+      headVersionId,
+    );
+
+    expect(dispatchSpy).toHaveBeenCalledWith(
+      versionsActions.setPendingHeadVersionId({ versionId: headVersionId }),
+    );
+  });
+
   it('pushes a new URL when submitting the form', () => {
     const baseVersionId = nextUniqueId();
     const headVersionId = nextUniqueId();
-
-    const selectedBaseVersionId = nextUniqueId();
-    const selectedHeadVersionId = nextUniqueId();
 
     const { addonId, store } = _loadVersionsList({
       versions: [
         { ...fakeListedVersion, id: baseVersionId },
         { ...fakeListedVersion, id: headVersionId },
-        { ...fakeListedVersion, id: selectedBaseVersionId },
-        { ...fakeListedVersion, id: selectedHeadVersionId },
       ],
     });
 
@@ -379,59 +509,10 @@ describe(__filename, () => {
       store,
     });
 
-    changeSelectValue(
-      content.find(`.${styles.baseVersionSelect}`),
-      selectedBaseVersionId,
-    );
-
-    changeSelectValue(
-      content.find(`.${styles.headVersionSelect}`),
-      selectedHeadVersionId,
-    );
-
     submitForm(content);
 
     expect(history.push).toHaveBeenCalledWith(
-      `/${lang}/compare/${addonId}/versions/${selectedBaseVersionId}...${selectedHeadVersionId}/`,
-    );
-  });
-
-  it('clears the form after submitting', () => {
-    const selectedBaseVersionId = nextUniqueId();
-    const selectedHeadVersionId = nextUniqueId();
-
-    const { addonId, store } = _loadVersionsList({
-      versions: [
-        { ...fakeListedVersion, id: selectedBaseVersionId },
-        { ...fakeListedVersion, id: selectedHeadVersionId },
-      ],
-    });
-
-    const { content, root } = renderForm({ addonId, store });
-
-    changeSelectValue(
-      content.find(`.${styles.baseVersionSelect}`),
-      selectedBaseVersionId,
-    );
-
-    changeSelectValue(
-      content.find(`.${styles.headVersionSelect}`),
-      selectedHeadVersionId,
-    );
-
-    submitForm(content);
-
-    // Get an updated wrapper after the form selection state changes.
-    const { content: updatedContent } = simulatePopover(root);
-
-    // Make sure the form was reset.
-    expect(updatedContent.find(`.${styles.baseVersionSelect}`)).not.toHaveProp(
-      'value',
-      String(selectedBaseVersionId),
-    );
-    expect(updatedContent.find(`.${styles.headVersionSelect}`)).not.toHaveProp(
-      'value',
-      String(selectedHeadVersionId),
+      `/${lang}/compare/${addonId}/versions/${baseVersionId}...${headVersionId}/`,
     );
   });
 
@@ -449,20 +530,22 @@ describe(__filename, () => {
     });
     const { addonId } = _loadVersionsList({ store });
 
+    store.dispatch(
+      versionsActions.setPendingBaseVersionId({ versionId: baseVersionId }),
+    );
+    store.dispatch(
+      versionsActions.setPendingHeadVersionId({ versionId: headVersionId }),
+    );
+
     const history = createFakeHistory();
 
     const { content } = renderForm({
       addonId,
-      baseVersionId,
-      headVersionId,
+      setBaseVersion: false,
+      setHeadVersion: false,
       history,
       store,
     });
-
-    changeSelectValue(
-      content.find(`.${styles.headVersionSelect}`),
-      headVersionId,
-    );
 
     submitForm(content);
 
