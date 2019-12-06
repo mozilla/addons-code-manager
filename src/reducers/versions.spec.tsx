@@ -216,6 +216,42 @@ describe(__filename, () => {
       );
     });
 
+    it('does not change path info when loading a version with updatePathInfo=false', () => {
+      const path1 = 'path/1';
+      const path2 = 'path/2';
+      const oldVersion = createExternalVersionWithEntries([{ path: path1 }], {
+        selected_file: path1,
+      });
+      const newVersion = createExternalVersionWithEntries([{ path: path2 }], {
+        selected_file: path2,
+      });
+      let state = reducer(
+        undefined,
+        actions.loadVersionInfo({ version: oldVersion }),
+      );
+      state = reducer(
+        state,
+        actions.setVisibleSelectedPath({
+          path: path1,
+          versionId: oldVersion.id,
+        }),
+      );
+      const { expandedPaths, selectedPath, visibleSelectedPath } = state;
+
+      state = reducer(
+        state,
+        actions.loadVersionInfo({ updatePathInfo: false, version: newVersion }),
+      );
+
+      expect(state).toEqual(
+        expect.objectContaining({
+          expandedPaths,
+          selectedPath,
+          visibleSelectedPath,
+        }),
+      );
+    });
+
     it('prunes expandedPaths when loading version info', () => {
       const version = { ...fakeVersion, id: nextUniqueId() };
       const newVersion = { ...fakeVersion, id: nextUniqueId() };
@@ -1215,6 +1251,20 @@ describe(__filename, () => {
       );
     });
 
+    it('can be configured to dispatch loadVersionInfo() with updatePathInfo=false', async () => {
+      const version = { ...fakeVersion, id: nextUniqueId() };
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () => _fetchVersion({ setAsCurrent: false, version }),
+      });
+
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(
+        actions.loadVersionInfo({ updatePathInfo: false, version }),
+      );
+    });
+
     it('calls getVersion', async () => {
       const version = fakeVersion;
       const _getVersion = jest.fn().mockReturnValue(Promise.resolve(version));
@@ -1264,7 +1314,7 @@ describe(__filename, () => {
       await thunk();
 
       expect(dispatch).toHaveBeenCalledWith(
-        actions.loadVersionInfo({ version }),
+        actions.loadVersionInfo({ version, updatePathInfo: true }),
       );
     });
 

@@ -243,9 +243,13 @@ export const actions = {
       resolve(payload);
   }),
   loadVersionInfo: createAction('LOAD_VERSION_INFO', (resolve) => {
-    return (payload: {
+    return ({
+      updatePathInfo = true,
+      ...moreParams
+    }: {
       version: ExternalVersionWithContent | ExternalVersionWithDiff;
-    }) => resolve(payload);
+      updatePathInfo?: boolean;
+    }) => resolve({ updatePathInfo, ...moreParams });
   }),
   loadEntryStatusMap: createAction('LOAD_ENTRY_STATUS_MAP', (resolve) => {
     return (payload: {
@@ -815,7 +819,12 @@ export const fetchVersion = ({
       dispatch(actions.abortFetchVersion({ versionId }));
       dispatch(errorsActions.addError({ error: response.error }));
     } else {
-      dispatch(actions.loadVersionInfo({ version: response }));
+      dispatch(
+        actions.loadVersionInfo({
+          version: response,
+          updatePathInfo: setAsCurrent,
+        }),
+      );
       dispatch(
         actions.loadVersionFile({
           version: response,
@@ -1255,8 +1264,23 @@ export const createReducer = ({
         };
       }
       case getType(actions.loadVersionInfo): {
-        const { version } = action.payload;
+        const { updatePathInfo, version } = action.payload;
         const internalVersion = createInternalVersion(version);
+
+        if (!updatePathInfo) {
+          return {
+            ...state,
+            versionInfo: {
+              ...state.versionInfo,
+              [version.id]: { ...internalVersion },
+            },
+            versionInfoLoading: {
+              ...state.versionInfoLoading,
+              [version.id]: false,
+            },
+          };
+        }
+
         const {
           expandedPaths: expandedPathsInState,
           selectedPath: selectedPathInState,
