@@ -157,11 +157,17 @@ export class CodeOverviewBase extends React.Component<Props, State> {
 
     const messages = selectedMessageMap
       ? groupOflineShapes.reduce((matches: LinterMessageType[], shape) => {
+          let allMatches = matches;
+          if (shape.line === 1 && selectedMessageMap.global.length) {
+            allMatches = allMatches.concat(selectedMessageMap.global);
+          }
           if (selectedMessageMap.byLine[shape.line]) {
-            return matches.concat(selectedMessageMap.byLine[shape.line]);
+            allMatches = allMatches.concat(
+              selectedMessageMap.byLine[shape.line],
+            );
           }
 
-          return matches;
+          return allMatches;
         }, [])
       : [];
 

@@ -554,8 +554,9 @@ describe(__filename, () => {
     expect(innerRoot.find(`.${styles.linterMessage}`)).toHaveLength(1);
   });
 
-  it('does not render global linter messages', () => {
+  it('renders global linter messages on the first line', () => {
     const { innerRoot } = renderWithMessages({
+      contentLines: generateFileLines({ count: 5 }),
       messages: [
         {
           description: 'This third party library is banned',
@@ -564,7 +565,13 @@ describe(__filename, () => {
       ],
     });
 
-    expect(innerRoot.find(`.${styles.linterMessage}`)).toHaveLength(0);
+    // Make sure only one linter message was added.
+    expect(innerRoot.find(`.${styles.linterMessage}`)).toHaveLength(1);
+
+    // Make sure only line 1 shows the global message.
+    const lines = innerRoot.find(`.${styles.line}`);
+    expect(lines.at(0).find(`.${styles.linterMessage}`)).toHaveLength(1);
+    expect(lines.at(1).find(`.${styles.linterMessage}`)).toHaveLength(0);
   });
 
   it('replaces CodeLineShapes with linter messages', () => {
@@ -622,6 +629,23 @@ describe(__filename, () => {
     expect(message).toHaveClassName(styles.linterError);
     expect(message).not.toHaveClassName(styles.linterNotice);
     expect(message).not.toHaveClassName(styles.linterWarning);
+  });
+
+  it('accounts for global messages when finding the most severe linter message type', () => {
+    const line = 1;
+    const { innerRoot } = renderWithMessages({
+      messages: [
+        { type: 'notice', line },
+        // This will be a global message.
+        { type: 'error', line: undefined },
+        { type: 'warning', line },
+      ],
+    });
+
+    const message = innerRoot.find(`.${styles.linterMessage}`);
+
+    expect(message).toHaveLength(1);
+    expect(message).toHaveClassName(styles.linterError);
   });
 
   it.each([
