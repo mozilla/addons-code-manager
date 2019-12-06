@@ -2,6 +2,7 @@
 /* global fetchMock */
 import pathLib from 'path';
 
+import queryString from 'query-string';
 import * as React from 'react';
 import PropTypes from 'prop-types';
 import { History, Location } from 'history';
@@ -472,12 +473,17 @@ export const createFakeCompareInfo = ({
   });
 };
 
-export const createFakeLocation = (props = {}): Location => {
+export const createFakeLocation = ({
+  searchQuery,
+  ...props
+}: { searchQuery?: Record<string, string> } & Partial<
+  Location
+> = {}): Location => {
   return {
     hash: '',
     key: 'some-key',
     pathname: '/some/url',
-    search: '',
+    search: searchQuery ? `?${queryString.stringify(searchQuery)}` : '',
     state: {},
     ...props,
   };
