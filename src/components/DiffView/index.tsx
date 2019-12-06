@@ -2,6 +2,7 @@ import queryString from 'query-string';
 import * as React from 'react';
 import {
   ChangeInfo,
+  ChangeType,
   Decoration,
   Diff,
   DiffInfo,
@@ -98,7 +99,8 @@ export const trimHunkChanges = (
 };
 
 export const changeCanBeCommentedUpon = (change: ChangeInfo) => {
-  return ['insert', 'normal'].includes(change.type);
+  const types: ChangeType[] = ['insert', 'normal'];
+  return types.includes(change.type);
 };
 
 export type PublicProps = {

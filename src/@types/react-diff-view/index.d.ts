@@ -1,6 +1,7 @@
 /* eslint react/no-multi-comp: 0, max-classes-per-file: 0 */
 
 declare module 'react-diff-view' {
+  // The eofnl types are not coming from react-diff-view, but are returned by our API.
   type ChangeType =
     | 'delete'
     | 'delete-eofnl'

@@ -1179,7 +1179,7 @@ describe(__filename, () => {
     );
 
     it.each(['delete', 'delete-eofnl', 'insert-eofnl', 'normal-eofnl'])(
-      'returns true for a(n) %s change',
+      'returns false for a(n) %s change',
       (changeType) => {
         const change = {
           ...fakeChangeInfo,
