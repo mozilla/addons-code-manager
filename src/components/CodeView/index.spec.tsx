@@ -12,7 +12,12 @@ import GlobalLinterMessages from '../GlobalLinterMessages';
 import SlowPageAlert from '../SlowPageAlert';
 import { ExternalLinterMessage, getMessageMap } from '../../reducers/linter';
 import { createInternalVersion } from '../../reducers/versions';
-import { getCodeLineAnchor, getCodeLineAnchorID, mapWithDepth } from './utils';
+import {
+  getCodeLineAnchor,
+  getCodeLineAnchorID,
+  mapWithDepth,
+  GLOBAL_LINTER_ANCHOR_ID,
+} from './utils';
 import { allowSlowPagesParam, getLanguageFromMimeType } from '../../utils';
 import {
   SimulateCommentListParams,
@@ -406,7 +411,7 @@ describe(__filename, () => {
   it('renders a containerRef at GlobalLinterMessages component, if line 0 is selected', () => {
     const firstUid = 'first-uid';
     const secondUid = 'second-uid';
-    const id = getCodeLineAnchorID(0);
+    const id = getCodeLineAnchorID(GLOBAL_LINTER_ANCHOR_ID);
     const location = createFakeLocation({ hash: `#${id}` });
 
     const { root } = renderWithMessages({

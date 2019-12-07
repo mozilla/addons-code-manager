@@ -12,6 +12,7 @@ import {
   getCodeLineAnchorID,
   getLines,
   mapWithDepth,
+  GLOBAL_LINTER_ANCHOR_ID,
 } from './utils';
 import refractor from '../../refractor';
 import {
@@ -124,7 +125,10 @@ export class CodeViewBase extends React.Component<Props> {
       <>
         <GlobalLinterMessages
           containerRef={
-            isLineSelected(getCodeLineAnchorID(0), location)
+            isLineSelected(
+              getCodeLineAnchorID(GLOBAL_LINTER_ANCHOR_ID),
+              location,
+            )
               ? _scrollToSelectedLine
               : undefined
           }
