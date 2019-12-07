@@ -1787,6 +1787,7 @@ describe(__filename, () => {
     const _fetchDiff = ({
       addonId = 1,
       baseVersionId = 2,
+      forceReloadVersion = false,
       headVersionId = 3,
       store = configureStore(),
       version = fakeVersionWithDiff,
@@ -1800,6 +1801,7 @@ describe(__filename, () => {
             _getDiff,
             addonId,
             baseVersionId,
+            forceReloadVersion,
             headVersionId,
             path,
           }),
@@ -1904,6 +1906,34 @@ describe(__filename, () => {
       await thunk();
 
       expect(dispatch).not.toHaveBeenCalledWith(
+        actions.loadVersionInfo({
+          version,
+        }),
+      );
+    });
+
+    it('dispatches loadVersionInfo() when forceReloadVersion is true', async () => {
+      const store = configureStore();
+      const baseVersionId = nextUniqueId();
+      const headVersionId = baseVersionId + 1;
+      const version = { ...fakeVersionWithDiff, id: headVersionId };
+
+      store.dispatch(
+        actions.loadVersionInfo({
+          version,
+        }),
+      );
+
+      const { dispatch, thunk } = _fetchDiff({
+        baseVersionId,
+        forceReloadVersion: true,
+        headVersionId,
+        version,
+        store,
+      });
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(
         actions.loadVersionInfo({
           version,
         }),

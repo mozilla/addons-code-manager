@@ -234,6 +234,7 @@ describe(__filename, () => {
     if (buildTree) {
       store.dispatch(
         fileTreeActions.buildTree({
+          comparedToVersionId: baseVersionId,
           version: createInternalVersion(version),
         }),
       );
@@ -411,6 +412,7 @@ describe(__filename, () => {
     expect(_fetchDiff).toHaveBeenCalledWith({
       addonId,
       baseVersionId,
+      forceReloadVersion: false,
       headVersionId,
     });
   });
@@ -425,6 +427,13 @@ describe(__filename, () => {
     store.dispatch(
       versionsActions.loadVersionInfo({
         version,
+      }),
+    );
+
+    store.dispatch(
+      fileTreeActions.buildTree({
+        version: createInternalVersion(version),
+        comparedToVersionId: baseVersionId,
       }),
     );
 
@@ -973,11 +982,83 @@ describe(__filename, () => {
     });
 
     expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
-    expect(_fetchDiff).toHaveBeenCalledWith({
-      addonId,
-      baseVersionId,
-      headVersionId,
-      path,
+    expect(_fetchDiff).toHaveBeenCalledWith(
+      expect.objectContaining({
+        addonId,
+        baseVersionId,
+        headVersionId,
+        path,
+      }),
+    );
+  });
+
+  describe('forceReloadVersion', () => {
+    const setUpFileTreeAndRender = ({
+      baseVersionId = nextUniqueId(),
+      headVersionId = baseVersionId + 10,
+      comparedToVersionId = baseVersionId,
+      forVersionId = headVersionId,
+    }: {
+      baseVersionId?: number;
+      headVersionId?: number;
+      comparedToVersionId?: number;
+      forVersionId?: number;
+    } = {}) => {
+      const addonId = nextUniqueId();
+      const store = configureStore();
+      store.dispatch(
+        fileTreeActions.buildTree({
+          version: createInternalVersion({
+            ...fakeVersion,
+            id: forVersionId,
+          }),
+          comparedToVersionId,
+        }),
+      );
+      const dispatch = spyOn(store, 'dispatch');
+      const fakeThunk = createFakeThunk();
+      const _fetchDiff = fakeThunk.createThunk;
+
+      render({
+        ...getRouteParams({ addonId, baseVersionId, headVersionId }),
+        _fetchDiff,
+        store,
+      });
+      return { dispatch, fakeThunk, store, _fetchDiff };
+    };
+
+    it('dispatches fetchDiff() with forceReloadVersion set when the file tree has obsolete forVersionId', () => {
+      const baseVersionId = nextUniqueId();
+      const headVersionId = baseVersionId + 10;
+      const { dispatch, fakeThunk, _fetchDiff } = setUpFileTreeAndRender({
+        baseVersionId,
+        forVersionId: headVersionId + 1,
+        headVersionId,
+      });
+
+      expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+      expect(_fetchDiff).toHaveBeenCalledWith(
+        expect.objectContaining({
+          forceReloadVersion: true,
+        }),
+      );
+    });
+
+    it('dispatches fetchDiff() with forceReloadVersion set when the file tree has obsolete comparedToVersionId', () => {
+      const baseVersionId = nextUniqueId();
+      const headVersionId = baseVersionId + 10;
+      const { dispatch, fakeThunk, _fetchDiff } = setUpFileTreeAndRender({
+        baseVersionId,
+        comparedToVersionId: baseVersionId + 1,
+        headVersionId,
+      });
+
+      expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+      expect(_fetchDiff).toHaveBeenCalledWith(
+        expect.objectContaining({
+          forceReloadVersion: true,
+        }),
+      );
     });
   });
 

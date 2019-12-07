@@ -64,7 +64,9 @@ describe(__filename, () => {
     };
 
     const _buildTree = (store: Store, version: Version) => {
-      store.dispatch(fileTreeActions.buildTree({ version }));
+      store.dispatch(
+        fileTreeActions.buildTree({ comparedToVersionId: null, version }),
+      );
     };
 
     it('calls loadData on construction', () => {
@@ -103,13 +105,15 @@ describe(__filename, () => {
     it('dispatches buildTree when tree is undefined', () => {
       const store = configureStore();
       const version = getVersion({ store });
+      const comparedToVersionId = null;
 
       const dispatch = spyOn(store, 'dispatch');
 
-      render({ store, versionId: version.id });
+      render({ comparedToVersionId, store, versionId: version.id });
 
       expect(dispatch).toHaveBeenCalledWith(
         fileTreeActions.buildTree({
+          comparedToVersionId,
           version,
         }),
       );

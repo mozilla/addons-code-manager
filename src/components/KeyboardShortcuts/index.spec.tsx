@@ -76,6 +76,7 @@ describe(__filename, () => {
   } = {}) => {
     store.dispatch(
       fileTreeActions.buildTree({
+        comparedToVersionId: null,
         version: createInternalVersion(externalVersion),
       }),
     );
