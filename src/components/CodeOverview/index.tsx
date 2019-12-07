@@ -8,6 +8,7 @@ import debounce from 'lodash.debounce';
 import {
   getCodeLineAnchor as defaultCodeLineAnchorGetter,
   getLines,
+  GLOBAL_LINTER_ANCHOR_ID,
 } from '../CodeView/utils';
 import {
   LinterMessage as LinterMessageType,
@@ -157,11 +158,17 @@ export class CodeOverviewBase extends React.Component<Props, State> {
 
     const messages = selectedMessageMap
       ? groupOflineShapes.reduce((matches: LinterMessageType[], shape) => {
+          let allMatches = matches;
+          if (shape.line === 1 && selectedMessageMap.global.length) {
+            allMatches = allMatches.concat(selectedMessageMap.global);
+          }
           if (selectedMessageMap.byLine[shape.line]) {
-            return matches.concat(selectedMessageMap.byLine[shape.line]);
+            allMatches = allMatches.concat(
+              selectedMessageMap.byLine[shape.line],
+            );
           }
 
-          return matches;
+          return allMatches;
         }, [])
       : [];
 
@@ -225,10 +232,17 @@ export class CodeOverviewBase extends React.Component<Props, State> {
           linkableLine = firstMsg.line;
         }
       }
+      if (
+        line &&
+        line === 1 &&
+        selectedMessageMap &&
+        selectedMessageMap.global.length
+      ) {
+        linkableLine = GLOBAL_LINTER_ANCHOR_ID;
+      }
 
-      const codeLineAnchor = linkableLine
-        ? getCodeLineAnchor(linkableLine)
-        : null;
+      const codeLineAnchor =
+        linkableLine !== undefined ? getCodeLineAnchor(linkableLine) : null;
 
       const scrollToLine = () => {
         // Explicitly scroll to the linter message in case the user had

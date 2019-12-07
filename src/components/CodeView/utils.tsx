@@ -37,6 +37,8 @@ export const getLines = (content: string) => {
   return content ? content.replace('\r\n', '\n').split('\n') : [];
 };
 
+export const GLOBAL_LINTER_ANCHOR_ID = 0;
+
 export const getCodeLineAnchorID = (line: number) => {
   return `I${line}`;
 };

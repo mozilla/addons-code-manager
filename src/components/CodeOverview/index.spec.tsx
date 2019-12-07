@@ -6,7 +6,7 @@ import debounce from 'lodash.debounce';
 
 import { ExternalLinterMessage, getMessageMap } from '../../reducers/linter';
 import { createInternalVersion } from '../../reducers/versions';
-import { getCodeLineAnchor } from '../CodeView/utils';
+import { getCodeLineAnchor, GLOBAL_LINTER_ANCHOR_ID } from '../CodeView/utils';
 import CodeLineShapes from '../CodeLineShapes';
 import { AllLineShapes, generateLineShapes } from '../CodeLineShapes/utils';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
@@ -99,16 +99,18 @@ describe(__filename, () => {
       .map((i) => `// This is line ${i + 1} of the code`);
   };
 
+  type RenderWithMessagesParams = {
+    contentLines?: string[];
+    messages: Partial<ExternalLinterMessage>[];
+    overviewHeight?: number;
+  } & RenderParams;
+
   const renderWithMessages = ({
     contentLines = generateFileLines({ count: 10 }),
     messages,
     overviewHeight = 400,
     ...props
-  }: {
-    contentLines?: string[];
-    messages: Partial<ExternalLinterMessage>[];
-    overviewHeight?: number;
-  } & RenderParams) => {
+  }: RenderWithMessagesParams) => {
     const file = 'scripts/content.js';
     const map = getMessageMap(
       createFakeExternalLinterResult({
@@ -130,6 +132,21 @@ describe(__filename, () => {
     });
 
     return { innerRoot, root, selectedMessageMap };
+  };
+
+  const renderWithMessagesInNormGrid = ({
+    messages,
+    ...props
+  }: RenderWithMessagesParams) => {
+    return renderWithMessages({
+      messages,
+      // Normalize the grid parameters.
+      // This makes line assertions easier because lines will map to rows 1:1.
+      rowHeight: 1,
+      overviewPadding: 0,
+      rowTopPadding: 0,
+      ...props,
+    });
   };
 
   const renderWithFixedHeight = (
@@ -379,17 +396,13 @@ describe(__filename, () => {
   it('links to the first of multiple lines containing linter messages', () => {
     const firstLineWithMsg = 5;
 
-    const { innerRoot } = renderWithMessages({
+    const { innerRoot } = renderWithMessagesInNormGrid({
       // Create a file with 6 lines.
       contentLines: generateFileLines({ count: 6 }),
       // Make a grid of height 2 so that each row will contain 3 lines.
       overviewHeight: 2,
       // Put a linter message on line 5 and line 6.
       messages: [{ line: firstLineWithMsg }, { line: 6 }],
-      // Normalize the grid parameters.
-      rowHeight: 1,
-      overviewPadding: 0,
-      rowTopPadding: 0,
     });
 
     const allLinks = innerRoot.find(Link);
@@ -401,6 +414,54 @@ describe(__filename, () => {
       'to',
       expect.objectContaining({
         hash: getCodeLineAnchor(firstLineWithMsg),
+      }),
+    );
+  });
+
+  it('links to a global message on line 1', () => {
+    const { innerRoot } = renderWithMessagesInNormGrid({
+      contentLines: generateFileLines({ count: 1 }),
+      // Add a global message.
+      messages: [{ line: undefined }],
+    });
+
+    expect(innerRoot.find(Link).at(0)).toHaveProp(
+      'to',
+      expect.objectContaining({
+        hash: getCodeLineAnchor(GLOBAL_LINTER_ANCHOR_ID),
+      }),
+    );
+  });
+
+  it('links to a global message even when other messages exist on line 1', () => {
+    const { innerRoot } = renderWithMessagesInNormGrid({
+      contentLines: generateFileLines({ count: 1 }),
+      // Add a message on line 1 and a global message.
+      messages: [{ line: 1 }, { line: undefined }],
+    });
+
+    expect(innerRoot.find(Link).at(0)).toHaveProp(
+      'to',
+      expect.objectContaining({
+        hash: getCodeLineAnchor(GLOBAL_LINTER_ANCHOR_ID),
+      }),
+    );
+  });
+
+  it('does not link to a global message on lines other than 1', () => {
+    const totalLines = 2;
+    const line = 2;
+    const { innerRoot } = renderWithMessagesInNormGrid({
+      contentLines: generateFileLines({ count: totalLines }),
+      overviewHeight: totalLines,
+      // Add a global message and a line message.
+      messages: [{ line: undefined }, { line }],
+    });
+
+    expect(innerRoot.find(Link).at(line - 1)).toHaveProp(
+      'to',
+      expect.objectContaining({
+        hash: getCodeLineAnchor(line),
       }),
     );
   });
@@ -554,8 +615,9 @@ describe(__filename, () => {
     expect(innerRoot.find(`.${styles.linterMessage}`)).toHaveLength(1);
   });
 
-  it('does not render global linter messages', () => {
+  it('renders global linter messages on the first line', () => {
     const { innerRoot } = renderWithMessages({
+      contentLines: generateFileLines({ count: 5 }),
       messages: [
         {
           description: 'This third party library is banned',
@@ -564,7 +626,13 @@ describe(__filename, () => {
       ],
     });
 
-    expect(innerRoot.find(`.${styles.linterMessage}`)).toHaveLength(0);
+    // Make sure only one linter message was added.
+    expect(innerRoot.find(`.${styles.linterMessage}`)).toHaveLength(1);
+
+    // Make sure only line 1 shows the global message.
+    const lines = innerRoot.find(`.${styles.line}`);
+    expect(lines.at(0).find(`.${styles.linterMessage}`)).toHaveLength(1);
+    expect(lines.at(1).find(`.${styles.linterMessage}`)).toHaveLength(0);
   });
 
   it('replaces CodeLineShapes with linter messages', () => {
@@ -622,6 +690,23 @@ describe(__filename, () => {
     expect(message).toHaveClassName(styles.linterError);
     expect(message).not.toHaveClassName(styles.linterNotice);
     expect(message).not.toHaveClassName(styles.linterWarning);
+  });
+
+  it('accounts for global messages when finding the most severe linter message type', () => {
+    const line = 1;
+    const { innerRoot } = renderWithMessages({
+      messages: [
+        { type: 'notice', line },
+        // This will be a global message.
+        { type: 'error', line: undefined },
+        { type: 'warning', line },
+      ],
+    });
+
+    const message = innerRoot.find(`.${styles.linterMessage}`);
+
+    expect(message).toHaveLength(1);
+    expect(message).toHaveClassName(styles.linterError);
   });
 
   it.each([
