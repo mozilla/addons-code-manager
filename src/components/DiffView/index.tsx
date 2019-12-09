@@ -2,6 +2,7 @@ import queryString from 'query-string';
 import * as React from 'react';
 import {
   ChangeInfo,
+  ChangeType,
   Decoration,
   Diff,
   DiffInfo,
@@ -97,6 +98,11 @@ export const trimHunkChanges = (
   return trimmed;
 };
 
+export const changeCanBeCommentedUpon = (change: ChangeInfo) => {
+  const types: ChangeType[] = ['insert', 'normal'];
+  return types.includes(change.type);
+};
+
 export type PublicProps = {
   diff: DiffInfo | null;
   mimeType: string;
@@ -104,6 +110,7 @@ export type PublicProps = {
 };
 
 export type DefaultProps = {
+  _changeCanBeCommentedUpon: typeof changeCanBeCommentedUpon;
   _diffCanBeHighlighted: typeof diffCanBeHighlighted;
   _document: typeof document;
   _getDiffAnchors: typeof getDiffAnchors;
@@ -120,6 +127,7 @@ export type Props = PublicProps & DefaultProps & RouterProps;
 
 export class DiffViewBase extends React.Component<Props> {
   static defaultProps: DefaultProps = {
+    _changeCanBeCommentedUpon: changeCanBeCommentedUpon,
     _diffCanBeHighlighted: diffCanBeHighlighted,
     _document: document,
     _getDiffAnchors: getDiffAnchors,
@@ -191,7 +199,7 @@ export class DiffViewBase extends React.Component<Props> {
     hunks: Hunks,
     selectedMessageMap: LinterProviderInfo['selectedMessageMap'],
   ) => {
-    const { enableCommenting, version } = this.props;
+    const { _changeCanBeCommentedUpon, enableCommenting, version } = this.props;
 
     const allWidgets: WidgetMap = {};
 
@@ -205,7 +213,7 @@ export class DiffViewBase extends React.Component<Props> {
       }
 
       let widget =
-        enableCommenting && line && !change.isDelete ? (
+        enableCommenting && line && _changeCanBeCommentedUpon(change) ? (
           <CommentList
             addonId={version.addon.id}
             fileName={version.selectedPath}
@@ -291,13 +299,18 @@ export class DiffViewBase extends React.Component<Props> {
     side,
     wrapInAnchor,
   }: RenderGutterParams) => {
-    const { enableCommenting, version } = this.props;
+    const { _changeCanBeCommentedUpon, enableCommenting, version } = this.props;
 
-    const { isDelete, lineNumber } = change;
+    const { lineNumber } = change;
 
     const defaultGutter = wrapInAnchor(renderDefault());
     let gutter = defaultGutter;
-    if (enableCommenting && !isDelete && lineNumber && side === 'new') {
+    if (
+      enableCommenting &&
+      _changeCanBeCommentedUpon(change) &&
+      lineNumber &&
+      side === 'new'
+    ) {
       gutter = (
         <Commentable
           as="div"
