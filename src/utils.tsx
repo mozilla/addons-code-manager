@@ -24,7 +24,12 @@ export const getLocalizedString = (
   localizedStringMap: LocalizedStringMap,
   lang = process.env.REACT_APP_DEFAULT_API_LANG as string,
 ) => {
-  return localizedStringMap[lang];
+  const stringForCurrentLang = localizedStringMap[lang];
+  const langs = Object.keys(localizedStringMap);
+
+  return (
+    stringForCurrentLang || (langs.length && localizedStringMap[langs[0]]) || ''
+  );
 };
 
 export const getLanguageFromMimeType = (mimeType: string) => {

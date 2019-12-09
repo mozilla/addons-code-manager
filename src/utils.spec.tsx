@@ -36,21 +36,32 @@ describe(__filename, () => {
       expect(getLocalizedString(localizedStringMap, lang)).toEqual(value);
     });
 
-    it('returns undefined when localized string map does not contain the specified language', () => {
+    it('returns an empty string when localized string map does not contain any languages', () => {
       const lang = 'fr';
       const localizedStringMap = {};
 
-      expect(getLocalizedString(localizedStringMap, lang)).toEqual(undefined);
+      expect(getLocalizedString(localizedStringMap, lang)).toEqual('');
     });
 
     it('defaults to REACT_APP_DEFAULT_API_LANG', () => {
       const lang = process.env.REACT_APP_DEFAULT_API_LANG as string;
       const value = 'some content';
       const localizedStringMap = {
+        [`not-${lang}`]: 'other content',
         [lang]: value,
       };
 
       expect(getLocalizedString(localizedStringMap)).toEqual(value);
+    });
+
+    it('returns a localized string for a the first language if the requested language is missing', () => {
+      const value = 'first language content';
+      const localizedStringMap = {
+        en: value,
+        fr: 'French content',
+      };
+
+      expect(getLocalizedString(localizedStringMap, 'de')).toEqual(value);
     });
   });
 
