@@ -3,6 +3,7 @@ import { ActionType, deprecated, getType } from 'typesafe-actions';
 import log from 'loglevel';
 import {
   ChangeInfo,
+  ChangeType,
   DiffInfo,
   DiffInfoType,
   HunkInfo,
@@ -109,7 +110,7 @@ export type ExternalChange = {
   content: string;
   new_line_number: number;
   old_line_number: number;
-  type: 'normal' | 'delete' | 'insert';
+  type: ChangeType;
 };
 
 export type ExternalHunk = {
@@ -907,10 +908,9 @@ export const createInternalChangeInfo = (
     isDelete: change.type === 'delete',
     isInsert: change.type === 'insert',
     isNormal: change.type === 'normal',
-    lineNumber:
-      change.type === 'insert'
-        ? change.new_line_number
-        : change.old_line_number,
+    lineNumber: ['delete', 'delete-eofnl'].includes(change.type)
+      ? change.old_line_number
+      : change.new_line_number,
     newLineNumber: change.new_line_number,
     oldLineNumber: change.old_line_number,
     type: change.type,

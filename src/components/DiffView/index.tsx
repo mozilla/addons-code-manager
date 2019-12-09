@@ -203,7 +203,11 @@ export class DiffViewBase extends React.Component<Props> {
 
     const allWidgets: WidgetMap = {};
 
-    for (const change of getAllHunkChanges(hunks)) {
+    // We only want widgets for delete, insert and normal changes, not eofnl changes.
+    const changesAllowingWidgets = getAllHunkChanges(hunks).filter(
+      (change) => change.isDelete || change.isInsert || change.isNormal,
+    );
+    for (const change of changesAllowingWidgets) {
       const changeKey = getChangeKey(change);
       const line = change.lineNumber;
 
