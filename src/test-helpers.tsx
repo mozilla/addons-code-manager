@@ -859,6 +859,18 @@ export const createFakeRef = (
   };
 };
 
+export const dispatchLoadVersionInfo = ({
+  store,
+  updatePathInfo = true,
+  version,
+}: {
+  store: Store<ApplicationState>;
+  updatePathInfo?: boolean;
+  version: ExternalVersionWithContent | ExternalVersionWithDiff;
+}): void => {
+  store.dispatch(versionsActions.loadVersionInfo({ updatePathInfo, version }));
+};
+
 export const createStoreWithVersion = (
   /* istanbul ignore next */
   {
@@ -870,7 +882,7 @@ export const createStoreWithVersion = (
   } = {},
 ) => {
   const store = configureStore();
-  store.dispatch(versionsActions.loadVersionInfo({ version }));
+  dispatchLoadVersionInfo({ store, version });
   if (makeCurrent) {
     store.dispatch(
       versionsActions.setCurrentVersionId({ versionId: version.id }),

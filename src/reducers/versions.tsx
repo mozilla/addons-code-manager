@@ -243,13 +243,10 @@ export const actions = {
       resolve(payload);
   }),
   loadVersionInfo: createAction('LOAD_VERSION_INFO', (resolve) => {
-    return ({
-      updatePathInfo = true,
-      ...moreParams
-    }: {
+    return (payload: {
       version: ExternalVersionWithContent | ExternalVersionWithDiff;
-      updatePathInfo?: boolean;
-    }) => resolve({ updatePathInfo, ...moreParams });
+      updatePathInfo: boolean;
+    }) => resolve(payload);
   }),
   loadEntryStatusMap: createAction('LOAD_ENTRY_STATUS_MAP', (resolve) => {
     return (payload: {
@@ -1100,6 +1097,7 @@ export const fetchDiff = ({
         dispatch(
           actions.loadVersionInfo({
             version: response,
+            updatePathInfo: true,
           }),
         );
       }

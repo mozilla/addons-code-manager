@@ -7,6 +7,7 @@ import { getType } from 'typesafe-actions';
 import { actions as errorsActions } from './errors';
 import reducer, {
   ScrollTarget,
+  ExternalVersionWithContent,
   ExternalVersionWithDiff,
   ExternalVersionsList,
   FetchVersionParams,
@@ -76,6 +77,14 @@ import {
 } from '../test-helpers';
 
 describe(__filename, () => {
+  const _loadVersionInfo = ({
+    version,
+    updatePathInfo = true,
+  }: {
+    version: ExternalVersionWithContent | ExternalVersionWithDiff;
+    updatePathInfo?: boolean;
+  }) => actions.loadVersionInfo({ updatePathInfo, version });
+
   describe('reducer', () => {
     it('loads a version file', () => {
       const path = 'test.js';
@@ -121,7 +130,7 @@ describe(__filename, () => {
 
     it('loads version info', () => {
       const version = fakeVersion;
-      const state = reducer(undefined, actions.loadVersionInfo({ version }));
+      const state = reducer(undefined, _loadVersionInfo({ version }));
 
       expect(state).toEqual(
         expect.objectContaining({
@@ -140,7 +149,7 @@ describe(__filename, () => {
       state = reducer(state, actions.beginFetchVersion({ versionId }));
       state = reducer(
         state,
-        actions.loadVersionInfo({
+        _loadVersionInfo({
           version: { ...fakeVersion, id: versionId },
         }),
       );
@@ -162,11 +171,8 @@ describe(__filename, () => {
         [{ path: path1 }, { path: path2 }],
         { selected_file: path2 },
       );
-      let state = reducer(
-        undefined,
-        actions.loadVersionInfo({ version: oldVersion }),
-      );
-      state = reducer(state, actions.loadVersionInfo({ version: newVersion }));
+      let state = reducer(undefined, _loadVersionInfo({ version: oldVersion }));
+      state = reducer(state, _loadVersionInfo({ version: newVersion }));
 
       expect(state).toEqual(
         expect.objectContaining({
@@ -184,11 +190,8 @@ describe(__filename, () => {
       const newVersion = createExternalVersionWithEntries([{ path: path2 }], {
         selected_file: path2,
       });
-      let state = reducer(
-        undefined,
-        actions.loadVersionInfo({ version: oldVersion }),
-      );
-      state = reducer(state, actions.loadVersionInfo({ version: newVersion }));
+      let state = reducer(undefined, _loadVersionInfo({ version: oldVersion }));
+      state = reducer(state, _loadVersionInfo({ version: newVersion }));
 
       expect(state).toEqual(
         expect.objectContaining({
@@ -199,7 +202,7 @@ describe(__filename, () => {
 
     it('sets visibleSelectedPath to null when loading a new version', () => {
       const version = fakeVersion;
-      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+      let state = reducer(undefined, _loadVersionInfo({ version }));
       state = reducer(
         state,
         actions.setVisibleSelectedPath({
@@ -207,7 +210,7 @@ describe(__filename, () => {
           versionId: version.id,
         }),
       );
-      state = reducer(state, actions.loadVersionInfo({ version }));
+      state = reducer(state, _loadVersionInfo({ version }));
 
       expect(state).toEqual(
         expect.objectContaining({
@@ -225,10 +228,7 @@ describe(__filename, () => {
       const newVersion = createExternalVersionWithEntries([{ path: path2 }], {
         selected_file: path2,
       });
-      let state = reducer(
-        undefined,
-        actions.loadVersionInfo({ version: oldVersion }),
-      );
+      let state = reducer(undefined, _loadVersionInfo({ version: oldVersion }));
       state = reducer(
         state,
         actions.setVisibleSelectedPath({
@@ -240,7 +240,7 @@ describe(__filename, () => {
 
       state = reducer(
         state,
-        actions.loadVersionInfo({ updatePathInfo: false, version: newVersion }),
+        _loadVersionInfo({ updatePathInfo: false, version: newVersion }),
       );
 
       expect(state).toEqual(
@@ -258,8 +258,8 @@ describe(__filename, () => {
       const _getPrunedExpandedPaths = jest.fn(getPrunedExpandedPaths);
       const _reducer = createReducer({ _getPrunedExpandedPaths });
 
-      const state = _reducer(undefined, actions.loadVersionInfo({ version }));
-      _reducer(state, actions.loadVersionInfo({ version: newVersion }));
+      const state = _reducer(undefined, _loadVersionInfo({ version }));
+      _reducer(state, _loadVersionInfo({ version: newVersion }));
 
       expect(_getPrunedExpandedPaths).toHaveBeenCalledWith(
         state.expandedPaths,
@@ -273,8 +273,8 @@ describe(__filename, () => {
       const _getPrunedExpandedPaths = jest.fn(getPrunedExpandedPaths);
       const _reducer = createReducer({ _getPrunedExpandedPaths });
 
-      let state = _reducer(undefined, actions.loadVersionInfo({ version }));
-      state = _reducer(state, actions.loadVersionInfo({ version: newVersion }));
+      let state = _reducer(undefined, _loadVersionInfo({ version }));
+      state = _reducer(state, _loadVersionInfo({ version: newVersion }));
       _getPrunedExpandedPaths.mockClear();
       _reducer(
         state,
@@ -308,7 +308,7 @@ describe(__filename, () => {
 
     it('updates a selected path for a given version', () => {
       const version = fakeVersion;
-      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+      let state = reducer(undefined, _loadVersionInfo({ version }));
 
       expect(state).toHaveProperty(
         `versionInfo.${version.id}.selectedPath`,
@@ -341,7 +341,7 @@ describe(__filename, () => {
       const selectedPath = 'folder1/folder2/file1.js';
 
       const version = fakeVersion;
-      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+      let state = reducer(undefined, _loadVersionInfo({ version }));
 
       state = reducer(
         state,
@@ -364,7 +364,7 @@ describe(__filename, () => {
       const selectedPath = `${newFolder}/${file}`;
 
       const version = fakeVersion;
-      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+      let state = reducer(undefined, _loadVersionInfo({ version }));
 
       const { expandedPaths } = getVersionInfo(state, version.id) as Version;
 
@@ -406,7 +406,7 @@ describe(__filename, () => {
     it('throws an error when expandedPaths is undefined', () => {
       const versionId = nextUniqueId();
       const version = { ...fakeVersion, id: versionId };
-      const state = reducer(undefined, actions.loadVersionInfo({ version }));
+      const state = reducer(undefined, _loadVersionInfo({ version }));
 
       expect(() => {
         reducer(
@@ -418,7 +418,7 @@ describe(__filename, () => {
 
     it('does not duplicate paths in expandedPaths when updateSelectedPath is dispatched', () => {
       const version = fakeVersion;
-      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+      let state = reducer(undefined, _loadVersionInfo({ version }));
 
       const { expandedPaths } = getVersionInfo(state, version.id) as Version;
 
@@ -448,7 +448,7 @@ describe(__filename, () => {
 
     it('adds a path to expandedPaths', () => {
       const version = fakeVersion;
-      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+      let state = reducer(undefined, _loadVersionInfo({ version }));
 
       const { expandedPaths } = getVersionInfo(state, version.id) as Version;
 
@@ -467,7 +467,7 @@ describe(__filename, () => {
 
     it('removes a path from expandedPaths', () => {
       const version = fakeVersion;
-      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+      let state = reducer(undefined, _loadVersionInfo({ version }));
 
       const { expandedPaths } = getVersionInfo(state, version.id) as Version;
 
@@ -491,7 +491,7 @@ describe(__filename, () => {
 
     it('maintains other paths when removing a path from expandedPaths', () => {
       const version = fakeVersion;
-      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+      let state = reducer(undefined, _loadVersionInfo({ version }));
 
       const { expandedPaths } = getVersionInfo(state, version.id) as Version;
 
@@ -541,7 +541,7 @@ describe(__filename, () => {
       };
 
       const version = { ...fakeVersion, file: { ...fakeVersionFile, entries } };
-      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+      let state = reducer(undefined, _loadVersionInfo({ version }));
 
       state = reducer(state, actions.expandTree({ versionId: version.id }));
 
@@ -568,7 +568,7 @@ describe(__filename, () => {
       };
 
       const version = { ...fakeVersion, file: { ...fakeVersionFile, entries } };
-      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+      let state = reducer(undefined, _loadVersionInfo({ version }));
 
       state = reducer(state, actions.expandTree({ versionId: version.id }));
 
@@ -581,7 +581,7 @@ describe(__filename, () => {
 
     it('removes all paths from expandedPaths when collapseTree is dispatched', () => {
       const version = fakeVersion;
-      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+      let state = reducer(undefined, _loadVersionInfo({ version }));
 
       const path1 = 'new/selected/path1';
       const path2 = 'new/selected/path2';
@@ -706,7 +706,7 @@ describe(__filename, () => {
 
       let versionsState = reducer(
         undefined,
-        actions.loadVersionInfo({
+        _loadVersionInfo({
           version,
         }),
       );
@@ -757,7 +757,7 @@ describe(__filename, () => {
 
       const previousState = reducer(
         undefined,
-        actions.loadVersionInfo({
+        _loadVersionInfo({
           version,
         }),
       );
@@ -922,7 +922,7 @@ describe(__filename, () => {
         },
         version: versionString,
       };
-      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+      let state = reducer(undefined, _loadVersionInfo({ version }));
       state = reducer(state, actions.loadVersionFile({ version, path }));
 
       expect(getVersionFile(state, version.id, path)).toEqual({
@@ -946,7 +946,7 @@ describe(__filename, () => {
 
     it('returns `null` when the file was not retrieved from the API', () => {
       const version = fakeVersion;
-      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+      let state = reducer(undefined, _loadVersionInfo({ version }));
       state = reducer(
         state,
         actions.abortFetchVersionFile({
@@ -964,7 +964,7 @@ describe(__filename, () => {
       const version = fakeVersion;
       const state = reducer(
         undefined,
-        actions.loadVersionInfo({ version: fakeVersion }),
+        _loadVersionInfo({ version: fakeVersion }),
       );
 
       expect(getVersionFile(state, version.id, 'path-to-unknown-file')).toEqual(
@@ -974,7 +974,7 @@ describe(__filename, () => {
 
     it('returns undefined if there is no entry for the path', () => {
       const version = fakeVersion;
-      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+      let state = reducer(undefined, _loadVersionInfo({ version }));
       state = reducer(
         state,
         actions.loadVersionFile({ version, path: version.file.selected_file }),
@@ -1005,7 +1005,7 @@ describe(__filename, () => {
           selected_file: path,
         },
       };
-      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+      let state = reducer(undefined, _loadVersionInfo({ version }));
       state = reducer(state, actions.loadVersionFile({ version, path }));
 
       expect(
@@ -1017,7 +1017,7 @@ describe(__filename, () => {
       const _log = createFakeLogger();
 
       const version = fakeVersion;
-      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+      let state = reducer(undefined, _loadVersionInfo({ version }));
       state = reducer(
         state,
         actions.loadVersionFile({ version, path: version.file.selected_file }),
@@ -1060,7 +1060,7 @@ describe(__filename, () => {
   describe('getVersionInfo', () => {
     it('returns version info', () => {
       const version = fakeVersion;
-      const state = reducer(undefined, actions.loadVersionInfo({ version }));
+      const state = reducer(undefined, _loadVersionInfo({ version }));
 
       expect(getVersionInfo(state, version.id)).toEqual(
         createInternalVersion(version),
@@ -1261,7 +1261,7 @@ describe(__filename, () => {
       await thunk();
 
       expect(dispatch).toHaveBeenCalledWith(
-        actions.loadVersionInfo({ updatePathInfo: false, version }),
+        _loadVersionInfo({ updatePathInfo: false, version }),
       );
     });
 
@@ -1314,7 +1314,7 @@ describe(__filename, () => {
       await thunk();
 
       expect(dispatch).toHaveBeenCalledWith(
-        actions.loadVersionInfo({ version, updatePathInfo: true }),
+        _loadVersionInfo({ version, updatePathInfo: true }),
       );
     });
 
@@ -1898,7 +1898,7 @@ describe(__filename, () => {
       await thunk();
 
       expect(dispatch).toHaveBeenCalledWith(
-        actions.loadVersionInfo({
+        _loadVersionInfo({
           version,
         }),
       );
@@ -1911,7 +1911,7 @@ describe(__filename, () => {
       const version = { ...fakeVersionWithDiff, id: headVersionId };
 
       store.dispatch(
-        actions.loadVersionInfo({
+        _loadVersionInfo({
           version,
         }),
       );
@@ -1925,7 +1925,7 @@ describe(__filename, () => {
       await thunk();
 
       expect(dispatch).not.toHaveBeenCalledWith(
-        actions.loadVersionInfo({
+        _loadVersionInfo({
           version,
         }),
       );
@@ -1938,7 +1938,7 @@ describe(__filename, () => {
       const version = { ...fakeVersionWithDiff, id: headVersionId };
 
       store.dispatch(
-        actions.loadVersionInfo({
+        _loadVersionInfo({
           version,
         }),
       );
@@ -1953,7 +1953,7 @@ describe(__filename, () => {
       await thunk();
 
       expect(dispatch).toHaveBeenCalledWith(
-        actions.loadVersionInfo({
+        _loadVersionInfo({
           version,
         }),
       );
@@ -1966,7 +1966,7 @@ describe(__filename, () => {
       const version = { ...fakeVersionWithDiff, id: headVersionId };
 
       store.dispatch(
-        actions.loadVersionInfo({
+        _loadVersionInfo({
           version,
         }),
       );
@@ -1994,7 +1994,7 @@ describe(__filename, () => {
       const version = { ...fakeVersionWithDiff, id: headVersionId };
 
       store.dispatch(
-        actions.loadVersionInfo({
+        _loadVersionInfo({
           version,
         }),
       );
@@ -2422,7 +2422,7 @@ describe(__filename, () => {
 
     it('preserves other version info', () => {
       const version = fakeVersion;
-      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+      let state = reducer(undefined, _loadVersionInfo({ version }));
 
       const abortFetchVersionId = version.id + 123;
       state = reducer(
@@ -2457,7 +2457,7 @@ describe(__filename, () => {
       let state;
       state = reducer(
         state,
-        actions.loadVersionInfo({ version: { ...fakeVersion, id: versionId } }),
+        _loadVersionInfo({ version: { ...fakeVersion, id: versionId } }),
       );
       state = reducer(state, actions.abortFetchVersion({ versionId }));
 
@@ -2486,7 +2486,7 @@ describe(__filename, () => {
 
     it('preserves other version info', () => {
       const version = fakeVersion;
-      let state = reducer(undefined, actions.loadVersionInfo({ version }));
+      let state = reducer(undefined, _loadVersionInfo({ version }));
 
       const beginFetchVersionId = version.id + 123;
       state = reducer(
@@ -2996,7 +2996,7 @@ describe(__filename, () => {
 
       state = reducer(
         state,
-        actions.loadVersionInfo({
+        _loadVersionInfo({
           version: {
             ...fakeVersion,
             id: versionId,
@@ -3046,7 +3046,7 @@ describe(__filename, () => {
 
       const state = reducer(
         undefined,
-        actions.loadVersionInfo({
+        _loadVersionInfo({
           version: {
             ...fakeVersion,
             id: versionId,
@@ -3211,7 +3211,7 @@ describe(__filename, () => {
         },
       };
       const entryStatusMap = createEntryStatusMap(externalVersion);
-      store.dispatch(actions.loadVersionInfo({ version: externalVersion }));
+      store.dispatch(_loadVersionInfo({ version: externalVersion }));
       store.dispatch(
         actions.loadEntryStatusMap({
           version: externalVersion,
@@ -3405,11 +3405,8 @@ describe(__filename, () => {
         },
       );
 
-      let state = reducer(
-        undefined,
-        actions.loadVersionInfo({ version: newVersion }),
-      );
-      state = reducer(state, actions.loadVersionInfo({ version: oldVersion }));
+      let state = reducer(undefined, _loadVersionInfo({ version: newVersion }));
+      state = reducer(state, _loadVersionInfo({ version: oldVersion }));
       state = reducer(
         state,
         actions.setCurrentVersionId({ versionId: newVersion.id }),
@@ -3434,11 +3431,8 @@ describe(__filename, () => {
         selected_file: path2,
       });
 
-      let state = reducer(
-        undefined,
-        actions.loadVersionInfo({ version: newVersion }),
-      );
-      state = reducer(state, actions.loadVersionInfo({ version: oldVersion }));
+      let state = reducer(undefined, _loadVersionInfo({ version: newVersion }));
+      state = reducer(state, _loadVersionInfo({ version: oldVersion }));
       state = reducer(
         state,
         actions.setCurrentVersionId({ versionId: newVersion.id }),
@@ -3461,11 +3455,8 @@ describe(__filename, () => {
         id: nextUniqueId(),
       });
 
-      let state = reducer(
-        undefined,
-        actions.loadVersionInfo({ version: newVersion }),
-      );
-      state = reducer(state, actions.loadVersionInfo({ version: oldVersion }));
+      let state = reducer(undefined, _loadVersionInfo({ version: newVersion }));
+      state = reducer(state, _loadVersionInfo({ version: oldVersion }));
       state = reducer(
         state,
         actions.setVisibleSelectedPath({
@@ -3523,7 +3514,7 @@ describe(__filename, () => {
     it('returns the current version when set', () => {
       const version = { ...fakeVersion, id: 42 };
       let state;
-      state = reducer(state, actions.loadVersionInfo({ version }));
+      state = reducer(state, _loadVersionInfo({ version }));
       state = reducer(
         state,
         actions.setCurrentVersionId({ versionId: version.id }),

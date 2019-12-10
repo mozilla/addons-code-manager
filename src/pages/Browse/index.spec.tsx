@@ -8,6 +8,7 @@ import {
   createFakeHistory,
   createFakeLocation,
   createFakeThunk,
+  dispatchLoadVersionInfo,
   externallyLocalizedString,
   fakeVersion,
   fakeVersionEntry,
@@ -93,7 +94,7 @@ describe(__filename, () => {
     setCurrentVersionId = true,
     loadVersionFile = true,
   }) => {
-    store.dispatch(versionsActions.loadVersionInfo({ version }));
+    dispatchLoadVersionInfo({ store, version });
     if (loadVersionFile) {
       store.dispatch(
         versionsActions.loadVersionFile({

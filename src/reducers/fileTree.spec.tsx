@@ -67,7 +67,10 @@ describe(__filename, () => {
       );
       state = reducer(
         state,
-        versionsActions.loadVersionInfo({ version: fakeVersion }),
+        versionsActions.loadVersionInfo({
+          updatePathInfo: true,
+          version: fakeVersion,
+        }),
       );
 
       expect(state).toEqual(
@@ -90,6 +93,7 @@ describe(__filename, () => {
       state = reducer(
         state,
         versionsActions.loadVersionInfo({
+          updatePathInfo: true,
           version: { ...fakeVersion, id: newVersionId },
         }),
       );
