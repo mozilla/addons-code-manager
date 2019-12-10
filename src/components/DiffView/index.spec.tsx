@@ -822,6 +822,39 @@ describe(__filename, () => {
     );
   });
 
+  it('disables syntax highlighting if the diff has been trimmed', () => {
+    const _tokenize = jest.fn(tokenize);
+    const change1 = { content: '// example 1' };
+    const change2 = { content: '// example 2' };
+    const change3 = { content: '// example 3' };
+
+    const diff = createDiffWithHunks([
+      createHunkWithChanges([change1]),
+      createHunkWithChanges([change2, change3]),
+    ]);
+
+    const location = createFakeLocation({
+      search: queryString.stringify({ [allowSlowPagesParam]: false }),
+    });
+
+    const root = renderWithLinterProvider({
+      _diffCanBeHighlighted: jest.fn(() => true),
+      _tokenize,
+      diff,
+      location,
+      _slowDiffChangeCount: 2,
+    });
+
+    expect(root.find(Diff)).toHaveProp('tokens', undefined);
+    expect(_tokenize).not.toHaveBeenCalled();
+
+    const message = root.find(Alert);
+    expect(message).toHaveLength(1);
+    expect(message).toHaveText(
+      'Syntax highlighting was disabled for performance',
+    );
+  });
+
   it('does not show a message about disabled highlighting without a diff', () => {
     const root = renderWithLinterProvider({ diff: null });
 

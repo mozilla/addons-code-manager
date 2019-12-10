@@ -357,13 +357,6 @@ export class DiffViewBase extends React.Component<Props> {
       // Remove the `#` if `location.hash` is defined
       location.hash.length > 2 ? [location.hash.substring(1)] : [];
 
-    let tokens;
-    if (diff && _diffCanBeHighlighted(diff)) {
-      // TODO: always highlight when we can use a Web Worker.
-      // https://github.com/mozilla/addons-code-manager/issues/928
-      tokens = _tokenize(diff.hunks, options);
-    }
-
     const extraMessages = [];
 
     let hunks;
@@ -400,6 +393,13 @@ export class DiffViewBase extends React.Component<Props> {
         );
         extraMessages.push(diffIsSlowAlert);
       }
+    }
+
+    let tokens;
+    if (diff && !diffWasTrimmed && _diffCanBeHighlighted(diff)) {
+      // TODO: always highlight when we can use a Web Worker.
+      // https://github.com/mozilla/addons-code-manager/issues/928
+      tokens = _tokenize(diff.hunks, options);
     }
 
     if (diff && !tokens) {

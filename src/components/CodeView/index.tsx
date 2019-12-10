@@ -31,9 +31,16 @@ const SLOW_LOADING_LINE_COUNT = 1000;
 // This function mimics what https://github.com/rexxars/react-refractor does,
 // but we need a different layout to inline comments so we cannot use this
 // component.
-const renderHighlightedCode = (code: string, language: string) => {
-  const ast = refractor.highlight(code, language);
-  const value = ast.length === 0 ? code : ast.map(mapWithDepth(0));
+const renderCode = (
+  code: string,
+  language: string,
+  shouldHighlight: boolean,
+) => {
+  let value;
+  if (shouldHighlight) {
+    const ast = refractor.highlight(code, language);
+    value = ast.length === 0 ? code : ast.map(mapWithDepth(0));
+  }
 
   return (
     <pre className={styles.highlightedCode}>
@@ -43,7 +50,7 @@ const renderHighlightedCode = (code: string, language: string) => {
           `language-${language}`,
         )}
       >
-        {value}
+        {value || code}
       </code>
     </pre>
   );
@@ -110,7 +117,9 @@ export class CodeViewBase extends React.Component<Props> {
           getMessage={(allowSlowPages: boolean) => {
             return allowSlowPages
               ? gettext('This file is loading slowly.')
-              : gettext('This file has been shortened to load faster.');
+              : gettext(
+                  'This file has been shortened, and highlighting has been disabled, to load faster.',
+                );
           }}
           getLinkText={(allowSlowPages: boolean) => {
             return allowSlowPages
@@ -182,7 +191,7 @@ export class CodeViewBase extends React.Component<Props> {
                             </td>
 
                             <td className={styles.code}>
-                              {renderHighlightedCode(code, language)}
+                              {renderCode(code, language, !codeWasTrimmed)}
                             </td>
                           </>
                         )}
