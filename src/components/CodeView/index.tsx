@@ -30,12 +30,16 @@ const SLOW_LOADING_LINE_COUNT = 1000;
 
 // This function mimics what https://github.com/rexxars/react-refractor does,
 // but we need a different layout to inline comments so we cannot use this
-// component.
-const renderCode = (
-  code: string,
-  language: string,
-  shouldHighlight: boolean,
-) => {
+// component. It also optionally does not highlight the code at all.
+const renderCode = ({
+  code,
+  language,
+  shouldHighlight,
+}: {
+  code: string;
+  language: string;
+  shouldHighlight: boolean;
+}) => {
   let value;
   if (shouldHighlight) {
     const ast = refractor.highlight(code, language);
@@ -191,7 +195,11 @@ export class CodeViewBase extends React.Component<Props> {
                             </td>
 
                             <td className={styles.code}>
-                              {renderCode(code, language, !codeWasTrimmed)}
+                              {renderCode({
+                                code,
+                                language,
+                                shouldHighlight: !codeWasTrimmed,
+                              })}
                             </td>
                           </>
                         )}
