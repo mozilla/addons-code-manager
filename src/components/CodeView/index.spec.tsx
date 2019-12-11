@@ -208,6 +208,19 @@ describe(__filename, () => {
     );
   });
 
+  it('does not highlight code when the file has been truncated', () => {
+    const content = '{ "foo": "bar" }';
+    const mimeType = 'application/json';
+    const { renderContent } = simulateCommentableLine({
+      _slowLoadingLineCount: 1,
+      mimeType,
+      content,
+    });
+    const line = renderContent();
+
+    expect(line.find('.language-json')).toHaveProp('children', content);
+  });
+
   it('handles empty content', () => {
     const root = renderWithLinterProvider({ content: '' });
 
@@ -502,7 +515,7 @@ describe(__filename, () => {
 
     expect(getMessage(true)).toEqual('This file is loading slowly.');
     expect(getMessage(false)).toEqual(
-      'This file has been shortened to load faster.',
+      'This file has been shortened, and highlighting has been disabled, to load faster.',
     );
 
     expect(getLinkText(true)).toEqual('View a shortened file.');
