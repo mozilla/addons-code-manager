@@ -1030,3 +1030,10 @@ export const fakeChangeInfo: ChangeInfo = Object.freeze({
   oldLineNumber: 1,
   type: 'insert',
 });
+
+export const fakeChange: ExternalChange = Object.freeze({
+  content: 'change-content',
+  new_line_number: 1,
+  old_line_number: 1,
+  type: 'normal',
+});

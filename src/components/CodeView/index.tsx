@@ -16,6 +16,7 @@ import {
 } from './utils';
 import refractor from '../../refractor';
 import {
+  codeCanBeHighlighted,
   gettext,
   getLanguageFromMimeType,
   shouldAllowSlowPages,
@@ -80,6 +81,7 @@ export type PublicProps = {
 };
 
 export type DefaultProps = {
+  _codeCanBeHighlighted: typeof codeCanBeHighlighted;
   _scrollToSelectedLine: typeof scrollToSelectedLine;
   _slowLoadingLineCount: number;
   enableCommenting: boolean;
@@ -89,6 +91,7 @@ type Props = PublicProps & DefaultProps & RouteComponentProps;
 
 export class CodeViewBase extends React.Component<Props> {
   static defaultProps: DefaultProps = {
+    _codeCanBeHighlighted: codeCanBeHighlighted,
     _scrollToSelectedLine: scrollToSelectedLine,
     _slowLoadingLineCount: SLOW_LOADING_LINE_COUNT,
     enableCommenting: process.env.REACT_APP_ENABLE_COMMENTING === 'true',
@@ -96,6 +99,7 @@ export class CodeViewBase extends React.Component<Props> {
 
   renderWithLinterInfo = ({ selectedMessageMap }: LinterProviderInfo) => {
     const {
+      _codeCanBeHighlighted,
       _scrollToSelectedLine,
       _slowLoadingLineCount,
       content,
@@ -133,6 +137,9 @@ export class CodeViewBase extends React.Component<Props> {
         />
       );
     }
+
+    const shouldHighlight =
+      !codeWasTrimmed && _codeCanBeHighlighted({ code: codeLines });
 
     return (
       <>
@@ -198,7 +205,7 @@ export class CodeViewBase extends React.Component<Props> {
                               {renderCode({
                                 code,
                                 language,
-                                shouldHighlight: !codeWasTrimmed,
+                                shouldHighlight,
                               })}
                             </td>
                           </>

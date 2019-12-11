@@ -4,6 +4,7 @@ import filesize from 'filesize';
 import purify from 'dompurify';
 import { History, Location } from 'history';
 import queryString from 'query-string';
+import { ChangeInfo } from 'react-diff-view';
 
 import { getCodeLineAnchor } from './components/CodeView/utils';
 import { ForwardComparisonMap } from './pages/Compare/utils';
@@ -138,4 +139,33 @@ export const shouldAllowSlowPages = ({
   return shouldAllowQueryParam !== undefined
     ? shouldAllowQueryParam === 'true'
     : allowByDefault;
+};
+
+export const codeCanBeHighlighted = ({
+  code,
+  // This is a single line width that would make code too wide.
+  wideLineLength = 500,
+  // This is the total line count that we consider too long.
+  highLineCount = 3000,
+}: {
+  code: string[] | ChangeInfo[];
+  wideLineLength?: number;
+  highLineCount?: number;
+}) => {
+  for (let index = 0; index < code.length; index++) {
+    const codeLineOrChange = code[index];
+    const line =
+      typeof codeLineOrChange === 'string'
+        ? codeLineOrChange
+        : codeLineOrChange.content;
+
+    if (line.length > wideLineLength) {
+      return false;
+    }
+    if (index >= highLineCount) {
+      return false;
+    }
+  }
+
+  return true;
 };

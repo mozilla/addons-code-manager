@@ -56,7 +56,6 @@ import DiffView, {
   DiffViewBase,
   PublicProps,
   changeCanBeCommentedUpon,
-  diffCanBeHighlighted,
   getAllHunkChanges,
   trimHunkChanges,
 } from '.';
@@ -67,6 +66,7 @@ describe(__filename, () => {
   >;
 
   const render = ({
+    _codeCanBeHighlighted = jest.fn(),
     enableCommenting = true,
     history = createFakeHistory(),
     location = createFakeLocation(),
@@ -76,6 +76,7 @@ describe(__filename, () => {
 
     return shallowUntilTarget(
       <DiffView
+        _codeCanBeHighlighted={_codeCanBeHighlighted}
         diff={parseDiff(basicDiff)[0]}
         enableCommenting={enableCommenting}
         mimeType="text/plain"
@@ -248,9 +249,15 @@ describe(__filename, () => {
   it('tokenizes the hunks to add syntax highlighting', () => {
     const diff = parseDiff(multipleDiff)[0];
     const mimeType = 'application/javascript';
+    const _codeCanBeHighlighted = jest.fn().mockReturnValue(true);
     const _tokenize = jest.fn();
 
-    renderWithLinterProvider({ _tokenize, diff, mimeType });
+    renderWithLinterProvider({
+      _codeCanBeHighlighted,
+      _tokenize,
+      diff,
+      mimeType,
+    });
 
     expect(_tokenize).toHaveBeenCalledWith(diff.hunks, {
       highlight: true,
@@ -788,7 +795,7 @@ describe(__filename, () => {
   it('enables syntax highlighting for diffs when possible', () => {
     const _tokenize = jest.fn(tokenize);
     const root = renderWithLinterProvider({
-      _diffCanBeHighlighted: jest.fn(() => true),
+      _codeCanBeHighlighted: jest.fn(() => true),
       _tokenize,
       diff: createDiffWithHunks([
         createHunkWithChanges([{ content: '// example content' }]),
@@ -805,7 +812,7 @@ describe(__filename, () => {
   it('disables syntax highlighting when it is not possible', () => {
     const _tokenize = jest.fn(tokenize);
     const root = renderWithLinterProvider({
-      _diffCanBeHighlighted: jest.fn(() => false),
+      _codeCanBeHighlighted: jest.fn(() => false),
       _tokenize,
       diff: createDiffWithHunks([
         createHunkWithChanges([{ content: '// pretend this is a long line' }]),
@@ -838,7 +845,7 @@ describe(__filename, () => {
     });
 
     const root = renderWithLinterProvider({
-      _diffCanBeHighlighted: jest.fn(() => true),
+      _codeCanBeHighlighted: jest.fn(() => true),
       _tokenize,
       diff,
       location,
@@ -976,72 +983,6 @@ describe(__filename, () => {
       expect(changes.filter((c) => c.lineNumber === 50)[0].content).toEqual(
         '          </Diff>',
       );
-    });
-  });
-
-  describe('diffCanBeHighlighted', () => {
-    it('returns true for a diff with short line lengths', () => {
-      expect(
-        diffCanBeHighlighted(
-          createDiffWithHunks([
-            createHunkWithChanges([{ content: '// example of short line' }]),
-            createHunkWithChanges([
-              { content: '// example of short line' },
-              { content: '// example of short line' },
-            ]),
-          ]),
-          { wideLineLength: 80 },
-        ),
-      ).toEqual(true);
-    });
-
-    it('returns false for a diff with wide line lengths', () => {
-      const wideLine = '// example of a really wide line';
-      expect(
-        diffCanBeHighlighted(
-          createDiffWithHunks([
-            createHunkWithChanges([{ content: '// short line' }]),
-            createHunkWithChanges([
-              { content: '// short line' },
-              { content: wideLine },
-            ]),
-          ]),
-          { wideLineLength: wideLine.length - 1 },
-        ),
-      ).toEqual(false);
-    });
-
-    it('returns true for a diff with a low line count', () => {
-      const highLineCount = 8;
-      expect(
-        diffCanBeHighlighted(
-          createDiffWithHunks([
-            createHunkWithChanges(
-              new Array(highLineCount - 1).fill({
-                content: '// example content',
-              }),
-            ),
-          ]),
-          { highLineCount },
-        ),
-      ).toEqual(true);
-    });
-
-    it('returns false for a diff with a high line count', () => {
-      expect(
-        diffCanBeHighlighted(
-          createDiffWithHunks([
-            createHunkWithChanges([
-              { content: '// example content' },
-              { content: '// example content' },
-              { content: '// example content' },
-              { content: '// example content' },
-            ]),
-            createHunkWithChanges([{ content: '// example content' }]),
-          ]),
-          { highLineCount: 4 },
-        ),
-      ).toEqual(false);
     });
   });
 

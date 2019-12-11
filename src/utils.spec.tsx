@@ -4,6 +4,7 @@ import queryString from 'query-string';
 import { getCodeLineAnchor } from './components/CodeView/utils';
 import {
   allowSlowPagesParam,
+  codeCanBeHighlighted,
   createAdjustedQueryString,
   createCodeLineAnchorGetter,
   extractNumber,
@@ -20,6 +21,7 @@ import {
   createFakeCompareInfo,
   createFakeHistory,
   createFakeLocation,
+  fakeChange,
   fakeVersionWithDiff,
 } from './test-helpers';
 
@@ -419,5 +421,58 @@ describe('shouldAllowSlowPages', () => {
         }),
       }),
     ).toEqual(true);
+  });
+});
+
+describe('codeCanBeHighlighted', () => {
+  describe('with an array of changes', () => {
+    it('returns true for a diff with short line lengths', () => {
+      expect(
+        codeCanBeHighlighted({
+          code: Array(3).fill({
+            ...fakeChange,
+            content: '// example of short line',
+          }),
+          wideLineLength: 80,
+        }),
+      ).toEqual(true);
+    });
+
+    it('returns false for a diff with wide line lengths', () => {
+      const wideLine = '// example of a really wide line';
+      expect(
+        codeCanBeHighlighted({
+          code: [
+            { ...fakeChange, content: '// example of short line' },
+            { ...fakeChange, content: wideLine },
+          ],
+          wideLineLength: wideLine.length - 1,
+        }),
+      ).toEqual(false);
+    });
+
+    it('returns true for a diff with a low line count', () => {
+      const highLineCount = 8;
+      expect(
+        codeCanBeHighlighted({
+          code: Array(highLineCount - 1).fill({
+            content: '// example content',
+          }),
+          highLineCount,
+        }),
+      ).toEqual(true);
+    });
+
+    it('returns false for a diff with a high line count', () => {
+      const highLineCount = 8;
+      expect(
+        codeCanBeHighlighted({
+          code: Array(highLineCount + 1).fill({
+            content: '// example content',
+          }),
+          highLineCount,
+        }),
+      ).toEqual(false);
+    });
   });
 });

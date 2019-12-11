@@ -34,6 +34,7 @@ import {
   getRelativeDiffAnchor,
 } from '../../reducers/versions';
 import {
+  codeCanBeHighlighted,
   getLanguageFromMimeType,
   gettext,
   shouldAllowSlowPages,
@@ -50,30 +51,6 @@ export const getAllHunkChanges = (hunks: Hunks): ChangeInfo[] => {
     (result: ChangeInfo[], { changes }) => [...result, ...changes],
     [],
   );
-};
-
-export const diffCanBeHighlighted = (
-  diff: DiffInfo,
-  {
-    // This is a single line width that would make a diff too wide.
-    wideLineLength = 700,
-    // This is the total line count of a diff we consider too long.
-    highLineCount = 3000,
-  } = {},
-) => {
-  const allChanges = getAllHunkChanges(diff.hunks);
-
-  for (let index = 0; index < allChanges.length; index++) {
-    const change = allChanges[index];
-    if (change.content.length > wideLineLength) {
-      return false;
-    }
-    if (index >= highLineCount) {
-      return false;
-    }
-  }
-
-  return true;
 };
 
 export const trimHunkChanges = (
@@ -111,7 +88,7 @@ export type PublicProps = {
 
 export type DefaultProps = {
   _changeCanBeCommentedUpon: typeof changeCanBeCommentedUpon;
-  _diffCanBeHighlighted: typeof diffCanBeHighlighted;
+  _codeCanBeHighlighted: typeof codeCanBeHighlighted;
   _document: typeof document;
   _getDiffAnchors: typeof getDiffAnchors;
   _getRelativeDiffAnchor: typeof getRelativeDiffAnchor;
@@ -128,7 +105,7 @@ export type Props = PublicProps & DefaultProps & RouterProps;
 export class DiffViewBase extends React.Component<Props> {
   static defaultProps: DefaultProps = {
     _changeCanBeCommentedUpon: changeCanBeCommentedUpon,
-    _diffCanBeHighlighted: diffCanBeHighlighted,
+    _codeCanBeHighlighted: codeCanBeHighlighted,
     _document: document,
     _getDiffAnchors: getDiffAnchors,
     _getRelativeDiffAnchor: getRelativeDiffAnchor,
@@ -338,7 +315,7 @@ export class DiffViewBase extends React.Component<Props> {
 
   renderWithMessages = ({ selectedMessageMap }: LinterProviderInfo) => {
     const {
-      _diffCanBeHighlighted,
+      _codeCanBeHighlighted,
       _slowDiffChangeCount,
       _tokenize,
       diff,
@@ -396,7 +373,11 @@ export class DiffViewBase extends React.Component<Props> {
     }
 
     let tokens;
-    if (diff && !diffWasTrimmed && _diffCanBeHighlighted(diff)) {
+    if (
+      diff &&
+      !diffWasTrimmed &&
+      _codeCanBeHighlighted({ code: getAllHunkChanges(diff.hunks) })
+    ) {
       // TODO: always highlight when we can use a Web Worker.
       // https://github.com/mozilla/addons-code-manager/issues/928
       tokens = _tokenize(diff.hunks, options);
