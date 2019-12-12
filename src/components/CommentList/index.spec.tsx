@@ -101,7 +101,6 @@ describe(__filename, () => {
 
     // Check one sample to make sure it's configured:
     const sample = list.at(1);
-    expect(sample).toHaveProp('readOnly', true);
     expect(sample).toHaveProp('addonId', addonId);
     expect(sample).toHaveProp('fileName', keyParams.fileName);
     expect(sample).toHaveProp('line', keyParams.line);
@@ -118,7 +117,6 @@ describe(__filename, () => {
     const comment = root.find(Comment);
 
     expect(comment).toHaveLength(1);
-    expect(comment).toHaveProp('readOnly', false);
     expect(comment).toHaveProp('commentId', null);
     expect(comment).toHaveProp('addonId', addonId);
     expect(comment).toHaveProp('fileName', keyParams.fileName);
@@ -147,14 +145,11 @@ describe(__filename, () => {
     expect(list).toHaveLength(3);
 
     // Check the from entry.
-    expect(list.at(0)).toHaveProp('readOnly', false);
     expect(list.at(0)).toHaveProp('commentId', null);
 
     // Check the saved comments.
-    expect(list.at(1)).toHaveProp('readOnly', true);
     expect(list.at(1)).toHaveProp('commentId', savedCommentId1);
 
-    expect(list.at(2)).toHaveProp('readOnly', true);
     expect(list.at(2)).toHaveProp('commentId', savedCommentId2);
   });
 
