@@ -17,6 +17,7 @@ import {
   LocalizedStringMap,
   createAdjustedQueryString,
   extractNumber,
+  measure,
 } from '../utils';
 import { actions as errorsActions } from './errors';
 import {
@@ -286,6 +287,12 @@ export const actions = {
   collapseTree: createAction('COLLAPSE_TREE', (resolve) => {
     return (payload: { versionId: number }) => resolve(payload);
   }),
+  beginFetchVersionsList: createAction(
+    'BEGIN_FETCH_VERSIONS_LIST',
+    (resolve) => {
+      return (payload: { addonId: number }) => resolve(payload);
+    },
+  ),
   loadVersionsList: createAction('LOAD_VERSIONS_LIST', (resolve) => {
     return (payload: { addonId: number; versions: ExternalVersionsList }) =>
       resolve(payload);
@@ -804,12 +811,15 @@ export const fetchVersion = ({
       dispatch(actions.setCurrentVersionId({ versionId }));
     }
 
-    const response = await _getVersion({
-      addonId,
-      apiState,
-      path,
-      versionId,
-    });
+    const response = await measure(
+      'api.get_version',
+      _getVersion({
+        addonId,
+        apiState,
+        path,
+        versionId,
+      }),
+    );
 
     if (isErrorResponse(response)) {
       dispatch(actions.abortFetchVersion({ versionId }));
@@ -844,12 +854,15 @@ export const fetchVersionFile = ({
 
     dispatch(actions.beginFetchVersionFile({ path, versionId }));
 
-    const response = await _getVersion({
-      addonId,
-      apiState,
-      versionId,
-      path,
-    });
+    const response = await measure(
+      'api.get_version_file',
+      _getVersion({
+        addonId,
+        apiState,
+        versionId,
+        path,
+      }),
+    );
 
     if (isErrorResponse(response)) {
       dispatch(actions.abortFetchVersionFile({ path, versionId }));
@@ -884,7 +897,12 @@ export const fetchVersionsList = ({
   return async (dispatch, getState) => {
     const { api: apiState } = getState();
 
-    const response = await _getVersionsList({ addonId, apiState });
+    dispatch(actions.beginFetchVersionsList({ addonId }));
+
+    const response = await measure(
+      'api.get_version_list',
+      _getVersionsList({ addonId, apiState }),
+    );
 
     if (isErrorResponse(response)) {
       dispatch(errorsActions.addError({ error: response.error }));
@@ -1070,13 +1088,16 @@ export const fetchDiff = ({
     // components can track its loading progress.
     dispatch(actions.setCurrentVersionId({ versionId: headVersionId }));
 
-    const response = await _getDiff({
-      addonId,
-      apiState,
-      baseVersionId,
-      headVersionId,
-      path,
-    });
+    const response = await measure(
+      'api.get_diff',
+      _getDiff({
+        addonId,
+        apiState,
+        baseVersionId,
+        headVersionId,
+        path,
+      }),
+    );
 
     if (isErrorResponse(response)) {
       dispatch(

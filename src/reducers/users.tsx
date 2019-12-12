@@ -4,6 +4,7 @@ import { ActionType, deprecated, getType } from 'typesafe-actions';
 import { ThunkActionCreator } from '../configureStore';
 import { getCurrentUser, isErrorResponse, logOutFromServer } from '../api';
 import { actions as errorsActions } from './errors';
+import { measure } from '../utils';
 
 // See: https://github.com/piotrwitek/typesafe-actions/issues/143
 const { createAction } = deprecated;
@@ -97,7 +98,10 @@ export const fetchCurrentUser = ({
     const { api: apiState } = getState();
     dispatch(actions.beginFetchCurrentUser());
 
-    const response = await _getCurrentUser(apiState);
+    const response = await measure(
+      'api.get_current_user',
+      _getCurrentUser(apiState),
+    );
 
     if (isErrorResponse(response)) {
       dispatch(errorsActions.addError({ error: response.error }));

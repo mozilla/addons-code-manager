@@ -5,6 +5,7 @@ import { ActionType, deprecated, getType } from 'typesafe-actions';
 import { ThunkActionCreator } from '../configureStore';
 import { actions as errorsActions } from './errors';
 import { makeApiURL } from '../api';
+import { measure } from '../utils';
 
 // See: https://github.com/piotrwitek/typesafe-actions/issues/143
 const { createAction } = deprecated;
@@ -211,9 +212,12 @@ export const fetchLinterMessagesIfNeeded = ({
     dispatch(actions.beginFetchLinterResult({ versionId }));
 
     // This is a special URL and returns a non-standard JSON response.
-    const response = await fetch(makeApiURL({ url }), {
-      credentials: 'include',
-    });
+    const response = await measure(
+      'api.get_linter_messages',
+      fetch(makeApiURL({ url }), {
+        credentials: 'include',
+      }),
+    );
 
     try {
       if (!response.ok) {

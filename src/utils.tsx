@@ -139,3 +139,14 @@ export const shouldAllowSlowPages = ({
     ? shouldAllowQueryParam === 'true'
     : allowByDefault;
 };
+
+export const measure = async (name: string, wrapped: any) => {
+  window.performance.mark(`${name}.start`);
+
+  const value = await wrapped;
+
+  window.performance.mark(`${name}.end`);
+  window.performance.measure(name, `${name}.start`, `${name}.end`);
+
+  return value;
+};

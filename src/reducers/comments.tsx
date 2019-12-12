@@ -14,6 +14,7 @@ import {
   getAllComments,
   isErrorResponse,
 } from '../api';
+import { measure } from '../utils';
 
 // See: https://github.com/piotrwitek/typesafe-actions/issues/143
 const { createAction } = deprecated;
@@ -285,7 +286,10 @@ export const fetchAndLoadComments = ({
 
     // TODO: fetch all pages to get all comments.
     // https://github.com/mozilla/addons-code-manager/issues/1093
-    const response = await _getAllComments({ addonId, apiState, versionId });
+    const response = await measure(
+      'api.get_all_comments',
+      _getAllComments({ addonId, apiState, versionId }),
+    );
 
     if (isErrorResponse(response)) {
       dispatch(actions.abortFetchVersionComments({ versionId }));
