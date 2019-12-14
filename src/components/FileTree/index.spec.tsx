@@ -16,6 +16,7 @@ import {
 } from '../../reducers/versions';
 import {
   createFakeLogger,
+  dispatchLoadVersionInfo,
   fakeVersion,
   getInstance,
   shallowUntilTarget,
@@ -33,7 +34,7 @@ describe(__filename, () => {
       store = configureStore(),
       version = fakeVersion,
     }): Version => {
-      store.dispatch(versionActions.loadVersionInfo({ version }));
+      dispatchLoadVersionInfo({ store, version });
 
       return getVersionInfo(store.getState().versions, version.id) as Version;
     };

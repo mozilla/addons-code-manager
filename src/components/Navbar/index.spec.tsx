@@ -12,6 +12,7 @@ import {
   createFakeThunk,
   createStoreWithVersion,
   createStoreWithVersionComments,
+  dispatchLoadVersionInfo,
   fakeUser,
   fakeVersion,
   fakeVersionAddon,
@@ -313,11 +314,10 @@ describe(__filename, () => {
       const store = createStoreWithVersion({ makeCurrent: true });
 
       const currentBaseVersionId = nextUniqueId();
-      store.dispatch(
-        versionsActions.loadVersionInfo({
-          version: { ...fakeVersion, id: currentBaseVersionId },
-        }),
-      );
+      dispatchLoadVersionInfo({
+        store,
+        version: { ...fakeVersion, id: currentBaseVersionId },
+      });
       store.dispatch(
         versionsActions.setCurrentBaseVersionId({
           versionId: currentBaseVersionId,
@@ -358,7 +358,7 @@ describe(__filename, () => {
       versionString?: string;
     }) => {
       const baseVersion = { ...fakeVersion, id, version: versionString };
-      store.dispatch(versionsActions.loadVersionInfo({ version: baseVersion }));
+      dispatchLoadVersionInfo({ store, version: baseVersion });
       store.dispatch(
         versionsActions.setCurrentBaseVersionId({ versionId: baseVersion.id }),
       );

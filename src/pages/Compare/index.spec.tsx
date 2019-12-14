@@ -10,6 +10,7 @@ import {
   createFakeLocation,
   createFakeThunk,
   createStoreWithVersion,
+  dispatchLoadVersionInfo,
   externallyLocalizedString,
   fakeVersion,
   fakeVersionWithDiff,
@@ -132,11 +133,10 @@ describe(__filename, () => {
     store?: Store;
     version?: typeof fakeVersionWithDiff;
   }) => {
-    store.dispatch(
-      versionsActions.loadVersionInfo({
-        version,
-      }),
-    );
+    dispatchLoadVersionInfo({
+      store,
+      version,
+    });
     if (loadEntryStatusMap) {
       store.dispatch(
         versionsActions.loadEntryStatusMap({
@@ -424,11 +424,7 @@ describe(__filename, () => {
     const version = { ...fakeVersionWithDiff, id: headVersionId };
     const store = configureStore();
 
-    store.dispatch(
-      versionsActions.loadVersionInfo({
-        version,
-      }),
-    );
+    dispatchLoadVersionInfo({ store, version });
 
     store.dispatch(
       fileTreeActions.buildTree({
@@ -613,11 +609,7 @@ describe(__filename, () => {
     const version = { ...fakeVersionWithDiff, id: headVersionId };
     const store = configureStore();
 
-    store.dispatch(
-      versionsActions.loadVersionInfo({
-        version,
-      }),
-    );
+    dispatchLoadVersionInfo({ store, version });
 
     store.dispatch(
       versionsActions.loadEntryStatusMap({
@@ -1243,11 +1235,10 @@ describe(__filename, () => {
       const currentFile = 'current.json';
       const nextModifiedFile = 'next.json';
       const store = configureStore();
-      store.dispatch(
-        versionsActions.loadVersionInfo({
-          version: { ...fakeVersion, id: headVersionId },
-        }),
-      );
+      dispatchLoadVersionInfo({
+        store,
+        version: { ...fakeVersion, id: headVersionId },
+      });
       store.dispatch(
         versionsActions.loadDiff({
           addonId,

@@ -23,6 +23,7 @@ import {
   createFakeCompareInfo,
   createFakeEntry,
   createFakeExternalLinterResult,
+  dispatchLoadVersionInfo,
   fakeExternalLinterMessage,
   fakeVersion,
   fakeVersionEntry,
@@ -65,7 +66,7 @@ describe(__filename, () => {
         selected_file: path,
       },
     };
-    store.dispatch(versionsActions.loadVersionInfo({ version }));
+    dispatchLoadVersionInfo({ store, version });
     store.dispatch(versionsActions.loadVersionFile({ path, version }));
 
     const versionsState = store.getState().versions;

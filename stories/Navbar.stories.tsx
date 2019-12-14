@@ -10,6 +10,7 @@ import {
   createFakeExternalComment,
   createStoreWithVersion,
   createStoreWithVersionComments,
+  dispatchLoadVersionInfo,
   fakeUser,
   fakeVersion,
   fakeVersionAddon,
@@ -44,7 +45,7 @@ const dispatchBaseVersion = ({
   versionString?: string;
 }) => {
   const baseVersion = { ...fakeVersion, id, version: versionString };
-  store.dispatch(versionsActions.loadVersionInfo({ version: baseVersion }));
+  dispatchLoadVersionInfo({ store, version: baseVersion });
   store.dispatch(
     versionsActions.setCurrentBaseVersionId({ versionId: baseVersion.id }),
   );
