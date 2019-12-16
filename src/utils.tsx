@@ -15,6 +15,12 @@ export const messageUidQueryParam = 'messageUid';
 export const pathQueryParam = 'path';
 export const allowSlowPagesParam = 'allowSlowPages';
 
+// Lengths for disabling highlighting.
+// This is the total line count that we consider too long.
+export const HIGHLIGHT_HIGH_LINE_COUNT = 3000;
+// This is a single line width that would make code too wide.
+export const HIGHLIGHT_WIDE_LINE_LENGTH = 500;
+
 export type LocalizedStringMap = {
   [lang: string]: string;
 };
@@ -143,10 +149,10 @@ export const shouldAllowSlowPages = ({
 
 export const codeCanBeHighlighted = ({
   code,
-  // This is a single line width that would make code too wide.
-  wideLineLength = 500,
   // This is the total line count that we consider too long.
-  highLineCount = 3000,
+  highLineCount = HIGHLIGHT_WIDE_LINE_LENGTH,
+  // This is a single line width that would make code too wide.
+  wideLineLength = HIGHLIGHT_WIDE_LINE_LENGTH,
 }: {
   code: string[] | ChangeInfo[];
   wideLineLength?: number;

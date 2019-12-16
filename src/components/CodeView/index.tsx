@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { withRouter, Link, RouteComponentProps } from 'react-router-dom';
 import makeClassName from 'classnames';
+import { Alert } from 'react-bootstrap';
 
 import styles from './styles.module.scss';
 import Commentable from '../Commentable';
@@ -16,6 +17,7 @@ import {
 } from './utils';
 import refractor from '../../refractor';
 import {
+  HIGHLIGHT_WIDE_LINE_LENGTH,
   codeCanBeHighlighted,
   gettext,
   getLanguageFromMimeType,
@@ -45,6 +47,9 @@ const renderCode = ({
   if (shouldHighlight) {
     const ast = refractor.highlight(code, language);
     value = ast.length === 0 ? code : ast.map(mapWithDepth(0));
+  } else {
+    // If the code cannot be highlighted, truncate the line as well.
+    value = code.substring(0, HIGHLIGHT_WIDE_LINE_LENGTH);
   }
 
   return (
@@ -140,6 +145,13 @@ export class CodeViewBase extends React.Component<Props> {
 
     const shouldHighlight =
       !codeWasTrimmed && _codeCanBeHighlighted({ code: codeLines });
+    const highlightAlert = !shouldHighlight ? (
+      <Alert className={styles.highlightAlert} variant="warning">
+        {gettext(
+          'Syntax highlighting was disabled, and some lines may have been truncated, for performance.',
+        )}
+      </Alert>
+    ) : null;
 
     return (
       <>
@@ -159,6 +171,7 @@ export class CodeViewBase extends React.Component<Props> {
           messages={selectedMessageMap && selectedMessageMap.global}
         />
 
+        {highlightAlert}
         {slowAlert}
 
         <FadableContent fade={codeWasTrimmed}>

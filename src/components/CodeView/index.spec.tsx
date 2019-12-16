@@ -18,7 +18,11 @@ import {
   mapWithDepth,
   GLOBAL_LINTER_ANCHOR_ID,
 } from './utils';
-import { allowSlowPagesParam, getLanguageFromMimeType } from '../../utils';
+import {
+  HIGHLIGHT_WIDE_LINE_LENGTH,
+  allowSlowPagesParam,
+  getLanguageFromMimeType,
+} from '../../utils';
 import {
   SimulateCommentListParams,
   SimulateCommentableParams,
@@ -232,6 +236,36 @@ describe(__filename, () => {
     const line = renderContent();
 
     expect(line.find('.language-json')).toHaveProp('children', content);
+  });
+
+  it('truncates wide lines when code cannot be highlighted', () => {
+    const content = 'a'.repeat(HIGHLIGHT_WIDE_LINE_LENGTH + 1);
+    const { renderContent } = simulateCommentableLine({
+      _codeCanBeHighlighted: jest.fn().mockReturnValue(false),
+      content,
+    });
+    const line = renderContent();
+
+    expect(line.find(`.${styles.innerHighlightedCode}`)).toHaveProp(
+      'children',
+      content.substring(0, HIGHLIGHT_WIDE_LINE_LENGTH),
+    );
+  });
+
+  it('displays an alert when code cannot be highlighted', () => {
+    const root = renderWithLinterProvider({
+      _codeCanBeHighlighted: jest.fn().mockReturnValue(false),
+    });
+
+    expect(root.find(`.${styles.highlightAlert}`)).toHaveLength(1);
+  });
+
+  it('does not display an alert when code can be highlighted', () => {
+    const root = renderWithLinterProvider({
+      _codeCanBeHighlighted: jest.fn().mockReturnValue(true),
+    });
+
+    expect(root.find(`.${styles.highlightAlert}`)).toHaveLength(0);
   });
 
   it('handles empty content', () => {
