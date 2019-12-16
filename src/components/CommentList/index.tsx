@@ -84,16 +84,11 @@ export class CommentListBase extends React.Component<Props> {
 
       if (commentInfo.beginNewComment) {
         comments.push(
-          <Comment
-            {...base}
-            commentId={null}
-            key="comment-entry-form"
-            readOnly={false}
-          />,
+          <Comment {...base} commentId={null} key="comment-entry-form" />,
         );
       }
       for (const id of commentInfo.commentIds) {
-        comments.push(<Comment {...base} commentId={id} key={id} readOnly />);
+        comments.push(<Comment {...base} commentId={id} key={id} />);
       }
     }
 

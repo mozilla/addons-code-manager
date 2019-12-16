@@ -28,6 +28,7 @@ const render = ({
   fileName = null,
   initialComment,
   line = null,
+  beginComment = false,
   store = configureStore(),
   versionId = 2,
   ...moreProps
@@ -35,6 +36,7 @@ const render = ({
   considerDelete?: boolean;
   deleting?: boolean;
   initialComment?: ExternalComment;
+  beginComment?: boolean;
   store?: Store;
 } = {}) => {
   const key = { fileName, line, versionId };
@@ -53,10 +55,20 @@ const render = ({
       store.dispatch(commentsActions.beginDeleteComment({ commentId }));
     }
   }
+
+  if (beginComment) {
+    store.dispatch(
+      commentsActions.beginComment({
+        commentId: commentId || undefined,
+        fileName,
+        line,
+        versionId,
+      }),
+    );
+  }
   const props = {
     addonId: 1,
     commentId,
-    readOnly: false,
     ...key,
     ...moreProps,
   };
@@ -70,12 +82,12 @@ storiesOf('Comment', module)
         sections: [
           {
             title: 'adding a new comment',
-            sectionFn: () => render({ readOnly: false }),
+            sectionFn: () => render({ beginComment: true }),
           },
           {
             title: 'editing a comment',
             sectionFn: () =>
-              render({ initialComment: fakeComment, readOnly: false }),
+              render({ initialComment: fakeComment, beginComment: true }),
           },
           {
             title: 'saving a comment',
@@ -87,6 +99,7 @@ storiesOf('Comment', module)
                 versionId: 1,
               };
               const store = configureStore();
+              store.dispatch(commentsActions.beginComment(keyParams));
               store.dispatch(
                 commentsActions.beginSaveComment({
                   ...keyParams,
@@ -94,7 +107,7 @@ storiesOf('Comment', module)
                     'This call to browser.getFuzzTabs() has been deprecated.',
                 }),
               );
-              return render({ ...keyParams, store, readOnly: false });
+              return render({ ...keyParams, store });
             },
           },
           {
@@ -107,12 +120,12 @@ storiesOf('Comment', module)
                 versionId: 1,
               };
               const store = configureStore();
+              store.dispatch(commentsActions.beginComment(keyParams));
               store.dispatch(commentsActions.considerDiscardComment(keyParams));
               return render({
                 ...keyParams,
                 initialComment: fakeComment,
                 store,
-                readOnly: false,
               });
             },
           },
@@ -132,13 +145,11 @@ storiesOf('Comment', module)
                   ...fakeComment,
                   comment: 'This is not allowed.',
                 },
-                readOnly: true,
               }),
           },
           {
             title: 'viewing a multi-line comment',
-            sectionFn: () =>
-              render({ initialComment: fakeComment, readOnly: true }),
+            sectionFn: () => render({ initialComment: fakeComment }),
           },
           {
             title: 'viewing a very long comment',
@@ -148,7 +159,6 @@ storiesOf('Comment', module)
                   ...fakeComment,
                   comment: loremIpsum.replace(/[\n\s]+/g, ''),
                 },
-                readOnly: true,
               }),
           },
           {
@@ -161,7 +171,6 @@ storiesOf('Comment', module)
                   id: 321,
                   comment: 'This function call is dangerous.',
                 },
-                readOnly: true,
               });
             },
           },
@@ -175,7 +184,6 @@ storiesOf('Comment', module)
                   id: 321,
                   comment: 'This function call is dangerous.',
                 },
-                readOnly: true,
               });
             },
           },

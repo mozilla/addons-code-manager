@@ -26,7 +26,6 @@ export type PublicProps = {
   commentId: number | null;
   fileName: string | null;
   line: number | null;
-  readOnly: boolean;
   versionId: number;
 };
 
@@ -37,7 +36,7 @@ export type DefaultProps = {
 };
 
 type PropsFromState = {
-  beginEdit: boolean;
+  showForm: boolean;
   considerDiscard: boolean;
   initialComment: Comment | null;
   initialCommentText: string | null;
@@ -358,10 +357,10 @@ export class CommentBase extends React.Component<Props, State> {
   }
 
   render() {
-    const { beginEdit, className, readOnly } = this.props;
+    const { className, showForm } = this.props;
     return (
       <div className={makeClassName(styles.container, className)}>
-        {readOnly && !beginEdit ? this.renderComment() : this.renderForm()}
+        {showForm ? this.renderForm() : this.renderComment()}
       </div>
     );
   }
@@ -386,8 +385,9 @@ const mapStateToProps = (
     line,
     versionId,
   });
+
   return {
-    beginEdit: info ? info.beginNewComment : false,
+    showForm: info ? info.beginNewComment : false,
     considerDiscard: info ? info.considerDiscard : false,
     initialComment: initialComment || null,
     initialCommentText: info ? info.pendingCommentText : null,

@@ -29,17 +29,49 @@ describe(__filename, () => {
     ...moreProps
   }: RenderParams = {}) => {
     const props = {
-      addonId: 1,
+      addonId: nextUniqueId(),
       commentId,
       fileName: null,
       line: null,
-      readOnly: false,
-      versionId: 2,
+      versionId: nextUniqueId(),
       ...moreProps,
     };
+
     return shallowUntilTarget(<Comment {...props} />, CommentBase, {
       shallowOptions: { context: { store } },
     });
+  };
+
+  const setUpStoreAndRender = ({
+    beginEdit = false,
+    commentId = null,
+    fileName = null,
+    line = null,
+    store = configureStore(),
+    versionId = nextUniqueId(),
+    ...moreProps
+  }: RenderParams & { beginEdit?: boolean } = {}) => {
+    const keyParams = {
+      commentId,
+      fileName,
+      line,
+      versionId,
+    };
+
+    if (beginEdit) {
+      store.dispatch(
+        actions.beginComment({
+          ...keyParams,
+          commentId: commentId || undefined,
+        }),
+      );
+    }
+
+    const dispatchSpy = spyOn(store, 'dispatch');
+
+    const root = render({ store, ...keyParams, ...moreProps });
+
+    return { dispatchSpy, root };
   };
 
   const createFakeTextareaRef = (currentProps = {}) => {
@@ -57,29 +89,29 @@ describe(__filename, () => {
 
   it('lets you set a custom class', () => {
     const className = 'ExampleClass';
-    const root = render({ className });
+    const { root } = setUpStoreAndRender({ beginEdit: true, className });
 
     expect(root).toHaveClassName(className);
   });
 
-  it('requires a comment when readOnly=true', () => {
-    expect(() => render({ readOnly: true, commentId: null })).toThrow(
+  it('requires a comment when it is rendered as read-only', () => {
+    expect(() => render({ commentId: null })).toThrow(
       /Cannot get initialComment/,
     );
   });
 
   it('throws when a commentId is not mapped to a comment', () => {
-    expect(() => render({ readOnly: false, commentId: 1 })).toThrow(
+    expect(() => render({ commentId: nextUniqueId() })).toThrow(
       /No comment was mapped/,
     );
   });
 
-  it('renders a comment when readOnly=true', () => {
+  it('renders a comment as read-only', () => {
     const content = 'Example of a comment';
     const comment = createFakeExternalComment({ comment: content });
     const { store } = dispatchComment({ comment });
 
-    const root = render({ commentId: comment.id, store, readOnly: true });
+    const root = render({ commentId: comment.id, store });
 
     expect(root.find(`.${styles.form}`)).toHaveLength(0);
     expect(root.find(`.${styles.comment}`)).toHaveLength(1);
@@ -91,7 +123,7 @@ describe(__filename, () => {
     const comment = createFakeExternalComment({ comment: '<span>foo</span>' });
     const { store } = dispatchComment({ comment });
 
-    const root = render({ commentId: comment.id, store, readOnly: true });
+    const root = render({ commentId: comment.id, store });
 
     expect(root.find(`.${styles.comment}`).html()).not.toContain(
       comment.comment,
@@ -108,16 +140,22 @@ describe(__filename, () => {
     });
     const { store } = dispatchComment({ comment });
 
-    const root = render({ commentId: comment.id, store, readOnly: true });
+    const root = render({ commentId: comment.id, store });
 
     const html = root.find(`.${styles.comment}`).html();
     expect(html).toContain(`${firstLine}<br>${secondLine}`);
   });
 
-  it('renders a form to edit a comment when readOnly=false', () => {
+  it('renders a form to edit a comment when beginComment has been dispatched', () => {
+    const versionId = nextUniqueId();
     const comment = createFakeExternalComment({ comment: 'Example' });
-    const { store } = dispatchComment({ comment });
-    const root = render({ commentId: comment.id, store, readOnly: false });
+    const { store } = dispatchComment({ comment, versionId });
+    const { root } = setUpStoreAndRender({
+      beginEdit: true,
+      commentId: comment.id,
+      store,
+      versionId,
+    });
 
     expect(root.find(`.${styles.form}`)).toHaveLength(1);
     expect(root.find(`.${styles.comment}`)).toHaveLength(0);
@@ -133,31 +171,32 @@ describe(__filename, () => {
 
   it('focuses on mount when a textarea ref exists', () => {
     const focus = jest.fn();
-    render({ createTextareaRef: () => createFakeTextareaRef({ focus }) });
+    setUpStoreAndRender({
+      beginEdit: true,
+      createTextareaRef: () => createFakeTextareaRef({ focus }),
+    });
 
     expect(focus).toHaveBeenCalled();
   });
 
   it('submits a new comment', () => {
-    const addonId = 222;
-    const fileName = 'manifest.json';
-    const line = 432;
-    const versionId = 321;
-    const store = configureStore();
-    const dispatchSpy = spyOn(store, 'dispatch');
-
+    const addonId = nextUniqueId();
+    const keyParams = {
+      commentId: undefined,
+      fileName: 'manifest.json',
+      line: nextUniqueId(),
+      versionId: nextUniqueId(),
+    };
     const fakeThunk = createFakeThunk();
     const _manageComment = fakeThunk.createThunk;
 
     const commentText = 'Example of a comment';
 
-    const root = render({
+    const { root, dispatchSpy } = setUpStoreAndRender({
       _manageComment,
       addonId,
-      fileName,
-      line,
-      store,
-      versionId,
+      beginEdit: true,
+      ...keyParams,
     });
 
     root.find(`.${styles.textarea}`).simulate(
@@ -175,21 +214,18 @@ describe(__filename, () => {
       addonId,
       cannedResponseId: undefined,
       comment: commentText,
-      commentId: undefined,
-      fileName,
-      line,
-      versionId,
+      ...keyParams,
     });
   });
 
   it('can submit an empty comment', () => {
-    const store = configureStore();
-    const dispatchSpy = spyOn(store, 'dispatch');
-
     const fakeThunk = createFakeThunk();
     const _manageComment = fakeThunk.createThunk;
 
-    const root = render({ _manageComment, store });
+    const { dispatchSpy, root } = setUpStoreAndRender({
+      _manageComment,
+      beginEdit: true,
+    });
 
     // Submit the comment before it has been typed in the input box.
     root.find(`.${styles.form}`).simulate('submit', createFakeEvent());
@@ -213,11 +249,15 @@ describe(__filename, () => {
     };
     const pendingCommentText = 'Example of a comment being edited';
     const store = configureStore();
+    store.dispatch(actions.beginComment(keyParams));
     store.dispatch(
       actions.beginSaveComment({ ...keyParams, pendingCommentText }),
     );
 
-    const root = render({ readOnly: false, store, ...keyParams });
+    const root = render({
+      store,
+      ...keyParams,
+    });
 
     const textarea = root.find(`.${styles.textarea}`);
     expect(textarea).toHaveProp('disabled', true);
@@ -237,9 +277,15 @@ describe(__filename, () => {
       id: commentId,
       comment: commentText,
     });
-    const { store } = dispatchComment({ comment });
+    const versionId = nextUniqueId();
+    const { store } = dispatchComment({ comment, versionId });
 
-    const root = render({ commentId, store });
+    const { root } = setUpStoreAndRender({
+      beginEdit: true,
+      commentId,
+      store,
+      versionId,
+    });
 
     expect(root.find(`.${styles.textarea}`)).toHaveProp('value', commentText);
   });
@@ -253,6 +299,7 @@ describe(__filename, () => {
     };
     const pendingCommentText = 'Example of a comment being edited';
     const store = configureStore();
+    store.dispatch(actions.beginComment(keyParams));
     store.dispatch(
       actions.beginSaveComment({ ...keyParams, pendingCommentText }),
     );
@@ -268,22 +315,24 @@ describe(__filename, () => {
   it('lets you update a previously saved comment', () => {
     const commentId = 1;
     const previousCommentText = 'Example of a previously saved comment';
+    const versionId = nextUniqueId();
     const comment = createFakeExternalComment({
       id: commentId,
       comment: previousCommentText,
     });
-    const { store } = dispatchComment({ comment });
-    const dispatchSpy = spyOn(store, 'dispatch');
+    const { store } = dispatchComment({ comment, versionId });
 
     const commentText = 'Example of an edited comment';
 
     const fakeThunk = createFakeThunk();
     const _manageComment = fakeThunk.createThunk;
 
-    const root = render({
+    const { dispatchSpy, root } = setUpStoreAndRender({
       _manageComment,
+      beginEdit: true,
       commentId,
       store,
+      versionId,
     });
 
     const textarea = root.find(`.${styles.textarea}`);
@@ -311,7 +360,10 @@ describe(__filename, () => {
   describe('keydown protection', () => {
     it('adds keydown listeners on mount', () => {
       const fakeRef = createFakeTextareaRef();
-      const root = render({ createTextareaRef: () => fakeRef });
+      const { root } = setUpStoreAndRender({
+        beginEdit: true,
+        createTextareaRef: () => fakeRef,
+      });
 
       expect(fakeRef.current.addEventListener).toHaveBeenCalledWith(
         'keydown',
@@ -321,7 +373,10 @@ describe(__filename, () => {
 
     it('stops propagating keydown events', () => {
       const fakeRef = createFakeTextareaRef();
-      render({ createTextareaRef: () => fakeRef });
+      setUpStoreAndRender({
+        beginEdit: true,
+        createTextareaRef: () => fakeRef,
+      });
 
       expect(fakeRef.current.addEventListener).toHaveBeenCalled();
       const listenToKeydown = fakeRef.current.addEventListener.mock.calls[0][1];
@@ -334,7 +389,10 @@ describe(__filename, () => {
 
     it('removes and adds keydown event listener on update', () => {
       const fakeRef = createFakeTextareaRef();
-      const root = render({ createTextareaRef: () => fakeRef });
+      const { root } = setUpStoreAndRender({
+        beginEdit: true,
+        createTextareaRef: () => fakeRef,
+      });
       const { addEventListener, removeEventListener } = fakeRef.current;
       addEventListener.mockClear();
       removeEventListener.mockClear();
@@ -347,7 +405,10 @@ describe(__filename, () => {
 
     it('removes keydown event listeners on unmount', () => {
       const fakeRef = createFakeTextareaRef();
-      const root = render({ createTextareaRef: () => fakeRef });
+      const { root } = setUpStoreAndRender({
+        beginEdit: true,
+        createTextareaRef: () => fakeRef,
+      });
       const { keydownListener } = getInstance<CommentBase>(root);
       root.unmount();
 
@@ -359,13 +420,19 @@ describe(__filename, () => {
 
     it('does not add/remove listeners with an undefined ref', () => {
       // Make sure this doesn't throw an error.
-      const root = render({ createTextareaRef: () => undefined });
+      const { root } = setUpStoreAndRender({
+        beginEdit: true,
+        createTextareaRef: () => undefined,
+      });
       root.unmount();
     });
 
     it('does not add/remove listeners with a null DOM node', () => {
       // Make sure this doesn't throw an error.
-      const root = render({ createTextareaRef: () => React.createRef() });
+      const { root } = setUpStoreAndRender({
+        beginEdit: true,
+        createTextareaRef: () => React.createRef(),
+      });
       root.unmount();
     });
   });
@@ -398,22 +465,20 @@ describe(__filename, () => {
         store.dispatch(actions.beginDeleteComment({ commentId: comment.id }));
       }
 
-      const dispatchSpy = spyOn(store, 'dispatch');
-
       const fakeThunk = createFakeThunk();
       const _deleteComment = fakeThunk.createThunk;
+      const { dispatchSpy, root } = setUpStoreAndRender({
+        _deleteComment,
+        commentId: comment.id,
+        store,
+        ...params,
+      });
 
       return {
         _deleteComment,
         dispatchSpy,
         fakeThunk,
-        root: render({
-          _deleteComment,
-          commentId: comment.id,
-          store,
-          readOnly: true,
-          ...params,
-        }),
+        root,
       };
     };
 
@@ -499,7 +564,10 @@ describe(__filename, () => {
 
   describe('getInitialCommentOrThrow', () => {
     it('throws when initialComment is empty', () => {
-      const root = render({ commentId: null });
+      const { root } = setUpStoreAndRender({
+        beginEdit: true,
+        commentId: null,
+      });
       expect(() =>
         getInstance<CommentBase>(root).getInitialCommentOrThrow(),
       ).toThrow(/Cannot get initialComment/);
@@ -507,9 +575,15 @@ describe(__filename, () => {
 
     it('returns initialComment', () => {
       const comment = createFakeExternalComment();
-      const { store } = dispatchComment({ comment });
+      const versionId = nextUniqueId();
+      const { store } = dispatchComment({ comment, versionId });
 
-      const root = render({ commentId: comment.id, store });
+      const { root } = setUpStoreAndRender({
+        beginEdit: true,
+        commentId: comment.id,
+        store,
+        versionId,
+      });
 
       expect(getInstance<CommentBase>(root).getInitialCommentOrThrow()).toEqual(
         createInternalComment(comment),
@@ -551,9 +625,8 @@ describe(__filename, () => {
       'renders a discard button to cancel entering a comment with id=%s',
       (commentId) => {
         const { keyParams, store } = setUpForDiscard({ commentId });
-        const dispatchSpy = spyOn(store, 'dispatch');
 
-        const root = render({
+        const { dispatchSpy, root } = setUpStoreAndRender({
           store,
           ...keyParams,
         });
@@ -574,9 +647,8 @@ describe(__filename, () => {
       (commentId) => {
         const { keyParams, store } = setUpForDiscard({ commentId });
         store.dispatch(actions.considerDiscardComment(keyParams));
-        const dispatchSpy = spyOn(store, 'dispatch');
 
-        const root = render({
+        const { dispatchSpy, root } = setUpStoreAndRender({
           store,
           ...keyParams,
         });
@@ -613,9 +685,8 @@ describe(__filename, () => {
       (commentId) => {
         const { keyParams, store } = setUpForDiscard({ commentId });
         store.dispatch(actions.considerDiscardComment(keyParams));
-        const dispatchSpy = spyOn(store, 'dispatch');
 
-        const root = render({
+        const { dispatchSpy, root } = setUpStoreAndRender({
           store,
           ...keyParams,
         });
@@ -660,7 +731,6 @@ describe(__filename, () => {
     };
 
     const renderCommentToEdit = ({
-      beginEdit = false,
       commentId = nextUniqueId(),
       considerDelete = false,
       fileName = 'example.json',
@@ -686,29 +756,18 @@ describe(__filename, () => {
         store.dispatch(actions.considerDeleteComment({ commentId }));
       }
 
-      if (beginEdit) {
-        store.dispatch(
-          actions.beginComment({
-            commentId,
-            fileName,
-            line,
-            versionId,
-          }),
-        );
-      }
-      const dispatchSpy = spyOn(store, 'dispatch');
+      const { dispatchSpy, root } = setUpStoreAndRender({
+        commentId,
+        fileName,
+        line,
+        store,
+        versionId,
+        ...params,
+      });
 
       return {
         dispatchSpy,
-        root: render({
-          commentId,
-          fileName,
-          line,
-          readOnly: true,
-          store,
-          versionId,
-          ...params,
-        }),
+        root,
       };
     };
 
