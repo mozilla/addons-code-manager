@@ -221,6 +221,19 @@ describe(__filename, () => {
     expect(line.find('.language-json')).toHaveProp('children', content);
   });
 
+  it('does not highlight code when code cannot be highlighted', () => {
+    const content = '{ "foo": "bar" }';
+    const mimeType = 'application/json';
+    const { renderContent } = simulateCommentableLine({
+      _codeCanBeHighlighted: jest.fn().mockReturnValue(false),
+      mimeType,
+      content,
+    });
+    const line = renderContent();
+
+    expect(line.find('.language-json')).toHaveProp('children', content);
+  });
+
   it('handles empty content', () => {
     const root = renderWithLinterProvider({ content: '' });
 
