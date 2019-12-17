@@ -1304,6 +1304,23 @@ describe(__filename, () => {
       );
     });
 
+    it('dispatches() beginFetchVersionFile() when API response is successful', async () => {
+      const version = fakeVersion;
+
+      const { dispatch, thunk } = thunkTester({
+        createThunk: () => _fetchVersion({ version }),
+      });
+
+      await thunk();
+
+      expect(dispatch).toHaveBeenCalledWith(
+        actions.beginFetchVersionFile({
+          versionId: version.id,
+          path: version.file.selected_file,
+        }),
+      );
+    });
+
     it('dispatches loadVersionInfo() when API response is successful', async () => {
       const version = fakeVersion;
 
@@ -1376,6 +1393,7 @@ describe(__filename, () => {
       path = 'some/path.js',
       version = fakeVersion,
       _getVersion = jest.fn().mockReturnValue(Promise.resolve(version)),
+      store = configureStore(),
     } = {}) => {
       return thunkTester({
         createThunk: () =>
@@ -1385,6 +1403,7 @@ describe(__filename, () => {
             path,
             versionId: version.id,
           }),
+        store,
       });
     };
 
@@ -1410,6 +1429,23 @@ describe(__filename, () => {
         versionId: version.id,
         path,
       });
+    });
+
+    it('does nothing when a file is already being fetched', async () => {
+      const version = { ...fakeVersion, id: 3214 };
+      const path = 'some/path.js';
+      const store = configureStore();
+      store.dispatch(
+        actions.beginFetchVersionFile({ path, versionId: version.id }),
+      );
+
+      const { dispatch, thunk } = _fetchVersionFile({ version, path, store });
+
+      await thunk();
+
+      expect(dispatch).not.toHaveBeenCalledWith(
+        actions.beginFetchVersionFile({ path, versionId: version.id }),
+      );
     });
 
     it('dispatches beginFetchVersionFile', async () => {
