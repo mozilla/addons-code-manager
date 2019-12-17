@@ -35,6 +35,7 @@ import {
 } from '../../reducers/versions';
 import {
   codeCanBeHighlighted,
+  getAllHunkChanges,
   getLanguageFromMimeType,
   gettext,
   shouldAllowSlowPages,
@@ -45,13 +46,6 @@ import 'react-diff-view/style/index.css';
 // This is the number of changes for which a diff starts loading slowly,
 // even when syntax highlighting is disabled.
 const SLOW_DIFF_CHANGE_COUNT = 1000;
-
-export const getAllHunkChanges = (hunks: Hunks): ChangeInfo[] => {
-  return hunks.reduce(
-    (result: ChangeInfo[], { changes }) => [...result, ...changes],
-    [],
-  );
-};
 
 export const trimHunkChanges = (
   hunks: Hunks,
