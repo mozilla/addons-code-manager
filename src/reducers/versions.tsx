@@ -1,3 +1,4 @@
+/* eslint @typescript-eslint/camelcase: 0 */
 import { Reducer } from 'redux';
 import { ActionType, deprecated, getType } from 'typesafe-actions';
 import log from 'loglevel';
@@ -816,6 +817,15 @@ export const fetchVersion = ({
       dispatch(actions.abortFetchVersion({ versionId }));
       dispatch(errorsActions.addError({ error: response.error }));
     } else {
+      const { selected_file } = response.file;
+
+      // We indicate that a file is being loaded because we already have it and
+      // we will load it below. This is useful to prevent `fetchVersionFile()`
+      // to run after we load the version info (and before we load the version
+      // file). See: https://github.com/mozilla/addons-code-manager/issues/1338
+      dispatch(
+        actions.beginFetchVersionFile({ versionId, path: selected_file }),
+      );
       dispatch(
         actions.loadVersionInfo({
           version: response,
@@ -823,10 +833,7 @@ export const fetchVersion = ({
         }),
       );
       dispatch(
-        actions.loadVersionFile({
-          version: response,
-          path: response.file.selected_file,
-        }),
+        actions.loadVersionFile({ version: response, path: selected_file }),
       );
     }
   };
@@ -846,7 +853,11 @@ export const fetchVersionFile = ({
   versionId,
 }: FetchVersionFileParams): ThunkActionCreator => {
   return async (dispatch, getState) => {
-    const { api: apiState } = getState();
+    const { api: apiState, versions } = getState();
+
+    if (isFileLoading(versions, versionId, path)) {
+      return;
+    }
 
     dispatch(actions.beginFetchVersionFile({ path, versionId }));
 
