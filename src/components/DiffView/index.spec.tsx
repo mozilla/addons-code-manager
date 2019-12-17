@@ -26,7 +26,11 @@ import LinterMessage from '../LinterMessage';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import GlobalLinterMessages from '../GlobalLinterMessages';
 import SlowPageAlert from '../SlowPageAlert';
-import { allowSlowPagesParam, getLanguageFromMimeType } from '../../utils';
+import {
+  allowSlowPagesParam,
+  getLanguageFromMimeType,
+  getAllHunkChanges,
+} from '../../utils';
 import {
   ExternalChange,
   ExternalHunk,
@@ -56,7 +60,6 @@ import DiffView, {
   DiffViewBase,
   PublicProps,
   changeCanBeCommentedUpon,
-  getAllHunkChanges,
   trimHunkChanges,
 } from '.';
 
@@ -964,26 +967,6 @@ describe(__filename, () => {
 
     expect(getLinkText(true)).toEqual('Shorten the diff.');
     expect(getLinkText(false)).toEqual('Show the original diff.');
-  });
-
-  describe('getAllHunkChanges', () => {
-    it('returns a flattened list of all changes', () => {
-      const diff = parseDiff(diffWithDeletions)[0];
-      const changes = getAllHunkChanges(diff.hunks);
-
-      // Check a line from the first hunk:
-      expect(changes.filter((c) => c.lineNumber === 2)[0].content).toEqual(
-        "import { Diff, DiffProps, parseDiff } from 'react-diff-view';",
-      );
-      // Check a line from the second hunk:
-      expect(changes.filter((c) => c.lineNumber === 24)[0].content).toEqual(
-        '    console.log({ hunk });',
-      );
-      // Check a line from the third hunk:
-      expect(changes.filter((c) => c.lineNumber === 50)[0].content).toEqual(
-        '          </Diff>',
-      );
-    });
   });
 
   describe('trimHunkChanges', () => {

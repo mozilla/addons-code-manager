@@ -1,14 +1,24 @@
+/* eslint @typescript-eslint/camelcase: 0 */
 import filesize from 'filesize';
 import queryString from 'query-string';
+import { parseDiff } from 'react-diff-view';
 
+import diffWithDeletions from './components/DiffView/fixtures/diffWithDeletions';
+import {
+  ExternalChange,
+  ExternalHunk,
+  createInternalDiff,
+} from './reducers/versions';
 import { getCodeLineAnchor } from './components/CodeView/utils';
 import {
+  ForwardComparisonMap,
   allowSlowPagesParam,
   codeCanBeHighlighted,
   createAdjustedQueryString,
   createCodeLineAnchorGetter,
   extractNumber,
   formatFilesize,
+  getAllHunkChanges,
   getLanguageFromMimeType,
   getLocalizedString,
   getPathFromQueryString,
@@ -22,6 +32,7 @@ import {
   createFakeHistory,
   createFakeLocation,
   fakeChange,
+  fakeExternalDiff,
   fakeVersionWithDiff,
 } from './test-helpers';
 
@@ -473,6 +484,229 @@ describe('codeCanBeHighlighted', () => {
           highLineCount,
         }),
       ).toEqual(false);
+    });
+  });
+
+  describe('getAllHunkChanges', () => {
+    it('returns a flattened list of all changes', () => {
+      const diff = parseDiff(diffWithDeletions)[0];
+      const changes = getAllHunkChanges(diff.hunks);
+
+      // Check a line from the first hunk:
+      expect(changes.filter((c) => c.lineNumber === 2)[0].content).toEqual(
+        "import { Diff, DiffProps, parseDiff } from 'react-diff-view';",
+      );
+      // Check a line from the second hunk:
+      expect(changes.filter((c) => c.lineNumber === 24)[0].content).toEqual(
+        '    console.log({ hunk });',
+      );
+      // Check a line from the third hunk:
+      expect(changes.filter((c) => c.lineNumber === 50)[0].content).toEqual(
+        '          </Diff>',
+      );
+    });
+  });
+
+  describe('ForwardComparisonMap', () => {
+    const createFakeExternalChange = (
+      change: Partial<ExternalChange>,
+    ): ExternalChange => {
+      return {
+        ...fakeExternalDiff.hunks[0].changes[0],
+        ...change,
+      };
+    };
+
+    const newForwardComparisonMap = ({
+      changes = fakeExternalDiff.hunks[0].changes,
+      hunks = [
+        {
+          ...fakeExternalDiff.hunks[0],
+          changes,
+        },
+      ],
+    }: {
+      changes?: ExternalChange[];
+      hunks?: ExternalHunk[];
+    } = {}) => {
+      const fakeVersion = {
+        ...fakeVersionWithDiff,
+        file: {
+          ...fakeVersionWithDiff.file,
+          diff: {
+            ...fakeExternalDiff,
+            hunks,
+          },
+        },
+      };
+
+      const diffInfo = createInternalDiff({
+        baseVersionId: 1,
+        headVersionId: 2,
+        version: fakeVersion,
+      });
+      if (!diffInfo) {
+        throw new Error('diffInfo was unexpectedly empty');
+      }
+
+      return new ForwardComparisonMap(diffInfo);
+    };
+
+    it('maps normal changes', () => {
+      const change = createFakeExternalChange({
+        old_line_number: 1,
+        new_line_number: 1,
+        type: 'normal',
+      });
+
+      expect(
+        newForwardComparisonMap({ changes: [change] }).getCodeLineAnchor(1),
+      ).toEqual('#N1');
+    });
+
+    it('maps delete changes', () => {
+      const change = createFakeExternalChange({
+        old_line_number: 2,
+        new_line_number: -1,
+        type: 'delete',
+      });
+
+      expect(
+        newForwardComparisonMap({ changes: [change] }).getCodeLineAnchor(2),
+      ).toEqual('#D2');
+    });
+
+    it('maps insert changes', () => {
+      const change = createFakeExternalChange({
+        old_line_number: -1,
+        new_line_number: 2,
+        type: 'insert',
+      });
+
+      expect(
+        newForwardComparisonMap({ changes: [change] }).getCodeLineAnchor(2),
+      ).toEqual('#I2');
+    });
+
+    it('merges changes', () => {
+      const changes = [
+        createFakeExternalChange({
+          old_line_number: 1,
+          new_line_number: 1,
+          type: 'normal',
+        }),
+        createFakeExternalChange({
+          old_line_number: -1,
+          new_line_number: 2,
+          type: 'insert',
+        }),
+      ];
+
+      const map = newForwardComparisonMap({ changes });
+      expect(map.getCodeLineAnchor(1)).toEqual('#N1');
+      expect(map.getCodeLineAnchor(2)).toEqual('#I2');
+    });
+
+    it('merges changes for all hunks', () => {
+      const hunks = [
+        {
+          ...fakeExternalDiff.hunks[0],
+          changes: [
+            createFakeExternalChange({
+              old_line_number: 1,
+              new_line_number: 1,
+              type: 'normal',
+            }),
+          ],
+        },
+        {
+          ...fakeExternalDiff.hunks[0],
+          changes: [
+            createFakeExternalChange({
+              old_line_number: -1,
+              new_line_number: 2,
+              type: 'insert',
+            }),
+          ],
+        },
+      ];
+
+      const map = newForwardComparisonMap({ hunks });
+      expect(map.getCodeLineAnchor(1)).toEqual('#N1');
+      expect(map.getCodeLineAnchor(2)).toEqual('#I2');
+    });
+
+    it('favors inserts', () => {
+      const changes = [
+        createFakeExternalChange({
+          old_line_number: 2,
+          new_line_number: -1,
+          type: 'delete',
+        }),
+        createFakeExternalChange({
+          old_line_number: -1,
+          new_line_number: 2,
+          type: 'insert',
+        }),
+        createFakeExternalChange({
+          old_line_number: 2,
+          new_line_number: 2,
+          type: 'normal',
+        }),
+      ];
+
+      expect(newForwardComparisonMap({ changes }).getCodeLineAnchor(2)).toEqual(
+        '#I2',
+      );
+    });
+
+    it('favors normal lines over deletes', () => {
+      const changes = [
+        createFakeExternalChange({
+          old_line_number: 1,
+          new_line_number: 1,
+          type: 'normal',
+        }),
+        createFakeExternalChange({
+          old_line_number: 1,
+          new_line_number: -1,
+          type: 'delete',
+        }),
+      ];
+
+      expect(newForwardComparisonMap({ changes }).getCodeLineAnchor(1)).toEqual(
+        '#N1',
+      );
+    });
+
+    it('handles unknown lines', () => {
+      const changes = [
+        createFakeExternalChange({
+          old_line_number: 1,
+          new_line_number: 1,
+          type: 'normal',
+        }),
+      ];
+
+      expect(newForwardComparisonMap({ changes }).getCodeLineAnchor(2)).toEqual(
+        '',
+      );
+    });
+
+    it('lets you create a bound getCodeLineAnchor callback', () => {
+      const line = 1;
+      const change = createFakeExternalChange({
+        old_line_number: line,
+        new_line_number: line,
+        type: 'normal',
+      });
+
+      const map = newForwardComparisonMap({ changes: [change] });
+      const codeLineAnchorGetter = map.createCodeLineAnchorGetter();
+
+      expect(codeLineAnchorGetter(line)).toEqual(
+        map.getCodeLineAnchor.bind(map)(line),
+      );
     });
   });
 });
