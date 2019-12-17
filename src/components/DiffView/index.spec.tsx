@@ -32,7 +32,6 @@ import {
   getAllHunkChanges,
 } from '../../utils';
 import {
-  ExternalChange,
   ExternalHunk,
   ScrollTarget,
   createInternalDiff,
@@ -40,10 +39,12 @@ import {
   createInternalVersion,
 } from '../../reducers/versions';
 import {
+  ChangeForHunk,
   createContextWithFakeRouter,
   createFakeHistory,
   createFakeLinterMessagesByPath,
   createFakeLocation,
+  createHunkWithChanges,
   fakeChangeInfo,
   fakeExternalDiff,
   fakeVersion,
@@ -142,22 +143,8 @@ describe(__filename, () => {
     return Object.values(widgets).filter(Boolean);
   };
 
-  const createHunkWithChanges = (
-    changes: Partial<ExternalChange>[],
-  ): ExternalHunk => {
-    return {
-      ...fakeExternalDiff.hunks[0],
-      changes: changes.map((change) => {
-        return {
-          ...fakeExternalDiff.hunks[0].changes[0],
-          ...change,
-        };
-      }),
-    };
-  };
-
   const createInternalHunkWithChanges = (
-    changes: Partial<ExternalChange>[],
+    changes: ChangeForHunk[],
   ): HunkInfo => {
     return createInternalHunk(createHunkWithChanges(changes));
   };
@@ -609,9 +596,9 @@ describe(__filename, () => {
     });
     const diff = createDiffWithHunks([
       createHunkWithChanges([
-        { type: 'insert', new_line_number: firstLine },
-        { type: 'insert', new_line_number: secondLine },
-        { type: 'insert', new_line_number: thirdLine },
+        { type: 'insert', lineNumber: firstLine },
+        { type: 'insert', lineNumber: secondLine },
+        { type: 'insert', lineNumber: thirdLine },
       ]),
     ]);
     const widgets = renderAndGetWidgets({
@@ -679,7 +666,7 @@ describe(__filename, () => {
         id: nextUniqueId(),
       });
       const diff = createDiffWithHunks([
-        createHunkWithChanges([{ type: changeType, new_line_number: line }]),
+        createHunkWithChanges([{ type: changeType, lineNumber: line }]),
       ]);
       const widgets = renderAndGetWidgets({
         diff,
@@ -702,9 +689,7 @@ describe(__filename, () => {
         id: nextUniqueId(),
       });
       const diff = createDiffWithHunks([
-        createHunkWithChanges([
-          { new_line_number: lineNumber, old_line_number: lineNumber },
-        ]),
+        createHunkWithChanges([{ lineNumber }]),
       ]);
 
       const widgets = renderAndGetWidgets({
@@ -731,9 +716,7 @@ describe(__filename, () => {
     it('can render a comment and a message for a line', () => {
       const line = nextUniqueId();
       const diff = createDiffWithHunks([
-        createHunkWithChanges([
-          { new_line_number: line, old_line_number: line },
-        ]),
+        createHunkWithChanges([{ lineNumber: line }]),
       ]);
       const externalMessages = [{ line, uid: 'message-uid' }];
 
@@ -759,9 +742,7 @@ describe(__filename, () => {
         id: nextUniqueId(),
       });
       const diff = createDiffWithHunks([
-        createHunkWithChanges([
-          { new_line_number: lineNumber, old_line_number: lineNumber },
-        ]),
+        createHunkWithChanges([{ lineNumber }]),
       ]);
       const widgets = renderAndGetWidgets({
         _changeCanBeCommentedUpon,
@@ -780,9 +761,7 @@ describe(__filename, () => {
         id: nextUniqueId(),
       });
       const diff = createDiffWithHunks([
-        createHunkWithChanges([
-          { new_line_number: line, old_line_number: line },
-        ]),
+        createHunkWithChanges([{ lineNumber: line }]),
       ]);
       const widgets = renderAndGetWidgets({
         diff,

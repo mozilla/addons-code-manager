@@ -9,7 +9,7 @@ import { History, Location } from 'history';
 import { ShallowRendererProps, ShallowWrapper, shallow } from 'enzyme';
 import { Store } from 'redux';
 import log from 'loglevel';
-import { ChangeInfo } from 'react-diff-view';
+import { ChangeInfo, ChangeType } from 'react-diff-view';
 import { createAction } from 'typesafe-actions';
 
 import {
@@ -34,6 +34,7 @@ import {
 import { ExternalUser } from './reducers/users';
 import {
   ExternalChange,
+  ExternalHunk,
   ExternalVersionAddon,
   ExternalVersionEntry,
   ExternalVersionFileWithContent,
@@ -1049,3 +1050,51 @@ export const fakeChange: ExternalChange = Object.freeze({
   old_line_number: 1,
   type: 'normal',
 });
+
+export type ChangeForHunk = {
+  content?: string;
+  lineNumber?: number;
+  type?: ChangeType;
+};
+
+export const createHunkWithChanges = (
+  changes: ChangeForHunk[],
+): ExternalHunk => {
+  return {
+    ...fakeExternalDiff.hunks[0],
+    changes: changes.map((changeForHunk) => {
+      const lineNumber = changeForHunk.lineNumber || 1;
+      const type = changeForHunk.type || 'normal';
+      let newLineNumber;
+      let oldLineNumber;
+
+      switch (type) {
+        case 'delete':
+        case 'delete-eofnl': {
+          newLineNumber = -1;
+          oldLineNumber = lineNumber;
+          break;
+        }
+        case 'insert':
+        case 'insert-eofnl': {
+          newLineNumber = lineNumber;
+          oldLineNumber = -1;
+          break;
+        }
+        default:
+          newLineNumber = lineNumber;
+          oldLineNumber = lineNumber;
+          break;
+      }
+
+      const change: ExternalChange = {
+        content: changeForHunk.content || 'some content',
+        new_line_number: newLineNumber,
+        old_line_number: oldLineNumber,
+        type,
+      };
+
+      return change;
+    }),
+  };
+};
