@@ -103,7 +103,11 @@ const VersionFileViewer = ({
           ) : null
         }
       >
-        {children}
+        {messageMap ? (
+          children
+        ) : (
+          <Loading message={gettext('Loading linter information...')} />
+        )}
       </ContentShell>
     );
   };

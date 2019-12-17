@@ -122,11 +122,38 @@ describe(__filename, () => {
       .filterWhere((c) => c.prop('title') === title);
   };
 
-  it('renders children', () => {
+  it('renders a loading message when linter messages are not loaded yet', () => {
     const childClass = 'ExampleClass';
-    const root = renderWithLinterProvider({
-      children: <div className={childClass} />,
-    });
+    const root = renderWithLinterProvider(
+      {
+        children: <div className={childClass} />,
+      },
+      {
+        messageMap: undefined,
+      },
+    );
+
+    expect(root.find(`.${childClass}`)).toHaveLength(0);
+    expect(root.find(Loading)).toHaveLength(1);
+    expect(root.find(Loading)).toHaveProp(
+      'message',
+      'Loading linter information...',
+    );
+  });
+
+  it('renders children when linter messages are loaded', () => {
+    const childClass = 'ExampleClass';
+    const messageMap = getMessageMap(
+      createFakeExternalLinterResult({ messages: [] }),
+    );
+    const root = renderWithLinterProvider(
+      {
+        children: <div className={childClass} />,
+      },
+      {
+        messageMap,
+      },
+    );
 
     expect(root.find(`.${childClass}`)).toHaveLength(1);
   });
