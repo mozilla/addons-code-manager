@@ -565,6 +565,27 @@ describe(__filename, () => {
     expect(lineShapes).toHaveLength(3);
   });
 
+  it('can render a change-styled CodeLineShapes component', () => {
+    const contentLines = generateFileLines({ count: 3 });
+    const allLineShapes = generateLineShapes(contentLines);
+
+    const root = renderWithFixedHeight({
+      content: contentLines.join('\n'),
+      insertedLines: [2],
+    });
+
+    const lineShapes = root.find(CodeLineShapes);
+
+    expect(lineShapes.at(0)).toHaveProp('lineShapes', allLineShapes[0]);
+    expect(lineShapes.at(0)).not.toHaveProp('isChange');
+    expect(lineShapes.at(1)).toHaveProp('lineShapes', allLineShapes[1]);
+    expect(lineShapes.at(1)).toHaveProp('isChange', true);
+    expect(lineShapes.at(2)).toHaveProp('lineShapes', allLineShapes[2]);
+    expect(lineShapes.at(2)).not.toHaveProp('isChange');
+
+    expect(lineShapes).toHaveLength(3);
+  });
+
   it('renders CodeLineShapes for groups of lines that fit into the grid', () => {
     const contentLines = generateFileLines({ count: 200 });
 
@@ -651,6 +672,25 @@ describe(__filename, () => {
     expect(innerRoot.find(`.${styles.linterMessage}`)).toHaveLength(
       messages.length,
     );
+  });
+
+  it('replaces a linter message with a change-styled group of line shapes', () => {
+    const lineCount = 5;
+    const insertedLines = [2];
+    const messages = [{ line: 2 }, { line: 3 }];
+    const { innerRoot } = renderWithMessages({
+      contentLines: generateFileLines({ count: lineCount }),
+      insertedLines,
+      messages,
+    });
+
+    expect(innerRoot.find(CodeLineShapes)).toHaveLength(
+      lineCount - messages.length + 1,
+    );
+    expect(innerRoot.find(`.${styles.linterMessage}`)).toHaveLength(
+      messages.length - 1,
+    );
+    expect(innerRoot.find(CodeLineShapes).at(1)).toHaveProp('isChange', true);
   });
 
   it('replaces a group of line shapes with a linter message', () => {

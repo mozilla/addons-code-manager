@@ -10,7 +10,12 @@ import ContentShell from '../FullscreenGrid/ContentShell';
 import KeyboardShortcuts from '../KeyboardShortcuts';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import Loading from '../Loading';
-import { CompareInfo, Version, VersionFile } from '../../reducers/versions';
+import {
+  CompareInfo,
+  Version,
+  VersionFile,
+  getInsertedLines,
+} from '../../reducers/versions';
 import { AnyReactNode } from '../../typeUtils';
 import { gettext } from '../../utils';
 import styles from './styles.module.scss';
@@ -22,6 +27,7 @@ export enum ItemTitles {
 }
 
 export type PublicProps = {
+  _getInsertedLines?: typeof getInsertedLines;
   children: AnyReactNode;
   comparedToVersionId: number | null;
   compareInfo?: CompareInfo | null | undefined;
@@ -32,6 +38,7 @@ export type PublicProps = {
 };
 
 const VersionFileViewer = ({
+  _getInsertedLines = getInsertedLines,
   children,
   comparedToVersionId,
   compareInfo,
@@ -61,6 +68,11 @@ const VersionFileViewer = ({
             );
           })
         : null;
+
+    const insertedLines =
+      compareInfo && compareInfo.diff
+        ? _getInsertedLines(compareInfo.diff)
+        : [];
 
     return (
       <ContentShell
@@ -98,6 +110,7 @@ const VersionFileViewer = ({
             <CodeOverview
               content={file.type === 'image' ? '' : file.content}
               getCodeLineAnchor={getCodeLineAnchor}
+              insertedLines={insertedLines}
               version={version}
             />
           ) : null

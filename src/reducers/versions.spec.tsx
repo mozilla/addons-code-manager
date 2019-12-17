@@ -28,6 +28,7 @@ import reducer, {
   fetchVersion,
   fetchVersionFile,
   fetchVersionsList,
+  getInsertedLines,
   getCompareInfo,
   getCompareInfoKey,
   getDiffAnchors,
@@ -3747,6 +3748,47 @@ describe(__filename, () => {
       ).toMatchObject({
         pendingHeadVersionId: versionId,
       });
+    });
+  });
+
+  describe('getInsertedLines', () => {
+    it('returns an array of inserted lines', () => {
+      const diff = createFakeDiffWithChanges([
+        [
+          { lineNumber: 1, type: 'insert' },
+          { lineNumber: 2, type: 'insert' },
+          { lineNumber: 5, type: 'insert' },
+        ],
+      ]);
+
+      expect(getInsertedLines(diff)).toEqual([1, 2, 5]);
+    });
+
+    it('does not return any non-inserts', () => {
+      const diff = createFakeDiffWithChanges([
+        [
+          { lineNumber: 1, type: 'delete' },
+          { lineNumber: 2, type: 'insert' },
+          { lineNumber: 3, type: 'normal' },
+          { lineNumber: 4, type: 'delete-eofnl' },
+          { lineNumber: 5, type: 'insert-eofnl' },
+          { lineNumber: 6, type: 'normal-eofnl' },
+          { lineNumber: 7, type: 'insert' },
+        ],
+      ]);
+
+      expect(getInsertedLines(diff)).toEqual([2, 7]);
+    });
+
+    it('does not return the same line number twice', () => {
+      const diff = createFakeDiffWithChanges([
+        [
+          { lineNumber: 1, type: 'insert' },
+          { lineNumber: 1, type: 'insert' },
+        ],
+      ]);
+
+      expect(getInsertedLines(diff)).toEqual([1]);
     });
   });
 });
