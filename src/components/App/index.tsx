@@ -174,6 +174,6 @@ const mapStateToProps = (state: ApplicationState): PropsFromState => {
   };
 };
 
-export default withRouter<PublicProps & Partial<DefaultProps> & RouterProps>(
+export default withRouter(
   connect(mapStateToProps)(AppBase),
-);
+) as React.ComponentType<PublicProps & Partial<DefaultProps>>;

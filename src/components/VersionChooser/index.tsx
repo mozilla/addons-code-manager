@@ -289,6 +289,6 @@ const mapStateToProps = (
 
 const ConnectedVersionChooser = connect(mapStateToProps)(VersionChooserBase);
 
-export default withRouter<PublicProps & Partial<DefaultProps> & RouterProps>(
-  ConnectedVersionChooser,
-);
+export default withRouter(ConnectedVersionChooser) as React.ComponentType<
+  PublicProps & Partial<DefaultProps>
+>;
