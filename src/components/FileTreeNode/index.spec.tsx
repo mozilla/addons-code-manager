@@ -51,6 +51,7 @@ type GetTreefoldRenderPropsParams = {
   onSelect?: PublicProps['onSelect'];
 } & Partial<TreefoldRenderPropsForFileTree>;
 
+// eslint-disable-next-line jest/no-export
 export const getTreefoldRenderProps = ({
   getToggleProps = fakeGetToggleProps,
   hasChildNodes = false,
