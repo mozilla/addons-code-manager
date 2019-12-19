@@ -3,7 +3,7 @@ import { storiesOf } from '@storybook/react';
 
 import configureStore from '../src/configureStore';
 import { actions as popoverActions } from '../src/reducers/popover';
-import { VersionChooserWithoutRouter } from '../src/components/VersionChooser';
+import VersionChooser from '../src/components/VersionChooser';
 import { ExternalVersionsList, actions } from '../src/reducers/versions';
 import { fakeVersionsListItem } from '../src/test-helpers';
 import { renderWithStoreAndRouter } from './utils';
@@ -17,18 +17,9 @@ const render = ({
   store.dispatch(actions.setCurrentBaseVersionId({ versionId: baseVersionId }));
   store.dispatch(actions.setCurrentVersionId({ versionId: headVersionId }));
   store.dispatch(popoverActions.show('COMPARE_VERSIONS'));
-  return renderWithStoreAndRouter(
-    <VersionChooserWithoutRouter
-      addonId={addonId}
-      match={{
-        isExact: true,
-        path: 'some-path',
-        url: 'some-url',
-        params: { lang: 'fr' },
-      }}
-    />,
-    { store },
-  );
+  return renderWithStoreAndRouter(<VersionChooser addonId={addonId} />, {
+    store,
+  });
 };
 
 const listedVersions: ExternalVersionsList = [
