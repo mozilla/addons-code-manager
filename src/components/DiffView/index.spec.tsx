@@ -59,8 +59,10 @@ import DiffView, {
   DefaultProps,
   DiffViewBase,
   PublicProps,
+  changeContentAddedByTrimmer,
   changeCanBeCommentedUpon,
-  trimHunkChanges,
+  getChangeCharCount,
+  trimHunks,
 } from '.';
 
 describe(__filename, () => {
@@ -832,39 +834,6 @@ describe(__filename, () => {
     );
   });
 
-  it('disables syntax highlighting if the diff has been trimmed', () => {
-    const _tokenize = jest.fn(tokenize);
-    const change1 = { content: '// example 1' };
-    const change2 = { content: '// example 2' };
-    const change3 = { content: '// example 3' };
-
-    const diff = createDiffWithHunks([
-      createHunkWithChanges([change1]),
-      createHunkWithChanges([change2, change3]),
-    ]);
-
-    const location = createFakeLocation({
-      search: queryString.stringify({ [allowSlowPagesParam]: false }),
-    });
-
-    const root = renderWithLinterProvider({
-      _codeCanBeHighlighted: jest.fn(() => true),
-      _tokenize,
-      diff,
-      location,
-      _slowDiffChangeCount: 2,
-    });
-
-    expect(root.find(Diff)).toHaveProp('tokens', undefined);
-    expect(_tokenize).not.toHaveBeenCalled();
-
-    const message = root.find(Alert);
-    expect(message).toHaveLength(1);
-    expect(message).toHaveText(
-      'Syntax highlighting was disabled for performance',
-    );
-  });
-
   it('does not show a message about disabled highlighting without a diff', () => {
     const root = renderWithLinterProvider({ diff: null });
 
@@ -872,22 +841,22 @@ describe(__filename, () => {
   });
 
   it('lets you turn on diff trimming', () => {
-    const change1 = { content: '// example 1' };
-    const change2 = { content: '// example 2' };
-    const change3 = { content: '// example 3' };
-
+    const _slowLoadingCharCount = 10;
+    const _trimmedCharCount = _slowLoadingCharCount - 1;
+    const change1 = { content: 'a'.repeat(_slowLoadingCharCount / 2) };
+    const change2 = { content: 'b'.repeat(_slowLoadingCharCount / 2) };
     const diff = createDiffWithHunks([
-      createHunkWithChanges([change1]),
-      createHunkWithChanges([change2, change3]),
+      createHunkWithChanges([change1, change2]),
     ]);
-
     const location = createFakeLocation({
       search: queryString.stringify({ [allowSlowPagesParam]: false }),
     });
+
     const root = renderWithLinterProvider({
       diff,
       location,
-      _slowDiffChangeCount: 2,
+      _slowLoadingCharCount,
+      _trimmedCharCount,
     });
 
     const fadableShell = root.find(FadableContent);
@@ -897,8 +866,10 @@ describe(__filename, () => {
     expect(diffView).toHaveProp(
       'hunks',
       createDiffWithHunks([
-        createHunkWithChanges([change1]),
-        createHunkWithChanges([change2]),
+        createHunkWithChanges([
+          change1,
+          { content: changeContentAddedByTrimmer },
+        ]),
       ]).hunks,
     );
 
@@ -908,18 +879,13 @@ describe(__filename, () => {
   });
 
   it('disables diff trimming by default', () => {
-    const change1 = { content: '// example 1' };
-    const change2 = { content: '// example 2' };
-    const change3 = { content: '// example 3' };
-
-    const diff = createDiffWithHunks([
-      createHunkWithChanges([change1]),
-      createHunkWithChanges([change2, change3]),
-    ]);
+    const _slowLoadingCharCount = 5;
+    const change = { content: 'a'.repeat(_slowLoadingCharCount + 1) };
+    const diff = createDiffWithHunks([createHunkWithChanges([change])]);
 
     const root = renderWithLinterProvider({
       diff,
-      _slowDiffChangeCount: 2,
+      _slowLoadingCharCount,
     });
 
     expect(root.find(FadableContent)).toHaveProp('fade', false);
@@ -933,18 +899,15 @@ describe(__filename, () => {
   });
 
   it('configures SlowPageAlert', () => {
-    const diff = createDiffWithHunks([
-      createHunkWithChanges([
-        { content: '// example 1' },
-        { content: '// example 2' },
-      ]),
-    ]);
-
+    const _slowLoadingCharCount = 5;
+    const change = { content: 'a'.repeat(_slowLoadingCharCount + 1) };
+    const diff = createDiffWithHunks([createHunkWithChanges([change])]);
     const location = createFakeLocation();
+
     const root = renderWithLinterProvider({
       diff,
       location,
-      _slowDiffChangeCount: 1,
+      _slowLoadingCharCount,
     });
 
     const message = root.find(SlowPageAlert).at(0);
@@ -969,52 +932,120 @@ describe(__filename, () => {
     expect(getLinkText(false)).toEqual('Show the original diff.');
   });
 
-  describe('trimHunkChanges', () => {
-    it('does not trim when not necessary', () => {
-      const hunks = [
-        createInternalHunkWithChanges([{ content: '// example content 1' }]),
-        createInternalHunkWithChanges([{ content: '// example content 2' }]),
-      ];
+  describe('getChangeCharCount', () => {
+    const changeCharCount = 5;
 
-      expect(trimHunkChanges(hunks, { maxLength: 2 })).toEqual(hunks);
-    });
-
-    it('trims the hunk changes when too long', () => {
-      const hunk1 = createInternalHunkWithChanges([
-        { content: '// example content 1' },
-      ]);
-      const hunk2 = createInternalHunkWithChanges([
-        { content: '// example content 2' },
-      ]);
-      const hunk3 = createInternalHunkWithChanges([
-        { content: '// example content 3' },
-      ]);
-
-      const hunks = [hunk1, hunk2, hunk3];
-
-      const trimmed = trimHunkChanges(hunks, { maxLength: 2 });
-      expect(getAllHunkChanges(trimmed)).toHaveLength(2);
-
-      expect(trimmed[0].changes[0].content).toEqual(hunk1.changes[0].content);
-      expect(trimmed[1].changes[0].content).toEqual(hunk2.changes[0].content);
-    });
-
-    it('slices the last change set when trimming', () => {
-      const change1 = { content: '// example content 1' };
-      const change2 = { content: '// example content 2' };
-      const change3 = { content: '// example content 3' };
-      const change4 = { content: '// example content 4' };
+    it('returns the count of characters in all changes in a single hunk', () => {
+      const change1 = { content: 'a'.repeat(changeCharCount) };
+      const change2 = { content: 'b'.repeat(changeCharCount) };
+      const change3 = { content: 'c'.repeat(changeCharCount) };
 
       const hunks = [
-        createInternalHunkWithChanges([change1]),
-        createInternalHunkWithChanges([change2, change3, change4]),
+        createInternalHunkWithChanges([change1, change2, change3]),
       ];
 
-      const trimmed = trimHunkChanges(hunks, { maxLength: 3 });
+      expect(getChangeCharCount(hunks)).toEqual(changeCharCount * 3);
+    });
 
-      expect(trimmed[1].changes).toEqual(
-        createInternalHunkWithChanges([change2, change3]).changes,
-      );
+    it('returns the count of characters in all changes in multiple hunks', () => {
+      const hunks = [
+        createInternalHunkWithChanges([
+          { content: 'a'.repeat(changeCharCount) },
+        ]),
+        createInternalHunkWithChanges([
+          { content: 'b'.repeat(changeCharCount) },
+        ]),
+      ];
+
+      expect(getChangeCharCount(hunks)).toEqual(changeCharCount * 2);
+    });
+  });
+
+  describe('trimHunks', () => {
+    const changeCharCount = 5;
+
+    describe('for a single hunk', () => {
+      it('includes changes up to the _trimmedCharCount', () => {
+        const change1 = { content: 'a'.repeat(changeCharCount) };
+        const change2 = { content: 'b'.repeat(changeCharCount) };
+        const change3 = { content: 'c'.repeat(changeCharCount) };
+
+        const hunks = [
+          createInternalHunkWithChanges([change1, change2, change3]),
+        ];
+
+        const trimmed = trimHunks({
+          hunks,
+          _trimmedCharCount: changeCharCount * 2,
+        });
+        expect(getAllHunkChanges(trimmed)).toHaveLength(3);
+        expect(trimmed[0].changes[0].content).toEqual(change1.content);
+        expect(trimmed[0].changes[1].content).toEqual(change2.content);
+        expect(trimmed[0].changes[2].content).toEqual(
+          changeContentAddedByTrimmer,
+        );
+      });
+
+      it('excludes changes that exceed to the _trimmedCharCount', () => {
+        const change1 = { content: 'a'.repeat(changeCharCount) };
+        const change2 = { content: 'b'.repeat(changeCharCount + 1) };
+
+        const hunks = [createInternalHunkWithChanges([change1, change2])];
+
+        const trimmed = trimHunks({
+          hunks,
+          _trimmedCharCount: changeCharCount * 2,
+        });
+        expect(getAllHunkChanges(trimmed)).toHaveLength(2);
+        expect(trimmed[0].changes[0].content).toEqual(change1.content);
+        expect(trimmed[0].changes[1].content).toEqual(
+          changeContentAddedByTrimmer,
+        );
+      });
+    });
+
+    describe('for multiple hunks', () => {
+      it('includes changes up to the _trimmedCharCount', () => {
+        const change1 = { content: 'a'.repeat(changeCharCount) };
+        const change2 = { content: 'b'.repeat(changeCharCount) };
+        const change3 = { content: 'c'.repeat(changeCharCount) };
+
+        const hunks = [
+          createInternalHunkWithChanges([change1]),
+          createInternalHunkWithChanges([change2, change3]),
+        ];
+
+        const trimmed = trimHunks({
+          hunks,
+          _trimmedCharCount: changeCharCount * 2,
+        });
+        expect(getAllHunkChanges(trimmed)).toHaveLength(3);
+        expect(trimmed[0].changes[0].content).toEqual(change1.content);
+        expect(trimmed[1].changes[0].content).toEqual(change2.content);
+        expect(trimmed[1].changes[1].content).toEqual(
+          changeContentAddedByTrimmer,
+        );
+      });
+
+      it('excludes changes that exceed to the _trimmedCharCount', () => {
+        const change1 = { content: 'a'.repeat(changeCharCount) };
+        const change2 = { content: 'b'.repeat(changeCharCount + 1) };
+
+        const hunks = [
+          createInternalHunkWithChanges([change1]),
+          createInternalHunkWithChanges([change2]),
+        ];
+
+        const trimmed = trimHunks({
+          hunks,
+          _trimmedCharCount: changeCharCount * 2,
+        });
+        expect(getAllHunkChanges(trimmed)).toHaveLength(2);
+        expect(trimmed[0].changes[0].content).toEqual(change1.content);
+        expect(trimmed[1].changes[0].content).toEqual(
+          changeContentAddedByTrimmer,
+        );
+      });
     });
   });
 

@@ -16,6 +16,8 @@ import {
 } from './utils';
 import refractor from '../../refractor';
 import {
+  SLOW_LOADING_CHAR_COUNT,
+  TRIMMED_CHAR_COUNT,
   gettext,
   getLanguageFromMimeType,
   shouldAllowSlowPages,
@@ -24,10 +26,6 @@ import { Version } from '../../reducers/versions';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import GlobalLinterMessages from '../GlobalLinterMessages';
 import SlowPageAlert from '../SlowPageAlert';
-
-// This is how many characters of code it takes to slow down the UI.
-const SLOW_LOADING_CHAR_COUNT = 3000;
-const TRIMMED_CHAR_COUNT = 2000;
 
 // This function mimics what https://github.com/rexxars/react-refractor does,
 // but we need a different layout to inline comments so we cannot use this

@@ -16,6 +16,11 @@ import {
 import { CompareInfo } from './reducers/versions';
 import { getCodeLineAnchor } from './components/CodeView/utils';
 
+// This is how many characters of code it takes to slow down the UI.
+export const SLOW_LOADING_CHAR_COUNT = 3000;
+// This is how many characters of code we will include in trimmed content.
+export const TRIMMED_CHAR_COUNT = 2000;
+
 // Querystring params used by the app.
 export const messageUidQueryParam = 'messageUid';
 export const pathQueryParam = 'path';
