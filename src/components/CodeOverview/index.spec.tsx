@@ -532,14 +532,16 @@ describe(__filename, () => {
   it('does not scroll when clicking an empty line', () => {
     const _document = { ...document, querySelector: jest.fn() };
     const root = renderWithFixedHeight({ _document, content: '' });
+    const event = { preventDefault: jest.fn() };
 
     // Click the first empty line.
     root
       .find(Link)
       .at(1)
-      .simulate('click');
+      .simulate('click', event);
 
     expect(_document.querySelector).not.toHaveBeenCalled();
+    expect(event.preventDefault).toHaveBeenCalled();
   });
 
   it('handles empty content', () => {
