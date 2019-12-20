@@ -607,6 +607,102 @@ describe(__filename, () => {
     expect(root.find('title')).toHaveText(`Browse ${name}: ${versionString}`);
   });
 
+  it('updates the selected path if it is different from the path in the URL', () => {
+    const versionId = nextUniqueId();
+    const newPath = 'new/path';
+    const initialPath = 'initial/path';
+    const history = createFakeHistory({
+      location: createFakeLocation({
+        search: queryString.stringify({ path: newPath }),
+      }),
+    });
+    const { renderAndUpdate } = setUpVersionFileUpdate({
+      initialPath,
+      versionId,
+    });
+
+    const { dispatchSpy } = renderAndUpdate({ history });
+
+    expect(dispatchSpy).toHaveBeenCalledWith(
+      versionsActions.updateSelectedPath({ selectedPath: newPath, versionId }),
+    );
+  });
+
+  it('updates the selected path to the initial path if the path is undefined in the URL', () => {
+    const versionId = nextUniqueId();
+    const initialPath = 'initial/path';
+    const history = createFakeHistory({
+      location: createFakeLocation({
+        search: '',
+      }),
+    });
+    const { renderAndUpdate, store } = setUpVersionFileUpdate({
+      initialPath,
+      versionId,
+    });
+    store.dispatch(
+      versionsActions.updateSelectedPath({
+        selectedPath: 'another-path',
+        versionId,
+      }),
+    );
+
+    const { dispatchSpy } = renderAndUpdate({ history });
+
+    expect(dispatchSpy).toHaveBeenCalledWith(
+      versionsActions.updateSelectedPath({
+        selectedPath: initialPath,
+        versionId,
+      }),
+    );
+  });
+
+  it('does not dispatch updateSelectedPath if selectedPath has been updated', () => {
+    const versionId = nextUniqueId();
+    const initialPath = 'initial/path';
+    const history = createFakeHistory({
+      location: createFakeLocation({
+        search: queryString.stringify({ path: initialPath }),
+      }),
+    });
+    const { renderAndUpdate } = setUpVersionFileUpdate({
+      initialPath,
+      versionId,
+    });
+
+    const { dispatchSpy } = renderAndUpdate({ history });
+
+    expect(dispatchSpy).not.toHaveBeenCalledWith(
+      versionsActions.updateSelectedPath({
+        selectedPath: initialPath,
+        versionId,
+      }),
+    );
+  });
+
+  it('does not dispatch updateSelectedPath if selectedPath=initialPath and the path in URL is undefined', () => {
+    const versionId = nextUniqueId();
+    const initialPath = 'initial/path';
+    const history = createFakeHistory({
+      location: createFakeLocation({
+        search: '',
+      }),
+    });
+    const { renderAndUpdate } = setUpVersionFileUpdate({
+      initialPath,
+      versionId,
+    });
+
+    const { dispatchSpy } = renderAndUpdate({ history });
+
+    expect(dispatchSpy).not.toHaveBeenCalledWith(
+      versionsActions.updateSelectedPath({
+        selectedPath: initialPath,
+        versionId,
+      }),
+    );
+  });
+
   describe('preloading', () => {
     const setUpFilesAndRender = ({
       addonId = 987,

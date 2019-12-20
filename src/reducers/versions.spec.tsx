@@ -859,6 +859,7 @@ describe(__filename, () => {
         entries: [createInternalVersionEntry(entry)],
         expandedPaths: getParentFolders(version.file.selected_file),
         id: version.id,
+        initialPath: version.file.selected_file,
         reviewed: version.reviewed,
         version: version.version,
         selectedPath: version.file.selected_file,

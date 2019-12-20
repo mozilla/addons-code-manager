@@ -147,6 +147,18 @@ export class BrowseBase extends React.Component<Props> {
         }),
       );
     }
+
+    const { initialPath, selectedPath } = version;
+    const targetPath = path || initialPath;
+
+    if (selectedPath !== targetPath) {
+      dispatch(
+        versionsActions.updateSelectedPath({
+          versionId: version.id,
+          selectedPath: targetPath,
+        }),
+      );
+    }
   }
 
   viewVersionFile = (path: string) => {
