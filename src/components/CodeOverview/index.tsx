@@ -244,11 +244,14 @@ export class CodeOverviewBase extends React.Component<Props, State> {
       const codeLineAnchor =
         linkableLine !== undefined ? getCodeLineAnchor(linkableLine) : null;
 
-      const scrollToLine = () => {
+      const scrollToLine = (
+        event: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+      ) => {
         // Explicitly scroll to the linter message in case the user had
         // scrolled it out of view.
         // Example: https://github.com/mozilla/addons-code-manager/issues/682
         if (!codeLineAnchor) {
+          event.preventDefault();
           return;
         }
         const domLine = _document.querySelector(codeLineAnchor);
