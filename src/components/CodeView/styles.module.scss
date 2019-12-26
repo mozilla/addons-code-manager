@@ -55,7 +55,9 @@
   margin: 0;
 }
 
-code.innerHighlightedCode {
+// Adding [class*='language-'] lets the selector have a higher specificity and
+// win over the default rule in prism
+code.innerHighlightedCode[class*='language-'] {
   white-space: pre-wrap;
   word-break: break-all;
   // This is a fallback for older browsers.
