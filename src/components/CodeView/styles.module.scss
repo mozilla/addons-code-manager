@@ -1,12 +1,12 @@
 @import '../../scss/variables';
 
 .table {
-  display: block;
+  display: table;
+  table-layout: fixed;
   width: 100%;
 }
 
 .tableBody {
-  display: block;
   overflow: auto;
   width: 100%;
 }
@@ -42,6 +42,10 @@
 
 .code {
   width: 100%;
+}
+
+.lineNumberCol {
+  width: 7ch;
 }
 
 .lineNumber,
