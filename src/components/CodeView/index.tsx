@@ -164,6 +164,10 @@ export class CodeViewBase extends React.Component<Props> {
         <FadableContent fade={codeWasTrimmed}>
           <div className={styles.CodeView}>
             <table className={styles.table}>
+              <colgroup>
+                <col className={styles.lineNumberCol} />
+                <col />
+              </colgroup>
               <tbody className={styles.tableBody}>
                 {codeLines.map((code, i) => {
                   const line = i + 1;

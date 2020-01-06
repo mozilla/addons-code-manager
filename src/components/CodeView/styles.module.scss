@@ -1,12 +1,12 @@
 @import '../../scss/variables';
 
 .table {
-  display: block;
+  display: table;
+  table-layout: fixed;
   width: 100%;
 }
 
 .tableBody {
-  display: block;
   overflow: auto;
   width: 100%;
 }
@@ -44,6 +44,10 @@
   width: 100%;
 }
 
+.lineNumberCol {
+  width: 7ch;
+}
+
 .lineNumber,
 .highlightedCode {
   font-family: $code-font-family;
@@ -55,7 +59,9 @@
   margin: 0;
 }
 
-code.innerHighlightedCode {
+// Adding [class*='language-'] lets the selector have a higher specificity and
+// win over the default rule in prism
+code.innerHighlightedCode[class*='language-'] {
   white-space: pre-wrap;
   word-break: break-all;
   // This is a fallback for older browsers.
