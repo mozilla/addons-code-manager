@@ -67,7 +67,7 @@
     "refractor": "2.10.0",
     "ts-node": "8.5.4",
     "typesafe-actions": "5.1.0",
-    "typescript": "3.7.3",
+    "typescript": "3.7.4",
     "universal-cookie": "4.0.3",
     "universal-cookie-express": "4.0.3"
   },
