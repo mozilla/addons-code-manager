@@ -61,6 +61,7 @@ type PropsFromState = {
   fileTreeComparedToVersionId: number | null;
   fileTreeVersionId: number | undefined;
   path: string | undefined;
+  selectedPath: string | null;
   version: Version | undefined | null;
   versionFile: VersionFile | undefined | null;
   versionFileIsLoading: boolean;
@@ -104,6 +105,7 @@ export class CompareBase extends React.Component<Props> {
       nextFileIsLoading,
       nextFilePath,
       path,
+      selectedPath,
       version,
       versionFile,
       versionFileIsLoading,
@@ -163,6 +165,17 @@ export class CompareBase extends React.Component<Props> {
       if (currentVersionId !== version.id) {
         dispatch(
           versionsActions.setCurrentVersionId({ versionId: version.id }),
+        );
+      }
+
+      const targetPath = path || version.initialPath;
+
+      if (selectedPath !== targetPath) {
+        dispatch(
+          versionsActions.updateSelectedPath({
+            selectedPath: targetPath,
+            versionId: version.id,
+          }),
         );
       }
 
@@ -281,6 +294,7 @@ export const mapStateToProps = (
 ): PropsFromState => {
   const { history, match } = ownProps;
   const { fileTree, versions } = state;
+  const { selectedPath } = versions;
   const addonId = parseInt(match.params.addonId, 10);
   const baseVersionId = parseInt(match.params.baseVersionId, 10);
   const headVersionId = parseInt(match.params.headVersionId, 10);
@@ -356,6 +370,7 @@ export const mapStateToProps = (
       : false,
     nextFilePath,
     path,
+    selectedPath,
     version,
     versionFile,
     versionFileIsLoading: version

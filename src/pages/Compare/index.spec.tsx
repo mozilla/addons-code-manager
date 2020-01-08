@@ -1,7 +1,7 @@
 /* eslint @typescript-eslint/camelcase: 0 */
 import * as React from 'react';
 import { Store } from 'redux';
-import { History } from 'history';
+import { History, Location } from 'history';
 import queryString from 'query-string';
 
 import {
@@ -30,7 +30,10 @@ import {
 import DiffView from '../../components/DiffView';
 import Loading from '../../components/Loading';
 import VersionFileViewer from '../../components/VersionFileViewer';
-import { createCodeLineAnchorGetter } from '../../utils';
+import {
+  createCodeLineAnchorGetter,
+  getPathFromQueryString,
+} from '../../utils';
 
 import Compare, { CompareBase, PublicProps, mapStateToProps } from '.';
 
@@ -122,6 +125,7 @@ describe(__filename, () => {
     loadDiff = true,
     loadEntryStatusMap = true,
     loadVersionFile = true,
+    path,
   }: {
     addonId?: number;
     baseVersionId?: number;
@@ -129,6 +133,7 @@ describe(__filename, () => {
     loadDiff?: boolean;
     loadEntryStatusMap?: boolean;
     loadVersionFile?: boolean;
+    path?: string;
     setCurrentVersionId?: boolean;
     store?: Store;
     version?: typeof fakeVersionWithDiff;
@@ -168,6 +173,7 @@ describe(__filename, () => {
           addonId,
           baseVersionId,
           headVersionId,
+          path,
           version,
         }),
       );
@@ -195,6 +201,7 @@ describe(__filename, () => {
     baseVersionId = 2,
     buildTree = false,
     headVersionId = 3,
+    lastSelectedPath,
     loadDiff = true,
     loadVersionFile = true,
     version = {
@@ -212,6 +219,7 @@ describe(__filename, () => {
     baseVersionId?: number;
     buildTree?: boolean;
     headVersionId?: number;
+    lastSelectedPath?: string;
     loadDiff?: boolean;
     loadVersionFile?: boolean;
     selected_file?: string;
@@ -228,14 +236,25 @@ describe(__filename, () => {
       headVersionId,
       loadDiff,
       loadVersionFile,
+      path: getPathFromQueryString(history) || undefined,
       store,
       version,
     });
+
     if (buildTree) {
       store.dispatch(
         fileTreeActions.buildTree({
           comparedToVersionId: baseVersionId,
           version: createInternalVersion(version),
+        }),
+      );
+    }
+
+    if (lastSelectedPath) {
+      store.dispatch(
+        versionsActions.updateSelectedPath({
+          selectedPath: lastSelectedPath,
+          versionId: version.id,
         }),
       );
     }
@@ -1360,5 +1379,127 @@ describe(__filename, () => {
     expect(root.find('title')).toHaveText(
       `Compare ${name}: ${baseVersionId}...${headVersionId}`,
     );
+  });
+
+  describe('updateSelectedPath', () => {
+    const setUpForPathUpdateAndRender = ({
+      headVersionId,
+      initialPath,
+      lastSelectedPath,
+      location,
+      pathList,
+    }: {
+      headVersionId: number;
+      initialPath: string;
+      lastSelectedPath: string;
+      location: Location;
+      pathList: string[];
+    }) => {
+      const baseVersionId = headVersionId - 1;
+      const history = createFakeHistory({ location });
+      const version = createExternalVersionWithEntries(
+        pathList.map((path) => ({ path })),
+        { id: headVersionId, selected_file: initialPath },
+      );
+
+      return loadDiffAndRender({
+        baseVersionId,
+        headVersionId,
+        history,
+        lastSelectedPath,
+        version,
+      });
+    };
+
+    it('updates the selected path if it is different from the path in the URL', () => {
+      const headVersionId = nextUniqueId();
+      const path1 = 'a/path';
+      const path2 = 'b/path';
+      const location = createFakeLocation({
+        search: queryString.stringify({ path: path2 }),
+      });
+
+      const { dispatchSpy } = setUpForPathUpdateAndRender({
+        headVersionId,
+        initialPath: path1,
+        lastSelectedPath: path1,
+        location,
+        pathList: [path1, path2],
+      });
+
+      expect(dispatchSpy).toHaveBeenCalledWith(
+        versionsActions.updateSelectedPath({
+          selectedPath: path2,
+          versionId: headVersionId,
+        }),
+      );
+    });
+
+    it('updates the selected path to the initial value if the path is undefined in the URL', () => {
+      const headVersionId = nextUniqueId();
+      const initialPath = 'a/path';
+      const lastSelectedPath = 'b/path';
+
+      const { dispatchSpy } = setUpForPathUpdateAndRender({
+        headVersionId,
+        initialPath,
+        lastSelectedPath,
+        location: createFakeLocation({ search: '' }),
+        pathList: [initialPath, lastSelectedPath],
+      });
+
+      expect(dispatchSpy).toHaveBeenCalledWith(
+        versionsActions.updateSelectedPath({
+          selectedPath: initialPath,
+          versionId: headVersionId,
+        }),
+      );
+    });
+
+    it('does not update the selected path if it is the same as the path in the URL', () => {
+      const headVersionId = nextUniqueId();
+      const path = 'a/path';
+      const location = createFakeLocation({
+        search: queryString.stringify({ path }),
+      });
+
+      const { dispatchSpy } = setUpForPathUpdateAndRender({
+        headVersionId,
+        initialPath: path,
+        lastSelectedPath: path,
+        location,
+        pathList: [path],
+      });
+
+      expect(dispatchSpy).not.toHaveBeenCalledWith(
+        versionsActions.updateSelectedPath(
+          expect.objectContaining({
+            versionId: headVersionId,
+          }),
+        ),
+      );
+    });
+
+    it('does not update the selected path if it has the initial value and the path in URL is undefined', () => {
+      const headVersionId = nextUniqueId();
+      const path = 'a/path';
+      const location = createFakeLocation({ search: '' });
+
+      const { dispatchSpy } = setUpForPathUpdateAndRender({
+        headVersionId,
+        initialPath: path,
+        lastSelectedPath: path,
+        location,
+        pathList: [path],
+      });
+
+      expect(dispatchSpy).not.toHaveBeenCalledWith(
+        versionsActions.updateSelectedPath(
+          expect.objectContaining({
+            versionId: headVersionId,
+          }),
+        ),
+      );
+    });
   });
 });
