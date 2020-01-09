@@ -27,6 +27,7 @@ import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import GlobalLinterMessages from '../GlobalLinterMessages';
 import SlowPageAlert from '../SlowPageAlert';
 import {
+  TRIMMED_CHAR_COUNT,
   allowSlowPagesParam,
   getLanguageFromMimeType,
   getAllHunkChanges,
@@ -963,6 +964,17 @@ describe(__filename, () => {
 
   describe('trimHunks', () => {
     const changeCharCount = 5;
+
+    it('returns the imput hunks if the content is not greater than the _trimmedCharCount', () => {
+      // TRIMMED_CHAR_COUNT is the default value used for _trimmedCharCount by trimHunks
+      const change = { content: 'a'.repeat(TRIMMED_CHAR_COUNT) };
+
+      const hunks = [createInternalHunkWithChanges([change])];
+
+      const trimmed = trimHunks({ hunks });
+      expect(getAllHunkChanges(trimmed)).toHaveLength(1);
+      expect(trimmed[0].changes[0].content).toEqual(change.content);
+    });
 
     describe('for a single hunk', () => {
       it('includes changes up to the _trimmedCharCount', () => {
