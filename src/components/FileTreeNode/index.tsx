@@ -159,7 +159,10 @@ export class FileTreeNodeBase<TreeNodeType> extends React.Component<Props> {
 
     if (this.isSelected() && version.visibleSelectedPath !== node.id) {
       if (this.nodeRef && this.nodeRef.current) {
-        this.nodeRef.current.scrollIntoView();
+        this.nodeRef.current.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+        });
         dispatch(
           versionsActions.setVisibleSelectedPath({
             path: node.id,
