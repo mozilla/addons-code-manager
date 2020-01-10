@@ -152,21 +152,19 @@ describe(__filename, () => {
   };
 
   const renderSlowLoadingCode = ({
-    _slowLoadingLineCount = 3,
-    contentLineCount,
-    content = new Array(
-      contentLineCount !== undefined
-        ? contentLineCount
+    _slowLoadingCharCount = 3,
+    contentCharCount,
+    content = 'a'.repeat(
+      contentCharCount !== undefined
+        ? contentCharCount
         : // Simulate a long file (which will load slowly) by exceeding the
-          // line limit.
-          _slowLoadingLineCount + 1,
-    )
-      .fill('// example code')
-      .join('\n'),
+          // char limit.
+          _slowLoadingCharCount + 1,
+    ),
     ...moreProps
-  }: RenderParams & { contentLineCount?: number } = {}) => {
+  }: RenderParams & { contentCharCount?: number } = {}) => {
     return renderWithLinterProvider({
-      _slowLoadingLineCount,
+      _slowLoadingCharCount,
       content,
       ...moreProps,
     });
@@ -206,32 +204,6 @@ describe(__filename, () => {
         .highlight(content, getLanguageFromMimeType(mimeType))
         .map(mapWithDepth(0)),
     );
-  });
-
-  it('does not highlight code when the file has been truncated', () => {
-    const content = '{ "foo": "bar" }';
-    const mimeType = 'application/json';
-    const { renderContent } = simulateCommentableLine({
-      _slowLoadingLineCount: 1,
-      mimeType,
-      content,
-    });
-    const line = renderContent();
-
-    expect(line.find('.language-json')).toHaveProp('children', content);
-  });
-
-  it('does not highlight code when code cannot be highlighted', () => {
-    const content = '{ "foo": "bar" }';
-    const mimeType = 'application/json';
-    const { renderContent } = simulateCommentableLine({
-      _codeCanBeHighlighted: jest.fn().mockReturnValue(false),
-      mimeType,
-      content,
-    });
-    const line = renderContent();
-
-    expect(line.find('.language-json')).toHaveProp('children', content);
   });
 
   it('handles empty content', () => {
@@ -478,36 +450,71 @@ describe(__filename, () => {
   });
 
   it('trims the code when too long', () => {
-    const _slowLoadingLineCount = 2;
-    const root = renderSlowLoadingCode({ _slowLoadingLineCount });
+    const content = 'some-content';
+    const _slowLoadingCharCount = content.length - 2;
+    const _trimmedCharCount = _slowLoadingCharCount - 2;
+    const mimeType = 'mime/type';
+
+    const root = renderWithLinterProvider({
+      _slowLoadingCharCount,
+      _trimmedCharCount,
+      content,
+    });
 
     const fadable = root.find(FadableContent);
     expect(fadable).toHaveProp('fade', true);
 
-    expect(fadable.find(`.${styles.line}`)).toHaveLength(_slowLoadingLineCount);
-
     // Show the warning twice: top and bottom.
     expect(root.find(SlowPageAlert)).toHaveLength(2);
+
+    const { renderContent } = simulateCommentableLine({
+      _slowLoadingCharCount,
+      _trimmedCharCount,
+      content,
+      mimeType,
+    });
+    const line = renderContent();
+
+    expect(line.find('.innerHighlightedCode')).toHaveText(
+      `${content.substring(
+        0,
+        _trimmedCharCount,
+      )} /* truncated by code-manager */`,
+    );
   });
 
   it('does not trim code when slow pages are allowed', () => {
-    const contentLineCount = 3;
+    const content = 'some-content';
+    const _slowLoadingCharCount = content.length - 2;
+    const _trimmedCharCount = _slowLoadingCharCount - 2;
     const location = createFakeLocation({
       search: queryString.stringify({ [allowSlowPagesParam]: true }),
     });
-    const root = renderSlowLoadingCode({
-      _slowLoadingLineCount: contentLineCount - 1,
-      contentLineCount,
+    const mimeType = 'mime/type';
+
+    const root = renderWithLinterProvider({
+      _slowLoadingCharCount,
+      _trimmedCharCount,
+      content,
       location,
     });
 
     const fadable = root.find(FadableContent);
     expect(fadable).toHaveProp('fade', false);
 
-    expect(fadable.find(`.${styles.line}`)).toHaveLength(contentLineCount);
-
     // The warning should only be shown once, at the top.
     expect(root.find(SlowPageAlert)).toHaveLength(1);
+
+    const { renderContent } = simulateCommentableLine({
+      _slowLoadingCharCount,
+      _trimmedCharCount,
+      content,
+      location,
+      mimeType,
+    });
+    const line = renderContent();
+
+    expect(line.find('.innerHighlightedCode')).toHaveText(content);
   });
 
   it('configures SlowPageAlert', () => {
@@ -526,9 +533,9 @@ describe(__filename, () => {
 
     // Pass in allowSlowPages=true|false to test messaging.
 
-    expect(getMessage(true)).toEqual('This file is loading slowly.');
+    expect(getMessage(true)).toEqual('This file may be loading slowly.');
     expect(getMessage(false)).toEqual(
-      'This file has been shortened, and highlighting has been disabled, to load faster.',
+      'This file has been shortened to load faster.',
     );
 
     expect(getLinkText(true)).toEqual('View a shortened file.');

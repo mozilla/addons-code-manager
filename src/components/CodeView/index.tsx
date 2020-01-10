@@ -16,7 +16,6 @@ import {
 } from './utils';
 import refractor from '../../refractor';
 import {
-  codeCanBeHighlighted,
   gettext,
   getLanguageFromMimeType,
   shouldAllowSlowPages,
@@ -26,26 +25,16 @@ import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import GlobalLinterMessages from '../GlobalLinterMessages';
 import SlowPageAlert from '../SlowPageAlert';
 
-// This is how many lines of code it takes to slow down the UI.
-const SLOW_LOADING_LINE_COUNT = 1000;
+// This is how many characters of code it takes to slow down the UI.
+const SLOW_LOADING_CHAR_COUNT = 3000;
+const TRIMMED_CHAR_COUNT = 2000;
 
 // This function mimics what https://github.com/rexxars/react-refractor does,
 // but we need a different layout to inline comments so we cannot use this
-// component. It also optionally does not highlight the code at all.
-const renderCode = ({
-  code,
-  language,
-  shouldHighlight,
-}: {
-  code: string;
-  language: string;
-  shouldHighlight: boolean;
-}) => {
-  let value;
-  if (shouldHighlight) {
-    const ast = refractor.highlight(code, language);
-    value = ast.length === 0 ? code : ast.map(mapWithDepth(0));
-  }
+// component.
+const renderCode = ({ code, language }: { code: string; language: string }) => {
+  const ast = refractor.highlight(code, language);
+  const value = ast.length === 0 ? code : ast.map(mapWithDepth(0));
 
   return (
     <pre className={styles.highlightedCode}>
@@ -55,7 +44,7 @@ const renderCode = ({
           `language-${language}`,
         )}
       >
-        {value || code}
+        {value}
       </code>
     </pre>
   );
@@ -81,9 +70,9 @@ export type PublicProps = {
 };
 
 export type DefaultProps = {
-  _codeCanBeHighlighted: typeof codeCanBeHighlighted;
   _scrollToSelectedLine: typeof scrollToSelectedLine;
-  _slowLoadingLineCount: number;
+  _slowLoadingCharCount: number;
+  _trimmedCharCount: number;
   enableCommenting: boolean;
 };
 
@@ -91,17 +80,17 @@ type Props = PublicProps & DefaultProps & RouteComponentProps;
 
 export class CodeViewBase extends React.Component<Props> {
   static defaultProps: DefaultProps = {
-    _codeCanBeHighlighted: codeCanBeHighlighted,
     _scrollToSelectedLine: scrollToSelectedLine,
-    _slowLoadingLineCount: SLOW_LOADING_LINE_COUNT,
+    _slowLoadingCharCount: SLOW_LOADING_CHAR_COUNT,
+    _trimmedCharCount: TRIMMED_CHAR_COUNT,
     enableCommenting: process.env.REACT_APP_ENABLE_COMMENTING === 'true',
   };
 
   renderWithLinterInfo = ({ selectedMessageMap }: LinterProviderInfo) => {
     const {
-      _codeCanBeHighlighted,
       _scrollToSelectedLine,
-      _slowLoadingLineCount,
+      _slowLoadingCharCount,
+      _trimmedCharCount,
       content,
       enableCommenting,
       location,
@@ -114,9 +103,14 @@ export class CodeViewBase extends React.Component<Props> {
     let codeWasTrimmed = false;
     let slowAlert;
 
-    if (codeLines.length >= _slowLoadingLineCount) {
+    if (content.length >= _slowLoadingCharCount) {
       if (!shouldAllowSlowPages({ location })) {
-        codeLines = codeLines.slice(0, _slowLoadingLineCount);
+        codeLines = getLines(
+          `${content.substring(
+            0,
+            _trimmedCharCount,
+          )} /* truncated by code-manager */`,
+        );
         codeWasTrimmed = true;
       }
       slowAlert = (
@@ -124,10 +118,8 @@ export class CodeViewBase extends React.Component<Props> {
           location={location}
           getMessage={(allowSlowPages: boolean) => {
             return allowSlowPages
-              ? gettext('This file is loading slowly.')
-              : gettext(
-                  'This file has been shortened, and highlighting has been disabled, to load faster.',
-                );
+              ? gettext('This file may be loading slowly.')
+              : gettext('This file has been shortened to load faster.');
           }}
           getLinkText={(allowSlowPages: boolean) => {
             return allowSlowPages
@@ -137,9 +129,6 @@ export class CodeViewBase extends React.Component<Props> {
         />
       );
     }
-
-    const shouldHighlight =
-      !codeWasTrimmed && _codeCanBeHighlighted({ code: codeLines });
 
     return (
       <>
@@ -209,7 +198,6 @@ export class CodeViewBase extends React.Component<Props> {
                               {renderCode({
                                 code,
                                 language,
-                                shouldHighlight,
                               })}
                             </td>
                           </>
