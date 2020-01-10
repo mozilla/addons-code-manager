@@ -34,6 +34,8 @@ import {
   getRelativeDiffAnchor,
 } from '../../reducers/versions';
 import {
+  SLOW_LOADING_CHAR_COUNT,
+  TRIMMED_CHAR_COUNT,
   codeCanBeHighlighted,
   getAllHunkChanges,
   getLanguageFromMimeType,
@@ -43,30 +45,42 @@ import {
 import styles from './styles.module.scss';
 import 'react-diff-view/style/index.css';
 
-// This is the number of changes for which a diff starts loading slowly,
-// even when syntax highlighting is disabled.
-const SLOW_DIFF_CHANGE_COUNT = 1000;
+export const changeContentAddedByTrimmer =
+  '/* diff truncated by code-manager */';
 
-export const trimHunkChanges = (
-  hunks: Hunks,
-  { maxLength = SLOW_DIFF_CHANGE_COUNT } = {},
-): Hunks => {
-  let lengthSoFar = 0;
-  const trimmed = [];
+export const getChangeCharCount = (hunks: Hunks) => {
+  const changes = getAllHunkChanges(hunks);
+  return changes.reduce((charCount, change) => {
+    return charCount + change.content.length;
+  }, 0);
+};
 
+export const trimHunks = ({
+  hunks,
+  _trimmedCharCount = TRIMMED_CHAR_COUNT,
+}: {
+  hunks: Hunks;
+  _trimmedCharCount?: number;
+}): Hunks => {
+  let charCount = 0;
+  let hunkIndex = 0;
+  const trimmedHunks: Hunks = [];
   for (const hunk of hunks) {
-    const length = maxLength - lengthSoFar;
-    if (length > 0) {
-      trimmed.push({
-        ...hunk,
-        changes: hunk.changes.slice(0, length),
-      });
+    trimmedHunks.push({ ...hunk, changes: [] });
+    hunkIndex = trimmedHunks.length - 1;
+    for (const change of hunk.changes) {
+      charCount += change.content.length;
+      if (charCount > _trimmedCharCount) {
+        trimmedHunks[hunkIndex].changes.push({
+          ...change,
+          content: changeContentAddedByTrimmer,
+        });
+        return trimmedHunks;
+      }
+      trimmedHunks[hunkIndex].changes.push(change);
     }
-
-    lengthSoFar += hunk.changes.length;
   }
-
-  return trimmed;
+  return trimmedHunks;
 };
 
 export const changeCanBeCommentedUpon = (change: ChangeInfo) => {
@@ -86,8 +100,9 @@ export type DefaultProps = {
   _document: typeof document;
   _getDiffAnchors: typeof getDiffAnchors;
   _getRelativeDiffAnchor: typeof getRelativeDiffAnchor;
-  _slowDiffChangeCount: number;
+  _slowLoadingCharCount: number;
   _tokenize: typeof tokenize;
+  _trimmedCharCount: number;
   enableCommenting: boolean;
   viewType: DiffProps['viewType'];
 };
@@ -103,8 +118,9 @@ export class DiffViewBase extends React.Component<Props> {
     _document: document,
     _getDiffAnchors: getDiffAnchors,
     _getRelativeDiffAnchor: getRelativeDiffAnchor,
-    _slowDiffChangeCount: SLOW_DIFF_CHANGE_COUNT,
+    _slowLoadingCharCount: SLOW_LOADING_CHAR_COUNT,
     _tokenize: tokenize,
+    _trimmedCharCount: TRIMMED_CHAR_COUNT,
     enableCommenting: process.env.REACT_APP_ENABLE_COMMENTING === 'true',
     viewType: 'unified',
   };
@@ -310,8 +326,9 @@ export class DiffViewBase extends React.Component<Props> {
   renderWithMessages = ({ selectedMessageMap }: LinterProviderInfo) => {
     const {
       _codeCanBeHighlighted,
-      _slowDiffChangeCount,
+      _slowLoadingCharCount,
       _tokenize,
+      _trimmedCharCount,
       diff,
       mimeType,
       viewType,
@@ -330,25 +347,25 @@ export class DiffViewBase extends React.Component<Props> {
 
     const extraMessages = [];
 
-    let hunks;
+    let hunksToDisplay;
     let diffWasTrimmed = false;
     let diffIsSlowAlert;
 
     if (diff) {
-      let changeCount = 0;
-      hunks = diff.hunks.map((hunk) => {
-        changeCount += hunk.changes.length;
-        return hunk;
-      });
+      hunksToDisplay = diff.hunks;
 
-      if (changeCount >= _slowDiffChangeCount) {
+      if (getChangeCharCount(hunksToDisplay) >= _slowLoadingCharCount) {
         if (!shouldAllowSlowPages({ allowByDefault: true, location })) {
-          hunks = trimHunkChanges(hunks, { maxLength: _slowDiffChangeCount });
+          hunksToDisplay = trimHunks({
+            _trimmedCharCount,
+            hunks: hunksToDisplay,
+          });
           diffWasTrimmed = true;
         }
         diffIsSlowAlert = (
           <SlowPageAlert
             allowSlowPagesByDefault
+            key="slowPageAlert"
             location={location}
             getMessage={(allowSlowPages: boolean) => {
               return allowSlowPages
@@ -368,18 +385,17 @@ export class DiffViewBase extends React.Component<Props> {
 
     let tokens;
     if (
-      diff &&
-      !diffWasTrimmed &&
-      _codeCanBeHighlighted({ code: getAllHunkChanges(diff.hunks) })
+      hunksToDisplay &&
+      _codeCanBeHighlighted({ code: getAllHunkChanges(hunksToDisplay) })
     ) {
       // TODO: always highlight when we can use a Web Worker.
       // https://github.com/mozilla/addons-code-manager/issues/928
-      tokens = _tokenize(diff.hunks, options);
+      tokens = _tokenize(hunksToDisplay, options);
     }
 
     if (diff && !tokens) {
       extraMessages.push(
-        <Alert variant="warning">
+        <Alert key="syntaxHighlightingAlert" variant="warning">
           {gettext('Syntax highlighting was disabled for performance')}
         </Alert>,
       );
@@ -403,20 +419,20 @@ export class DiffViewBase extends React.Component<Props> {
 
         {extraMessages.length ? this.renderExtraMessages(extraMessages) : null}
 
-        {diff && hunks && (
+        {diff && hunksToDisplay && (
           <React.Fragment key={`${diff.oldRevision}-${diff.newRevision}`}>
             {this.renderHeader(diff)}
             <FadableContent fade={diffWasTrimmed}>
               <Diff
                 className={styles.diff}
                 diffType={diff.type}
-                hunks={hunks}
+                hunks={hunksToDisplay}
                 tokens={tokens}
                 viewType={viewType}
                 gutterType="anchor"
                 generateAnchorID={getChangeKey}
                 selectedChanges={selectedChanges}
-                widgets={this.getWidgets(hunks, selectedMessageMap)}
+                widgets={this.getWidgets(hunksToDisplay, selectedMessageMap)}
                 renderGutter={this.renderGutter}
               >
                 {this.renderHunks}
