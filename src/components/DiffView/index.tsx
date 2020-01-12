@@ -2,7 +2,6 @@ import queryString from 'query-string';
 import * as React from 'react';
 import {
   ChangeInfo,
-  ChangeType,
   Decoration,
   Diff,
   DiffInfo,
@@ -30,6 +29,7 @@ import refractor from '../../refractor';
 import {
   ScrollTarget,
   Version,
+  changeTypes,
   getDiffAnchors,
   getRelativeDiffAnchor,
 } from '../../reducers/versions';
@@ -84,8 +84,7 @@ export const trimHunks = ({
 };
 
 export const changeCanBeCommentedUpon = (change: ChangeInfo) => {
-  const types: ChangeType[] = ['insert', 'normal'];
-  return types.includes(change.type);
+  return [changeTypes.insert, changeTypes.normal].includes(change.type);
 };
 
 export type PublicProps = {

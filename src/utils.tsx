@@ -5,15 +5,9 @@ import purify from 'dompurify';
 import { History, Location } from 'history';
 import queryString from 'query-string';
 import log from 'loglevel';
-import {
-  Hunks,
-  ChangeInfo,
-  ChangeType,
-  DiffInfo,
-  getChangeKey,
-} from 'react-diff-view';
+import { Hunks, ChangeInfo, DiffInfo, getChangeKey } from 'react-diff-view';
 
-import { CompareInfo } from './reducers/versions';
+import { changeTypes, CompareInfo } from './reducers/versions';
 import { getCodeLineAnchor } from './components/CodeView/utils';
 
 // This is how many characters of code it takes to slow down the UI.
@@ -212,7 +206,11 @@ export class ForwardComparisonMap {
       );
     }
 
-    const relevantTypes: ChangeType[] = ['insert', 'normal', 'delete'];
+    const relevantTypes = [
+      changeTypes.insert,
+      changeTypes.normal,
+      changeTypes.delete,
+    ];
 
     // Sort changes per line, ordered by relevantTypes.
     Object.keys(this.changeMap).forEach((line) => {

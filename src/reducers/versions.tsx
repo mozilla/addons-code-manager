@@ -107,6 +107,15 @@ type PartialExternalVersion = {
   version: string;
 };
 
+export const changeTypes: Record<string, ChangeType> = Object.freeze({
+  delete: 'delete',
+  deleteEofnl: 'delete-eofnl',
+  insert: 'insert',
+  insertEofnl: 'insert-eofnl',
+  normal: 'normal',
+  normalEofnl: 'normal-eofnl',
+});
+
 export type ExternalChange = {
   content: string;
   new_line_number: number;
