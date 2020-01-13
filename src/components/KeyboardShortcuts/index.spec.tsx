@@ -29,6 +29,7 @@ import {
   fakeVersionEntry,
   fakeVersionWithDiff,
   getInstance,
+  nextUniqueId,
   shallowUntilTarget,
   spyOn,
 } from '../../test-helpers';
@@ -164,15 +165,14 @@ describe(__filename, () => {
     }
   });
 
-  it('adds a disabled style to the diff keys when there is no compare info', () => {
+  it('renders one line descriptions for keys "p"/"n" and "k"/"j" in Browse', () => {
     const root = render({ compareInfo: null });
 
-    expect(root.find(`dt.${styles.disabled}`)).toHaveLength(2);
-    expect(root.find(`dd.${styles.disabled}`)).toHaveLength(2);
+    expect(root.find(`dt.${styles.hasAlias}`)).toHaveLength(2);
+    expect(root.find(`dd.${styles.hasAlias}`)).toHaveLength(2);
 
-    // Make sure we added the disabled style to the diff keys.
-    expect(root.find(`dt.${styles.disabled}`).at(0)).toIncludeText('n');
-    expect(root.find(`dt.${styles.disabled}`).at(1)).toIncludeText('p');
+    expect(root.find(`dt.${styles.hasAlias}`).at(0)).toHaveText('k or p');
+    expect(root.find(`dt.${styles.hasAlias}`).at(1)).toHaveText('j or n');
   });
 
   it('binds and unbinds keydown to the listener', () => {
@@ -298,35 +298,40 @@ describe(__filename, () => {
     },
   );
 
-  it.each(['p', 'n'])(
-    'does not dispatch goToRelativeDiff when "%s" is pressed if compareInfo is falsey',
-    (key) => {
-      const currentPath = fakeVersionWithDiff.file.selected_file;
+  it.each([
+    ['previous', 'p', RelativePathPosition.previous],
+    ['next', 'n', RelativePathPosition.next],
+  ])(
+    'only dispatches goToRelativeFile with %s when "%s" is pressed when compareInfo is falsey',
+    (direction, key, position) => {
+      const currentPath = 'file1.js';
       const pathList = [currentPath];
-      const versionId = 123;
-      const location = createFakeLocation({
-        search: queryString.stringify({ path: currentPath }),
-      });
+      const versionId = nextUniqueId();
 
       const store = configureStoreWithFileTree({ versionId, pathList });
-
       const dispatch = spyOn(store, 'dispatch');
       const fakeThunk = createFakeThunk();
-      const _goToRelativeDiff = fakeThunk.createThunk;
+      const _goToRelativeFile = fakeThunk.createThunk;
 
       renderAndTriggerKeyEvent(
         { key: key as string },
         {
-          _goToRelativeDiff,
+          _goToRelativeFile,
           compareInfo: null,
           currentPath,
-          location,
           store,
           versionId,
         },
       );
 
-      expect(dispatch).not.toHaveBeenCalledWith(fakeThunk.thunk);
+      expect(dispatch).toHaveBeenCalledTimes(1);
+      expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+      expect(_goToRelativeFile).toHaveBeenCalledWith({
+        currentPath,
+        pathList,
+        position,
+        versionId,
+      });
     },
   );
 

@@ -41,6 +41,15 @@ export const supportedKeys: { [key: string]: string | null } = {
   z: gettext('Next linter message'),
 };
 
+const keyMappingInBrowse: { [key: string]: string } = {
+  n: 'j',
+  p: 'k',
+};
+
+const mapKeyInBrowse = (key: string) => {
+  return keyMappingInBrowse[key] || key;
+};
+
 export type PublicProps = {
   compareInfo: CompareInfo | null | undefined;
   comparedToVersionId: number | null;
@@ -111,7 +120,7 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
 
       const getCodeLineAnchor = _createCodeLineAnchorGetter({ compareInfo });
 
-      switch (event.key) {
+      switch (compareInfo ? event.key : mapKeyInBrowse(event.key)) {
         case 'k':
           dispatch(
             _goToRelativeFile({
@@ -241,24 +250,46 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
   }
 
   render() {
+    const { compareInfo } = this.props;
+    const inBrowse = !compareInfo;
+
+    const shortcuts: string[] = [];
+    const keyAlias: { [key: string]: string } = {};
+
+    Object.keys(supportedKeys)
+      .filter((key) => supportedKeys[key] !== null)
+      .forEach((key) => {
+        if (inBrowse && mapKeyInBrowse(key) !== key) {
+          keyAlias[mapKeyInBrowse(key)] = key;
+        } else {
+          shortcuts.push(key);
+        }
+      });
+
+    const makeClassNameForKey = (key: string) => {
+      return keyAlias[key] ? styles.hasAlias : '';
+    };
+
     return (
       <div className={styles.KeyboardShortcuts}>
         <dl className={styles.definitions}>
-          {Object.keys(supportedKeys)
-            // exlude alias keys
-            .filter((key) => supportedKeys[key] !== null)
-            .map((key) => {
-              const className = this.makeClassNameForKey(key);
-
-              return (
-                <React.Fragment key={key}>
-                  <dt className={className}>
-                    <kbd>{key}</kbd>
-                  </dt>
-                  <dd className={className}>{supportedKeys[key]}</dd>
-                </React.Fragment>
-              );
-            })}
+          {shortcuts.map((key) => {
+            const className = makeClassNameForKey(key);
+            return (
+              <React.Fragment key={key}>
+                <dt className={className}>
+                  <kbd>{key}</kbd>
+                  {keyAlias[key] && (
+                    <>
+                      {gettext(' or ')}
+                      <kbd>{keyAlias[key]}</kbd>
+                    </>
+                  )}
+                </dt>
+                <dd className={className}>{supportedKeys[key]}</dd>
+              </React.Fragment>
+            );
+          })}
         </dl>
       </div>
     );
