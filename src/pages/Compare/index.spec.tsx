@@ -1233,7 +1233,10 @@ describe(__filename, () => {
       store.dispatch(
         versionsActions.loadVersionFile({
           path: nextModifiedFile,
-          version: { ...fakeVersion, id: headVersionId },
+          version: createExternalVersionWithEntries(
+            [{ path: nextModifiedFile }],
+            { id: headVersionId },
+          ),
         }),
       );
       const { _fetchVersionFile } = setUpForPreloadAndRender({
