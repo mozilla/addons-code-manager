@@ -161,6 +161,7 @@ type InternalVersionFile = {
   created: string;
   downloadURL: string | null;
   id: number;
+  sha256: string | null;
   size: number;
 };
 
@@ -428,14 +429,19 @@ export const getParentFolders = (path: string): string[] => {
   return parents;
 };
 
-export const createInternalVersionFile = (
-  file: ExternalVersionFileWithContent,
-): InternalVersionFile => {
+export const createInternalVersionFile = ({
+  file,
+  path,
+}: {
+  file: ExternalVersionFileWithContent;
+  path: string;
+}): InternalVersionFile => {
   return {
     content: file.content,
     created: file.created,
     downloadURL: file.download_url,
     id: file.id,
+    sha256: file.entries[path] ? file.entries[path].sha256 : null,
     size: file.size,
   };
 };
@@ -615,20 +621,18 @@ export const getVersionFile = (
       return undefined;
     }
 
-    if (!entry.sha256) {
-      _log.debug(
-        `sha256 missing for entry for path: ${path}, versionId: ${versionId}`,
-      );
-      return undefined;
-    }
-
     if (file) {
+      if (!file.sha256) {
+        _log.debug(`sha256 missing for file: ${path}, versionId: ${versionId}`);
+        return undefined;
+      }
+
       return {
         ...file,
         filename: entry.filename,
         mimeType: entry.mimeType,
         path,
-        sha256: entry.sha256,
+        sha256: file.sha256,
         type: entry.type,
         version: version.version,
       };
@@ -1359,7 +1363,7 @@ export const createReducer = ({
             ...state.versionFiles,
             [version.id]: {
               ...state.versionFiles[version.id],
-              [path]: createInternalVersionFile(version.file),
+              [path]: createInternalVersionFile({ file: version.file, path }),
             },
           },
           versionFilesLoading: {
