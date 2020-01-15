@@ -98,7 +98,7 @@ describe(__filename, () => {
         expect.objectContaining({
           versionFiles: {
             [version.id]: {
-              [path]: createInternalVersionFile(version.file),
+              [path]: createInternalVersionFile({ file: version.file, path }),
             },
           },
         }),
@@ -120,8 +120,14 @@ describe(__filename, () => {
         expect.objectContaining({
           versionFiles: {
             [version.id]: {
-              [path1]: createInternalVersionFile(version.file),
-              [path2]: createInternalVersionFile(version.file),
+              [path1]: createInternalVersionFile({
+                file: version.file,
+                path: path1,
+              }),
+              [path2]: createInternalVersionFile({
+                file: version.file,
+                path: path2,
+              }),
             },
           },
         }),
@@ -849,6 +855,34 @@ describe(__filename, () => {
     });
   });
 
+  describe('createInternalVersionFile', () => {
+    it('creates a version file with sha256=null if the path does not exists in version.entries', () => {
+      const versionFile = createInternalVersionFile({
+        path: 'path.js',
+        file: {
+          ...fakeVersionFile,
+          entries: { 'manifest.json': fakeVersionEntry },
+        },
+      });
+
+      expect(versionFile.sha256).toBe(null);
+    });
+
+    it('creates a version file with sha256 string if the path exists in version.entries', () => {
+      const sha256 = 'some-sha256';
+      const path = 'path.js';
+      const versionFile = createInternalVersionFile({
+        path,
+        file: {
+          ...fakeVersionFile,
+          entries: { [path]: { ...fakeVersionEntry, sha256 } },
+        },
+      });
+
+      expect(versionFile.sha256).toEqual(sha256);
+    });
+  });
+
   describe('createInternalVersion', () => {
     it('creates a Version', () => {
       const version = fakeVersion;
@@ -927,7 +961,7 @@ describe(__filename, () => {
       state = reducer(state, actions.loadVersionFile({ version, path }));
 
       expect(getVersionFile(state, version.id, path)).toEqual({
-        ...createInternalVersionFile(version.file),
+        ...createInternalVersionFile({ file: version.file, path }),
         downloadURL,
         filename,
         mimeType,
@@ -1046,10 +1080,17 @@ describe(__filename, () => {
       );
       state = reducer(state, actions.loadVersionFile({ path: path2, version }));
 
-      const internalVersionFile = createInternalVersionFile(version.file);
+      const internalVersionFile1 = createInternalVersionFile({
+        file: version.file,
+        path: path1,
+      });
+      const internalVersionFile2 = createInternalVersionFile({
+        file: version.file,
+        path: path2,
+      });
       expect(getVersionFiles(state, version.id)).toEqual({
-        [path1]: internalVersionFile,
-        [path2]: internalVersionFile,
+        [path1]: internalVersionFile1,
+        [path2]: internalVersionFile2,
       });
     });
 
