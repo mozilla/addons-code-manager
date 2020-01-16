@@ -39,6 +39,7 @@ export type DefaultProps = {
   };
   createOverviewRef: () => React.RefObject<HTMLDivElement> | null;
   getCodeLineAnchor: typeof defaultCodeLineAnchorGetter;
+  insertedLines: number[];
   overviewPadding: number;
   rowTopPadding: number;
   rowHeight: number;
@@ -58,6 +59,7 @@ export class CodeOverviewBase extends React.Component<Props, State> {
     _window: window,
     createOverviewRef: () => React.createRef<HTMLDivElement>(),
     getCodeLineAnchor: defaultCodeLineAnchorGetter,
+    insertedLines: [],
     // This is the padding of the overview container.
     overviewPadding: 10,
     rowTopPadding: 2,
@@ -151,11 +153,22 @@ export class CodeOverviewBase extends React.Component<Props, State> {
     rowIndex: number,
     shapeIndex: number,
     groupOflineShapes: LineShapes[] | undefined,
+    insertedLines: number[],
   ) {
     if (!groupOflineShapes) {
       return null;
     }
 
+    // First check to see if we should colour the line because of changes.
+    if (insertedLines.length) {
+      for (const shape of groupOflineShapes) {
+        if (insertedLines.includes(shape.line)) {
+          return <CodeLineShapes isChange lineShapes={shape} />;
+        }
+      }
+    }
+
+    // Next check to see if there are any messages for the line.
     const messages = selectedMessageMap
       ? groupOflineShapes.reduce((matches: LinterMessageType[], shape) => {
           let allMatches = matches;
@@ -196,6 +209,7 @@ export class CodeOverviewBase extends React.Component<Props, State> {
       _document,
       content,
       getCodeLineAnchor,
+      insertedLines,
       location,
       rowHeight,
       rowTopPadding,
@@ -222,7 +236,23 @@ export class CodeOverviewBase extends React.Component<Props, State> {
         shapes && shapes.length ? shapes[shapeIndex].line : undefined;
 
       let linkableLine = line;
-      if (line && selectedMessageMap) {
+      if (line && insertedLines.length) {
+        // Look for the first line with a change on it and link to
+        // that instead.
+        const firstChange = shapes.filter((s) =>
+          insertedLines.includes(s.line),
+        )[0];
+        if (firstChange) {
+          linkableLine = firstChange.line;
+        }
+      } else if (
+        line &&
+        line === 1 &&
+        selectedMessageMap &&
+        selectedMessageMap.global.length
+      ) {
+        linkableLine = GLOBAL_LINTER_ANCHOR_ID;
+      } else if (line && selectedMessageMap) {
         // Look for the first line with a linter message on it and link to
         // that instead.
         const firstMsg = shapes.filter(
@@ -231,14 +261,6 @@ export class CodeOverviewBase extends React.Component<Props, State> {
         if (firstMsg) {
           linkableLine = firstMsg.line;
         }
-      }
-      if (
-        line &&
-        line === 1 &&
-        selectedMessageMap &&
-        selectedMessageMap.global.length
-      ) {
-        linkableLine = GLOBAL_LINTER_ANCHOR_ID;
       }
 
       const codeLineAnchor =
@@ -280,7 +302,13 @@ export class CodeOverviewBase extends React.Component<Props, State> {
           }}
           title={line ? gettext(`Jump to line ${line}`) : ''}
         >
-          {this.renderRow(selectedMessageMap, rowIndex, shapeIndex, shapes)}
+          {this.renderRow(
+            selectedMessageMap,
+            rowIndex,
+            shapeIndex,
+            shapes,
+            insertedLines,
+          )}
         </Link>,
       );
     }

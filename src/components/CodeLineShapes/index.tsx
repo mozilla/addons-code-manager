@@ -4,18 +4,21 @@ import { LineShapes, Token } from './utils';
 import styles from './styles.module.scss';
 
 export type PublicProps = {
+  isChange?: boolean;
   lineShapes: LineShapes;
 };
 
 type Props = PublicProps;
 
-const CodeLineShapes = ({ lineShapes }: Props) => {
+const CodeLineShapes = ({ isChange, lineShapes }: Props) => {
   return (
     <>
       {lineShapes.tokens.map((shape, shapeIndex) => {
         let className;
         if (shape.token === Token.whitespace) {
           className = styles.whitespace;
+        } else if (isChange) {
+          className = styles.change;
         } else {
           className = styles.code;
         }

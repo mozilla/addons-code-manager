@@ -41,5 +41,24 @@ describe(__filename, () => {
 
       expect(shapeDivs).toHaveLength(3);
     });
+
+    it('sets the correct style for a change', () => {
+      const line = '"use strict;"';
+      const allLineShapes = generateLineShapes([line], {
+        maxLineLength: line.length,
+      });
+      const lineShapes = allLineShapes[0];
+      const root = render({ isChange: true, lineShapes });
+      const shapeDivs = root.find('div');
+
+      const first = shapeDivs.at(0);
+      expect(first).toHaveClassName(styles.change);
+
+      const second = shapeDivs.at(1);
+      expect(second).toHaveClassName(styles.whitespace);
+
+      const third = shapeDivs.at(2);
+      expect(third).toHaveClassName(styles.change);
+    });
   });
 });

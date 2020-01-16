@@ -673,6 +673,21 @@ export const getDiffAnchors = (diff: DiffInfo): string[] => {
   return anchors;
 };
 
+export const getInsertedLines = (diff: DiffInfo): number[] => {
+  const insertedLines: number[] = [];
+
+  for (const hunk of diff.hunks) {
+    for (const change of hunk.changes) {
+      const { lineNumber, type } = change;
+      if (type === ('insert' as ChangeType)) {
+        if (lineNumber && !insertedLines.includes(lineNumber))
+          insertedLines.push(lineNumber);
+      }
+    }
+  }
+  return insertedLines;
+};
+
 export type GetRelativeDiffAnchorParams = {
   currentAnchor?: string | undefined;
   diff: DiffInfo;

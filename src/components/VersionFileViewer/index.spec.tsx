@@ -271,6 +271,49 @@ describe(__filename, () => {
     );
   });
 
+  it('passes insertedLines to CodeOverview', () => {
+    const insertedLines = [1, 2];
+    const _getInsertedLines = jest.fn().mockReturnValue(insertedLines);
+    const { file, version } = getInternalVersionAndFile();
+    const compareInfo = createFakeCompareInfo();
+
+    const root = renderPanel(
+      { _getInsertedLines, compareInfo, file, version },
+      PanelAttribs.altSidePanel,
+    );
+
+    expect(root.find(CodeOverview)).toHaveProp('insertedLines', insertedLines);
+    expect(_getInsertedLines).toHaveBeenCalledWith(compareInfo.diff);
+  });
+
+  it('does not call getInsertedLines if no compareInfo exists', () => {
+    const _getInsertedLines = jest.fn();
+    const { file, version } = getInternalVersionAndFile();
+
+    const root = renderPanel(
+      { _getInsertedLines, file, version },
+      PanelAttribs.altSidePanel,
+    );
+
+    expect(root.find(CodeOverview)).toHaveProp('insertedLines', []);
+    expect(_getInsertedLines).not.toHaveBeenCalled();
+  });
+
+  it('does not call getInsertedLines if no diff exists', () => {
+    const _getInsertedLines = jest.fn();
+    const { file, version } = getInternalVersionAndFile();
+    const compareInfo = createFakeCompareInfo();
+    delete compareInfo.diff;
+
+    const root = renderPanel(
+      { _getInsertedLines, compareInfo, file, version },
+      PanelAttribs.altSidePanel,
+    );
+
+    expect(root.find(CodeOverview)).toHaveProp('insertedLines', []);
+    expect(_getInsertedLines).not.toHaveBeenCalled();
+  });
+
   it('does not render CodeOverview without a file', () => {
     const root = renderPanel({ file: null }, PanelAttribs.altSidePanel);
 
