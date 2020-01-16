@@ -239,7 +239,9 @@ export class CodeOverviewBase extends React.Component<Props, State> {
       if (line && insertedLines.length) {
         // Look for the first line with a change on it and link to
         // that instead.
-        const firstChange = shapes.filter((s) => insertedLines[s.line])[0];
+        const firstChange = shapes.filter((s) =>
+          insertedLines.includes(s.line),
+        )[0];
         if (firstChange) {
           linkableLine = firstChange.line;
         }

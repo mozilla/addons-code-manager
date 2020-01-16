@@ -586,6 +586,37 @@ describe(__filename, () => {
     expect(lineShapes).toHaveLength(3);
   });
 
+  it('links to the first changed line in a block of changes', () => {
+    const insertedLine = 5;
+    // Create a file with 6 lines.
+    const contentLines = generateFileLines({ count: 6 });
+
+    const root = renderWithFixedHeight(
+      {
+        content: contentLines.join('\n'),
+        insertedLines: [insertedLine],
+        // Normalize the grid parameters.
+        rowHeight: 1,
+        overviewPadding: 0,
+        rowTopPadding: 0,
+      },
+      // Make a grid of height 2 so that each row will contain 3 lines.
+      { overviewHeight: 2 },
+    );
+
+    const allLinks = root.find(Link);
+    expect(allLinks).toHaveLength(2);
+
+    const link = allLinks.at(1);
+
+    expect(link).toHaveProp(
+      'to',
+      expect.objectContaining({
+        hash: getCodeLineAnchor(insertedLine),
+      }),
+    );
+  });
+
   it('renders CodeLineShapes for groups of lines that fit into the grid', () => {
     const contentLines = generateFileLines({ count: 200 });
 
