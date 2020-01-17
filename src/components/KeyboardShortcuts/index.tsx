@@ -87,6 +87,14 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
     _goToRelativeMessage: goToRelativeMessage,
   };
 
+  isInBrowseMode = () => {
+    return !this.props.compareInfo;
+  };
+
+  getKey = (key: string) => {
+    return this.isInBrowseMode() ? mapKeyInBrowse(key) : key;
+  };
+
   keydownListener = (event: KeyboardEvent) => {
     const {
       _createCodeLineAnchorGetter,
@@ -120,7 +128,7 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
 
       const getCodeLineAnchor = _createCodeLineAnchorGetter({ compareInfo });
 
-      switch (compareInfo ? event.key : mapKeyInBrowse(event.key)) {
+      switch (this.getKey(event.key)) {
         case 'k':
           dispatch(
             _goToRelativeFile({
@@ -170,8 +178,6 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
                 versionId,
               }),
             );
-          } else {
-            log.warn('Cannot navigate to next change without diff loaded');
           }
           break;
         case 'p':
@@ -186,8 +192,6 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
                 versionId,
               }),
             );
-          } else {
-            log.warn('Cannot navigate to previous change without diff loaded');
           }
           break;
         case 'h':
@@ -240,26 +244,14 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
     _document.removeEventListener('keydown', this.keydownListener);
   }
 
-  makeClassNameForKey(key: string) {
-    // `n` and `p` are the keys for navigating a diff.
-    if (['n', 'p'].includes(key) && !this.props.compareInfo) {
-      return styles.disabled;
-    }
-
-    return '';
-  }
-
   render() {
-    const { compareInfo } = this.props;
-    const inBrowse = !compareInfo;
-
     const shortcuts: string[] = [];
     const keyAlias: { [key: string]: string } = {};
 
     Object.keys(supportedKeys)
       .filter((key) => supportedKeys[key] !== null)
       .forEach((key) => {
-        if (inBrowse && mapKeyInBrowse(key) !== key) {
+        if (this.isInBrowseMode() && mapKeyInBrowse(key) !== key) {
           keyAlias[mapKeyInBrowse(key)] = key;
         } else {
           shortcuts.push(key);
