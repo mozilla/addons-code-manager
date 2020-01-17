@@ -3,7 +3,6 @@ import queryString from 'query-string';
 import React from 'react';
 import { Alert } from 'react-bootstrap';
 import {
-  ChangeType,
   Diff,
   HunkInfo,
   Hunks,
@@ -36,6 +35,7 @@ import {
   ExternalChange,
   ExternalHunk,
   ScrollTarget,
+  changeTypes,
   createInternalDiff,
   createInternalHunk,
   createInternalVersion,
@@ -671,30 +671,30 @@ describe(__filename, () => {
     );
   });
 
-  it.each(['delete-eofnl', 'insert-eofnl', 'normal-eofnl'])(
-    'does not render a widget for %s changes',
-    (type) => {
-      const changeType = type as ChangeType;
-      const line = nextUniqueId();
-      const externalMessages = [{ line, uid: 'first' }];
-      const version = createInternalVersion({
-        ...fakeVersion,
-        id: nextUniqueId(),
-      });
-      const diff = createDiffWithHunks([
-        createHunkWithChanges([{ type: changeType, new_line_number: line }]),
-      ]);
-      const widgets = renderAndGetWidgets({
-        diff,
-        selectedMessageMap: createFakeLinterMessagesByPath({
-          messages: externalMessages,
-        }),
-        version,
-      });
+  it.each([
+    changeTypes.deleteEofnl,
+    changeTypes.insertEofnl,
+    changeTypes.normalEofnl,
+  ])('does not render a widget for %s changes', (type) => {
+    const line = nextUniqueId();
+    const externalMessages = [{ line, uid: 'first' }];
+    const version = createInternalVersion({
+      ...fakeVersion,
+      id: nextUniqueId(),
+    });
+    const diff = createDiffWithHunks([
+      createHunkWithChanges([{ type, new_line_number: line }]),
+    ]);
+    const widgets = renderAndGetWidgets({
+      diff,
+      selectedMessageMap: createFakeLinterMessagesByPath({
+        messages: externalMessages,
+      }),
+      version,
+    });
 
-      expect(getWidgetNodes(widgets).length).toEqual(0);
-    },
-  );
+    expect(getWidgetNodes(widgets).length).toEqual(0);
+  });
 
   describe('comment list', () => {
     it('renders inline comments for commentable lines', () => {
@@ -1191,28 +1191,30 @@ describe(__filename, () => {
   });
 
   describe('changeCanBeCommentedUpon', () => {
-    it.each(['insert', 'normal'])(
+    it.each([changeTypes.insert, changeTypes.normal])(
       'returns true for a(n) %s change',
-      (changeType) => {
+      (type) => {
         const change = {
           ...fakeChangeInfo,
-          type: changeType as ChangeType,
+          type,
         };
 
         expect(changeCanBeCommentedUpon(change)).toEqual(true);
       },
     );
 
-    it.each(['delete', 'delete-eofnl', 'insert-eofnl', 'normal-eofnl'])(
-      'returns false for a(n) %s change',
-      (changeType) => {
-        const change = {
-          ...fakeChangeInfo,
-          type: changeType as ChangeType,
-        };
+    it.each([
+      changeTypes.delete,
+      changeTypes.deleteEofnl,
+      changeTypes.insertEofnl,
+      changeTypes.normalEofnl,
+    ])('returns false for a(n) %s change', (type) => {
+      const change = {
+        ...fakeChangeInfo,
+        type,
+      };
 
-        expect(changeCanBeCommentedUpon(change)).toEqual(false);
-      },
-    );
+      expect(changeCanBeCommentedUpon(change)).toEqual(false);
+    });
   });
 });
