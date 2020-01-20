@@ -13,9 +13,6 @@ cache:
 # See: https://github.com/mozilla/addons-frontend/issues/3034
 install: yarn install --pure-lockfile
 
-matrix:
-  fast_finish: true
-
 jobs:
   include:
     - name: unit tests (node@production)
