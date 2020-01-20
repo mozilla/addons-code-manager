@@ -41,6 +41,15 @@ export const supportedKeys: { [key: string]: string | null } = {
   z: gettext('Next linter message'),
 };
 
+const keyMappingInBrowse: { [key: string]: string } = {
+  n: 'j',
+  p: 'k',
+};
+
+const mapKeyInBrowse = (key: string) => {
+  return keyMappingInBrowse[key] || key;
+};
+
 export type PublicProps = {
   compareInfo: CompareInfo | null | undefined;
   comparedToVersionId: number | null;
@@ -78,6 +87,14 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
     _goToRelativeMessage: goToRelativeMessage,
   };
 
+  isInBrowseMode = () => {
+    return !this.props.compareInfo;
+  };
+
+  getKey = (key: string) => {
+    return this.isInBrowseMode() ? mapKeyInBrowse(key) : key;
+  };
+
   keydownListener = (event: KeyboardEvent) => {
     const {
       _createCodeLineAnchorGetter,
@@ -111,7 +128,7 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
 
       const getCodeLineAnchor = _createCodeLineAnchorGetter({ compareInfo });
 
-      switch (event.key) {
+      switch (this.getKey(event.key)) {
         case 'k':
           dispatch(
             _goToRelativeFile({
@@ -161,8 +178,6 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
                 versionId,
               }),
             );
-          } else {
-            log.warn('Cannot navigate to next change without diff loaded');
           }
           break;
         case 'p':
@@ -177,8 +192,6 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
                 versionId,
               }),
             );
-          } else {
-            log.warn('Cannot navigate to previous change without diff loaded');
           }
           break;
         case 'h':
@@ -231,34 +244,44 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
     _document.removeEventListener('keydown', this.keydownListener);
   }
 
-  makeClassNameForKey(key: string) {
-    // `n` and `p` are the keys for navigating a diff.
-    if (['n', 'p'].includes(key) && !this.props.compareInfo) {
-      return styles.disabled;
-    }
-
-    return '';
-  }
-
   render() {
+    const shortcuts: string[] = [];
+    const keyAlias: { [key: string]: string } = {};
+
+    Object.keys(supportedKeys)
+      .filter((key) => supportedKeys[key] !== null)
+      .forEach((key) => {
+        if (this.isInBrowseMode() && mapKeyInBrowse(key) !== key) {
+          keyAlias[mapKeyInBrowse(key)] = key;
+        } else {
+          shortcuts.push(key);
+        }
+      });
+
+    const makeClassNameForKey = (key: string) => {
+      return keyAlias[key] ? styles.hasAlias : '';
+    };
+
     return (
       <div className={styles.KeyboardShortcuts}>
         <dl className={styles.definitions}>
-          {Object.keys(supportedKeys)
-            // exlude alias keys
-            .filter((key) => supportedKeys[key] !== null)
-            .map((key) => {
-              const className = this.makeClassNameForKey(key);
-
-              return (
-                <React.Fragment key={key}>
-                  <dt className={className}>
-                    <kbd>{key}</kbd>
-                  </dt>
-                  <dd className={className}>{supportedKeys[key]}</dd>
-                </React.Fragment>
-              );
-            })}
+          {shortcuts.map((key) => {
+            const className = makeClassNameForKey(key);
+            return (
+              <React.Fragment key={key}>
+                <dt className={className}>
+                  <kbd>{key}</kbd>
+                  {keyAlias[key] && (
+                    <>
+                      {gettext(' or ')}
+                      <kbd>{keyAlias[key]}</kbd>
+                    </>
+                  )}
+                </dt>
+                <dd className={className}>{supportedKeys[key]}</dd>
+              </React.Fragment>
+            );
+          })}
         </dl>
       </div>
     );
