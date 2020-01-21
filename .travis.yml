@@ -14,6 +14,7 @@ cache:
 install: yarn install --pure-lockfile
 
 jobs:
+  fast_finish: true
   include:
     - name: unit tests (node@production)
       <<: *node-prod
