@@ -69,7 +69,8 @@
     "typesafe-actions": "5.1.0",
     "typescript": "3.7.5",
     "universal-cookie": "4.0.3",
-    "universal-cookie-express": "4.0.3"
+    "universal-cookie-express": "4.0.3",
+    "workerize-loader": "1.1.0"
   },
   "devDependencies": {
     "@emotion/core": "^10.0.7",

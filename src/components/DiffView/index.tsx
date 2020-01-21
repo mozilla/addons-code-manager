@@ -25,7 +25,6 @@ import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import LinterMessage from '../LinterMessage';
 import GlobalLinterMessages from '../GlobalLinterMessages';
 import SlowPageAlert from '../SlowPageAlert';
-import refractor from '../../refractor';
 import {
   ScrollTarget,
   Version,
@@ -42,6 +41,7 @@ import {
   gettext,
   shouldAllowSlowPages,
 } from '../../utils';
+import worker from './workerShim';
 import styles from './styles.module.scss';
 import 'react-diff-view/style/index.css';
 
@@ -124,6 +124,8 @@ export class DiffViewBase extends React.Component<Props> {
     viewType: 'unified',
   };
 
+  workerInstance: any;
+
   componentDidMount() {
     this.loadData();
   }
@@ -141,6 +143,12 @@ export class DiffViewBase extends React.Component<Props> {
       history,
       location,
     } = this.props;
+
+    console.log('---- in loadData');
+    if (!this.workerInstance) {
+      this.workerInstance = worker(); // Attach an event listener to receive calculations from your worker
+      console.log('---- worker created: ', this.workerInstance);
+    }
 
     if (diff) {
       const queryParams = queryString.parse(location.search);
@@ -326,7 +334,6 @@ export class DiffViewBase extends React.Component<Props> {
     const {
       _codeCanBeHighlighted,
       _slowLoadingCharCount,
-      _tokenize,
       _trimmedCharCount,
       diff,
       mimeType,
@@ -337,7 +344,6 @@ export class DiffViewBase extends React.Component<Props> {
     const options = {
       highlight: true,
       language: getLanguageFromMimeType(mimeType),
-      refractor,
     };
 
     const selectedChanges =
@@ -383,13 +389,43 @@ export class DiffViewBase extends React.Component<Props> {
     }
 
     let tokens;
+    let tokenPromise;
+
+    // Create an instance of your worker
+    const workerInstance = worker(); // Attach an event listener to receive calculations from your worker
+    workerInstance.onmessage = (message: { data: { type?: string } }) => {
+      console.log('New Message: ', message);
+      // data.type indicates an automatically generated message from the worker.
+      // We just want to respond to our custom message.
+      if (!message.data.type) {
+        console.log('Custome message: ', message.data);
+      }
+    };
+    // workerInstance.addEventListener(
+    //   'message',
+    //   (message: { data: { type: string; result?: object } }) => {
+    //     console.log('New Message, message: ', message);
+    //     if (message.data.type)
+    //       console.log('New Message, message.data.id: ', message.data.id);
+    //   },
+    // );
+
     if (
+      !tokenPromise &&
       hunksToDisplay &&
       _codeCanBeHighlighted({ code: getAllHunkChanges(hunksToDisplay) })
     ) {
       // TODO: always highlight when we can use a Web Worker.
       // https://github.com/mozilla/addons-code-manager/issues/928
-      tokens = _tokenize(hunksToDisplay, options);
+      console.log(
+        '----- About to call doTokenize with hunksToDisplay: ',
+        hunksToDisplay,
+      );
+      console.log('----- About to call doTokenize with options: ', options);
+      tokenPromise = workerInstance.doTokenize(hunksToDisplay, options);
+      console.log('----- doTokenize done: ', tokenPromise);
+
+      // tokens = _tokenize(hunksToDisplay, options);
     }
 
     if (diff && !tokens) {

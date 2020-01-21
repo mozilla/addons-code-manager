@@ -75,6 +75,7 @@ export const createServer = ({
     baseUri: ["'none'"],
     formAction: ["'none'"],
     objectSrc: ["'none'"],
+    workerSrc: ["'self'"],
     reportUri,
   };
 
@@ -133,7 +134,7 @@ export const createServer = ({
     objectSrc: ["'none'"],
     scriptSrc: [staticSrc],
     styleSrc: [staticSrc],
-    workerSrc: ["'none'"],
+    workerSrc: ["'self'"],
     reportUri,
   };
 
