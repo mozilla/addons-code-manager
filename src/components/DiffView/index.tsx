@@ -1,6 +1,5 @@
 import queryString from 'query-string';
 import * as React from 'react';
-import { connect } from 'react-redux';
 import {
   ChangeInfo,
   Decoration,
@@ -20,7 +19,6 @@ import { Alert } from 'react-bootstrap';
 import { withRouter, RouteComponentProps } from 'react-router-dom';
 import makeClassName from 'classnames';
 
-import { ApplicationState } from '../../reducers';
 import Commentable from '../Commentable';
 import CommentList from '../CommentList';
 import FadableContent from '../FadableContent';
@@ -96,10 +94,6 @@ export type PublicProps = {
   version: Version;
 };
 
-type PropsFromState = {
-  tokens: Tokens | undefined;
-};
-
 export type DefaultProps = {
   _changeCanBeCommentedUpon: typeof changeCanBeCommentedUpon;
   _codeCanBeHighlighted: typeof codeCanBeHighlighted;
@@ -115,9 +109,13 @@ export type DefaultProps = {
 
 export type RouterProps = RouteComponentProps<{}>;
 
-export type Props = PublicProps & PropsFromState & DefaultProps & RouterProps;
+export type Props = PublicProps & DefaultProps & RouterProps;
 
-export class DiffViewBase extends React.Component<Props> {
+type State = {
+  tokens: Tokens | undefined;
+};
+
+export class DiffViewBase extends React.Component<Props, State> {
   static defaultProps: DefaultProps = {
     _changeCanBeCommentedUpon: changeCanBeCommentedUpon,
     _codeCanBeHighlighted: codeCanBeHighlighted,
@@ -136,15 +134,19 @@ export class DiffViewBase extends React.Component<Props> {
   constructor(props: Props) {
     super(props);
 
-    this.workerInstance = worker(); // Attach an event listener to receive calculations from your worker
+    this.state = { tokens: undefined };
+
+    this.workerInstance = worker();
     console.log('---- worker created: ', this.workerInstance);
     this.workerInstance.onmessage = (message: { data: any }) => {
-      console.log('New Message: ', message);
+      console.log('---- Message from worker: ', message);
       // data.type indicates an automatically generated message from the worker.
       // We just want to respond to our custom message.
       if (!message.data.type) {
-        console.log('Custome message: ', message.data);
-        // this.props.tokens = message.data;
+        console.log('---- Custom message from worker: ', message.data);
+        console.log('---- Setting tokens into state: ', message.data);
+
+        this.setState({ tokens: message.data });
       }
     };
   }
@@ -349,7 +351,6 @@ export class DiffViewBase extends React.Component<Props> {
 
   renderWithMessages = ({ selectedMessageMap }: LinterProviderInfo) => {
     const {
-      _codeCanBeHighlighted,
       _slowLoadingCharCount,
       _trimmedCharCount,
       diff,
@@ -358,6 +359,7 @@ export class DiffViewBase extends React.Component<Props> {
       location,
     } = this.props;
 
+    console.log('---- renderWithMessages is being called...');
     const options = {
       highlight: true,
       language: getLanguageFromMimeType(mimeType),
@@ -405,41 +407,13 @@ export class DiffViewBase extends React.Component<Props> {
       }
     }
 
-    let tokens;
+    const { tokens } = this.state;
     let tokenPromise;
 
-    // Create an instance of your worker
-    // const workerInstance = worker(); // Attach an event listener to receive calculations from your worker
-    // workerInstance.addEventListener(
-    //   'message',
-    //   (message: { data: { type: string; result?: object } }) => {
-    //     console.log('New Message, message: ', message);
-    //     if (message.data.type)
-    //       console.log('New Message, message.data.id: ', message.data.id);
-    //   },
-    // );
-
-    console.log(
-      '----- Checking to see if we can call doTokenize, this.workerInstance: ',
-      this.workerInstance,
-    );
-    if (
-      this.workerInstance &&
-      !tokenPromise &&
-      hunksToDisplay &&
-      _codeCanBeHighlighted({ code: getAllHunkChanges(hunksToDisplay) })
-    ) {
-      // TODO: always highlight when we can use a Web Worker.
-      // https://github.com/mozilla/addons-code-manager/issues/928
-      console.log(
-        '----- About to call doTokenize with hunksToDisplay: ',
-        hunksToDisplay,
-      );
-      console.log('----- About to call doTokenize with options: ', options);
+    if (!tokenPromise && !tokens && hunksToDisplay) {
+      console.log('----- About to call doTokenize ...');
       tokenPromise = this.workerInstance.doTokenize(hunksToDisplay, options);
       console.log('----- doTokenize done: ', tokenPromise);
-
-      // tokens = _tokenize(hunksToDisplay, options);
     }
 
     if (diff && !tokens) {
@@ -499,6 +473,7 @@ export class DiffViewBase extends React.Component<Props> {
   };
 
   render() {
+    console.log('---- render is being called...');
     const { version } = this.props;
 
     return (
@@ -513,15 +488,6 @@ export class DiffViewBase extends React.Component<Props> {
   }
 }
 
-export const mapStateToProps = (
-  state: ApplicationState,
-  ownProps: PublicProps,
-): PropsFromState => {
-  return {
-    tokens: getTokens(state.versions, ownProps.version.id),
-  };
-};
-
-export default withRouter(
-  connect(mapStateToProps)(DiffViewBase),
-) as React.ComponentType<PublicProps & Partial<DefaultProps>>;
+export default withRouter(DiffViewBase) as React.ComponentType<
+  PublicProps & Partial<DefaultProps>
+>;

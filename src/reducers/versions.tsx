@@ -9,7 +9,6 @@ import {
   DiffInfoType,
   HunkInfo,
   getChangeKey,
-  Tokens,
 } from 'react-diff-view';
 import { push } from 'connected-react-router';
 
@@ -173,7 +172,6 @@ type InternalVersionFile = {
   id: number;
   sha256: string | null;
   size: number;
-  tokens: Tokens | null;
 };
 
 export type VersionFile = {
@@ -354,10 +352,6 @@ export const actions = {
       return (payload: { versionId: number }) => resolve(payload);
     },
   ),
-  loadTokens: createAction('LOAD_TOKENS', (resolve) => {
-    return (payload: { path: string; tokens: Tokens; version: Version }) =>
-      resolve(payload);
-  }),
 };
 
 export type VersionsState = {
@@ -458,7 +452,6 @@ export const createInternalVersionFile = ({
     id: file.id,
     sha256: file.entries[path] ? file.entries[path].sha256 : null,
     size: file.size,
-    tokens: null,
   };
 };
 
@@ -1741,28 +1734,6 @@ export const createReducer = ({
         return {
           ...state,
           currentVersionId: false,
-        };
-      }
-      case getType(actions.loadTokens): {
-        const { path, tokens, version } = action.payload;
-
-        const file = state.versionFiles[version.id][path];
-
-        if (!file) {
-          throw new Error(
-            'Cannot go to relative diff without a version loaded.',
-          );
-        }
-
-        return {
-          ...state,
-          versionFiles: {
-            ...state.versionFiles,
-            [version.id]: {
-              ...state.versionFiles[version.id],
-              [path]: { ...file, tokens },
-            },
-          },
         };
       }
       default:
