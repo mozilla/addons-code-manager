@@ -179,7 +179,10 @@ export class CompareBase extends React.Component<Props> {
         );
       }
 
-      if (!versionFileIsLoading && versionFile === undefined) {
+      const versionFileIsReady =
+        versionFile || entryStatusMap[version.selectedPath] === 'D';
+
+      if (!versionFileIsLoading && !versionFileIsReady) {
         dispatch(
           _fetchVersionFile({
             addonId: parseInt(addonId, 10),
@@ -189,8 +192,12 @@ export class CompareBase extends React.Component<Props> {
         );
       }
 
-      if (versionFile && nextFilePath) {
-        if (!nextFileIsLoading && nextFile === undefined) {
+      if (versionFileIsReady && nextFilePath) {
+        if (
+          !nextFileIsLoading &&
+          nextFile === undefined &&
+          entryStatusMap[nextFilePath] !== 'D'
+        ) {
           dispatch(
             _fetchVersionFile({
               addonId: parseInt(addonId, 10),
