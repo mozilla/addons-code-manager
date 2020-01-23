@@ -1256,6 +1256,7 @@ describe(__filename, () => {
         loadVersionFile: false,
         headVersionId,
         nextModifiedFile,
+        nextModifiedFileStatus: 'M',
       });
 
       expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
