@@ -137,15 +137,10 @@ export class DiffViewBase extends React.Component<Props, State> {
     this.state = { tokens: undefined };
 
     this.workerInstance = worker();
-    console.log('---- worker created: ', this.workerInstance);
     this.workerInstance.onmessage = (message: { data: any }) => {
-      console.log('---- Message from worker: ', message);
       // data.type indicates an automatically generated message from the worker.
       // We just want to respond to our custom message.
       if (!message.data.type) {
-        console.log('---- Custom message from worker: ', message.data);
-        console.log('---- Setting tokens into state: ', message.data);
-
         this.setState({ tokens: message.data });
       }
     };
@@ -359,7 +354,6 @@ export class DiffViewBase extends React.Component<Props, State> {
       location,
     } = this.props;
 
-    console.log('---- renderWithMessages is being called...');
     const options = {
       highlight: true,
       language: getLanguageFromMimeType(mimeType),
@@ -411,9 +405,7 @@ export class DiffViewBase extends React.Component<Props, State> {
     let tokenPromise;
 
     if (!tokenPromise && !tokens && hunksToDisplay) {
-      console.log('----- About to call doTokenize ...');
       tokenPromise = this.workerInstance.doTokenize(hunksToDisplay, options);
-      console.log('----- doTokenize done: ', tokenPromise);
     }
 
     if (diff && !tokens) {
@@ -473,7 +465,6 @@ export class DiffViewBase extends React.Component<Props, State> {
   };
 
   render() {
-    console.log('---- render is being called...');
     const { version } = this.props;
 
     return (
@@ -481,6 +472,7 @@ export class DiffViewBase extends React.Component<Props, State> {
         versionId={version.id}
         validationURL={version.validationURL}
         selectedPath={version.selectedPath}
+        localState={this.state}
       >
         {this.renderWithMessages}
       </LinterProvider>

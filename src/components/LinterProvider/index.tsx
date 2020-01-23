@@ -27,6 +27,7 @@ export type PublicProps = {
   versionId: number;
   validationURL: string;
   selectedPath: string;
+  localState?: { [key: string]: any };
 };
 
 export type DefaultProps = {
