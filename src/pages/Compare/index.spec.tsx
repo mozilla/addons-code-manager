@@ -24,6 +24,7 @@ import {
   ExternalVersionWithDiff,
   VersionEntryStatus,
   actions as versionsActions,
+  createEntryStatusMap,
   createInternalDiff,
   createInternalVersion,
   getCompareInfo,
@@ -1407,6 +1408,7 @@ describe(__filename, () => {
     const addonId = 1;
     const baseVersionId = 1;
     const version = { ...fakeVersionWithDiff, id: baseVersionId + 1 };
+    const entryStatusMap = createEntryStatusMap(version);
     const headVersionId = version.id;
 
     const { store, root } = loadDiffAndRender({
@@ -1425,6 +1427,7 @@ describe(__filename, () => {
         size: version.file.size,
       }),
     );
+    expect(viewer).toHaveProp('entryStatusMap', entryStatusMap);
 
     const getterFromFactory = createCodeLineAnchorGetter({
       compareInfo: getCompareInfo(

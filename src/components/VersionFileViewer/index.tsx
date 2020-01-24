@@ -12,6 +12,7 @@ import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import Loading from '../Loading';
 import {
   CompareInfo,
+  EntryStatusMap,
   Version,
   VersionFile,
   getInsertedLines,
@@ -31,6 +32,7 @@ export type PublicProps = {
   children: AnyReactNode;
   comparedToVersionId: number | null;
   compareInfo?: CompareInfo | null | undefined;
+  entryStatusMap?: EntryStatusMap;
   file: VersionFile | null | undefined;
   getCodeLineAnchor?: GetCodeLineAnchor;
   onSelectFile: FileTreeProps['onSelect'];
@@ -42,6 +44,7 @@ const VersionFileViewer = ({
   children,
   comparedToVersionId,
   compareInfo,
+  entryStatusMap,
   file,
   getCodeLineAnchor,
   onSelectFile,
@@ -74,6 +77,26 @@ const VersionFileViewer = ({
         ? _getInsertedLines(compareInfo.diff)
         : [];
 
+    const { version: versionString, selectedPath } = version;
+
+    const renderFileInfo = () => {
+      if (file) {
+        return <FileMetadata file={file} />;
+      }
+
+      if (entryStatusMap && entryStatusMap[selectedPath] === 'D') {
+        return (
+          <span className={styles.deletedFileMessage}>
+            {gettext(
+              `The file has been deleted in the new version ${versionString}`,
+            )}
+          </span>
+        );
+      }
+
+      return <Loading message={gettext('Loading file...')} />;
+    };
+
     return (
       <ContentShell
         topContent={topContent}
@@ -88,11 +111,7 @@ const VersionFileViewer = ({
               />
             </AccordionItem>
             <AccordionItem title={ItemTitles.Information}>
-              {file ? (
-                <FileMetadata file={file} />
-              ) : (
-                <Loading message={gettext('Loading file...')} />
-              )}
+              {renderFileInfo()}
             </AccordionItem>
             <AccordionItem title={ItemTitles.Shortcuts}>
               <KeyboardShortcuts
