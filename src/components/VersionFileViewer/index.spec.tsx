@@ -14,6 +14,7 @@ import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import Loading from '../Loading';
 import { getMessageMap } from '../../reducers/linter';
 import {
+  EntryStatusMap,
   ExternalVersionEntry,
   actions as versionsActions,
   getVersionFile,
@@ -30,6 +31,7 @@ import {
   getContentShellPanel,
   simulateLinterProvider,
 } from '../../test-helpers';
+import styles from './styles.module.scss';
 
 import VersionFileViewer, { ItemTitles, PublicProps } from '.';
 
@@ -201,6 +203,43 @@ describe(__filename, () => {
 
     expect(item.find(FileMetadata)).toHaveLength(0);
     expect(item.find(Loading)).toHaveLength(1);
+  });
+
+  it('renders a message in the information panel for the deleted file', () => {
+    const { file, version } = getInternalVersionAndFile();
+    const entryStatusMap: EntryStatusMap = {
+      [file.filename]: 'D',
+    };
+    const root = renderPanel(
+      { entryStatusMap, file: null, version },
+      PanelAttribs.mainSidePanel,
+    );
+    const item = getAccordionItem(root, ItemTitles.Information);
+    const message = item.find(`.${styles.deletedFileMessage}`);
+
+    expect(item.find(FileMetadata)).toHaveLength(0);
+    expect(item.find(Loading)).toHaveLength(0);
+    expect(message).toHaveLength(1);
+    expect(message).toHaveText(
+      `The file has been deleted in the new version ${version.version}`,
+    );
+  });
+
+  it('renders a placeholder in the information panel if the modified file has not been loaded', () => {
+    const { file, version } = getInternalVersionAndFile();
+    const entryStatusMap: EntryStatusMap = {
+      [file.filename]: 'M',
+    };
+    const root = renderPanel(
+      { entryStatusMap, file: null, version },
+      PanelAttribs.mainSidePanel,
+    );
+    const item = getAccordionItem(root, ItemTitles.Information);
+    const message = item.find(`.${styles.deletedFileMessage}`);
+
+    expect(item.find(FileMetadata)).toHaveLength(0);
+    expect(item.find(Loading)).toHaveLength(1);
+    expect(message).toHaveLength(0);
   });
 
   it('configures LinterProvider', () => {

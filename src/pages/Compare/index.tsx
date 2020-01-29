@@ -252,7 +252,14 @@ export class CompareBase extends React.Component<Props> {
   }
 
   render() {
-    const { compareInfo, match, path, version, versionFile } = this.props;
+    const {
+      compareInfo,
+      entryStatusMap,
+      match,
+      path,
+      version,
+      versionFile,
+    } = this.props;
 
     const { baseVersionId, headVersionId } = match.params;
     const comparedToVersionId = parseInt(baseVersionId, 10);
@@ -273,6 +280,7 @@ export class CompareBase extends React.Component<Props> {
         <VersionFileViewer
           compareInfo={compareInfo}
           comparedToVersionId={comparedToVersionId}
+          entryStatusMap={entryStatusMap}
           file={versionFile}
           getCodeLineAnchor={createCodeLineAnchorGetter({ compareInfo })}
           onSelectFile={this.viewVersionFile}
