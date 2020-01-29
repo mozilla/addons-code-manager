@@ -199,10 +199,10 @@ describe(__filename, () => {
     history = createFakeHistory(),
     selected_file = fakeVersionWithDiff.file.selected_file,
     store = configureStore(),
-    addonId = 1,
-    baseVersionId = 2,
+    addonId = nextUniqueId(),
+    baseVersionId = nextUniqueId(),
     buildTree = false,
-    headVersionId = 3,
+    headVersionId = baseVersionId + 1,
     lastSelectedPath,
     loadDiff = true,
     loadVersionFile = true,
@@ -439,52 +439,15 @@ describe(__filename, () => {
   });
 
   it('dispatches fetchVersionFile() on mount', () => {
-    const addonId = 9999;
-    const baseVersionId = 1;
-    const headVersionId = baseVersionId + 1;
-    const version = { ...fakeVersionWithDiff, id: headVersionId };
-    const store = configureStore();
-
-    dispatchLoadVersionInfo({ store, version });
-
-    store.dispatch(
-      fileTreeActions.buildTree({
-        version: createInternalVersion(version),
-        comparedToVersionId: baseVersionId,
-      }),
-    );
-
-    store.dispatch(
-      versionsActions.loadEntryStatusMap({
-        version,
-        comparedToVersionId: baseVersionId,
-      }),
-    );
-
-    store.dispatch(
-      versionsActions.loadDiff({
-        addonId,
-        baseVersionId,
-        headVersionId,
-        version,
-      }),
-    );
-
-    store.dispatch(
-      versionsActions.setCurrentVersionId({ versionId: version.id }),
-    );
-
-    const dispatch = spyOn(store, 'dispatch');
-    const fakeThunk = createFakeThunk();
-    const _fetchVersionFile = fakeThunk.createThunk;
-
-    render({
-      ...getRouteParams({ addonId, baseVersionId, headVersionId }),
+    const {
+      addonId,
+      dispatchSpy,
+      fakeThunk,
+      version,
       _fetchVersionFile,
-      store,
-    });
+    } = loadDiffAndRender({ buildTree: true, loadVersionFile: false });
 
-    expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
     expect(_fetchVersionFile).toHaveBeenCalledWith({
       addonId,
       versionId: version.id,
@@ -493,57 +456,21 @@ describe(__filename, () => {
   });
 
   it('does not dispatch fetchVersionFile() if the selected file was deleted', () => {
-    const addonId = nextUniqueId();
     const baseVersionId = nextUniqueId();
     const headVersionId = baseVersionId + 1;
     const path = 'path.js';
-
     const version = createExternalVersionWithEntries([{ path, status: 'D' }], {
       selected_file: path,
       id: headVersionId,
     });
-    const store = configureStore();
-
-    dispatchLoadVersionInfo({ store, version });
-
-    store.dispatch(
-      fileTreeActions.buildTree({
-        version: createInternalVersion(version),
-        comparedToVersionId: baseVersionId,
-      }),
-    );
-
-    store.dispatch(
-      versionsActions.loadEntryStatusMap({
-        version,
-        comparedToVersionId: baseVersionId,
-      }),
-    );
-
-    store.dispatch(
-      versionsActions.loadDiff({
-        addonId,
-        baseVersionId,
-        headVersionId,
-        version,
-      }),
-    );
-
-    store.dispatch(
-      versionsActions.setCurrentVersionId({ versionId: version.id }),
-    );
-
-    const dispatch = spyOn(store, 'dispatch');
-    const fakeThunk = createFakeThunk();
-    const _fetchVersionFile = fakeThunk.createThunk;
-
-    render({
-      ...getRouteParams({ addonId, baseVersionId, headVersionId }),
-      _fetchVersionFile,
-      store,
+    const { _fetchVersionFile } = loadDiffAndRender({
+      baseVersionId,
+      buildTree: true,
+      headVersionId,
+      loadVersionFile: false,
+      version,
     });
 
-    expect(dispatch).not.toHaveBeenCalledWith(fakeThunk.thunk);
     expect(_fetchVersionFile).not.toHaveBeenCalled();
   });
 
