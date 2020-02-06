@@ -16,6 +16,8 @@ import { getApiHost } from '../api';
 export const DEFAULT_HOST = 'localhost';
 export const DEFAULT_PORT = 3000;
 export const STATIC_PATH = '/static/';
+export const ANALYTICS_PATH = '/analytics.js';
+export const ANALYTICS_DEBUG_PATH = '/analytics_debug.js';
 
 export type ServerEnvVars = {
   NODE_ENV: string;
@@ -27,6 +29,7 @@ export type ServerEnvVars = {
   REACT_APP_CRA_PORT: number;
   REACT_APP_REVIEWERS_HOST: string;
   REACT_APP_SENTRY_DSN: string;
+  REACT_APP_ANALYTICS_HOST: string;
   REACT_APP_USE_INSECURE_PROXY: string;
   SERVER_HOST: string;
 };
@@ -63,6 +66,8 @@ export const createServer = ({
 }: CreateServerParams) => {
   const useInsecureProxy = env.REACT_APP_USE_INSECURE_PROXY === 'true';
   const isProduction = env.NODE_ENV === 'production';
+  const analyticsHost = env.REACT_APP_ANALYTICS_HOST;
+  const analyticsPath = isProduction ? ANALYTICS_PATH : ANALYTICS_DEBUG_PATH;
 
   const reportUri = `${getApiHost({
     apiHost: env.REACT_APP_API_HOST,
@@ -92,6 +97,7 @@ export const createServer = ({
     useInsecureProxy || !isProduction
       ? "'self'"
       : env.REACT_APP_API_HOST || "'none'",
+    analyticsHost,
   ];
 
   if (env.REACT_APP_SENTRY_DSN) {
@@ -127,11 +133,12 @@ export const createServer = ({
     imgSrc: [
       staticSrc,
       `${env.REACT_APP_REVIEWERS_HOST}/en-US/reviewers/download-git-file/`,
+      analyticsHost,
     ],
     manifestSrc: ["'none'"],
     mediaSrc: ["'none'"],
     objectSrc: ["'none'"],
-    scriptSrc: [staticSrc],
+    scriptSrc: [staticSrc, `${analyticsHost}${analyticsPath}`],
     styleSrc: [staticSrc],
     workerSrc: ["'none'"],
     reportUri,
@@ -269,7 +276,11 @@ export const createServer = ({
         directives: {
           ...prodCSP,
           imgSrc: [...prodCSP.imgSrc, "'self'"],
-          scriptSrc: ["'self'", "'unsafe-inline'"],
+          scriptSrc: [
+            "'self'",
+            "'unsafe-inline'",
+            `${analyticsHost}${analyticsPath}`,
+          ],
           styleSrc: ["'self'", "'unsafe-inline'"],
         },
         browserSniff: false,
