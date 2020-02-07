@@ -14,8 +14,8 @@ const _isDoNotTrackEnabled = ({
   _navigator,
   _window,
 }: {
-  _navigator: { doNotTrack?: string };
-  _window: { doNotTrack?: string };
+  _navigator?: { doNotTrack?: string } | null;
+  _window?: { doNotTrack?: string } | null;
 }) => {
   return isDoNotTrackEnabled({
     _navigator: _navigator as Navigator,
@@ -60,8 +60,8 @@ describe(__filename, () => {
     });
 
     it('should handle missing navigator and window', () => {
-      expect(isDoNotTrackEnabled({ _navigator: undefined })).toBe(false);
-      expect(isDoNotTrackEnabled({ _window: undefined })).toBe(false);
+      expect(_isDoNotTrackEnabled({ _navigator: null })).toBe(false);
+      expect(_isDoNotTrackEnabled({ _window: null })).toBe(false);
     });
   });
 

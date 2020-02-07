@@ -2,8 +2,8 @@ import log from 'loglevel';
 import ReactGA from 'react-ga';
 
 type IsDoNoTrackEnabledParams = {
-  _navigator?: Navigator;
-  _window?: Window;
+  _navigator?: Navigator | null;
+  _window?: Window | null;
 };
 
 export function isDoNotTrackEnabled({
