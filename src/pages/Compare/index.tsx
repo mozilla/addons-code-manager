@@ -346,11 +346,16 @@ export const mapStateToProps = (
   }
 
   const tree = getTree(state.fileTree, headVersionId);
+  const paths = version ? version.entries.map((entry) => entry.path) : [];
 
   const nextFilePath =
-    version && tree && entryStatusMap
+    version &&
+    tree &&
+    entryStatusMap &&
+    selectedPath &&
+    paths.includes(selectedPath)
       ? findRelativePathWithDiff({
-          currentPath: version.selectedPath,
+          currentPath: selectedPath,
           pathList: tree.pathList,
           position: RelativePathPosition.next,
           version,

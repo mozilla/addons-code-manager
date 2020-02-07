@@ -987,6 +987,38 @@ describe(__filename, () => {
     );
   });
 
+  it('does not throw an error when the selected path is not in version.entries', () => {
+    const baseVersionId = nextUniqueId();
+    const headVersionId = baseVersionId + 1;
+    const version = createExternalVersionWithEntries([{ path: 'path1' }], {
+      id: headVersionId,
+      selected_file: 'a non-existant file',
+    });
+    const store = configureStore();
+
+    dispatchLoadVersionInfo({ store, version });
+    store.dispatch(
+      versionsActions.loadEntryStatusMap({
+        version,
+        comparedToVersionId: baseVersionId,
+      }),
+    );
+    store.dispatch(
+      fileTreeActions.buildTree({
+        comparedToVersionId: baseVersionId,
+        version: createInternalVersion(version),
+      }),
+    );
+
+    expect(() => {
+      render({
+        baseVersionId: String(baseVersionId),
+        headVersionId: String(headVersionId),
+        store,
+      });
+    }).not.toThrow();
+  });
+
   describe('forceReloadVersion', () => {
     const setUpFileTreeAndRender = ({
       baseVersionId = nextUniqueId(),

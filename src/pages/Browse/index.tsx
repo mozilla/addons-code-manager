@@ -52,6 +52,8 @@ type PropsFromState = {
   apiState: ApiState;
   file: VersionFile | null | undefined;
   fileIsLoading: boolean;
+  fileTreeComparedToVersionId: number | null;
+  fileTreeVersionId: number | undefined;
   nextFilePath: string | undefined;
   nextFile: VersionFile | null | undefined;
   nextFileIsLoading: boolean;
@@ -91,6 +93,8 @@ export class BrowseBase extends React.Component<Props> {
       dispatch,
       file,
       fileIsLoading,
+      fileTreeComparedToVersionId,
+      fileTreeVersionId,
       history,
       match,
       nextFile,
@@ -107,14 +111,20 @@ export class BrowseBase extends React.Component<Props> {
       return;
     }
 
-    if (version === undefined) {
+    const shouldReloadVersion =
+      version &&
+      fileTreeVersionId &&
+      (fileTreeComparedToVersionId !== null ||
+        fileTreeVersionId !== version.id);
+
+    if (version === undefined || shouldReloadVersion) {
       const { versionId } = match.params;
 
       dispatch(
         _fetchVersion({
           addonId,
           versionId: parseInt(versionId, 10),
-          path: path || undefined,
+          path: undefined,
         }),
       );
       return;
@@ -240,13 +250,15 @@ const mapStateToProps = (
   const currentVersionId = version
     ? state.versions.currentVersionId
     : undefined;
-
   const tree = getTree(state.fileTree, versionId);
+  const { selectedPath } = state.versions;
+
+  const paths = version ? version.entries.map((entry) => entry.path) : [];
 
   const nextFilePath =
-    version && tree
+    tree && selectedPath && paths.includes(selectedPath)
       ? getRelativePath({
-          currentPath: version.selectedPath,
+          currentPath: selectedPath,
           pathList: tree.pathList,
           position: RelativePathPosition.next,
         })
@@ -260,6 +272,8 @@ const mapStateToProps = (
     fileIsLoading: version
       ? isFileLoading(state.versions, versionId, version.selectedPath)
       : false,
+    fileTreeComparedToVersionId: state.fileTree.comparedToVersionId,
+    fileTreeVersionId: state.fileTree.forVersionId,
     nextFile:
       version && nextFilePath
         ? getVersionFile(state.versions, versionId, nextFilePath)

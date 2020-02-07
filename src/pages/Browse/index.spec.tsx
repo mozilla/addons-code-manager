@@ -1,9 +1,11 @@
+/* eslint @typescript-eslint/camelcase: 0 */
 import * as React from 'react';
 import { Store } from 'redux';
 import queryString from 'query-string';
 import { History } from 'history';
 
 import {
+  createExternalVersionWithEntries,
   createFakeEntry,
   createFakeHistory,
   createFakeLocation,
@@ -129,7 +131,6 @@ describe(__filename, () => {
           ...fakeVersion.file.entries,
           ...extraFileEntries,
         },
-        // eslint-disable-next-line @typescript-eslint/camelcase
         selected_file: initialPath,
       },
     };
@@ -283,10 +284,8 @@ describe(__filename, () => {
       file: {
         ...fakeVersionFile,
         entries: { [path]: entry },
-        /* eslint-disable @typescript-eslint/camelcase */
         download_url: downloadUrl,
         selected_file: path,
-        /* eslint-enable @typescript-eslint/camelcase */
       },
     };
 
@@ -555,7 +554,7 @@ describe(__filename, () => {
     expect(dispatch).not.toHaveBeenCalled();
   });
 
-  it('passes the path contained in the URL to fetchVersion()', () => {
+  it('does not pass the path contained in the URL to fetchVersion()', () => {
     const addonId = 9876;
     const versionId = 4321;
     const path = 'background.js';
@@ -578,7 +577,11 @@ describe(__filename, () => {
     });
 
     expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
-    expect(_fetchVersion).toHaveBeenCalledWith({ addonId, versionId, path });
+    expect(_fetchVersion).toHaveBeenCalledWith({
+      addonId,
+      versionId,
+      path: undefined,
+    });
   });
 
   it('sets a temporary page title without a version', () => {
@@ -701,6 +704,110 @@ describe(__filename, () => {
         versionId,
       }),
     );
+  });
+
+  it('reloads the version info if verisonId in the URL and fileTree.forVersionId are different', () => {
+    const addonId = nextUniqueId();
+    const versionId = nextUniqueId();
+    const version = {
+      ...fakeVersion,
+      addon: { ...fakeVersion.addon, id: addonId },
+      id: versionId,
+    };
+    const store = configureStore();
+
+    dispatchLoadVersionInfo({
+      store,
+      version,
+    });
+    store.dispatch(
+      fileTreeActions.buildTree({
+        version: createInternalVersion({ ...version, id: nextUniqueId() }),
+        comparedToVersionId: null,
+      }),
+    );
+
+    const fakeThunk = createFakeThunk();
+    const _fetchVersion = fakeThunk.createThunk;
+    const dispatchSpy = spyOn(store, 'dispatch');
+
+    render({
+      _fetchVersion,
+      store,
+      addonId: String(addonId),
+      versionId: String(versionId),
+    });
+
+    expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(_fetchVersion).toHaveBeenCalledWith(
+      expect.objectContaining({
+        addonId,
+        versionId,
+      }),
+    );
+  });
+
+  it('reloads the version info if fileTree.comparedToVersionId is not null', () => {
+    const addonId = nextUniqueId();
+    const versionId = nextUniqueId();
+    const version = {
+      ...fakeVersion,
+      addon: { ...fakeVersion.addon, id: addonId },
+      id: versionId,
+    };
+    const store = configureStore();
+
+    dispatchLoadVersionInfo({
+      store,
+      version,
+    });
+    store.dispatch(
+      fileTreeActions.buildTree({
+        version: createInternalVersion(version),
+        comparedToVersionId: nextUniqueId(),
+      }),
+    );
+
+    const fakeThunk = createFakeThunk();
+    const _fetchVersion = fakeThunk.createThunk;
+    const dispatchSpy = spyOn(store, 'dispatch');
+
+    render({
+      _fetchVersion,
+      store,
+      addonId: String(addonId),
+      versionId: String(versionId),
+    });
+
+    expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(_fetchVersion).toHaveBeenCalledWith(
+      expect.objectContaining({
+        addonId,
+        versionId,
+      }),
+    );
+  });
+
+  it('does not throw an error when the selected path does not exist in version.entries', () => {
+    const version = createExternalVersionWithEntries([{ path: 'path1' }], {
+      selected_file: 'a non-existant file',
+    });
+    const store = configureStore();
+
+    dispatchLoadVersionInfo({ store, version });
+    store.dispatch(
+      fileTreeActions.buildTree({
+        version: createInternalVersion(version),
+        comparedToVersionId: null,
+      }),
+    );
+
+    expect(() =>
+      render({
+        store,
+        versionId: String(version.id),
+      }),
+    ).not.toThrow();
   });
 
   describe('preloading', () => {
