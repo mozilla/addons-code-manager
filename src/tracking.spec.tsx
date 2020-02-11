@@ -25,6 +25,10 @@ const _isDoNotTrackEnabled = ({
 
 describe(__filename, () => {
   describe('isDoNotTrackEnabled', () => {
+    it('returns false by default', () => {
+      expect(isDoNotTrackEnabled()).toBe(false);
+    });
+
     it('should respect DNT when enabled', () => {
       expect(
         _isDoNotTrackEnabled({ _navigator: { doNotTrack: '1' }, _window: {} }),
