@@ -9,6 +9,8 @@ import { RequestWithCookies } from 'universal-cookie-express';
 import Cookies from 'universal-cookie';
 
 import {
+  ANALYTICS_DEBUG_PATH,
+  ANALYTICS_PATH,
   DEFAULT_HOST,
   DEFAULT_PORT,
   STATIC_PATH,
@@ -70,6 +72,7 @@ describe(__filename, () => {
     describe('NODE_ENV=production', () => {
       const prodEnv = {
         NODE_ENV: 'production',
+        REACT_APP_ANALYTICS_HOST: 'https://www.google-analytics.com',
         REACT_APP_REVIEWERS_HOST: 'https://reviewers.addons-dev.allizom.org',
       };
 
@@ -148,7 +151,10 @@ describe(__filename, () => {
 
         const policy = cspParser(response.header['content-security-policy']);
         expect(policy['default-src']).toEqual(["'none'"]);
-        expect(policy['connect-src']).toEqual([fakeEnv.REACT_APP_API_HOST]);
+        expect(policy['connect-src']).toEqual([
+          fakeEnv.REACT_APP_API_HOST,
+          fakeEnv.REACT_APP_ANALYTICS_HOST,
+        ]);
         expect(policy['base-uri']).toEqual(["'self'"]);
         expect(policy['form-action']).toEqual(["'none'"]);
         expect(policy['frame-ancestors']).toEqual(["'none'"]);
@@ -157,12 +163,14 @@ describe(__filename, () => {
         expect(policy['img-src']).toEqual([
           `${fakeEnv.PUBLIC_URL}${STATIC_PATH}`,
           `${fakeEnv.REACT_APP_REVIEWERS_HOST}/en-US/reviewers/download-git-file/`,
+          fakeEnv.REACT_APP_ANALYTICS_HOST,
         ]);
         expect(policy['manifest-src']).toEqual(["'none'"]);
         expect(policy['media-src']).toEqual(["'none'"]);
         expect(policy['object-src']).toEqual(["'none'"]);
         expect(policy['script-src']).toEqual([
           `${fakeEnv.PUBLIC_URL}${STATIC_PATH}`,
+          `${fakeEnv.REACT_APP_ANALYTICS_HOST}${ANALYTICS_PATH}`,
         ]);
         expect(policy['style-src']).toEqual([
           `${fakeEnv.PUBLIC_URL}${STATIC_PATH}`,
@@ -252,7 +260,10 @@ describe(__filename, () => {
         const response = await server.get('/');
         expect(response.status).toEqual(200);
         const policy = cspParser(response.header['content-security-policy']);
-        expect(policy['connect-src']).toEqual(["'none'"]);
+        expect(policy['connect-src']).toEqual([
+          "'none'",
+          prodEnv.REACT_APP_ANALYTICS_HOST,
+        ]);
       });
 
       it('throws an error when REACT_APP_SENTRY_DSN is invalid', async () => {
@@ -300,7 +311,10 @@ describe(__filename, () => {
         const response = await server.get('/');
         expect(response.status).toEqual(200);
         const policy = cspParser(response.header['content-security-policy']);
-        expect(policy['connect-src']).toEqual(["'none'"]);
+        expect(policy['connect-src']).toEqual([
+          "'none'",
+          prodEnv.REACT_APP_ANALYTICS_HOST,
+        ]);
       });
 
       it('tightens style-src, script-src and img-src if CDN URL is unset', async () => {
@@ -317,8 +331,12 @@ describe(__filename, () => {
         expect(policy['img-src']).toEqual([
           "'none'",
           `${prodEnv.REACT_APP_REVIEWERS_HOST}/en-US/reviewers/download-git-file/`,
+          prodEnv.REACT_APP_ANALYTICS_HOST,
         ]);
-        expect(policy['script-src']).toEqual(["'none'"]);
+        expect(policy['script-src']).toEqual([
+          "'none'",
+          `${prodEnv.REACT_APP_ANALYTICS_HOST}${ANALYTICS_PATH}`,
+        ]);
         expect(policy['style-src']).toEqual(["'none'"]);
       });
 
@@ -336,8 +354,12 @@ describe(__filename, () => {
         expect(policy['img-src']).toEqual([
           "'self'",
           `${env.REACT_APP_REVIEWERS_HOST}/en-US/reviewers/download-git-file/`,
+          prodEnv.REACT_APP_ANALYTICS_HOST,
         ]);
-        expect(policy['script-src']).toEqual(["'self'"]);
+        expect(policy['script-src']).toEqual([
+          "'self'",
+          `${prodEnv.REACT_APP_ANALYTICS_HOST}${ANALYTICS_PATH}`,
+        ]);
         expect(policy['style-src']).toEqual(["'self'"]);
       });
 
@@ -480,7 +502,10 @@ describe(__filename, () => {
           expect(response.header).toHaveProperty('content-security-policy');
 
           const policy = cspParser(response.header['content-security-policy']);
-          expect(policy['connect-src']).toEqual(["'self'"]);
+          expect(policy['connect-src']).toEqual([
+            "'self'",
+            prodEnv.REACT_APP_ANALYTICS_HOST,
+          ]);
         });
 
         it('uses a relative path for the CSP report URI', async () => {
@@ -544,6 +569,7 @@ describe(__filename, () => {
       const devEnv = {
         NODE_ENV: 'development',
         REACT_APP_CRA_PORT: 60123,
+        REACT_APP_ANALYTICS_HOST: 'https://www.google-analytics.com',
       };
 
       beforeEach(() => {
@@ -666,6 +692,7 @@ describe(__filename, () => {
         expect(policy['img-src']).toEqual([
           "'none'",
           `${fakeEnv.REACT_APP_REVIEWERS_HOST}/en-US/reviewers/download-git-file/`,
+          fakeEnv.REACT_APP_ANALYTICS_HOST,
           "'self'",
         ]);
       });
@@ -686,7 +713,11 @@ describe(__filename, () => {
         expect(response.header).toHaveProperty('content-security-policy');
 
         const policy = cspParser(response.header['content-security-policy']);
-        expect(policy['script-src']).toEqual(["'self'", "'unsafe-inline'"]);
+        expect(policy['script-src']).toEqual([
+          "'self'",
+          "'unsafe-inline'",
+          `${devEnv.REACT_APP_ANALYTICS_HOST}${ANALYTICS_DEBUG_PATH}`,
+        ]);
       });
 
       it('relaxes style-src for local dev', async () => {
@@ -724,7 +755,10 @@ describe(__filename, () => {
         expect(response.header).toHaveProperty('content-security-policy');
 
         const policy = cspParser(response.header['content-security-policy']);
-        expect(policy['connect-src']).toEqual(["'self'"]);
+        expect(policy['connect-src']).toEqual([
+          "'self'",
+          devEnv.REACT_APP_ANALYTICS_HOST,
+        ]);
       });
 
       it('adds the sentry host to connect-src in development when REACT_APP_SENTRY_DSN is set', async () => {
