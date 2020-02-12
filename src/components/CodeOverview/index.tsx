@@ -341,7 +341,10 @@ export class CodeOverviewBase extends React.Component<Props, State> {
         validationURL={version.validationURL}
         selectedPath={version.selectedPath}
       >
-        {this.renderWithLinterInfo}
+        {// This needs to be an anonymous function (which defeats memoization)
+        // so that the component gets re-rendered in the case of insertedLines
+        // changing (e.g., when switching between versions).
+        (info: LinterProviderInfo) => this.renderWithLinterInfo(info)}
       </LinterProvider>
     );
   }
