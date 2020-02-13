@@ -69,15 +69,27 @@ export const trimHunks = ({
     trimmedHunks.push({ ...hunk, changes: [] });
     hunkIndex = trimmedHunks.length - 1;
     for (const change of hunk.changes) {
-      charCount += change.content.length;
-      if (charCount > _trimmedCharCount) {
+      if (charCount + change.content.length > _trimmedCharCount) {
+        if (_trimmedCharCount - charCount) {
+          // Push a trimmed version of this change, if there's any room left.
+          trimmedHunks[hunkIndex].changes.push({
+            ...change,
+            content: change.content.substring(0, _trimmedCharCount - charCount),
+          });
+        }
+        // Push an additional change with a comment that says the content has
+        // been trimmed.
         trimmedHunks[hunkIndex].changes.push({
           ...change,
           content: changeContentAddedByTrimmer,
+          lineNumber: undefined,
+          newLineNumber: undefined,
+          oldLineNumber: undefined,
         });
         return trimmedHunks;
       }
       trimmedHunks[hunkIndex].changes.push(change);
+      charCount += change.content.length;
     }
   }
   return trimmedHunks;

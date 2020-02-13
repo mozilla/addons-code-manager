@@ -869,7 +869,18 @@ describe(__filename, () => {
       createDiffWithHunks([
         createHunkWithChanges([
           change1,
-          { content: changeContentAddedByTrimmer },
+          {
+            ...change2,
+            content: change2.content.substring(
+              0,
+              _slowLoadingCharCount / 2 - 1,
+            ),
+          },
+          {
+            content: changeContentAddedByTrimmer,
+            new_line_number: undefined,
+            old_line_number: undefined,
+          },
         ]),
       ]).hunks,
     );
@@ -965,7 +976,7 @@ describe(__filename, () => {
   describe('trimHunks', () => {
     const changeCharCount = 5;
 
-    it('returns the imput hunks if the content is not greater than the _trimmedCharCount', () => {
+    it('returns the input hunks if the content is not greater than the _trimmedCharCount', () => {
       // TRIMMED_CHAR_COUNT is the default value used for _trimmedCharCount by trimHunks
       const change = { content: 'a'.repeat(TRIMMED_CHAR_COUNT) };
 
@@ -998,7 +1009,7 @@ describe(__filename, () => {
         );
       });
 
-      it('excludes changes that exceed to the _trimmedCharCount', () => {
+      it('excludes content that exceeds the _trimmedCharCount', () => {
         const change1 = { content: 'a'.repeat(changeCharCount) };
         const change2 = { content: 'b'.repeat(changeCharCount + 1) };
 
@@ -1008,11 +1019,30 @@ describe(__filename, () => {
           hunks,
           _trimmedCharCount: changeCharCount * 2,
         });
-        expect(getAllHunkChanges(trimmed)).toHaveLength(2);
+        expect(getAllHunkChanges(trimmed)).toHaveLength(3);
         expect(trimmed[0].changes[0].content).toEqual(change1.content);
         expect(trimmed[0].changes[1].content).toEqual(
+          change2.content.substring(0, changeCharCount),
+        );
+      });
+
+      it('adds a change with a message about content being trimmed', () => {
+        const change1 = { content: 'a'.repeat(changeCharCount) };
+        const change2 = { content: 'b'.repeat(changeCharCount + 1) };
+
+        const hunks = [createInternalHunkWithChanges([change1, change2])];
+
+        const trimmed = trimHunks({
+          hunks,
+          _trimmedCharCount: changeCharCount * 2,
+        });
+        expect(getAllHunkChanges(trimmed)).toHaveLength(3);
+        expect(trimmed[0].changes[2].content).toEqual(
           changeContentAddedByTrimmer,
         );
+        expect(trimmed[0].changes[2].lineNumber).toEqual(undefined);
+        expect(trimmed[0].changes[2].newLineNumber).toEqual(undefined);
+        expect(trimmed[0].changes[2].oldLineNumber).toEqual(undefined);
       });
     });
 
@@ -1039,7 +1069,7 @@ describe(__filename, () => {
         );
       });
 
-      it('excludes changes that exceed to the _trimmedCharCount', () => {
+      it('excludes content that exceeds the _trimmedCharCount', () => {
         const change1 = { content: 'a'.repeat(changeCharCount) };
         const change2 = { content: 'b'.repeat(changeCharCount + 1) };
 
@@ -1052,11 +1082,36 @@ describe(__filename, () => {
           hunks,
           _trimmedCharCount: changeCharCount * 2,
         });
-        expect(getAllHunkChanges(trimmed)).toHaveLength(2);
+        expect(getAllHunkChanges(trimmed)).toHaveLength(3);
         expect(trimmed[0].changes[0].content).toEqual(change1.content);
         expect(trimmed[1].changes[0].content).toEqual(
+          change2.content.substring(0, changeCharCount),
+        );
+        expect(trimmed[1].changes[1].content).toEqual(
           changeContentAddedByTrimmer,
         );
+      });
+
+      it('adds a change with a message about content being trimmed', () => {
+        const change1 = { content: 'a'.repeat(changeCharCount) };
+        const change2 = { content: 'b'.repeat(changeCharCount + 1) };
+
+        const hunks = [
+          createInternalHunkWithChanges([change1]),
+          createInternalHunkWithChanges([change2]),
+        ];
+
+        const trimmed = trimHunks({
+          hunks,
+          _trimmedCharCount: changeCharCount * 2,
+        });
+        expect(getAllHunkChanges(trimmed)).toHaveLength(3);
+        expect(trimmed[1].changes[1].content).toEqual(
+          changeContentAddedByTrimmer,
+        );
+        expect(trimmed[1].changes[1].lineNumber).toEqual(undefined);
+        expect(trimmed[1].changes[1].newLineNumber).toEqual(undefined);
+        expect(trimmed[1].changes[1].oldLineNumber).toEqual(undefined);
       });
     });
   });
