@@ -55,3 +55,9 @@ jobs:
       if: branch = master AND type = push AND fork = false
       script: echo "Deploying to GitHub Pages..."
       after_success: yarn storybook-deploy --ci
+
+notifications:
+  slack:
+    on_success: change
+    on_failure: always
+    secure: H7DtcryT63A0thhNm4CVPbe8zmVnIXokCpWkcEai++knxqvQP5Nfo3rI3KOb/ZtH9X3nMsnDOjL20+lzPaE1fFgwZEM2UA7xE6SfTOqPscSWjzTqfUC/ehllnefFOJ75zrnxajGVq80a734ivni6iOfQhuQLKhrlEYKgk+MzLmjCgUAoaQgZ0We+L07zNAqaWWq4//OJSooN6nuy8wTnpAuAwQAXeEhALymd844pEbmpHUrcV9SpiMjfo9corhk1a2IGG6GeKqJ5dpSv2df7TxIB3y0K4Bt58U+NsUi5tcWug8iaSrVoubjnrAE7QABsjlI2vGZPbhOmvWEQgUpRhwRRBz3xLSoQu0O3wTmKMGTrGRs7HTmvrDNgMrAaa7b5h015SJJ4bir7dMx32m1f1+3CULiJT7XMIO/dBneI2l9OCevHXnWADne8bhWUa3JW62wst708Mwvk7S6OgiL0+wBudcXuwp1iNaLdtS2TXSWCJHyIrztgE6H2qPOfuLdWdvM/Xm9kmuBi57c2sJBhqQsU8KGg2OdW/MMbH/cIb7O8uBx1PC7x5wSLaUq8MiBBVoTIPwAsGJLwycuBfDxmTA2dmTQDwNOaYbw8rXIykEOaX/A1KUUiWOmiBVGAVjTFgwygbgE4kQAykDOCniRAZgNV0vq+Y6Y4qXEI2bvtEQM=
