@@ -41,7 +41,7 @@
     "he": "1.2.0",
     "helmet": "3.21.2",
     "history": "4.10.1",
-    "http-proxy-middleware": "0.20.0",
+    "http-proxy-middleware": "0.21.0",
     "http-proxy-response-rewrite": "0.0.1",
     "lodash.chunk": "4.2.0",
     "lodash.debounce": "4.0.8",
