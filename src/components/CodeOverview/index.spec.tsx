@@ -357,11 +357,12 @@ describe(__filename, () => {
       content: generateFileLines({ count: 3 }).join('\n'),
     });
 
-    // Make sure this doesn't throw.
-    root
-      .find(Link)
-      .at(0)
-      .simulate('click');
+    expect(() =>
+      root
+        .find(Link)
+        .at(0)
+        .simulate('click'),
+    ).not.toThrow();
   });
 
   it('links to the first line that has a linter message', () => {
@@ -584,6 +585,32 @@ describe(__filename, () => {
     expect(lineShapes.at(2)).not.toHaveProp('isChange');
 
     expect(lineShapes).toHaveLength(3);
+  });
+
+  it('renders a change-styled CodeLineShapes component after loading a diff', () => {
+    const contentLines = generateFileLines({ count: 2 });
+    const root = render({
+      content: contentLines.join('\n'),
+      insertedLines: [],
+    });
+
+    // This is required to allow for room for the lines of content.
+    root.setState({ overviewHeight: 100 });
+
+    let renderedRoot = renderWithLinterProvider({ root });
+    let lineShapes = renderedRoot.find(CodeLineShapes);
+
+    expect(lineShapes.at(0)).not.toHaveProp('isChange');
+    expect(lineShapes.at(1)).not.toHaveProp('isChange');
+
+    // Update insertedLines.
+    root.setProps({ insertedLines: [2] });
+
+    renderedRoot = renderWithLinterProvider({ root });
+    lineShapes = renderedRoot.find(CodeLineShapes);
+
+    expect(lineShapes.at(0)).not.toHaveProp('isChange');
+    expect(lineShapes.at(1)).toHaveProp('isChange', true);
   });
 
   it('links to the first changed line in a block of changes', () => {
