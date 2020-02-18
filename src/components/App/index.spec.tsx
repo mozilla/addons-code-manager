@@ -22,29 +22,36 @@ import Navbar from '../Navbar';
 import App, {
   AppBase,
   DefaultProps,
-  MockObserver,
   PublicProps,
   resourceObserverCallback,
 } from '.';
 
 describe(__filename, () => {
-  const createMockObserver = () => {
-    return {
-      disconnect: jest.fn(),
-      observe: jest.fn(),
-    };
-  };
+  let disconnect: jest.Mock;
+  let observe: jest.Mock;
+  let MockObserver: jest.Mock;
+
+  beforeEach(() => {
+    disconnect = jest.fn();
+    observe = jest.fn();
+    MockObserver = jest.fn().mockImplementation(() => {
+      return {
+        disconnect,
+        observe,
+      };
+    });
+  });
 
   type RenderParams = {
     _fetchCurrentUser?: DefaultProps['_fetchCurrentUser'];
-    _mockObserver?: MockObserver;
+    _mockObserver?: jest.Mock;
     authToken?: PublicProps['authToken'];
     store?: Store;
   };
 
   const render = ({
     _fetchCurrentUser = createFakeThunk().createThunk,
-    _mockObserver = createMockObserver(),
+    _mockObserver = MockObserver,
     authToken = 'some-token',
     store = configureStore(),
   }: RenderParams = {}) => {
@@ -276,16 +283,17 @@ describe(__filename, () => {
 
   describe('resourceObserver', () => {
     it('calls observe and disconnect on the observer', () => {
-      const _mockObserver = createMockObserver();
+      const _mockObserver = MockObserver;
       const root = render({ _mockObserver });
 
-      expect(_mockObserver.observe).toHaveBeenCalledWith({
+      expect(_mockObserver).toHaveBeenCalled();
+      expect(observe).toHaveBeenCalledWith({
         entryTypes: ['resource'],
       });
 
       root.unmount();
 
-      expect(_mockObserver.disconnect).toHaveBeenCalled();
+      expect(disconnect).toHaveBeenCalled();
     });
   });
 });

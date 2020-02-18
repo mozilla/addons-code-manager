@@ -51,7 +51,7 @@ export const resourceObserverCallback = (
 export type MockObserver = { disconnect: () => void; observe: () => void };
 
 export type PublicProps = {
-  _mockObserver?: MockObserver;
+  _mockObserver?: jest.Mock;
   authToken: string | null;
 };
 
@@ -88,11 +88,10 @@ export class AppBase extends React.Component<Props> {
   createResourceObserver() {
     const { _mockObserver, _tracking } = this.props;
 
-    if (_mockObserver) {
-      return _mockObserver;
-    }
+    const ObserverConstructor =
+      (_mockObserver && _mockObserver) || PerformanceObserver;
 
-    const observer = new PerformanceObserver((list) => {
+    const observer = new ObserverConstructor((list) => {
       const resourceEntries = list.getEntriesByType(
         'resource',
       ) as PerformanceResourceTiming[];
