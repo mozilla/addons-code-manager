@@ -32,14 +32,33 @@ import Compare from '../../pages/Compare';
 import Index from '../../pages/Index';
 import NotFound from '../../pages/NotFound';
 import { gettext } from '../../utils';
+import tracking from '../../tracking';
+
+export const resourceObserverCallback = (
+  _tracking: typeof tracking,
+  resource: Partial<PerformanceResourceTiming>,
+) => {
+  if (resource.initiatorType === 'fetch' && resource.duration) {
+    _tracking.timing({
+      category: 'resource',
+      label: resource.name,
+      value: resource.duration,
+      variable: 'fetch',
+    });
+  }
+};
+
+export type MockObserver = { disconnect: () => void; observe: () => void };
 
 export type PublicProps = {
+  _mockObserver?: MockObserver;
   authToken: string | null;
 };
 
 export type DefaultProps = {
   _fetchCurrentUser: typeof fetchCurrentUser;
   _log: typeof log;
+  _tracking: typeof tracking;
 };
 
 type PropsFromState = {
@@ -61,7 +80,37 @@ export class AppBase extends React.Component<Props> {
   static defaultProps = {
     _fetchCurrentUser: fetchCurrentUser,
     _log: log,
+    _tracking: tracking,
   };
+
+  resourceObserver: PerformanceObserver | MockObserver;
+
+  createResourceObserver() {
+    const { _mockObserver, _tracking } = this.props;
+
+    if (_mockObserver) {
+      return _mockObserver;
+    }
+
+    const observer = new PerformanceObserver((list) => {
+      const resourceEntries = list.getEntriesByType(
+        'resource',
+      ) as PerformanceResourceTiming[];
+
+      for (const resource of resourceEntries) {
+        resourceObserverCallback(_tracking, resource);
+      }
+      performance.clearResourceTimings();
+    });
+    return observer;
+  }
+
+  constructor(props: Props) {
+    super(props);
+
+    this.resourceObserver = this.createResourceObserver();
+    this.resourceObserver.observe({ entryTypes: ['resource'] });
+  }
 
   componentDidMount() {
     const { apiState, authToken, dispatch } = this.props;
@@ -79,6 +128,10 @@ export class AppBase extends React.Component<Props> {
 
       dispatch(_fetchCurrentUser());
     }
+  }
+
+  componentWillUnmount() {
+    this.resourceObserver.disconnect();
   }
 
   renderContent() {
