@@ -133,7 +133,6 @@ export const createServer = ({
     imgSrc: [
       staticSrc,
       `${env.REACT_APP_REVIEWERS_HOST}/en-US/reviewers/download-git-file/`,
-      analyticsHost,
     ],
     manifestSrc: ["'none'"],
     mediaSrc: ["'none'"],
