@@ -86,6 +86,7 @@ export class Tracking {
           siteSpeedSampleRate: 100,
         },
       });
+      this._reactGA.set({ transport: 'beacon' });
     }
   }
 

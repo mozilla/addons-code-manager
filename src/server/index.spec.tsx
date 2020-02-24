@@ -163,7 +163,6 @@ describe(__filename, () => {
         expect(policy['img-src']).toEqual([
           `${fakeEnv.PUBLIC_URL}${STATIC_PATH}`,
           `${fakeEnv.REACT_APP_REVIEWERS_HOST}/en-US/reviewers/download-git-file/`,
-          fakeEnv.REACT_APP_ANALYTICS_HOST,
         ]);
         expect(policy['manifest-src']).toEqual(["'none'"]);
         expect(policy['media-src']).toEqual(["'none'"]);
@@ -331,7 +330,6 @@ describe(__filename, () => {
         expect(policy['img-src']).toEqual([
           "'none'",
           `${prodEnv.REACT_APP_REVIEWERS_HOST}/en-US/reviewers/download-git-file/`,
-          prodEnv.REACT_APP_ANALYTICS_HOST,
         ]);
         expect(policy['script-src']).toEqual([
           "'none'",
@@ -354,7 +352,6 @@ describe(__filename, () => {
         expect(policy['img-src']).toEqual([
           "'self'",
           `${env.REACT_APP_REVIEWERS_HOST}/en-US/reviewers/download-git-file/`,
-          prodEnv.REACT_APP_ANALYTICS_HOST,
         ]);
         expect(policy['script-src']).toEqual([
           "'self'",
@@ -692,7 +689,6 @@ describe(__filename, () => {
         expect(policy['img-src']).toEqual([
           "'none'",
           `${fakeEnv.REACT_APP_REVIEWERS_HOST}/en-US/reviewers/download-git-file/`,
-          fakeEnv.REACT_APP_ANALYTICS_HOST,
           "'self'",
         ]);
       });

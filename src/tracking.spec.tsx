@@ -71,7 +71,7 @@ describe(__filename, () => {
 
   describe('Tracking', () => {
     it('can initialize ReactGA', () => {
-      const _reactGA = { initialize: jest.fn() };
+      const _reactGA = { initialize: jest.fn(), set: jest.fn() };
       const trackingId = 'some-tracking-id';
 
       createTracking({ _reactGA, trackingId });
@@ -79,6 +79,7 @@ describe(__filename, () => {
         trackingId,
         expect.objectContaining({ debug: true }),
       );
+      expect(_reactGA.set).toHaveBeenCalledWith({ transport: 'beacon' });
     });
 
     it('should not enable ReactGA when configured off', () => {
@@ -116,7 +117,11 @@ describe(__filename, () => {
     });
 
     it('should call ga with timing', () => {
-      const _reactGA = { initialize: jest.fn(), timing: jest.fn() };
+      const _reactGA = {
+        initialize: jest.fn(),
+        set: jest.fn(),
+        timing: jest.fn(),
+      };
       const tracking = createTracking({ _reactGA });
       const trackingParams = {
         category: 'some category',
