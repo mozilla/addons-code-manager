@@ -19,17 +19,39 @@ import {
 } from '../../test-helpers';
 import Navbar from '../Navbar';
 
-import App, { AppBase, DefaultProps, PublicProps } from '.';
+import App, {
+  AppBase,
+  DefaultProps,
+  PublicProps,
+  resourceObserverCallback,
+} from '.';
 
 describe(__filename, () => {
+  let disconnect: jest.Mock;
+  let observe: jest.Mock;
+  let MockObserver: jest.Mock;
+
+  beforeEach(() => {
+    disconnect = jest.fn();
+    observe = jest.fn();
+    MockObserver = jest.fn().mockImplementation(() => {
+      return {
+        disconnect,
+        observe,
+      };
+    });
+  });
+
   type RenderParams = {
     _fetchCurrentUser?: DefaultProps['_fetchCurrentUser'];
+    _mockObserver?: jest.Mock;
     authToken?: PublicProps['authToken'];
     store?: Store;
   };
 
   const render = ({
     _fetchCurrentUser = createFakeThunk().createThunk,
+    _mockObserver = MockObserver,
     authToken = 'some-token',
     store = configureStore(),
   }: RenderParams = {}) => {
@@ -44,6 +66,7 @@ describe(__filename, () => {
 
     const props = {
       _fetchCurrentUser,
+      _mockObserver,
       authToken,
     };
 
@@ -227,5 +250,50 @@ describe(__filename, () => {
         id: firstError.id,
       }),
     );
+  });
+
+  describe('resourceObserverCallback', () => {
+    it('calls timing for a fetch entry', () => {
+      const _tracking = { timing: jest.fn() };
+      const resource = {
+        duration: 999,
+        initiatorType: 'fetch',
+        name: 'resource name',
+      };
+      resourceObserverCallback(_tracking, resource);
+      expect(_tracking.timing).toHaveBeenCalledWith({
+        category: 'resource',
+        label: resource.name,
+        value: resource.duration,
+        variable: 'fetch',
+      });
+    });
+
+    it('does not call timing for a non-fetch entry', () => {
+      const _tracking = { timing: jest.fn() };
+      const resource = {
+        duration: 999,
+        initiatorType: 'other',
+        name: 'other name',
+      };
+      resourceObserverCallback(_tracking, resource);
+      expect(_tracking.timing).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('resourceObserver', () => {
+    it('calls observe and disconnect on the observer', () => {
+      const _mockObserver = MockObserver;
+      const root = render({ _mockObserver });
+
+      expect(_mockObserver).toHaveBeenCalled();
+      expect(observe).toHaveBeenCalledWith({
+        entryTypes: ['resource'],
+      });
+
+      root.unmount();
+
+      expect(disconnect).toHaveBeenCalled();
+    });
   });
 });
