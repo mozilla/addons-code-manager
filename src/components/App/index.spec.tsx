@@ -9,6 +9,7 @@ import ContentShell from '../FullscreenGrid/ContentShell';
 import { actions as apiActions } from '../../reducers/api';
 import { actions as errorsActions } from '../../reducers/errors';
 import { actions as userActions } from '../../reducers/users';
+import tracking from '../../tracking';
 import {
   createContextWithFakeRouter,
   createFakeThunk,
@@ -22,21 +23,28 @@ import Navbar from '../Navbar';
 import App, {
   AppBase,
   DefaultProps,
+  MockObserver,
+  MockPerformance,
   PublicProps,
   resourceObserverCallback,
 } from '.';
 
 describe(__filename, () => {
   let disconnect: jest.Mock;
+  let mockPerformance: MockPerformance;
+  let mockTracking: typeof tracking;
   let observe: jest.Mock;
-  let MockObserver: jest.Mock;
+  let MockObserverFactory: jest.Mock;
 
   beforeEach(() => {
     disconnect = jest.fn();
+    mockPerformance = { clearResourceTimings: jest.fn() };
+    mockTracking = { timing: jest.fn() };
     observe = jest.fn();
-    MockObserver = jest.fn().mockImplementation(() => {
+    MockObserverFactory = jest.fn().mockImplementation((callback) => {
       return {
         disconnect,
+        _emit: (list: PerformanceObserverEntryList) => callback(list),
         observe,
       };
     });
@@ -45,13 +53,15 @@ describe(__filename, () => {
   type RenderParams = {
     _fetchCurrentUser?: DefaultProps['_fetchCurrentUser'];
     _mockObserver?: jest.Mock;
+    _resourceObserverCallback?: jest.Mock;
     authToken?: PublicProps['authToken'];
     store?: Store;
   };
 
   const render = ({
     _fetchCurrentUser = createFakeThunk().createThunk,
-    _mockObserver = MockObserver,
+    _mockObserver = MockObserverFactory,
+    _resourceObserverCallback,
     authToken = 'some-token',
     store = configureStore(),
   }: RenderParams = {}) => {
@@ -67,6 +77,9 @@ describe(__filename, () => {
     const props = {
       _fetchCurrentUser,
       _mockObserver,
+      _performance: mockPerformance,
+      _resourceObserverCallback,
+      _tracking: mockTracking,
       authToken,
     };
 
@@ -254,14 +267,13 @@ describe(__filename, () => {
 
   describe('resourceObserverCallback', () => {
     it('calls timing for a fetch entry', () => {
-      const _tracking = { timing: jest.fn() };
       const resource = {
         duration: 999,
         initiatorType: 'fetch',
         name: 'resource name',
       };
-      resourceObserverCallback(_tracking, resource);
-      expect(_tracking.timing).toHaveBeenCalledWith({
+      resourceObserverCallback(mockTracking, resource);
+      expect(mockTracking.timing).toHaveBeenCalledWith({
         category: 'resource',
         label: resource.name,
         value: resource.duration,
@@ -270,20 +282,19 @@ describe(__filename, () => {
     });
 
     it('does not call timing for a non-fetch entry', () => {
-      const _tracking = { timing: jest.fn() };
       const resource = {
         duration: 999,
         initiatorType: 'other',
         name: 'other name',
       };
-      resourceObserverCallback(_tracking, resource);
-      expect(_tracking.timing).not.toHaveBeenCalled();
+      resourceObserverCallback(mockTracking, resource);
+      expect(mockTracking.timing).not.toHaveBeenCalled();
     });
   });
 
   describe('resourceObserver', () => {
     it('calls observe and disconnect on the observer', () => {
-      const _mockObserver = MockObserver;
+      const _mockObserver = MockObserverFactory;
       const root = render({ _mockObserver });
 
       expect(_mockObserver).toHaveBeenCalled();
@@ -294,6 +305,34 @@ describe(__filename, () => {
       root.unmount();
 
       expect(disconnect).toHaveBeenCalled();
+    });
+
+    it('calls getEntriesByType, clearResourceTimings and the callback when triggered', () => {
+      const _mockObserver = MockObserverFactory;
+      const duration = 99;
+      const mockEntry = { duration };
+      const mockList = {
+        getEntries: jest.fn(),
+        getEntriesByName: jest.fn(),
+        getEntriesByType: jest.fn().mockReturnValue([mockEntry]),
+      } as PerformanceObserverEntryList;
+      const _resourceObserverCallback = jest.fn();
+      const root = render({
+        _mockObserver,
+        _resourceObserverCallback,
+      });
+
+      // Exercise the observer using the fake _emit method.
+      const instance = root.instance() as AppBase;
+      const observer = instance.resourceObserver as MockObserver;
+      observer._emit(mockList);
+
+      expect(mockList.getEntriesByType).toHaveBeenCalledWith('resource');
+      expect(_resourceObserverCallback).toHaveBeenCalledWith(
+        mockTracking,
+        mockEntry,
+      );
+      expect(mockPerformance.clearResourceTimings).toHaveBeenCalled();
     });
   });
 });

@@ -48,7 +48,12 @@ export const resourceObserverCallback = (
   }
 };
 
-export type MockObserver = { disconnect: () => void; observe: () => void };
+export type MockObserver = {
+  disconnect: () => void;
+  _emit: (list: PerformanceObserverEntryList) => void;
+  observe: () => void;
+};
+export type MockPerformance = { clearResourceTimings: () => void };
 
 export type PublicProps = {
   _mockObserver?: jest.Mock;
@@ -58,6 +63,8 @@ export type PublicProps = {
 export type DefaultProps = {
   _fetchCurrentUser: typeof fetchCurrentUser;
   _log: typeof log;
+  _performance: typeof performance | MockPerformance;
+  _resourceObserverCallback: typeof resourceObserverCallback;
   _tracking: typeof tracking;
 };
 
@@ -80,16 +87,22 @@ export class AppBase extends React.Component<Props> {
   static defaultProps = {
     _fetchCurrentUser: fetchCurrentUser,
     _log: log,
+    _performance: performance,
+    _resourceObserverCallback: resourceObserverCallback,
     _tracking: tracking,
   };
 
   resourceObserver: PerformanceObserver | MockObserver;
 
   createResourceObserver() {
-    const { _mockObserver, _tracking } = this.props;
+    const {
+      _mockObserver,
+      _performance,
+      _resourceObserverCallback,
+      _tracking,
+    } = this.props;
 
-    const ObserverConstructor =
-      (_mockObserver && _mockObserver) || PerformanceObserver;
+    const ObserverConstructor = _mockObserver || PerformanceObserver;
 
     const observer = new ObserverConstructor((list) => {
       const resourceEntries = list.getEntriesByType(
@@ -97,9 +110,9 @@ export class AppBase extends React.Component<Props> {
       ) as PerformanceResourceTiming[];
 
       for (const resource of resourceEntries) {
-        resourceObserverCallback(_tracking, resource);
+        _resourceObserverCallback(_tracking, resource);
       }
-      performance.clearResourceTimings();
+      _performance.clearResourceTimings();
     });
     return observer;
   }
