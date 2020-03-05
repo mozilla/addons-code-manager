@@ -16,6 +16,8 @@ import {
   fakeUser,
   fakeVersion,
   fakeVersionAddon,
+  fakeVersionEntry,
+  fakeVersionFile,
   nextUniqueId,
   shallowUntilTarget,
   spyOn,
@@ -67,6 +69,18 @@ describe(__filename, () => {
     });
   };
 
+  const _loadVersionFile = ({
+    store = configureStore(),
+    version = { ...fakeVersion, id: nextUniqueId() },
+  }) => {
+    store.dispatch(
+      versionsActions.loadVersionFile({
+        path: version.file.selected_file,
+        version,
+      }),
+    );
+  };
+
   describe('when a version is loaded', () => {
     it('renders addon name', () => {
       const addonName = 'addon name example';
@@ -109,6 +123,49 @@ describe(__filename, () => {
       expect(chooser).toHaveLength(1);
       expect(chooser).toHaveProp('addonId', addonId);
     });
+
+    describe('with a file loaded', () => {
+      it('renders a link to the legacy file viewer', () => {
+        const reviewersHost = 'https://example.com';
+        const path = '/some/file/path/file.js';
+        const version = {
+          ...fakeVersion,
+          file: {
+            ...fakeVersionFile,
+            entries: {
+              ...fakeVersion.file.entries,
+              [path]: { ...fakeVersionEntry, filename: path, path },
+            },
+            // eslint-disable-next-line @typescript-eslint/camelcase
+            selected_file: path,
+          },
+        };
+        const store = createStoreWithVersion({
+          version,
+          makeCurrent: true,
+        });
+        _loadVersionFile({ store, version });
+        const root = render({ reviewersHost, store });
+
+        expect(root.find(`.${styles.legacyLink}`)).toHaveProp(
+          'href',
+          `${reviewersHost}/${process.env.REACT_APP_DEFAULT_API_LANG}/firefox/files/browse/${version.file.id}/file/${path}`,
+        );
+      });
+    });
+
+    describe('without a file loaded', () => {
+      it('does not render a link to the legacy file viewer', () => {
+        const reviewersHost = 'https://example.com';
+        const store = createStoreWithVersion({
+          version: fakeVersion,
+          makeCurrent: true,
+        });
+        const root = render({ reviewersHost, store });
+
+        expect(root.find(`.${styles.legacyLink}`)).toHaveLength(0);
+      });
+    });
   });
 
   describe('when version is undefined', () => {
@@ -128,6 +185,12 @@ describe(__filename, () => {
       const root = render();
 
       expect(root.find(VersionChooser)).toHaveLength(0);
+    });
+
+    it('does not render a link to the legacy file viewer', () => {
+      const root = render();
+
+      expect(root.find(`.${styles.legacyLink}`)).toHaveLength(0);
     });
   });
 
