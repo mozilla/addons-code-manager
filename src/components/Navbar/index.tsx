@@ -12,7 +12,9 @@ import { ApplicationState } from '../../reducers';
 import { Comment, selectVersionComments } from '../../reducers/comments';
 import {
   Version,
+  VersionFile,
   fetchVersion,
+  getVersionFile,
   getVersionInfo,
   selectCurrentVersionInfo,
 } from '../../reducers/versions';
@@ -31,10 +33,11 @@ export type DefaultProps = {
 
 type PropsFromState = {
   comments: Comment[] | undefined;
-  user: User | null;
   currentBaseVersion: Version | null | undefined | false;
   currentBaseVersionId: number | undefined | false;
   currentVersion: Version | null | undefined | false;
+  file: VersionFile | null | undefined;
+  user: User | null;
 };
 
 type Props = PublicProps & DefaultProps & PropsFromState & ConnectedReduxProps;
@@ -134,6 +137,7 @@ export class NavbarBase extends React.Component<Props, State> {
     const {
       currentBaseVersion,
       currentVersion,
+      file,
       reviewersHost,
       user,
     } = this.props;
@@ -199,6 +203,16 @@ export class NavbarBase extends React.Component<Props, State> {
           </div>
         </Navbar.Brand>
         <Navbar.Text className={styles.text}>
+          {currentVersion && file ? (
+            <a
+              className={styles.legacyLink}
+              href={`${reviewersHost}/${process.env.REACT_APP_DEFAULT_API_LANG}/firefox/files/browse/${file.id}/file/${currentVersion.selectedPath}`}
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              {gettext('Legacy Viewer')}
+            </a>
+          ) : null}
           {user ? <span className={styles.username}>{user.name}</span> : null}
           {user ? (
             <Button size="sm" className={styles.logOut} onClick={this.logOut}>
@@ -230,6 +244,13 @@ export const mapStateToProps = (state: ApplicationState): PropsFromState => {
         })
       : undefined,
     user: selectCurrentUser(state.users),
+    file: currentVersion
+      ? getVersionFile(
+          state.versions,
+          currentVersion.id,
+          currentVersion.selectedPath,
+        )
+      : null,
     currentBaseVersion,
     currentBaseVersionId,
     currentVersion,

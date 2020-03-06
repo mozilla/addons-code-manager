@@ -91,3 +91,13 @@ $bg-color: $dark-gray;
 .reviewerToolsIcon {
   margin-right: 10px;
 }
+
+.legacyLink {
+  margin-right: $default-padding;
+  opacity: 0.5;
+  &,
+  &:active,
+  &:hover {
+    text-decoration: none;
+  }
+}
