@@ -6,7 +6,7 @@
     "@fortawesome/fontawesome-svg-core": "1.2.27",
     "@fortawesome/free-regular-svg-icons": "5.12.1",
     "@fortawesome/free-solid-svg-icons": "5.12.1",
-    "@fortawesome/react-fontawesome": "0.1.8",
+    "@fortawesome/react-fontawesome": "0.1.9",
     "@sentry/browser": "5.10.2",
     "@sentry/integrations": "5.10.2",
     "@types/classnames": "2.2.10",
