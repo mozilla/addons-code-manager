@@ -133,25 +133,9 @@ export const fakeVersionAddon: ExternalVersionAddon = Object.freeze({
 export const fakeVersion: ExternalVersionWithContent = Object.freeze({
   addon: fakeVersionAddon,
   channel: 'some channel',
-  compatibility: {
-    firefox: {
-      min: '1',
-      max: '2',
-    },
-  },
-  edit_url: 'http://example.com/edit/',
   file: fakeVersionFile,
   has_been_validated: true,
   id: 123,
-  is_strict_compatibility_enabled: false,
-  license: {
-    id: 456,
-    isCustom: true,
-    name: { 'en-US': 'license name' },
-    text: { 'en-US': 'license text' },
-    url: 'http://example.com/license/',
-  },
-  release_notes: null,
   reviewed: '2017-08-15T12:01:13Z',
   url: 'http://example.com/',
   validation_url: 'http://example.com/validation/',

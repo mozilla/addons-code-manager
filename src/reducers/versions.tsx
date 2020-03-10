@@ -34,21 +34,6 @@ export enum ScrollTarget {
   lastDiff = 'lastDiff',
 }
 
-type VersionCompatibility = {
-  [appName: string]: {
-    min: string;
-    max: string;
-  };
-};
-
-type VersionLicense = {
-  id: number;
-  isCustom: boolean;
-  name: LocalizedStringMap;
-  text: LocalizedStringMap;
-  url: string;
-};
-
 export type VersionEntryStatus = '' | 'M' | 'A' | 'D' | 'R' | 'C';
 export type VersionEntryType = 'image' | 'directory' | 'text' | 'binary';
 
@@ -93,13 +78,8 @@ export type ExternalVersionAddon = {
 type PartialExternalVersion = {
   addon: ExternalVersionAddon;
   channel: string;
-  compatibility: VersionCompatibility;
-  edit_url: string;
   has_been_validated: boolean;
   id: number;
-  is_strict_compatibility_enabled: boolean;
-  license: VersionLicense;
-  release_notes: LocalizedStringMap | null;
   reviewed: string;
   url: string;
   validation_url: string;
