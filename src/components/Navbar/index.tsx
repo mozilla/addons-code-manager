@@ -16,6 +16,7 @@ import {
   fetchVersion,
   getVersionFile,
   getVersionInfo,
+  getCompareInfo,
   selectCurrentVersionInfo,
 } from '../../reducers/versions';
 import { ConnectedReduxProps } from '../../configureStore';
@@ -36,7 +37,9 @@ type PropsFromState = {
   currentBaseVersion: Version | null | undefined | false;
   currentBaseVersionId: number | undefined | false;
   currentVersion: Version | null | undefined | false;
+  baseFileId: number | null;
   file: VersionFile | null | undefined;
+  selectedPath: string | null;
   user: User | null;
 };
 
@@ -135,13 +138,16 @@ export class NavbarBase extends React.Component<Props, State> {
 
   render() {
     const {
+      baseFileId,
       currentBaseVersion,
       currentVersion,
       file,
       reviewersHost,
+      selectedPath,
       user,
     } = this.props;
     const { nextBaseVersionImprint } = this.state;
+    const baseUrlToLegacy = `${reviewersHost}/${process.env.REACT_APP_DEFAULT_API_LANG}/firefox/files`;
 
     return (
       <Navbar className={styles.Navbar} expand="lg" variant="dark">
@@ -204,10 +210,14 @@ export class NavbarBase extends React.Component<Props, State> {
           </div>
         </Navbar.Brand>
         <Navbar.Text className={styles.text}>
-          {currentVersion && file ? (
+          {currentVersion && file && selectedPath ? (
             <a
               className={styles.legacyLink}
-              href={`${reviewersHost}/${process.env.REACT_APP_DEFAULT_API_LANG}/firefox/files/browse/${file.id}/file/${currentVersion.selectedPath}`}
+              href={
+                baseFileId
+                  ? `${baseUrlToLegacy}/compare/${file.id}...${baseFileId}/file/${selectedPath}`
+                  : `${baseUrlToLegacy}/browse/${file.id}/file/${selectedPath}`
+              }
               rel="noopener noreferrer"
               target="_blank"
             >
@@ -229,7 +239,7 @@ export class NavbarBase extends React.Component<Props, State> {
 }
 
 export const mapStateToProps = (state: ApplicationState): PropsFromState => {
-  const { currentBaseVersionId } = state.versions;
+  const { currentBaseVersionId, selectedPath } = state.versions;
   let currentBaseVersion;
   if (currentBaseVersionId) {
     currentBaseVersion = getVersionInfo(state.versions, currentBaseVersionId);
@@ -237,7 +247,21 @@ export const mapStateToProps = (state: ApplicationState): PropsFromState => {
 
   const currentVersion = selectCurrentVersionInfo(state.versions);
 
+  let baseFileId = null;
+
+  if (currentBaseVersionId && currentVersion) {
+    const compareInfo = getCompareInfo(
+      state.versions,
+      currentVersion.addon.id,
+      currentBaseVersionId,
+      currentVersion.id,
+      selectedPath || undefined,
+    );
+    baseFileId = compareInfo ? compareInfo.baseFileId : null;
+  }
+
   return {
+    baseFileId,
     comments: currentVersion
       ? selectVersionComments({
           comments: state.comments,
@@ -245,16 +269,14 @@ export const mapStateToProps = (state: ApplicationState): PropsFromState => {
         })
       : undefined,
     user: selectCurrentUser(state.users),
-    file: currentVersion
-      ? getVersionFile(
-          state.versions,
-          currentVersion.id,
-          currentVersion.selectedPath,
-        )
-      : null,
+    file:
+      currentVersion && selectedPath
+        ? getVersionFile(state.versions, currentVersion.id, selectedPath)
+        : null,
     currentBaseVersion,
     currentBaseVersionId,
     currentVersion,
+    selectedPath,
   };
 };
 

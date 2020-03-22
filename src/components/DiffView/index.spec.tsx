@@ -173,6 +173,9 @@ describe(__filename, () => {
       id: headVersionId,
       file: {
         ...fakeVersion.file,
+        base_file: {
+          id: nextUniqueId(),
+        },
         diff: {
           ...fakeExternalDiff,
           hunks,
