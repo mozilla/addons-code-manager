@@ -405,12 +405,9 @@ describe(__filename, () => {
       store,
     });
 
-    expect(
-      root
-        .find(VersionFileViewer)
-        .children()
-        .text(),
-    ).toEqual('Oops, an error has occurred.');
+    expect(root.find(VersionFileViewer).children().text()).toEqual(
+      'Oops, an error has occurred.',
+    );
   });
 
   it('dispatches fetchDiff() on mount', () => {

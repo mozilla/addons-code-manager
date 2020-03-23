@@ -184,9 +184,10 @@ export class NavbarBase extends React.Component<Props, State> {
                             !currentBaseVersion && nextBaseVersionImprint,
                         })}
                       >
-                        {`${(currentBaseVersion &&
-                          currentBaseVersion.version) ||
-                          nextBaseVersionImprint}…`}
+                        {`${
+                          (currentBaseVersion && currentBaseVersion.version) ||
+                          nextBaseVersionImprint
+                        }…`}
                       </span>
                     ) : null}
                     {currentVersion.version}

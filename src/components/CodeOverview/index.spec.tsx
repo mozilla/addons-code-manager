@@ -357,12 +357,7 @@ describe(__filename, () => {
       content: generateFileLines({ count: 3 }).join('\n'),
     });
 
-    expect(() =>
-      root
-        .find(Link)
-        .at(0)
-        .simulate('click'),
-    ).not.toThrow();
+    expect(() => root.find(Link).at(0).simulate('click')).not.toThrow();
   });
 
   it('links to the first line that has a linter message', () => {
@@ -536,10 +531,7 @@ describe(__filename, () => {
     const event = { preventDefault: jest.fn() };
 
     // Click the first empty line.
-    root
-      .find(Link)
-      .at(1)
-      .simulate('click', event);
+    root.find(Link).at(1).simulate('click', event);
 
     expect(_document.querySelector).not.toHaveBeenCalled();
     expect(event.preventDefault).toHaveBeenCalled();
