@@ -9,7 +9,10 @@ import LoginButton from '../LoginButton';
 import VersionChooser from '../VersionChooser';
 import styles from './styles.module.scss';
 import {
+  createContextWithFakeRouter,
   createFakeExternalComment,
+  createFakeHistory,
+  createFakeLocation,
   createFakeThunk,
   createStoreWithVersion,
   createStoreWithVersionComments,
@@ -31,10 +34,11 @@ import Navbar, { NavbarBase, PublicProps, mapStateToProps } from '.';
 
 describe(__filename, () => {
   type RenderParams = Partial<PublicProps> &
-    Partial<ConnectedReduxProps> & { store?: Store };
+    Partial<ConnectedReduxProps> & { store?: Store; path?: string };
 
   const render = ({
     store = configureStore(),
+    path = 'default/path.js',
     ...moreProps
   }: RenderParams = {}) => {
     const props = {
@@ -43,8 +47,25 @@ describe(__filename, () => {
       ...moreProps,
     };
 
+    const shallowOptions = createContextWithFakeRouter();
+    const history = createFakeHistory({
+      location: createFakeLocation({
+        searchQuery: { path },
+      }),
+    });
+
     return shallowUntilTarget(<Navbar {...props} />, NavbarBase, {
-      shallowOptions: { context: { store } },
+      shallowOptions: {
+        ...shallowOptions,
+        context: {
+          ...shallowOptions.context,
+          router: {
+            ...shallowOptions.context.router,
+            history,
+          },
+          store,
+        },
+      },
     });
   };
 
@@ -146,7 +167,7 @@ describe(__filename, () => {
           makeCurrent: true,
         });
         _loadVersionFile({ store, version });
-        const root = render({ reviewersHost, store });
+        const root = render({ reviewersHost, store, path });
 
         expect(root.find(`.${styles.legacyLink}`)).toHaveProp(
           'href',
@@ -201,7 +222,7 @@ describe(__filename, () => {
           }),
         );
 
-        const root = render({ reviewersHost, store });
+        const root = render({ reviewersHost, store, path });
 
         expect(root.find(`.${styles.legacyLink}`)).toHaveProp(
           'href',
@@ -492,7 +513,16 @@ describe(__filename, () => {
     }) => {
       root.setProps({
         dispatch: jest.fn(),
-        ...mapStateToProps(store.getState()),
+        ...mapStateToProps(store.getState(), {
+          history: createFakeHistory(),
+          location: createFakeLocation(),
+          match: {
+            params: {},
+            isExact: true,
+            path: '/some-path',
+            url: 'some-url',
+          },
+        }),
       });
     };
 

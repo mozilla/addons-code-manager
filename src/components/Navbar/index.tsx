@@ -2,9 +2,14 @@ import makeClassName from 'classnames';
 import * as React from 'react';
 import { Button, Navbar } from 'react-bootstrap';
 import { connect } from 'react-redux';
+import { withRouter, RouteComponentProps } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import { gettext, getLocalizedString } from '../../utils';
+import {
+  gettext,
+  getLocalizedString,
+  getPathFromQueryString,
+} from '../../utils';
 import CommentSummaryButton from '../CommentSummaryButton';
 import LoginButton from '../LoginButton';
 import VersionChooser from '../VersionChooser';
@@ -43,7 +48,11 @@ type PropsFromState = {
   user: User | null;
 };
 
-type Props = PublicProps & DefaultProps & PropsFromState & ConnectedReduxProps;
+type Props = PublicProps &
+  DefaultProps &
+  PropsFromState &
+  ConnectedReduxProps &
+  RouteComponentProps<{}>;
 
 type State = {
   nextBaseVersionImprint: string | undefined;
@@ -143,10 +152,11 @@ export class NavbarBase extends React.Component<Props, State> {
       currentVersion,
       file,
       reviewersHost,
-      selectedPath,
+      history,
       user,
     } = this.props;
     const { nextBaseVersionImprint } = this.state;
+    const path = getPathFromQueryString(history);
     const baseUrlToLegacy = `${reviewersHost}/${process.env.REACT_APP_DEFAULT_API_LANG}/firefox/files`;
 
     return (
@@ -210,13 +220,17 @@ export class NavbarBase extends React.Component<Props, State> {
           </div>
         </Navbar.Brand>
         <Navbar.Text className={styles.text}>
-          {currentVersion && file && selectedPath ? (
+          {currentVersion && file ? (
             <a
               className={styles.legacyLink}
               href={
                 baseFileId
-                  ? `${baseUrlToLegacy}/compare/${file.id}...${baseFileId}/file/${selectedPath}`
-                  : `${baseUrlToLegacy}/browse/${file.id}/file/${selectedPath}`
+                  ? `${baseUrlToLegacy}/compare/${file.id}...${baseFileId}/${
+                      path ? `file/${path}` : ''
+                    }`
+                  : `${baseUrlToLegacy}/browse/${file.id}/${
+                      path ? `file/${path}` : ''
+                    }`
               }
               rel="noopener noreferrer"
               target="_blank"
@@ -238,7 +252,10 @@ export class NavbarBase extends React.Component<Props, State> {
   }
 }
 
-export const mapStateToProps = (state: ApplicationState): PropsFromState => {
+export const mapStateToProps = (
+  state: ApplicationState,
+  ownProps: RouteComponentProps<{}>,
+): PropsFromState => {
   const { currentBaseVersionId, selectedPath } = state.versions;
   let currentBaseVersion;
   if (currentBaseVersionId) {
@@ -255,7 +272,7 @@ export const mapStateToProps = (state: ApplicationState): PropsFromState => {
       currentVersion.addon.id,
       currentBaseVersionId,
       currentVersion.id,
-      selectedPath || undefined,
+      getPathFromQueryString(ownProps.history) || undefined,
     );
     baseFileId = compareInfo ? compareInfo.baseFileId : null;
   }
@@ -280,4 +297,4 @@ export const mapStateToProps = (state: ApplicationState): PropsFromState => {
   };
 };
 
-export default connect(mapStateToProps)(NavbarBase);
+export default withRouter(connect(mapStateToProps)(NavbarBase));
