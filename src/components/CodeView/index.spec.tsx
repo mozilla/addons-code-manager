@@ -64,6 +64,7 @@ describe(__filename, () => {
   }: RenderParams = {}) => {
     const props = {
       content: 'some content',
+      isMinified: false,
       linterMessagesByLine: undefined,
       mimeType: 'mime/type',
       version: createInternalVersion(fakeVersion),
@@ -483,6 +484,43 @@ describe(__filename, () => {
     );
   });
 
+  it('trims the code when identified as minified', () => {
+    const content = 'some-content';
+    const _slowLoadingCharCount = content.length + 1;
+    const _trimmedCharCount = content.length - 2;
+    const isMinified = true;
+    const mimeType = 'mime/type';
+
+    const root = renderWithLinterProvider({
+      _slowLoadingCharCount,
+      _trimmedCharCount,
+      content,
+      isMinified,
+    });
+
+    const fadable = root.find(FadableContent);
+    expect(fadable).toHaveProp('fade', true);
+
+    // Show the warning twice: top and bottom.
+    expect(root.find(SlowPageAlert)).toHaveLength(2);
+
+    const { renderContent } = simulateCommentableLine({
+      _slowLoadingCharCount,
+      _trimmedCharCount,
+      content,
+      isMinified,
+      mimeType,
+    });
+    const line = renderContent();
+
+    expect(line.find('.innerHighlightedCode')).toHaveText(
+      `${content.substring(
+        0,
+        _trimmedCharCount,
+      )} /* truncated by code-manager */`,
+    );
+  });
+
   it('does not trim code when slow pages are allowed', () => {
     const content = 'some-content';
     const _slowLoadingCharCount = content.length - 2;
@@ -634,7 +672,7 @@ describe(__filename, () => {
     it('does not break when the element is null', () => {
       const element = null;
 
-      scrollToSelectedLine(element);
+      expect(() => scrollToSelectedLine(element)).not.toThrow();
     });
   });
 });

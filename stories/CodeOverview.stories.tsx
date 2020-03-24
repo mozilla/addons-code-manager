@@ -61,6 +61,7 @@ const render = ({
       >
         <CodeView
           content={content}
+          isMinified={false}
           mimeType="application/javascript"
           version={version}
         />

@@ -163,6 +163,7 @@ export type VersionFile = {
   // This is the basename of the file.
   filename: string;
   id: number;
+  isMinified: boolean;
   mimeType: string;
   // This is the relative path to the file, including directories.
   path: string;

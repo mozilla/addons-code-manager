@@ -204,8 +204,9 @@ export class BrowseBase extends React.Component<Props> {
     }
     return (
       <CodeView
-        mimeType={file.mimeType}
         content={file.content}
+        isMinified={file.isMinified}
+        mimeType={file.mimeType}
         version={version}
       />
     );
