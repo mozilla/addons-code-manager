@@ -39,7 +39,7 @@
     "filesize": "6.1.0",
     "focus-visible": "5.0.2",
     "he": "1.2.0",
-    "helmet": "3.21.3",
+    "helmet": "3.22.0",
     "history": "4.10.1",
     "http-proxy-middleware": "0.20.0",
     "http-proxy-response-rewrite": "0.0.1",
