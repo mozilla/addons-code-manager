@@ -121,6 +121,7 @@ export const fakeVersionFile: ExternalVersionFileWithContent = Object.freeze({
   size: 123,
   status: 'public',
   url: 'http://example.com/edit/',
+  uses_unknown_minified_code: false,
 });
 
 export const fakeVersionAddon: ExternalVersionAddon = Object.freeze({
