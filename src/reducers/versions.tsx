@@ -66,6 +66,7 @@ type PartialExternalVersionFile = {
   size: number;
   status: string;
   url: string;
+  uses_unknown_minified_code: boolean;
 };
 
 export type ExternalVersionAddon = {
@@ -150,6 +151,7 @@ type InternalVersionFile = {
   created: string;
   downloadURL: string | null;
   id: number;
+  isMinified: boolean;
   sha256: string | null;
   size: number;
 };
@@ -430,6 +432,7 @@ export const createInternalVersionFile = ({
     created: file.created,
     downloadURL: file.download_url,
     id: file.id,
+    isMinified: file.uses_unknown_minified_code,
     sha256: file.entries[path] ? file.entries[path].sha256 : null,
     size: file.size,
   };

@@ -933,6 +933,7 @@ describe(__filename, () => {
     /* eslint-disable @typescript-eslint/camelcase */
     it('returns a version file', () => {
       const downloadURL = 'http://example.org/download/file';
+      const isMinified = true;
       const mimeType = 'mime/type';
       const filename = 'test.js';
       const path = `some/dir/${filename}`;
@@ -955,6 +956,7 @@ describe(__filename, () => {
             },
           },
           selected_file: path,
+          uses_unknown_minified_code: isMinified,
         },
         version: versionString,
       };
@@ -964,6 +966,7 @@ describe(__filename, () => {
       expect(getVersionFile(state, version.id, path)).toEqual({
         ...createInternalVersionFile({ file: version.file, path }),
         downloadURL,
+        isMinified,
         filename,
         mimeType,
         path,
