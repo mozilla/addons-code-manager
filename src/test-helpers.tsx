@@ -235,6 +235,9 @@ export const createExternalVersionWithEntries = (
     id,
     file: {
       ...fakeVersion.file,
+      base_file: {
+        id: nextUniqueId(),
+      },
       diff,
       entries: partialEntries.reduce((entries, file) => {
         return {
@@ -366,6 +369,9 @@ export const fakeVersionWithDiff: ExternalVersionWithDiff = {
   file: {
     ...fakeVersion.file,
     diff: fakeExternalDiff,
+    base_file: {
+      id: nextUniqueId(),
+    },
   },
 };
 

@@ -7,6 +7,7 @@ import { getType } from 'typesafe-actions';
 import { actions as errorsActions } from './errors';
 import reducer, {
   ScrollTarget,
+  ExternalDiff,
   ExternalVersionWithContent,
   ExternalVersionWithDiff,
   ExternalVersionsList,
@@ -689,8 +690,9 @@ describe(__filename, () => {
     });
 
     it('loads compare info', () => {
-      const addonId = 1;
-      const baseVersionId = 2;
+      const addonId = nextUniqueId();
+      const baseFileId = nextUniqueId();
+      const baseVersionId = nextUniqueId();
       const path = 'manifest.json';
       const mimeType = 'mime/type';
 
@@ -698,6 +700,9 @@ describe(__filename, () => {
         ...fakeVersionWithDiff,
         file: {
           ...fakeVersionWithDiff.file,
+          base_file: {
+            id: baseFileId,
+          },
           entries: {
             ...fakeVersionWithDiff.file.entries,
             [path]: {
@@ -730,6 +735,7 @@ describe(__filename, () => {
       expect(
         getCompareInfo(versionsState, addonId, baseVersionId, headVersionId),
       ).toEqual({
+        baseFileId,
         diff: createInternalDiff({
           baseVersionId,
           headVersionId,
@@ -1694,17 +1700,26 @@ describe(__filename, () => {
       }) as DiffInfo;
     };
 
+    const _createVersionWithDiff = (
+      diff: ExternalDiff | null,
+    ): ExternalVersionWithDiff => {
+      return {
+        ...fakeVersion,
+        file: {
+          ...fakeVersion.file,
+          base_file: {
+            id: nextUniqueId(),
+          },
+          diff,
+        },
+      };
+    };
+
     it('creates a DiffInfo object from a version with diff', () => {
       const baseVersionId = 132;
       const headVersionId = 133;
       const externalDiff = fakeExternalDiff;
-      const version = {
-        ...fakeVersion,
-        file: {
-          ...fakeVersion.file,
-          diff: externalDiff,
-        },
-      };
+      const version = _createVersionWithDiff(externalDiff);
 
       const diff = _createInternalDiff({
         baseVersionId,
@@ -1735,13 +1750,7 @@ describe(__filename, () => {
     it('returns null if diff is falsey', () => {
       const baseVersionId = 132;
       const headVersionId = 133;
-      const version = {
-        ...fakeVersion,
-        file: {
-          ...fakeVersion.file,
-          diff: null,
-        },
-      };
+      const version = _createVersionWithDiff(null);
 
       expect(
         _createInternalDiff({
@@ -1761,28 +1770,14 @@ describe(__filename, () => {
       // This simulates an unknown mode.
       ['modify', 'unknown'],
     ])('sets type "%s" for mode "%s"', (type, mode) => {
-      const version = {
-        ...fakeVersion,
-        file: {
-          ...fakeVersion.file,
-          diff: { ...fakeExternalDiff, mode },
-        },
-      };
-
+      const version = _createVersionWithDiff({ ...fakeExternalDiff, mode });
       const diff = _createInternalDiff({ version });
 
       expect(diff.type).toEqual(type);
     });
 
     it('creates hunks from external diff hunks', () => {
-      const version = {
-        ...fakeVersion,
-        file: {
-          ...fakeVersion.file,
-          diff: fakeExternalDiff,
-        },
-      };
-
+      const version = _createVersionWithDiff(fakeExternalDiff);
       const diff = _createInternalDiff({ version });
 
       expect(diff.hunks).toHaveLength(fakeExternalDiff.hunks.length);

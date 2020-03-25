@@ -2,9 +2,14 @@ import makeClassName from 'classnames';
 import * as React from 'react';
 import { Button, Navbar } from 'react-bootstrap';
 import { connect } from 'react-redux';
+import { withRouter, RouteComponentProps } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import { gettext, getLocalizedString } from '../../utils';
+import {
+  gettext,
+  getLocalizedString,
+  getPathFromQueryString,
+} from '../../utils';
 import CommentSummaryButton from '../CommentSummaryButton';
 import LoginButton from '../LoginButton';
 import VersionChooser from '../VersionChooser';
@@ -16,6 +21,7 @@ import {
   fetchVersion,
   getVersionFile,
   getVersionInfo,
+  getCompareInfo,
   selectCurrentVersionInfo,
 } from '../../reducers/versions';
 import { ConnectedReduxProps } from '../../configureStore';
@@ -36,11 +42,17 @@ type PropsFromState = {
   currentBaseVersion: Version | null | undefined | false;
   currentBaseVersionId: number | undefined | false;
   currentVersion: Version | null | undefined | false;
+  baseFileId: number | null;
   file: VersionFile | null | undefined;
+  selectedPath: string | null;
   user: User | null;
 };
 
-type Props = PublicProps & DefaultProps & PropsFromState & ConnectedReduxProps;
+type Props = PublicProps &
+  DefaultProps &
+  PropsFromState &
+  ConnectedReduxProps &
+  RouteComponentProps<{}>;
 
 type State = {
   nextBaseVersionImprint: string | undefined;
@@ -135,13 +147,17 @@ export class NavbarBase extends React.Component<Props, State> {
 
   render() {
     const {
+      baseFileId,
       currentBaseVersion,
       currentVersion,
       file,
       reviewersHost,
+      history,
       user,
     } = this.props;
     const { nextBaseVersionImprint } = this.state;
+    const path = getPathFromQueryString(history);
+    const baseUrlToLegacy = `${reviewersHost}/${process.env.REACT_APP_DEFAULT_API_LANG}/firefox/files`;
 
     return (
       <Navbar className={styles.Navbar} expand="lg" variant="dark">
@@ -207,7 +223,15 @@ export class NavbarBase extends React.Component<Props, State> {
           {currentVersion && file ? (
             <a
               className={styles.legacyLink}
-              href={`${reviewersHost}/${process.env.REACT_APP_DEFAULT_API_LANG}/firefox/files/browse/${file.id}/file/${currentVersion.selectedPath}`}
+              href={
+                baseFileId
+                  ? `${baseUrlToLegacy}/compare/${file.id}...${baseFileId}/${
+                      path ? `file/${path}` : ''
+                    }`
+                  : `${baseUrlToLegacy}/browse/${file.id}/${
+                      path ? `file/${path}` : ''
+                    }`
+              }
               rel="noopener noreferrer"
               target="_blank"
             >
@@ -228,8 +252,11 @@ export class NavbarBase extends React.Component<Props, State> {
   }
 }
 
-export const mapStateToProps = (state: ApplicationState): PropsFromState => {
-  const { currentBaseVersionId } = state.versions;
+export const mapStateToProps = (
+  state: ApplicationState,
+  ownProps: RouteComponentProps<{}>,
+): PropsFromState => {
+  const { currentBaseVersionId, selectedPath } = state.versions;
   let currentBaseVersion;
   if (currentBaseVersionId) {
     currentBaseVersion = getVersionInfo(state.versions, currentBaseVersionId);
@@ -237,7 +264,21 @@ export const mapStateToProps = (state: ApplicationState): PropsFromState => {
 
   const currentVersion = selectCurrentVersionInfo(state.versions);
 
+  let baseFileId = null;
+
+  if (currentBaseVersionId && currentVersion) {
+    const compareInfo = getCompareInfo(
+      state.versions,
+      currentVersion.addon.id,
+      currentBaseVersionId,
+      currentVersion.id,
+      getPathFromQueryString(ownProps.history) || undefined,
+    );
+    baseFileId = compareInfo ? compareInfo.baseFileId : null;
+  }
+
   return {
+    baseFileId,
     comments: currentVersion
       ? selectVersionComments({
           comments: state.comments,
@@ -245,17 +286,15 @@ export const mapStateToProps = (state: ApplicationState): PropsFromState => {
         })
       : undefined,
     user: selectCurrentUser(state.users),
-    file: currentVersion
-      ? getVersionFile(
-          state.versions,
-          currentVersion.id,
-          currentVersion.selectedPath,
-        )
-      : null,
+    file:
+      currentVersion && selectedPath
+        ? getVersionFile(state.versions, currentVersion.id, selectedPath)
+        : null,
     currentBaseVersion,
     currentBaseVersionId,
     currentVersion,
+    selectedPath,
   };
 };
 
-export default connect(mapStateToProps)(NavbarBase);
+export default withRouter(connect(mapStateToProps)(NavbarBase));
