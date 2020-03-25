@@ -14,6 +14,7 @@ import {
   ForwardComparisonMap,
   allowSlowPagesParam,
   codeCanBeHighlighted,
+  codeShouldBeTrimmed,
   createAdjustedQueryString,
   createCodeLineAnchorGetter,
   extractNumber,
@@ -707,6 +708,22 @@ describe('codeCanBeHighlighted', () => {
       expect(codeLineAnchorGetter(line)).toEqual(
         map.getCodeLineAnchor.bind(map)(line),
       );
+    });
+  });
+
+  describe('codeShouldBeTrimmed', () => {
+    it('returns true if the code length >= slowLoadingCharCount', () => {
+      expect(codeShouldBeTrimmed(1, 1, false)).toEqual(true);
+      expect(codeShouldBeTrimmed(2, 1, false)).toEqual(true);
+    });
+
+    it('returns false if the code length < slowLoadingCharCount', () => {
+      expect(codeShouldBeTrimmed(1, 2, false)).toEqual(false);
+    });
+
+    it('returns true if isMinified is true', () => {
+      expect(codeShouldBeTrimmed(1, 2, true)).toEqual(true);
+      expect(codeShouldBeTrimmed(1, 1, false)).toEqual(true);
     });
   });
 });

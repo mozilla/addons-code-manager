@@ -67,6 +67,7 @@ const render = ({
 }: RenderParams = {}) => {
   const props: CodeViewProps = {
     content,
+    isMinified: false,
     mimeType: 'application/javascript',
     version: createInternalVersion(fakeVersion),
     ...moreProps,

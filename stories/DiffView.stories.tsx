@@ -41,6 +41,7 @@ const render = (
 
   const props: DiffViewProps = {
     diff: parseDiff(basicDiff)[0],
+    isMinified: false,
     mimeType: 'application/javascript',
     version: createInternalVersion(fakeVersion),
     ...remainingProps,
@@ -83,6 +84,7 @@ const renderWithMessages = (
 
   const props: DiffViewProps = {
     diff,
+    isMinified: false,
     mimeType: 'application/javascript',
     version,
     ...moreProps,

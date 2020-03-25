@@ -85,6 +85,7 @@ describe(__filename, () => {
         _codeCanBeHighlighted={_codeCanBeHighlighted}
         diff={parseDiff(basicDiff)[0]}
         enableCommenting={enableCommenting}
+        isMinified={false}
         mimeType="text/plain"
         version={createInternalVersion(fakeVersion)}
         {...props}
@@ -893,7 +894,50 @@ describe(__filename, () => {
     expect(message).toHaveLength(2);
   });
 
-  it('disables diff trimming by default', () => {
+  it('trims minified files by default', () => {
+    const _slowLoadingCharCount = 10;
+    const _trimmedCharCount = 5;
+    const change1 = { content: 'a'.repeat(4) };
+    const change2 = { content: 'b'.repeat(4) };
+    const diff = createDiffWithHunks([
+      createHunkWithChanges([change1, change2]),
+    ]);
+
+    const root = renderWithLinterProvider({
+      diff,
+      isMinified: true,
+      _slowLoadingCharCount,
+      _trimmedCharCount,
+    });
+
+    const fadableShell = root.find(FadableContent);
+    expect(fadableShell).toHaveProp('fade', true);
+
+    const diffView = fadableShell.find(Diff);
+    expect(diffView).toHaveProp(
+      'hunks',
+      createDiffWithHunks([
+        createHunkWithChanges([
+          change1,
+          {
+            ...change2,
+            content: change2.content.substring(0, 1),
+          },
+          {
+            content: changeContentAddedByTrimmer,
+            new_line_number: undefined,
+            old_line_number: undefined,
+          },
+        ]),
+      ]).hunks,
+    );
+
+    const message = root.find(SlowPageAlert);
+    // There should be a warning at the top and bottom.
+    expect(message).toHaveLength(2);
+  });
+
+  it('disables diff trimming for non-minified files by default', () => {
     const _slowLoadingCharCount = 5;
     const change = { content: 'a'.repeat(_slowLoadingCharCount + 1) };
     const diff = createDiffWithHunks([createHunkWithChanges([change])]);

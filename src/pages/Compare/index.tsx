@@ -286,9 +286,10 @@ export class CompareBase extends React.Component<Props> {
           onSelectFile={this.viewVersionFile}
           version={version}
         >
-          {version && compareInfo ? (
+          {version && versionFile && compareInfo ? (
             <DiffView
               diff={compareInfo.diff}
+              isMinified={versionFile.isMinified}
               // This key resets scrollbars between files
               key={`${version.id}:${path}`}
               mimeType={compareInfo.mimeType}

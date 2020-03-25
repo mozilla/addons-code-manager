@@ -23,6 +23,7 @@ storiesOf('FadableContent', module)
     return renderWithContent(
       <CodeView
         content={JS_SAMPLE}
+        isMinified={false}
         mimeType="application/javascript"
         version={createInternalVersion(fakeVersion)}
       />,

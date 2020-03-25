@@ -37,6 +37,7 @@ import {
   SLOW_LOADING_CHAR_COUNT,
   TRIMMED_CHAR_COUNT,
   codeCanBeHighlighted,
+  codeShouldBeTrimmed,
   getAllHunkChanges,
   getLanguageFromMimeType,
   gettext,
@@ -101,6 +102,7 @@ export const changeCanBeCommentedUpon = (change: ChangeInfo) => {
 
 export type PublicProps = {
   diff: DiffInfo | null;
+  isMinified: boolean;
   mimeType: string;
   version: Version;
 };
@@ -341,6 +343,7 @@ export class DiffViewBase extends React.Component<Props> {
       _tokenize,
       _trimmedCharCount,
       diff,
+      isMinified,
       mimeType,
       viewType,
       location,
@@ -365,8 +368,14 @@ export class DiffViewBase extends React.Component<Props> {
     if (diff) {
       hunksToDisplay = diff.hunks;
 
-      if (getChangeCharCount(hunksToDisplay) >= _slowLoadingCharCount) {
-        if (!shouldAllowSlowPages({ allowByDefault: true, location })) {
+      if (
+        codeShouldBeTrimmed(
+          getChangeCharCount(hunksToDisplay),
+          _slowLoadingCharCount,
+          isMinified,
+        )
+      ) {
+        if (!shouldAllowSlowPages({ allowByDefault: !isMinified, location })) {
           hunksToDisplay = trimHunks({
             _trimmedCharCount,
             hunks: hunksToDisplay,
@@ -375,7 +384,7 @@ export class DiffViewBase extends React.Component<Props> {
         }
         diffIsSlowAlert = (
           <SlowPageAlert
-            allowSlowPagesByDefault
+            allowSlowPagesByDefault={!isMinified}
             key="slowPageAlert"
             location={location}
             getMessage={(allowSlowPages: boolean) => {
