@@ -18,6 +18,7 @@ import refractor from '../../refractor';
 import {
   SLOW_LOADING_CHAR_COUNT,
   TRIMMED_CHAR_COUNT,
+  codeShouldBeTrimmed,
   gettext,
   getLanguageFromMimeType,
   shouldAllowSlowPages,
@@ -103,7 +104,9 @@ export class CodeViewBase extends React.Component<Props> {
     let codeWasTrimmed = false;
     let slowAlert;
 
-    if (content.length >= _slowLoadingCharCount || isMinified) {
+    if (
+      codeShouldBeTrimmed(content.length, _slowLoadingCharCount, isMinified)
+    ) {
       if (!shouldAllowSlowPages({ location })) {
         codeLines = getLines(
           `${content.substring(

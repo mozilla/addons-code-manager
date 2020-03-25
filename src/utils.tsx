@@ -262,3 +262,11 @@ export const createCodeLineAnchorGetter = ({
   }
   return getCodeLineAnchor;
 };
+
+export const codeShouldBeTrimmed = (
+  codeLength: number,
+  slowLoadingCharCount: number,
+  isMinified: boolean,
+) => {
+  return codeLength >= slowLoadingCharCount || isMinified;
+};

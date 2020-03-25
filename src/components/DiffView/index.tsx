@@ -37,6 +37,7 @@ import {
   SLOW_LOADING_CHAR_COUNT,
   TRIMMED_CHAR_COUNT,
   codeCanBeHighlighted,
+  codeShouldBeTrimmed,
   getAllHunkChanges,
   getLanguageFromMimeType,
   gettext,
@@ -368,8 +369,11 @@ export class DiffViewBase extends React.Component<Props> {
       hunksToDisplay = diff.hunks;
 
       if (
-        getChangeCharCount(hunksToDisplay) >= _slowLoadingCharCount ||
-        isMinified
+        codeShouldBeTrimmed(
+          getChangeCharCount(hunksToDisplay),
+          _slowLoadingCharCount,
+          isMinified,
+        )
       ) {
         if (!shouldAllowSlowPages({ allowByDefault: !isMinified, location })) {
           hunksToDisplay = trimHunks({
