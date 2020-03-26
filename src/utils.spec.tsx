@@ -26,6 +26,7 @@ import {
   makeReviewersURL,
   nl2br,
   sanitizeHTML,
+  sendPerfTiming,
   shouldAllowSlowPages,
 } from './utils';
 import {
@@ -724,6 +725,23 @@ describe('codeCanBeHighlighted', () => {
     it('returns true if isMinified is true', () => {
       expect(codeShouldBeTrimmed(1, 2, true)).toEqual(true);
       expect(codeShouldBeTrimmed(1, 1, false)).toEqual(true);
+    });
+  });
+
+  describe('sendPerfTiming', () => {
+    it('sends a renderPerf timing via tracking', () => {
+      const _tracking = { timing: jest.fn() };
+      const actualDuration = 19;
+      const id = 'some-id';
+      const phase = 'mount';
+
+      sendPerfTiming({ _tracking, actualDuration, id, phase });
+      expect(_tracking.timing).toHaveBeenCalledWith({
+        category: 'renderPerf',
+        label: phase,
+        value: actualDuration,
+        variable: id,
+      });
     });
   });
 });

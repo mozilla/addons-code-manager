@@ -41,10 +41,13 @@ import {
   getAllHunkChanges,
   getLanguageFromMimeType,
   gettext,
+  sendPerfTiming,
   shouldAllowSlowPages,
 } from '../../utils';
 import styles from './styles.module.scss';
 import 'react-diff-view/style/index.css';
+
+const { Profiler } = React;
 
 export const changeContentAddedByTrimmer =
   '/* diff truncated by code-manager */';
@@ -113,6 +116,7 @@ export type DefaultProps = {
   _document: typeof document;
   _getDiffAnchors: typeof getDiffAnchors;
   _getRelativeDiffAnchor: typeof getRelativeDiffAnchor;
+  _sendPerfTiming: typeof sendPerfTiming;
   _slowLoadingCharCount: number;
   _tokenize: typeof tokenize;
   _trimmedCharCount: number;
@@ -131,11 +135,16 @@ export class DiffViewBase extends React.Component<Props> {
     _document: document,
     _getDiffAnchors: getDiffAnchors,
     _getRelativeDiffAnchor: getRelativeDiffAnchor,
+    _sendPerfTiming: sendPerfTiming,
     _slowLoadingCharCount: SLOW_LOADING_CHAR_COUNT,
     _tokenize: tokenize,
     _trimmedCharCount: TRIMMED_CHAR_COUNT,
     enableCommenting: process.env.REACT_APP_ENABLE_COMMENTING === 'true',
     viewType: 'unified',
+  };
+
+  onRenderCallback = (id: string, phase: string, actualDuration: number) => {
+    this.props._sendPerfTiming({ actualDuration, id, phase });
   };
 
   componentDidMount() {
@@ -473,13 +482,15 @@ export class DiffViewBase extends React.Component<Props> {
     const { version } = this.props;
 
     return (
-      <LinterProvider
-        versionId={version.id}
-        validationURL={version.validationURL}
-        selectedPath={version.selectedPath}
-      >
-        {this.renderWithMessages}
-      </LinterProvider>
+      <Profiler id="DiffView-Render" onRender={this.onRenderCallback}>
+        <LinterProvider
+          versionId={version.id}
+          validationURL={version.validationURL}
+          selectedPath={version.selectedPath}
+        >
+          {this.renderWithMessages}
+        </LinterProvider>
+      </Profiler>
     );
   }
 }

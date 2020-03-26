@@ -21,12 +21,15 @@ import {
   codeShouldBeTrimmed,
   gettext,
   getLanguageFromMimeType,
+  sendPerfTiming,
   shouldAllowSlowPages,
 } from '../../utils';
 import { Version } from '../../reducers/versions';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import GlobalLinterMessages from '../GlobalLinterMessages';
 import SlowPageAlert from '../SlowPageAlert';
+
+const { Profiler } = React;
 
 // This function mimics what https://github.com/rexxars/react-refractor does,
 // but we need a different layout to inline comments so we cannot use this
@@ -71,6 +74,7 @@ export type PublicProps = {
 
 export type DefaultProps = {
   _scrollToSelectedLine: typeof scrollToSelectedLine;
+  _sendPerfTiming: typeof sendPerfTiming;
   _slowLoadingCharCount: number;
   _trimmedCharCount: number;
   enableCommenting: boolean;
@@ -81,9 +85,14 @@ type Props = PublicProps & DefaultProps & RouteComponentProps;
 export class CodeViewBase extends React.Component<Props> {
   static defaultProps: DefaultProps = {
     _scrollToSelectedLine: scrollToSelectedLine,
+    _sendPerfTiming: sendPerfTiming,
     _slowLoadingCharCount: SLOW_LOADING_CHAR_COUNT,
     _trimmedCharCount: TRIMMED_CHAR_COUNT,
     enableCommenting: process.env.REACT_APP_ENABLE_COMMENTING === 'true',
+  };
+
+  onRenderCallback = (id: string, phase: string, actualDuration: number) => {
+    this.props._sendPerfTiming({ actualDuration, id, phase });
   };
 
   renderWithLinterInfo = ({ selectedMessageMap }: LinterProviderInfo) => {
@@ -197,12 +206,17 @@ export class CodeViewBase extends React.Component<Props> {
                               {enableCommenting && addCommentButton}
                             </td>
 
-                            <td className={styles.code}>
-                              {renderCode({
-                                code,
-                                language,
-                              })}
-                            </td>
+                            <Profiler
+                              id="CodeView-Highlighting"
+                              onRender={this.onRenderCallback}
+                            >
+                              <td className={styles.code}>
+                                {renderCode({
+                                  code,
+                                  language,
+                                })}
+                              </td>
+                            </Profiler>
                           </>
                         )}
                       </Commentable>
@@ -256,16 +270,18 @@ export class CodeViewBase extends React.Component<Props> {
     const { version } = this.props;
 
     return (
-      <LinterProvider
-        versionId={version.id}
-        validationURL={version.validationURL}
-        selectedPath={version.selectedPath}
-      >
-        {// This needs to be an anonymous function (which defeats memoization)
-        // so that the component gets re-rendered in the case of adding
-        // comments per line.
-        (info: LinterProviderInfo) => this.renderWithLinterInfo(info)}
-      </LinterProvider>
+      <Profiler id="CodeView-Render" onRender={this.onRenderCallback}>
+        <LinterProvider
+          versionId={version.id}
+          validationURL={version.validationURL}
+          selectedPath={version.selectedPath}
+        >
+          {// This needs to be an anonymous function (which defeats memoization)
+          // so that the component gets re-rendered in the case of adding
+          // comments per line.
+          (info: LinterProviderInfo) => this.renderWithLinterInfo(info)}
+        </LinterProvider>
+      </Profiler>
     );
   }
 }
