@@ -548,15 +548,15 @@ describe(__filename, () => {
     const _sendPerfTiming = jest.fn();
     const root = render({ _sendPerfTiming });
     const instance = getInstance<DiffViewBase>(root);
-    const { onRenderCallback } = instance;
+    const { onRenderProfiler } = instance;
     const actualDuration = 19;
     const id = 'some-id';
     const phase = 'mount';
 
     const profiler = root.find('#DiffView-Render');
-    expect(profiler).toHaveProp('onRender', onRenderCallback);
+    expect(profiler).toHaveProp('onRender', onRenderProfiler);
 
-    onRenderCallback(id, phase, actualDuration);
+    onRenderProfiler(id, phase, actualDuration);
     expect(_sendPerfTiming).toHaveBeenCalledWith({ actualDuration, id, phase });
   });
 

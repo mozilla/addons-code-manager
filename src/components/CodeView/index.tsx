@@ -29,8 +29,6 @@ import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import GlobalLinterMessages from '../GlobalLinterMessages';
 import SlowPageAlert from '../SlowPageAlert';
 
-const { Profiler } = React;
-
 // This function mimics what https://github.com/rexxars/react-refractor does,
 // but we need a different layout to inline comments so we cannot use this
 // component.
@@ -91,7 +89,8 @@ export class CodeViewBase extends React.Component<Props> {
     enableCommenting: process.env.REACT_APP_ENABLE_COMMENTING === 'true',
   };
 
-  onRenderCallback = (id: string, phase: string, actualDuration: number) => {
+  // See https://github.com/reactjs/rfcs/blob/master/text/0051-profiler.md
+  onRenderProfiler = (id: string, phase: string, actualDuration: number) => {
     this.props._sendPerfTiming({ actualDuration, id, phase });
   };
 
@@ -205,18 +204,12 @@ export class CodeViewBase extends React.Component<Props> {
                               >{`${line}`}</Link>
                               {enableCommenting && addCommentButton}
                             </td>
-
-                            <Profiler
-                              id="CodeView-Highlighting"
-                              onRender={this.onRenderCallback}
-                            >
-                              <td className={styles.code}>
-                                {renderCode({
-                                  code,
-                                  language,
-                                })}
-                              </td>
-                            </Profiler>
+                            <td className={styles.code}>
+                              {renderCode({
+                                code,
+                                language,
+                              })}
+                            </td>
                           </>
                         )}
                       </Commentable>
@@ -270,7 +263,7 @@ export class CodeViewBase extends React.Component<Props> {
     const { version } = this.props;
 
     return (
-      <Profiler id="CodeView-Render" onRender={this.onRenderCallback}>
+      <React.Profiler id="CodeView-Render" onRender={this.onRenderProfiler}>
         <LinterProvider
           versionId={version.id}
           validationURL={version.validationURL}
@@ -281,7 +274,7 @@ export class CodeViewBase extends React.Component<Props> {
           // comments per line.
           (info: LinterProviderInfo) => this.renderWithLinterInfo(info)}
         </LinterProvider>
-      </Profiler>
+      </React.Profiler>
     );
   }
 }

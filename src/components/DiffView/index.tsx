@@ -143,7 +143,8 @@ export class DiffViewBase extends React.Component<Props> {
     viewType: 'unified',
   };
 
-  onRenderCallback = (id: string, phase: string, actualDuration: number) => {
+  // See https://github.com/reactjs/rfcs/blob/master/text/0051-profiler.md
+  onRenderProfiler = (id: string, phase: string, actualDuration: number) => {
     this.props._sendPerfTiming({ actualDuration, id, phase });
   };
 
@@ -482,7 +483,7 @@ export class DiffViewBase extends React.Component<Props> {
     const { version } = this.props;
 
     return (
-      <Profiler id="DiffView-Render" onRender={this.onRenderCallback}>
+      <Profiler id="DiffView-Render" onRender={this.onRenderProfiler}>
         <LinterProvider
           versionId={version.id}
           validationURL={version.validationURL}

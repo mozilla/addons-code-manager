@@ -382,39 +382,15 @@ describe(__filename, () => {
     const _sendPerfTiming = jest.fn();
     const root = render({ _sendPerfTiming });
     const instance = getInstance<CodeViewBase>(root);
-    const { onRenderCallback } = instance;
+    const { onRenderProfiler } = instance;
     const actualDuration = 19;
     const id = 'some-id';
     const phase = 'mount';
 
     const profiler = root.find('#CodeView-Render');
-    expect(profiler).toHaveProp('onRender', onRenderCallback);
+    expect(profiler).toHaveProp('onRender', onRenderProfiler);
 
-    onRenderCallback(id, phase, actualDuration);
-    expect(_sendPerfTiming).toHaveBeenCalledWith({ actualDuration, id, phase });
-  });
-
-  it('configures highlighting Profiler', () => {
-    const _sendPerfTiming = jest.fn();
-    const actualDuration = 19;
-    const id = 'some-id';
-    const phase = 'mount';
-
-    const content = '{ "foo": "bar" }';
-    const mimeType = 'application/json';
-    const { renderContent, root } = simulateCommentableLine({
-      _sendPerfTiming,
-      mimeType,
-      content,
-    });
-    const instance = getInstance<CodeViewBase>(root);
-    const { onRenderCallback } = instance;
-    const line = renderContent();
-
-    const profiler = line.find('#CodeView-Highlighting');
-    expect(profiler).toHaveProp('onRender', onRenderCallback);
-
-    onRenderCallback(id, phase, actualDuration);
+    onRenderProfiler(id, phase, actualDuration);
     expect(_sendPerfTiming).toHaveBeenCalledWith({ actualDuration, id, phase });
   });
 
