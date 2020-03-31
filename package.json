@@ -107,7 +107,7 @@
     "type-coverage": "^2.0.0"
   },
   "scripts": {
-    "build": "react-scripts build",
+    "build": "react-scripts build --profile",
     "build-local-dev-config": "cat .env.dev .env.common-local > .env.local",
     "build-local-olympia-config": "cat .env.olympia > .env.local",
     "build-local-stage-config": "cat .env.stage .env.common-local > .env.local",

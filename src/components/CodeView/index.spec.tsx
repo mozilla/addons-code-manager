@@ -27,6 +27,7 @@ import {
   createFakeLocation,
   fakeExternalLinterMessage,
   fakeVersion,
+  getInstance,
   shallowUntilTarget,
   simulateCommentList,
   simulateCommentable,
@@ -98,10 +99,17 @@ describe(__filename, () => {
     ...props
   }: Pick<SimulateCommentableParams, 'addCommentButton'> &
     Partial<RenderWithLinterProviderParams> = {}) => {
-    const provider = renderWithLinterProvider(props);
+    const root = render(props);
+    const { messageMap, messagesAreLoading, selectedMessageMap } = props;
+    const provider = simulateLinterProvider(root, {
+      messageMap,
+      messagesAreLoading,
+      selectedMessageMap,
+    });
     return {
       ...simulateCommentable({ addCommentButton, root: provider }),
       provider,
+      root,
     };
   };
 
@@ -368,6 +376,22 @@ describe(__filename, () => {
     expect(provider).toHaveProp('versionId', version.id);
     expect(provider).toHaveProp('validationURL', version.validationURL);
     expect(provider).toHaveProp('selectedPath', version.selectedPath);
+  });
+
+  it('configures base Profiler', () => {
+    const _sendPerfTiming = jest.fn();
+    const root = render({ _sendPerfTiming });
+    const instance = getInstance<CodeViewBase>(root);
+    const { onRenderProfiler } = instance;
+    const actualDuration = 19;
+    const id = 'some-id';
+    const phase = 'mount';
+
+    const profiler = root.find('#CodeView-Render');
+    expect(profiler).toHaveProp('onRender', onRenderProfiler);
+
+    onRenderProfiler(id, phase, actualDuration);
+    expect(_sendPerfTiming).toHaveBeenCalledWith({ actualDuration, id, phase });
   });
 
   it('renders a global LinterMessage', () => {

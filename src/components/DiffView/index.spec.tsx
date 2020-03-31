@@ -48,6 +48,7 @@ import {
   fakeChangeInfo,
   fakeExternalDiff,
   fakeVersion,
+  getInstance,
   nextUniqueId,
   shallowUntilTarget,
   simulateCommentable,
@@ -541,6 +542,22 @@ describe(__filename, () => {
     expect(provider).toHaveProp('versionId', version.id);
     expect(provider).toHaveProp('validationURL', version.validationURL);
     expect(provider).toHaveProp('selectedPath', version.selectedPath);
+  });
+
+  it('configures base Profiler', () => {
+    const _sendPerfTiming = jest.fn();
+    const root = render({ _sendPerfTiming });
+    const instance = getInstance<DiffViewBase>(root);
+    const { onRenderProfiler } = instance;
+    const actualDuration = 19;
+    const id = 'some-id';
+    const phase = 'mount';
+
+    const profiler = root.find('#DiffView-Render');
+    expect(profiler).toHaveProp('onRender', onRenderProfiler);
+
+    onRenderProfiler(id, phase, actualDuration);
+    expect(_sendPerfTiming).toHaveBeenCalledWith({ actualDuration, id, phase });
   });
 
   it('renders global messages', () => {

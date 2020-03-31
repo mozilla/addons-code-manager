@@ -9,6 +9,7 @@ import { Hunks, ChangeInfo, DiffInfo, getChangeKey } from 'react-diff-view';
 
 import { changeTypes, CompareInfo } from './reducers/versions';
 import { getCodeLineAnchor } from './components/CodeView/utils';
+import tracking from './tracking';
 
 // This is how many characters of code it takes to slow down the UI.
 export const SLOW_LOADING_CHAR_COUNT = 3000;
@@ -269,4 +270,23 @@ export const codeShouldBeTrimmed = (
   isMinified: boolean,
 ) => {
   return codeLength >= slowLoadingCharCount || isMinified;
+};
+
+export const sendPerfTiming = ({
+  _tracking = tracking,
+  actualDuration,
+  id,
+  phase,
+}: {
+  _tracking?: typeof tracking;
+  actualDuration: number;
+  id: string;
+  phase: string;
+}) => {
+  _tracking.timing({
+    category: 'renderPerf',
+    label: phase,
+    value: actualDuration,
+    variable: id,
+  });
 };

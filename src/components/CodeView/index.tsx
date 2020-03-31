@@ -21,6 +21,7 @@ import {
   codeShouldBeTrimmed,
   gettext,
   getLanguageFromMimeType,
+  sendPerfTiming,
   shouldAllowSlowPages,
 } from '../../utils';
 import { Version } from '../../reducers/versions';
@@ -71,6 +72,7 @@ export type PublicProps = {
 
 export type DefaultProps = {
   _scrollToSelectedLine: typeof scrollToSelectedLine;
+  _sendPerfTiming: typeof sendPerfTiming;
   _slowLoadingCharCount: number;
   _trimmedCharCount: number;
   enableCommenting: boolean;
@@ -81,9 +83,15 @@ type Props = PublicProps & DefaultProps & RouteComponentProps;
 export class CodeViewBase extends React.Component<Props> {
   static defaultProps: DefaultProps = {
     _scrollToSelectedLine: scrollToSelectedLine,
+    _sendPerfTiming: sendPerfTiming,
     _slowLoadingCharCount: SLOW_LOADING_CHAR_COUNT,
     _trimmedCharCount: TRIMMED_CHAR_COUNT,
     enableCommenting: process.env.REACT_APP_ENABLE_COMMENTING === 'true',
+  };
+
+  // See https://github.com/reactjs/rfcs/blob/master/text/0051-profiler.md
+  onRenderProfiler = (id: string, phase: string, actualDuration: number) => {
+    this.props._sendPerfTiming({ actualDuration, id, phase });
   };
 
   renderWithLinterInfo = ({ selectedMessageMap }: LinterProviderInfo) => {
@@ -196,7 +204,6 @@ export class CodeViewBase extends React.Component<Props> {
                               >{`${line}`}</Link>
                               {enableCommenting && addCommentButton}
                             </td>
-
                             <td className={styles.code}>
                               {renderCode({
                                 code,
@@ -256,16 +263,18 @@ export class CodeViewBase extends React.Component<Props> {
     const { version } = this.props;
 
     return (
-      <LinterProvider
-        versionId={version.id}
-        validationURL={version.validationURL}
-        selectedPath={version.selectedPath}
-      >
-        {// This needs to be an anonymous function (which defeats memoization)
-        // so that the component gets re-rendered in the case of adding
-        // comments per line.
-        (info: LinterProviderInfo) => this.renderWithLinterInfo(info)}
-      </LinterProvider>
+      <React.Profiler id="CodeView-Render" onRender={this.onRenderProfiler}>
+        <LinterProvider
+          versionId={version.id}
+          validationURL={version.validationURL}
+          selectedPath={version.selectedPath}
+        >
+          {// This needs to be an anonymous function (which defeats memoization)
+          // so that the component gets re-rendered in the case of adding
+          // comments per line.
+          (info: LinterProviderInfo) => this.renderWithLinterInfo(info)}
+        </LinterProvider>
+      </React.Profiler>
     );
   }
 }
