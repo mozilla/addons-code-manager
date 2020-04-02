@@ -34,8 +34,8 @@ import {
   getRelativeDiffAnchor,
 } from '../../reducers/versions';
 import {
-  SLOW_LOADING_CHAR_COUNT,
-  TRIMMED_CHAR_COUNT,
+  MINIFIED_FILE_TRIMMED_CHAR_COUNT,
+  SLOW_LOADING_LINE_COUNT,
   codeCanBeHighlighted,
   codeShouldBeTrimmed,
   getAllHunkChanges,
@@ -52,6 +52,50 @@ const { Profiler } = React;
 export const changeContentAddedByTrimmer =
   '/* diff truncated by code-manager */';
 
+export const addedChange: ChangeInfo = {
+  content: changeContentAddedByTrimmer,
+  isDelete: false,
+  isInsert: false,
+  isNormal: true,
+  lineNumber: undefined,
+  newLineNumber: undefined,
+  oldLineNumber: undefined,
+  type: 'normal',
+};
+
+// This is what is used to trim diffs that are not for minified files.
+// They are trimmed based on number of lines.
+export const trimHunkLines = ({
+  _slowLoadingLineCount = SLOW_LOADING_LINE_COUNT,
+  hunks,
+}: {
+  _slowLoadingLineCount?: number;
+  hunks: Hunks;
+}): Hunks => {
+  let lengthSoFar = 0;
+  const trimmed = [];
+
+  for (let hunk of hunks) {
+    const lengthOfHunkChanges = hunk.changes.length;
+    if (lengthOfHunkChanges + lengthSoFar > _slowLoadingLineCount) {
+      const changes = hunk.changes.slice(
+        0,
+        _slowLoadingLineCount - lengthSoFar,
+      );
+      // Push an additional change with a comment that says the content has
+      // been trimmed.
+      changes.push(addedChange);
+
+      hunk = { ...hunk, changes };
+      trimmed.push(hunk);
+      return trimmed;
+    }
+    trimmed.push(hunk);
+    lengthSoFar += lengthOfHunkChanges;
+  }
+  return trimmed;
+};
+
 export const getChangeCharCount = (hunks: Hunks) => {
   const changes = getAllHunkChanges(hunks);
   return changes.reduce((charCount, change) => {
@@ -59,9 +103,11 @@ export const getChangeCharCount = (hunks: Hunks) => {
   }, 0);
 };
 
-export const trimHunks = ({
+// This is what is used to trim diffs that are for minified files.
+// They are trimmed based on number of characters.
+export const trimHunkChars = ({
   hunks,
-  _trimmedCharCount = TRIMMED_CHAR_COUNT,
+  _trimmedCharCount = MINIFIED_FILE_TRIMMED_CHAR_COUNT,
 }: {
   hunks: Hunks;
   _trimmedCharCount?: number;
@@ -83,13 +129,7 @@ export const trimHunks = ({
         }
         // Push an additional change with a comment that says the content has
         // been trimmed.
-        trimmedHunks[hunkIndex].changes.push({
-          ...change,
-          content: changeContentAddedByTrimmer,
-          lineNumber: undefined,
-          newLineNumber: undefined,
-          oldLineNumber: undefined,
-        });
+        trimmedHunks[hunkIndex].changes.push(addedChange);
         return trimmedHunks;
       }
       trimmedHunks[hunkIndex].changes.push(change);
@@ -113,13 +153,16 @@ export type PublicProps = {
 export type DefaultProps = {
   _changeCanBeCommentedUpon: typeof changeCanBeCommentedUpon;
   _codeCanBeHighlighted: typeof codeCanBeHighlighted;
+  _codeShouldBeTrimmed: typeof codeShouldBeTrimmed;
   _document: typeof document;
   _getDiffAnchors: typeof getDiffAnchors;
   _getRelativeDiffAnchor: typeof getRelativeDiffAnchor;
+  _minifiedFileTrimmedCharCount: number;
   _sendPerfTiming: typeof sendPerfTiming;
-  _slowLoadingCharCount: number;
+  _slowLoadingLineCount: number;
   _tokenize: typeof tokenize;
-  _trimmedCharCount: number;
+  _trimHunkChars: typeof trimHunkChars;
+  _trimHunkLines: typeof trimHunkLines;
   enableCommenting: boolean;
   viewType: DiffProps['viewType'];
 };
@@ -132,13 +175,16 @@ export class DiffViewBase extends React.Component<Props> {
   static defaultProps: DefaultProps = {
     _changeCanBeCommentedUpon: changeCanBeCommentedUpon,
     _codeCanBeHighlighted: codeCanBeHighlighted,
+    _codeShouldBeTrimmed: codeShouldBeTrimmed,
     _document: document,
     _getDiffAnchors: getDiffAnchors,
     _getRelativeDiffAnchor: getRelativeDiffAnchor,
+    _minifiedFileTrimmedCharCount: MINIFIED_FILE_TRIMMED_CHAR_COUNT,
     _sendPerfTiming: sendPerfTiming,
-    _slowLoadingCharCount: SLOW_LOADING_CHAR_COUNT,
+    _slowLoadingLineCount: SLOW_LOADING_LINE_COUNT,
     _tokenize: tokenize,
-    _trimmedCharCount: TRIMMED_CHAR_COUNT,
+    _trimHunkChars: trimHunkChars,
+    _trimHunkLines: trimHunkLines,
     enableCommenting: process.env.REACT_APP_ENABLE_COMMENTING === 'true',
     viewType: 'unified',
   };
@@ -349,9 +395,12 @@ export class DiffViewBase extends React.Component<Props> {
   renderWithMessages = ({ selectedMessageMap }: LinterProviderInfo) => {
     const {
       _codeCanBeHighlighted,
-      _slowLoadingCharCount,
+      _codeShouldBeTrimmed,
+      _minifiedFileTrimmedCharCount,
+      _slowLoadingLineCount,
       _tokenize,
-      _trimmedCharCount,
+      _trimHunkChars,
+      _trimHunkLines,
       diff,
       isMinified,
       mimeType,
@@ -371,25 +420,31 @@ export class DiffViewBase extends React.Component<Props> {
 
     const extraMessages = [];
 
-    let hunksToDisplay;
+    let hunks;
     let diffWasTrimmed = false;
     let diffIsSlowAlert;
 
     if (diff) {
-      hunksToDisplay = diff.hunks;
+      let changeCount = 0;
+      for (const hunk of diff.hunks) {
+        changeCount += hunk.changes.length;
+      }
+
+      hunks = diff.hunks;
 
       if (
-        codeShouldBeTrimmed(
-          getChangeCharCount(hunksToDisplay),
-          _slowLoadingCharCount,
+        _codeShouldBeTrimmed({
+          codeCharLength: getChangeCharCount(hunks),
+          codeLineLength: changeCount,
           isMinified,
-        )
+          minifiedFileTrimmedCharCount: _minifiedFileTrimmedCharCount,
+          slowLoadingLineCount: _slowLoadingLineCount,
+        })
       ) {
         if (!shouldAllowSlowPages({ allowByDefault: !isMinified, location })) {
-          hunksToDisplay = trimHunks({
-            _trimmedCharCount,
-            hunks: hunksToDisplay,
-          });
+          hunks = isMinified
+            ? _trimHunkChars({ hunks })
+            : _trimHunkLines({ hunks });
           diffWasTrimmed = true;
         }
         diffIsSlowAlert = (
@@ -399,7 +454,7 @@ export class DiffViewBase extends React.Component<Props> {
             location={location}
             getMessage={(allowSlowPages: boolean) => {
               return allowSlowPages
-                ? gettext('This diff will load slowly.')
+                ? gettext('This diff may load slowly.')
                 : gettext('This diff was shortened to load faster.');
             }}
             getLinkText={(allowSlowPages: boolean) => {
@@ -414,13 +469,10 @@ export class DiffViewBase extends React.Component<Props> {
     }
 
     let tokens;
-    if (
-      hunksToDisplay &&
-      _codeCanBeHighlighted({ code: getAllHunkChanges(hunksToDisplay) })
-    ) {
+    if (hunks && _codeCanBeHighlighted({ code: getAllHunkChanges(hunks) })) {
       // TODO: always highlight when we can use a Web Worker.
       // https://github.com/mozilla/addons-code-manager/issues/928
-      tokens = _tokenize(hunksToDisplay, options);
+      tokens = _tokenize(hunks, options);
     }
 
     if (diff && !tokens) {
@@ -449,20 +501,20 @@ export class DiffViewBase extends React.Component<Props> {
 
         {extraMessages.length ? this.renderExtraMessages(extraMessages) : null}
 
-        {diff && hunksToDisplay && (
+        {diff && hunks && (
           <React.Fragment key={`${diff.oldRevision}-${diff.newRevision}`}>
             {this.renderHeader(diff)}
             <FadableContent fade={diffWasTrimmed}>
               <Diff
                 className={styles.diff}
                 diffType={diff.type}
-                hunks={hunksToDisplay}
+                hunks={hunks}
                 tokens={tokens}
                 viewType={viewType}
                 gutterType="anchor"
                 generateAnchorID={getChangeKey}
                 selectedChanges={selectedChanges}
-                widgets={this.getWidgets(hunksToDisplay, selectedMessageMap)}
+                widgets={this.getWidgets(hunks, selectedMessageMap)}
                 renderGutter={this.renderGutter}
               >
                 {this.renderHunks}

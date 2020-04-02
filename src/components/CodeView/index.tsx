@@ -16,8 +16,8 @@ import {
 } from './utils';
 import refractor from '../../refractor';
 import {
-  SLOW_LOADING_CHAR_COUNT,
-  TRIMMED_CHAR_COUNT,
+  MINIFIED_FILE_TRIMMED_CHAR_COUNT,
+  SLOW_LOADING_LINE_COUNT,
   codeShouldBeTrimmed,
   gettext,
   getLanguageFromMimeType,
@@ -71,10 +71,10 @@ export type PublicProps = {
 };
 
 export type DefaultProps = {
+  _minifiedFileTrimmedCharCount: number;
   _scrollToSelectedLine: typeof scrollToSelectedLine;
   _sendPerfTiming: typeof sendPerfTiming;
-  _slowLoadingCharCount: number;
-  _trimmedCharCount: number;
+  _slowLoadingLineCount: number;
   enableCommenting: boolean;
 };
 
@@ -82,10 +82,10 @@ type Props = PublicProps & DefaultProps & RouteComponentProps;
 
 export class CodeViewBase extends React.Component<Props> {
   static defaultProps: DefaultProps = {
+    _minifiedFileTrimmedCharCount: MINIFIED_FILE_TRIMMED_CHAR_COUNT,
     _scrollToSelectedLine: scrollToSelectedLine,
     _sendPerfTiming: sendPerfTiming,
-    _slowLoadingCharCount: SLOW_LOADING_CHAR_COUNT,
-    _trimmedCharCount: TRIMMED_CHAR_COUNT,
+    _slowLoadingLineCount: SLOW_LOADING_LINE_COUNT,
     enableCommenting: process.env.REACT_APP_ENABLE_COMMENTING === 'true',
   };
 
@@ -96,9 +96,9 @@ export class CodeViewBase extends React.Component<Props> {
 
   renderWithLinterInfo = ({ selectedMessageMap }: LinterProviderInfo) => {
     const {
+      _minifiedFileTrimmedCharCount,
       _scrollToSelectedLine,
-      _slowLoadingCharCount,
-      _trimmedCharCount,
+      _slowLoadingLineCount,
       content,
       enableCommenting,
       isMinified,
@@ -113,15 +113,26 @@ export class CodeViewBase extends React.Component<Props> {
     let slowAlert;
 
     if (
-      codeShouldBeTrimmed(content.length, _slowLoadingCharCount, isMinified)
+      codeShouldBeTrimmed({
+        codeCharLength: content.length,
+        codeLineLength: codeLines.length,
+        isMinified,
+        minifiedFileTrimmedCharCount: _minifiedFileTrimmedCharCount,
+        slowLoadingLineCount: _slowLoadingLineCount,
+      })
     ) {
       if (!shouldAllowSlowPages({ location })) {
-        codeLines = getLines(
-          `${content.substring(
-            0,
-            _trimmedCharCount,
-          )} /* truncated by code-manager */`,
-        );
+        if (isMinified) {
+          codeLines = getLines(
+            `${content.substring(
+              0,
+              _minifiedFileTrimmedCharCount,
+            )} /* truncated by code-manager */`,
+          );
+        } else {
+          codeLines = codeLines.slice(0, _slowLoadingLineCount);
+          codeLines.push('/* truncated by code-manager */');
+        }
         codeWasTrimmed = true;
       }
       slowAlert = (
@@ -158,9 +169,7 @@ export class CodeViewBase extends React.Component<Props> {
           key={location.key}
           messages={selectedMessageMap && selectedMessageMap.global}
         />
-
         {slowAlert}
-
         <FadableContent fade={codeWasTrimmed}>
           <div className={styles.CodeView}>
             <table className={styles.table}>
@@ -269,12 +278,10 @@ export class CodeViewBase extends React.Component<Props> {
           validationURL={version.validationURL}
           selectedPath={version.selectedPath}
         >
-          {
-            // This needs to be an anonymous function (which defeats memoization)
-            // so that the component gets re-rendered in the case of adding
-            // comments per line.
-            (info: LinterProviderInfo) => this.renderWithLinterInfo(info)
-          }
+          {// This needs to be an anonymous function (which defeats memoization)
+          // so that the component gets re-rendered in the case of adding
+          // comments per line.
+          (info: LinterProviderInfo) => this.renderWithLinterInfo(info)}
         </LinterProvider>
       </React.Profiler>
     );

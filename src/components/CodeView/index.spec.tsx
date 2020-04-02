@@ -161,19 +161,21 @@ describe(__filename, () => {
   };
 
   const renderSlowLoadingCode = ({
-    _slowLoadingCharCount = 3,
-    contentCharCount,
-    content = 'a'.repeat(
-      contentCharCount !== undefined
-        ? contentCharCount
+    _slowLoadingLineCount = 3,
+    contentLineCount,
+    content = new Array(
+      contentLineCount !== undefined
+        ? contentLineCount
         : // Simulate a long file (which will load slowly) by exceeding the
-          // char limit.
-          _slowLoadingCharCount + 1,
-    ),
+          // line limit.
+          _slowLoadingLineCount + 1,
+    )
+      .fill('// example code')
+      .join('\n'),
     ...moreProps
-  }: RenderParams & { contentCharCount?: number } = {}) => {
+  }: RenderParams & { contentLineCount?: number } = {}) => {
     return renderWithLinterProvider({
-      _slowLoadingCharCount,
+      _slowLoadingLineCount,
       content,
       ...moreProps,
     });
@@ -475,49 +477,34 @@ describe(__filename, () => {
   });
 
   it('trims the code when too long', () => {
-    const content = 'some-content';
-    const _slowLoadingCharCount = content.length - 2;
-    const _trimmedCharCount = _slowLoadingCharCount - 2;
-    const mimeType = 'mime/type';
-
-    const root = renderWithLinterProvider({
-      _slowLoadingCharCount,
-      _trimmedCharCount,
-      content,
+    const contentLineCount = 5;
+    const _slowLoadingLineCount = contentLineCount - 2;
+    const root = renderSlowLoadingCode({
+      _slowLoadingLineCount,
+      contentLineCount,
     });
 
     const fadable = root.find(FadableContent);
     expect(fadable).toHaveProp('fade', true);
 
+    // The number of lines should be the number to trim to, plus one for the
+    // added message.
+    expect(fadable.find(`.${styles.line}`)).toHaveLength(
+      _slowLoadingLineCount + 1,
+    );
+
     // Show the warning twice: top and bottom.
     expect(root.find(SlowPageAlert)).toHaveLength(2);
-
-    const { renderContent } = simulateCommentableLine({
-      _slowLoadingCharCount,
-      _trimmedCharCount,
-      content,
-      mimeType,
-    });
-    const line = renderContent();
-
-    expect(line.find('.innerHighlightedCode')).toHaveText(
-      `${content.substring(
-        0,
-        _trimmedCharCount,
-      )} /* truncated by code-manager */`,
-    );
   });
 
   it('trims the code when identified as minified', () => {
     const content = 'some-content';
-    const _slowLoadingCharCount = content.length + 1;
-    const _trimmedCharCount = content.length - 2;
+    const _minifiedFileTrimmedCharCount = content.length - 2;
     const isMinified = true;
     const mimeType = 'mime/type';
 
     const root = renderWithLinterProvider({
-      _slowLoadingCharCount,
-      _trimmedCharCount,
+      _minifiedFileTrimmedCharCount,
       content,
       isMinified,
     });
@@ -529,8 +516,7 @@ describe(__filename, () => {
     expect(root.find(SlowPageAlert)).toHaveLength(2);
 
     const { renderContent } = simulateCommentableLine({
-      _slowLoadingCharCount,
-      _trimmedCharCount,
+      _minifiedFileTrimmedCharCount,
       content,
       isMinified,
       mimeType,
@@ -540,43 +526,30 @@ describe(__filename, () => {
     expect(line.find('.innerHighlightedCode')).toHaveText(
       `${content.substring(
         0,
-        _trimmedCharCount,
+        _minifiedFileTrimmedCharCount,
       )} /* truncated by code-manager */`,
     );
   });
 
   it('does not trim code when slow pages are allowed', () => {
-    const content = 'some-content';
-    const _slowLoadingCharCount = content.length - 2;
-    const _trimmedCharCount = _slowLoadingCharCount - 2;
+    const contentLineCount = 5;
     const location = createFakeLocation({
       search: queryString.stringify({ [allowSlowPagesParam]: true }),
     });
-    const mimeType = 'mime/type';
 
-    const root = renderWithLinterProvider({
-      _slowLoadingCharCount,
-      _trimmedCharCount,
-      content,
+    const root = renderSlowLoadingCode({
+      _slowLoadingLineCount: contentLineCount - 2,
+      contentLineCount,
       location,
     });
 
     const fadable = root.find(FadableContent);
     expect(fadable).toHaveProp('fade', false);
 
+    expect(fadable.find(`.${styles.line}`)).toHaveLength(contentLineCount);
+
     // The warning should only be shown once, at the top.
     expect(root.find(SlowPageAlert)).toHaveLength(1);
-
-    const { renderContent } = simulateCommentableLine({
-      _slowLoadingCharCount,
-      _trimmedCharCount,
-      content,
-      location,
-      mimeType,
-    });
-    const line = renderContent();
-
-    expect(line.find('.innerHighlightedCode')).toHaveText(content);
   });
 
   it('configures SlowPageAlert', () => {
