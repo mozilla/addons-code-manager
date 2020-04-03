@@ -17,12 +17,9 @@ import {
   createStoreWithVersion,
   createStoreWithVersionComments,
   dispatchLoadVersionInfo,
-  fakeExternalDiff,
   fakeUser,
   fakeVersion,
   fakeVersionAddon,
-  fakeVersionEntry,
-  fakeVersionFile,
   nextUniqueId,
   shallowUntilTarget,
   spyOn,
@@ -92,18 +89,6 @@ describe(__filename, () => {
     });
   };
 
-  const _loadVersionFile = ({
-    store = configureStore(),
-    version = { ...fakeVersion, id: nextUniqueId() },
-  }) => {
-    store.dispatch(
-      versionsActions.loadVersionFile({
-        path: version.file.selected_file,
-        version,
-      }),
-    );
-  };
-
   describe('when a version is loaded', () => {
     it('renders addon name', () => {
       const addonName = 'addon name example';
@@ -146,103 +131,6 @@ describe(__filename, () => {
       expect(chooser).toHaveLength(1);
       expect(chooser).toHaveProp('addonId', addonId);
     });
-
-    describe('with a file loaded', () => {
-      it('renders a link to the legacy file viewer in the browse page', () => {
-        const reviewersHost = 'https://example.com';
-        const path = '/some/file/path/file.js';
-        const version = {
-          ...fakeVersion,
-          file: {
-            ...fakeVersionFile,
-            entries: {
-              ...fakeVersion.file.entries,
-              [path]: { ...fakeVersionEntry, filename: path, path },
-            },
-            selected_file: path,
-          },
-        };
-        const store = createStoreWithVersion({
-          version,
-          makeCurrent: true,
-        });
-        _loadVersionFile({ store, version });
-        const root = render({ reviewersHost, store, path });
-
-        expect(root.find(`.${styles.legacyLink}`)).toHaveProp(
-          'href',
-          `${reviewersHost}/${process.env.REACT_APP_DEFAULT_API_LANG}/firefox/files/browse/${version.file.id}/file/${path}`,
-        );
-      });
-
-      it('renders a link to the legacy diff viewer in the compare page', () => {
-        const reviewersHost = 'https://example.com';
-        const path = '/some/file/path/file.js';
-        const baseFileId = nextUniqueId();
-        const baseVersionId = nextUniqueId();
-        const headVersionId = baseVersionId + 1;
-        const version = {
-          ...fakeVersion,
-          id: headVersionId,
-          file: {
-            ...fakeVersionFile,
-            base_file: {
-              id: baseFileId,
-            },
-            diff: fakeExternalDiff,
-            entries: {
-              ...fakeVersion.file.entries,
-              [path]: { ...fakeVersionEntry, filename: path, path },
-            },
-            selected_file: path,
-          },
-        };
-
-        const store = createStoreWithVersion({
-          version,
-          makeCurrent: true,
-        });
-        dispatchLoadVersionInfo({
-          store,
-          version: { ...version, id: baseVersionId },
-        });
-        _loadVersionFile({ store, version });
-        store.dispatch(
-          versionsActions.loadDiff({
-            addonId: version.addon.id,
-            baseVersionId,
-            headVersionId,
-            path,
-            version,
-          }),
-        );
-        store.dispatch(
-          versionsActions.setCurrentBaseVersionId({
-            versionId: baseVersionId,
-          }),
-        );
-
-        const root = render({ reviewersHost, store, path });
-
-        expect(root.find(`.${styles.legacyLink}`)).toHaveProp(
-          'href',
-          `${reviewersHost}/${process.env.REACT_APP_DEFAULT_API_LANG}/firefox/files/compare/${version.file.id}...${baseFileId}/file/${path}`,
-        );
-      });
-    });
-
-    describe('without a file loaded', () => {
-      it('does not render a link to the legacy file viewer', () => {
-        const reviewersHost = 'https://example.com';
-        const store = createStoreWithVersion({
-          version: fakeVersion,
-          makeCurrent: true,
-        });
-        const root = render({ reviewersHost, store });
-
-        expect(root.find(`.${styles.legacyLink}`)).toHaveLength(0);
-      });
-    });
   });
 
   describe('when version is undefined', () => {
@@ -264,10 +152,40 @@ describe(__filename, () => {
       expect(root.find(VersionChooser)).toHaveLength(0);
     });
 
-    it('does not render a link to the legacy file viewer', () => {
-      const root = render();
+    it('renders a link to the legacy file viewer in the browse page', () => {
+      const reviewersHost = 'https://example.com';
+      const path = '/some/file/path/file.js';
+      const store = configureStore();
+      const versionId = 12345;
+      store.dispatch(versionsActions.setCurrentVersionId({ versionId }));
 
-      expect(root.find(`.${styles.legacyLink}`)).toHaveLength(0);
+      const root = render({ reviewersHost, store, path });
+
+      expect(root.find(`.${styles.legacyLink}`)).toHaveProp(
+        'href',
+        `${reviewersHost}/${process.env.REACT_APP_DEFAULT_API_LANG}/firefox/files/browse-redirect/${versionId}/?file=${path}`,
+      );
+    });
+
+    it('renders a link to the legacy diff viewer in the compare page', () => {
+      const baseVersionId = 12345;
+      const reviewersHost = 'https://example.com';
+      const path = '/some/file/path/file.js';
+      const store = configureStore();
+      const versionId = 54321;
+      store.dispatch(versionsActions.setCurrentVersionId({ versionId }));
+      store.dispatch(
+        versionsActions.setCurrentBaseVersionId({
+          versionId: baseVersionId,
+        }),
+      );
+
+      const root = render({ reviewersHost, store, path });
+
+      expect(root.find(`.${styles.legacyLink}`)).toHaveProp(
+        'href',
+        `${reviewersHost}/${process.env.REACT_APP_DEFAULT_API_LANG}/firefox/files/compare-redirect/${versionId}...${baseVersionId}/?file=${path}`,
+      );
     });
   });
 
@@ -513,16 +431,7 @@ describe(__filename, () => {
     }) => {
       root.setProps({
         dispatch: jest.fn(),
-        ...mapStateToProps(store.getState(), {
-          history: createFakeHistory(),
-          location: createFakeLocation(),
-          match: {
-            params: {},
-            isExact: true,
-            path: '/some-path',
-            url: 'some-url',
-          },
-        }),
+        ...mapStateToProps(store.getState()),
       });
     };
 

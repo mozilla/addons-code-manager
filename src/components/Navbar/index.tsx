@@ -17,11 +17,8 @@ import { ApplicationState } from '../../reducers';
 import { Comment, selectVersionComments } from '../../reducers/comments';
 import {
   Version,
-  VersionFile,
   fetchVersion,
-  getVersionFile,
   getVersionInfo,
-  getCompareInfo,
   selectCurrentVersionInfo,
 } from '../../reducers/versions';
 import { ConnectedReduxProps } from '../../configureStore';
@@ -42,8 +39,7 @@ type PropsFromState = {
   currentBaseVersion: Version | null | undefined | false;
   currentBaseVersionId: number | undefined | false;
   currentVersion: Version | null | undefined | false;
-  baseFileId: number | null;
-  file: VersionFile | null | undefined;
+  currentVersionId: number | undefined | false;
   selectedPath: string | null;
   user: User | null;
 };
@@ -147,10 +143,10 @@ export class NavbarBase extends React.Component<Props, State> {
 
   render() {
     const {
-      baseFileId,
       currentBaseVersion,
+      currentBaseVersionId,
       currentVersion,
-      file,
+      currentVersionId,
       reviewersHost,
       history,
       user,
@@ -220,16 +216,16 @@ export class NavbarBase extends React.Component<Props, State> {
           </div>
         </Navbar.Brand>
         <Navbar.Text className={styles.text}>
-          {currentVersion && file ? (
+          {currentVersionId ? (
             <a
               className={styles.legacyLink}
               href={
-                baseFileId
-                  ? `${baseUrlToLegacy}/compare/${file.id}...${baseFileId}/${
-                      path ? `file/${path}` : ''
+                currentBaseVersionId
+                  ? `${baseUrlToLegacy}/compare-redirect/${currentVersionId}...${currentBaseVersionId}/${
+                      path ? `?file=${path}` : ''
                     }`
-                  : `${baseUrlToLegacy}/browse/${file.id}/${
-                      path ? `file/${path}` : ''
+                  : `${baseUrlToLegacy}/browse-redirect/${currentVersionId}/${
+                      path ? `?file=${path}` : ''
                     }`
               }
               rel="noopener noreferrer"
@@ -252,10 +248,7 @@ export class NavbarBase extends React.Component<Props, State> {
   }
 }
 
-export const mapStateToProps = (
-  state: ApplicationState,
-  ownProps: RouteComponentProps<{}>,
-): PropsFromState => {
+export const mapStateToProps = (state: ApplicationState): PropsFromState => {
   const { currentBaseVersionId, selectedPath } = state.versions;
   let currentBaseVersion;
   if (currentBaseVersionId) {
@@ -264,21 +257,7 @@ export const mapStateToProps = (
 
   const currentVersion = selectCurrentVersionInfo(state.versions);
 
-  let baseFileId = null;
-
-  if (currentBaseVersionId && currentVersion) {
-    const compareInfo = getCompareInfo(
-      state.versions,
-      currentVersion.addon.id,
-      currentBaseVersionId,
-      currentVersion.id,
-      getPathFromQueryString(ownProps.history) || undefined,
-    );
-    baseFileId = compareInfo ? compareInfo.baseFileId : null;
-  }
-
   return {
-    baseFileId,
     comments: currentVersion
       ? selectVersionComments({
           comments: state.comments,
@@ -286,13 +265,10 @@ export const mapStateToProps = (
         })
       : undefined,
     user: selectCurrentUser(state.users),
-    file:
-      currentVersion && selectedPath
-        ? getVersionFile(state.versions, currentVersion.id, selectedPath)
-        : null,
     currentBaseVersion,
     currentBaseVersionId,
     currentVersion,
+    currentVersionId: state.versions.currentVersionId,
     selectedPath,
   };
 };
