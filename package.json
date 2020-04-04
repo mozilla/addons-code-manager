@@ -37,7 +37,7 @@
     "dompurify": "2.0.8",
     "express": "4.17.1",
     "filesize": "6.1.0",
-    "focus-visible": "5.0.2",
+    "focus-visible": "5.1.0",
     "he": "1.2.0",
     "helmet": "3.22.0",
     "history": "4.10.1",
