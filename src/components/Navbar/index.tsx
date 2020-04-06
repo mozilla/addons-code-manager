@@ -27,6 +27,7 @@ import styles from './styles.module.scss';
 
 export type PublicProps = {
   _requestLogOut: typeof requestLogOut;
+  lang: string;
   reviewersHost: string;
 };
 
@@ -54,10 +55,15 @@ type State = {
   nextBaseVersionImprint: string | undefined;
 };
 
+export const legacyQuerystring = (path: string | null) => {
+  return path ? `?file=${path}` : '';
+};
+
 export class NavbarBase extends React.Component<Props, State> {
   static defaultProps = {
     _fetchVersion: fetchVersion,
     _requestLogOut: requestLogOut,
+    lang: process.env.REACT_APP_DEFAULT_API_LANG,
     reviewersHost: process.env.REACT_APP_REVIEWERS_HOST,
   };
 
@@ -147,13 +153,14 @@ export class NavbarBase extends React.Component<Props, State> {
       currentBaseVersionId,
       currentVersion,
       currentVersionId,
-      reviewersHost,
       history,
+      lang,
+      reviewersHost,
       user,
     } = this.props;
     const { nextBaseVersionImprint } = this.state;
     const path = getPathFromQueryString(history);
-    const baseUrlToLegacy = `${reviewersHost}/${process.env.REACT_APP_DEFAULT_API_LANG}/firefox/files`;
+    const baseUrlToLegacy = `${reviewersHost}/${lang}/firefox/files`;
 
     return (
       <Navbar className={styles.Navbar} expand="lg" variant="dark">
@@ -221,12 +228,12 @@ export class NavbarBase extends React.Component<Props, State> {
               className={styles.legacyLink}
               href={
                 currentBaseVersionId
-                  ? `${baseUrlToLegacy}/compare-redirect/${currentVersionId}...${currentBaseVersionId}/${
-                      path ? `?file=${path}` : ''
-                    }`
-                  : `${baseUrlToLegacy}/browse-redirect/${currentVersionId}/${
-                      path ? `?file=${path}` : ''
-                    }`
+                  ? `${baseUrlToLegacy}/compare-redirect/${currentVersionId}...${currentBaseVersionId}/${legacyQuerystring(
+                      path,
+                    )}`
+                  : `${baseUrlToLegacy}/browse-redirect/${currentVersionId}/${legacyQuerystring(
+                      path,
+                    )}`
               }
               rel="noopener noreferrer"
               target="_blank"
