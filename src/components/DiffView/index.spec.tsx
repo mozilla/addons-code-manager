@@ -26,6 +26,8 @@ import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import GlobalLinterMessages from '../GlobalLinterMessages';
 import SlowPageAlert from '../SlowPageAlert';
 import {
+  MINIFIED_FILE_TRIMMED_CHAR_COUNT,
+  SLOW_LOADING_LINE_COUNT,
   allowSlowPagesParam,
   getLanguageFromMimeType,
   getAllHunkChanges,
@@ -1033,6 +1035,19 @@ describe(__filename, () => {
   });
 
   describe('trimHunkLines', () => {
+    it('defaults _slowLoadingLineCount to SLOW_LOADING_LINE_COUNT', () => {
+      const changes = Array(SLOW_LOADING_LINE_COUNT + 10).fill({
+        content: '// example content',
+      });
+      const hunk = createInternalHunkWithChanges(changes);
+
+      // Add one to expected length for the message that gets added.
+      const expectedLength = SLOW_LOADING_LINE_COUNT + 1;
+
+      const trimmed = trimHunkLines({ hunks: [hunk] });
+      expect(trimmed[0].changes.length).toEqual(expectedLength);
+    });
+
     describe('for a single hunk', () => {
       it('does not trim when not necessary', () => {
         const hunks = [
@@ -1095,6 +1110,18 @@ describe(__filename, () => {
 
   describe('trimHunkChars', () => {
     const changeCharCount = 5;
+
+    it('defaults _trimmedCharCount to MINIFIED_FILE_TRIMMED_CHAR_COUNT', () => {
+      const change = {
+        content: 'a'.repeat(MINIFIED_FILE_TRIMMED_CHAR_COUNT + 10),
+      };
+      const hunk = createInternalHunkWithChanges([change]);
+
+      const trimmed = trimHunkChars({ hunks: [hunk] });
+      expect(trimmed[0].changes[0].content.length).toEqual(
+        MINIFIED_FILE_TRIMMED_CHAR_COUNT,
+      );
+    });
 
     describe('for a single hunk', () => {
       it('does not trim when not necessary', () => {
