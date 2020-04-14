@@ -18,7 +18,11 @@ import {
   mapWithDepth,
   GLOBAL_LINTER_ANCHOR_ID,
 } from './utils';
-import { allowSlowPagesParam, getLanguageFromMimeType } from '../../utils';
+import {
+  allowSlowPagesParam,
+  contentAddedByTrimmer,
+  getLanguageFromMimeType,
+} from '../../utils';
 import {
   SimulateCommentListParams,
   SimulateCommentableParams,
@@ -527,7 +531,7 @@ describe(__filename, () => {
       `${content.substring(
         0,
         _minifiedFileTrimmedCharCount,
-      )} /* truncated by code-manager */`,
+      )} ${contentAddedByTrimmer}`,
     );
   });
 

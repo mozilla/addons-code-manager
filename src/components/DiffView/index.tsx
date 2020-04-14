@@ -38,6 +38,7 @@ import {
   SLOW_LOADING_LINE_COUNT,
   codeCanBeHighlighted,
   codeShouldBeTrimmed,
+  contentAddedByTrimmer,
   getAllHunkChanges,
   getLanguageFromMimeType,
   gettext,
@@ -49,11 +50,8 @@ import 'react-diff-view/style/index.css';
 
 const { Profiler } = React;
 
-export const changeContentAddedByTrimmer =
-  '/* diff truncated by code-manager */';
-
 export const addedChange: ChangeInfo = {
-  content: changeContentAddedByTrimmer,
+  content: contentAddedByTrimmer,
   isDelete: false,
   isInsert: false,
   isNormal: true,

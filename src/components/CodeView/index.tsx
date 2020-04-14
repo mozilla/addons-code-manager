@@ -19,6 +19,7 @@ import {
   MINIFIED_FILE_TRIMMED_CHAR_COUNT,
   SLOW_LOADING_LINE_COUNT,
   codeShouldBeTrimmed,
+  contentAddedByTrimmer,
   gettext,
   getLanguageFromMimeType,
   sendPerfTiming,
@@ -127,11 +128,11 @@ export class CodeViewBase extends React.Component<Props> {
             `${content.substring(
               0,
               _minifiedFileTrimmedCharCount,
-            )} /* truncated by code-manager */`,
+            )} ${contentAddedByTrimmer}`,
           );
         } else {
           codeLines = codeLines.slice(0, _slowLoadingLineCount);
-          codeLines.push('/* truncated by code-manager */');
+          codeLines.push(contentAddedByTrimmer);
         }
         codeWasTrimmed = true;
       }
