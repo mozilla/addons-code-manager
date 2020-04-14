@@ -1,23 +1,41 @@
-import { shallow } from 'enzyme';
+import { History, Location } from 'history';
 import queryString from 'query-string';
 import * as React from 'react';
 import { Alert } from 'react-bootstrap';
 
 import { allowSlowPagesParam } from '../../utils';
-import { createFakeHistory, createFakeLocation } from '../../test-helpers';
+import {
+  createContextWithFakeRouter,
+  createFakeHistory,
+  createFakeLocation,
+  shallowUntilTarget,
+} from '../../test-helpers';
 
-import SlowPageAlert from '.';
+import SlowPageAlert, { PublicProps, SlowPageAlertBase } from '.';
 
 describe(__filename, () => {
-  const render = (otherProps = {}) => {
-    const props = {
-      history: createFakeHistory(),
-      location: createFakeLocation(),
-      getLinkText: () => 'example link text',
-      getMessage: () => 'example message',
-      ...otherProps,
-    };
-    return shallow(<SlowPageAlert {...props} />);
+  type RenderParams = { history?: History; location?: Location } & Partial<
+    PublicProps
+  >;
+
+  const render = ({
+    getLinkText = () => 'example link text',
+    getMessage = () => 'example message',
+    history = createFakeHistory(),
+    location = createFakeLocation(),
+    ...props
+  }: RenderParams = {}) => {
+    const shallowOptions = createContextWithFakeRouter({ history, location });
+
+    return shallowUntilTarget(
+      <SlowPageAlert
+        getLinkText={getLinkText}
+        getMessage={getMessage}
+        {...props}
+      />,
+      SlowPageAlertBase,
+      { shallowOptions },
+    );
   };
 
   it('renders an alert with text callbacks', () => {

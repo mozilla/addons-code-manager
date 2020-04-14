@@ -400,7 +400,6 @@ export class DiffViewBase extends React.Component<Props> {
       _trimHunkChars,
       _trimHunkLines,
       diff,
-      history,
       isMinified,
       mimeType,
       viewType,
@@ -449,9 +448,7 @@ export class DiffViewBase extends React.Component<Props> {
         diffIsSlowAlert = (
           <SlowPageAlert
             allowSlowPagesByDefault={!isMinified}
-            history={history}
             key="slowPageAlert"
-            location={location}
             getMessage={(allowSlowPages: boolean) => {
               return allowSlowPages
                 ? gettext('This diff may load slowly.')

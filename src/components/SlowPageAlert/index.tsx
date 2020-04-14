@@ -1,7 +1,7 @@
-import { History, Location } from 'history';
 import queryString from 'query-string';
 import * as React from 'react';
 import { Alert } from 'react-bootstrap';
+import { withRouter, RouteComponentProps } from 'react-router-dom';
 
 import { allowSlowPagesParam, shouldAllowSlowPages } from '../../utils';
 
@@ -12,18 +12,18 @@ export type PublicProps = {
   allowSlowPagesByDefault?: boolean;
   getLinkText: GetTextForSlowState;
   getMessage: GetTextForSlowState;
-  history: History;
-  location: Location;
 };
 
-const SlowPageAlertBase = ({
+export type Props = PublicProps & RouteComponentProps;
+
+export const SlowPageAlertBase = ({
   _shouldAllowSlowPages = shouldAllowSlowPages,
   allowSlowPagesByDefault,
   getLinkText,
   getMessage,
   history,
   location,
-}: PublicProps) => {
+}: Props) => {
   const allowSlowPages = _shouldAllowSlowPages({
     allowByDefault: allowSlowPagesByDefault,
     location,
@@ -48,4 +48,6 @@ const SlowPageAlertBase = ({
   );
 };
 
-export default SlowPageAlertBase;
+export default withRouter(SlowPageAlertBase) as React.ComponentType<
+  PublicProps
+>;

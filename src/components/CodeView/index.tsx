@@ -102,7 +102,6 @@ export class CodeViewBase extends React.Component<Props> {
       _slowLoadingLineCount,
       content,
       enableCommenting,
-      history,
       isMinified,
       location,
       mimeType,
@@ -139,8 +138,6 @@ export class CodeViewBase extends React.Component<Props> {
       }
       slowAlert = (
         <SlowPageAlert
-          history={history}
-          location={location}
           getMessage={(allowSlowPages: boolean) => {
             return allowSlowPages
               ? gettext('This file may be loading slowly.')

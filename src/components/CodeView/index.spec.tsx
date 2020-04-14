@@ -557,12 +557,8 @@ describe(__filename, () => {
   });
 
   it('configures SlowPageAlert', () => {
-    const location = createFakeLocation();
-    const root = renderSlowLoadingCode({ location });
-
+    const root = renderSlowLoadingCode();
     const message = root.find(SlowPageAlert).at(0);
-
-    expect(message).toHaveProp('location', location);
 
     expect(message).toHaveProp('getMessage');
     expect(message).toHaveProp('getLinkText');

@@ -480,25 +480,21 @@ export const createFakeLocation = ({
   };
 };
 
-// The funny business with jestExists below is so we can use this helper with
-// Storybook, where jest does not exist.
 export const createFakeHistory = ({
   location = createFakeLocation(),
 } = {}): History => {
-  const jestExists = typeof jest !== 'undefined';
-  const fakeCallback = jestExists ? null : () => () => null;
   return {
     action: 'PUSH',
-    block: fakeCallback || jest.fn(),
-    createHref: jestExists ? jest.fn() : () => '',
-    go: fakeCallback || jest.fn(),
-    goBack: fakeCallback || jest.fn(),
-    goForward: fakeCallback || jest.fn(),
+    block: jest.fn(),
+    createHref: jest.fn(),
+    go: jest.fn(),
+    goBack: jest.fn(),
+    goForward: jest.fn(),
     length: 1,
-    listen: fakeCallback || jest.fn(),
+    listen: jest.fn(),
     location,
-    push: fakeCallback || jest.fn(),
-    replace: fakeCallback || jest.fn(),
+    push: jest.fn(),
+    replace: jest.fn(),
   };
 };
 
