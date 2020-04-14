@@ -1,12 +1,9 @@
-import { Location } from 'history';
+import { History, Location } from 'history';
+import queryString from 'query-string';
 import * as React from 'react';
 import { Alert } from 'react-bootstrap';
 
-import {
-  allowSlowPagesParam,
-  createAdjustedQueryString,
-  shouldAllowSlowPages,
-} from '../../utils';
+import { allowSlowPagesParam, shouldAllowSlowPages } from '../../utils';
 
 type GetTextForSlowState = (allowSlowPages: boolean) => string;
 
@@ -15,6 +12,7 @@ export type PublicProps = {
   allowSlowPagesByDefault?: boolean;
   getLinkText: GetTextForSlowState;
   getMessage: GetTextForSlowState;
+  history: History;
   location: Location;
 };
 
@@ -23,6 +21,7 @@ const SlowPageAlertBase = ({
   allowSlowPagesByDefault,
   getLinkText,
   getMessage,
+  history,
   location,
 }: PublicProps) => {
   const allowSlowPages = _shouldAllowSlowPages({
@@ -30,17 +29,21 @@ const SlowPageAlertBase = ({
     location,
   });
 
-  const newLocation = `${location.pathname}${createAdjustedQueryString(
-    location,
-    {
-      [allowSlowPagesParam]: !allowSlowPages,
-    },
-  )}`;
+  const onClick = () => {
+    const newLocation = {
+      ...location,
+      search: queryString.stringify({
+        ...queryString.parse(location.search),
+        [allowSlowPagesParam]: !allowSlowPages,
+      }),
+    };
+    history.push(newLocation);
+  };
 
   return (
     <Alert variant="danger">
       {getMessage(allowSlowPages)}{' '}
-      <Alert.Link href={newLocation}>{getLinkText(allowSlowPages)}</Alert.Link>
+      <Alert.Link onClick={onClick}>{getLinkText(allowSlowPages)}</Alert.Link>
     </Alert>
   );
 };
