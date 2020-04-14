@@ -278,10 +278,12 @@ export class CodeViewBase extends React.Component<Props> {
           validationURL={version.validationURL}
           selectedPath={version.selectedPath}
         >
-          {// This needs to be an anonymous function (which defeats memoization)
-          // so that the component gets re-rendered in the case of adding
-          // comments per line.
-          (info: LinterProviderInfo) => this.renderWithLinterInfo(info)}
+          {
+            // This needs to be an anonymous function (which defeats memoization)
+            // so that the component gets re-rendered in the case of adding
+            // comments per line.
+            (info: LinterProviderInfo) => this.renderWithLinterInfo(info)
+          }
         </LinterProvider>
       </React.Profiler>
     );
