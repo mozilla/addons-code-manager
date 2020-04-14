@@ -438,310 +438,361 @@ describe('shouldAllowSlowPages', () => {
 });
 
 describe('codeCanBeHighlighted', () => {
-  describe('with an array of changes', () => {
-    it('returns true for a diff with short line lengths', () => {
-      expect(
-        codeCanBeHighlighted({
-          code: Array(3).fill({
-            ...fakeChange,
-            content: '// example of short line',
-          }),
-          wideLineLength: 80,
+  it('returns true for a diff with short line lengths', () => {
+    expect(
+      codeCanBeHighlighted({
+        code: Array(3).fill({
+          ...fakeChange,
+          content: '// example of short line',
         }),
-      ).toEqual(true);
-    });
-
-    it('returns false for a diff with wide line lengths', () => {
-      const wideLine = '// example of a really wide line';
-      expect(
-        codeCanBeHighlighted({
-          code: [
-            { ...fakeChange, content: '// example of short line' },
-            { ...fakeChange, content: wideLine },
-          ],
-          wideLineLength: wideLine.length - 1,
-        }),
-      ).toEqual(false);
-    });
-
-    it('returns true for a diff with a low line count', () => {
-      const highLineCount = 8;
-      expect(
-        codeCanBeHighlighted({
-          code: Array(highLineCount - 1).fill({
-            content: '// example content',
-          }),
-          highLineCount,
-        }),
-      ).toEqual(true);
-    });
-
-    it('returns false for a diff with a high line count', () => {
-      const highLineCount = 8;
-      expect(
-        codeCanBeHighlighted({
-          code: Array(highLineCount + 1).fill({
-            content: '// example content',
-          }),
-          highLineCount,
-        }),
-      ).toEqual(false);
-    });
+        wideLineLength: 80,
+      }),
+    ).toEqual(true);
   });
 
-  describe('getAllHunkChanges', () => {
-    it('returns a flattened list of all changes', () => {
-      const diff = parseDiff(diffWithDeletions)[0];
-      const changes = getAllHunkChanges(diff.hunks);
-
-      // Check a line from the first hunk:
-      expect(changes.filter((c) => c.lineNumber === 2)[0].content).toEqual(
-        "import { Diff, DiffProps, parseDiff } from 'react-diff-view';",
-      );
-      // Check a line from the second hunk:
-      expect(changes.filter((c) => c.lineNumber === 24)[0].content).toEqual(
-        '    console.log({ hunk });',
-      );
-      // Check a line from the third hunk:
-      expect(changes.filter((c) => c.lineNumber === 50)[0].content).toEqual(
-        '          </Diff>',
-      );
-    });
+  it('returns false for a diff with wide line lengths', () => {
+    const wideLine = '// example of a really wide line';
+    expect(
+      codeCanBeHighlighted({
+        code: [
+          { ...fakeChange, content: '// example of short line' },
+          { ...fakeChange, content: wideLine },
+        ],
+        wideLineLength: wideLine.length - 1,
+      }),
+    ).toEqual(false);
   });
 
-  describe('ForwardComparisonMap', () => {
-    const createFakeExternalChange = (
-      change: Partial<ExternalChange>,
-    ): ExternalChange => {
-      return {
-        ...fakeExternalDiff.hunks[0].changes[0],
-        ...change,
-      };
+  it('returns true for a diff with a low line count', () => {
+    const highLineCount = 8;
+    expect(
+      codeCanBeHighlighted({
+        code: Array(highLineCount - 1).fill({
+          content: '// example content',
+        }),
+        highLineCount,
+      }),
+    ).toEqual(true);
+  });
+
+  it('returns false for a diff with a high line count', () => {
+    const highLineCount = 8;
+    expect(
+      codeCanBeHighlighted({
+        code: Array(highLineCount + 1).fill({
+          content: '// example content',
+        }),
+        highLineCount,
+      }),
+    ).toEqual(false);
+  });
+});
+
+describe('getAllHunkChanges', () => {
+  it('returns a flattened list of all changes', () => {
+    const diff = parseDiff(diffWithDeletions)[0];
+    const changes = getAllHunkChanges(diff.hunks);
+
+    // Check a line from the first hunk:
+    expect(changes.filter((c) => c.lineNumber === 2)[0].content).toEqual(
+      "import { Diff, DiffProps, parseDiff } from 'react-diff-view';",
+    );
+    // Check a line from the second hunk:
+    expect(changes.filter((c) => c.lineNumber === 24)[0].content).toEqual(
+      '    console.log({ hunk });',
+    );
+    // Check a line from the third hunk:
+    expect(changes.filter((c) => c.lineNumber === 50)[0].content).toEqual(
+      '          </Diff>',
+    );
+  });
+});
+
+describe('ForwardComparisonMap', () => {
+  const createFakeExternalChange = (
+    change: Partial<ExternalChange>,
+  ): ExternalChange => {
+    return {
+      ...fakeExternalDiff.hunks[0].changes[0],
+      ...change,
+    };
+  };
+
+  const newForwardComparisonMap = ({
+    changes = fakeExternalDiff.hunks[0].changes,
+    hunks = [
+      {
+        ...fakeExternalDiff.hunks[0],
+        changes,
+      },
+    ],
+  }: {
+    changes?: ExternalChange[];
+    hunks?: ExternalHunk[];
+  } = {}) => {
+    const fakeVersion = {
+      ...fakeVersionWithDiff,
+      file: {
+        ...fakeVersionWithDiff.file,
+        diff: {
+          ...fakeExternalDiff,
+          hunks,
+        },
+      },
     };
 
-    const newForwardComparisonMap = ({
-      changes = fakeExternalDiff.hunks[0].changes,
-      hunks = [
-        {
-          ...fakeExternalDiff.hunks[0],
-          changes,
-        },
-      ],
-    }: {
-      changes?: ExternalChange[];
-      hunks?: ExternalHunk[];
-    } = {}) => {
-      const fakeVersion = {
-        ...fakeVersionWithDiff,
-        file: {
-          ...fakeVersionWithDiff.file,
-          diff: {
-            ...fakeExternalDiff,
-            hunks,
-          },
-        },
-      };
+    const diffInfo = createInternalDiff({
+      baseVersionId: 1,
+      headVersionId: 2,
+      version: fakeVersion,
+    });
+    if (!diffInfo) {
+      throw new Error('diffInfo was unexpectedly empty');
+    }
 
-      const diffInfo = createInternalDiff({
-        baseVersionId: 1,
-        headVersionId: 2,
-        version: fakeVersion,
-      });
-      if (!diffInfo) {
-        throw new Error('diffInfo was unexpectedly empty');
-      }
+    return new ForwardComparisonMap(diffInfo);
+  };
 
-      return new ForwardComparisonMap(diffInfo);
-    };
+  it('maps normal changes', () => {
+    const change = createFakeExternalChange({
+      old_line_number: 1,
+      new_line_number: 1,
+      type: 'normal',
+    });
 
-    it('maps normal changes', () => {
-      const change = createFakeExternalChange({
+    expect(
+      newForwardComparisonMap({ changes: [change] }).getCodeLineAnchor(1),
+    ).toEqual('#N1');
+  });
+
+  it('maps delete changes', () => {
+    const change = createFakeExternalChange({
+      old_line_number: 2,
+      new_line_number: -1,
+      type: 'delete',
+    });
+
+    expect(
+      newForwardComparisonMap({ changes: [change] }).getCodeLineAnchor(2),
+    ).toEqual('#D2');
+  });
+
+  it('maps insert changes', () => {
+    const change = createFakeExternalChange({
+      old_line_number: -1,
+      new_line_number: 2,
+      type: 'insert',
+    });
+
+    expect(
+      newForwardComparisonMap({ changes: [change] }).getCodeLineAnchor(2),
+    ).toEqual('#I2');
+  });
+
+  it('merges changes', () => {
+    const changes = [
+      createFakeExternalChange({
         old_line_number: 1,
         new_line_number: 1,
         type: 'normal',
-      });
-
-      expect(
-        newForwardComparisonMap({ changes: [change] }).getCodeLineAnchor(1),
-      ).toEqual('#N1');
-    });
-
-    it('maps delete changes', () => {
-      const change = createFakeExternalChange({
-        old_line_number: 2,
-        new_line_number: -1,
-        type: 'delete',
-      });
-
-      expect(
-        newForwardComparisonMap({ changes: [change] }).getCodeLineAnchor(2),
-      ).toEqual('#D2');
-    });
-
-    it('maps insert changes', () => {
-      const change = createFakeExternalChange({
+      }),
+      createFakeExternalChange({
         old_line_number: -1,
         new_line_number: 2,
         type: 'insert',
-      });
+      }),
+    ];
 
-      expect(
-        newForwardComparisonMap({ changes: [change] }).getCodeLineAnchor(2),
-      ).toEqual('#I2');
-    });
+    const map = newForwardComparisonMap({ changes });
+    expect(map.getCodeLineAnchor(1)).toEqual('#N1');
+    expect(map.getCodeLineAnchor(2)).toEqual('#I2');
+  });
 
-    it('merges changes', () => {
-      const changes = [
-        createFakeExternalChange({
-          old_line_number: 1,
-          new_line_number: 1,
-          type: 'normal',
-        }),
-        createFakeExternalChange({
-          old_line_number: -1,
-          new_line_number: 2,
-          type: 'insert',
-        }),
-      ];
+  it('merges changes for all hunks', () => {
+    const hunks = [
+      {
+        ...fakeExternalDiff.hunks[0],
+        changes: [
+          createFakeExternalChange({
+            old_line_number: 1,
+            new_line_number: 1,
+            type: 'normal',
+          }),
+        ],
+      },
+      {
+        ...fakeExternalDiff.hunks[0],
+        changes: [
+          createFakeExternalChange({
+            old_line_number: -1,
+            new_line_number: 2,
+            type: 'insert',
+          }),
+        ],
+      },
+    ];
 
-      const map = newForwardComparisonMap({ changes });
-      expect(map.getCodeLineAnchor(1)).toEqual('#N1');
-      expect(map.getCodeLineAnchor(2)).toEqual('#I2');
-    });
+    const map = newForwardComparisonMap({ hunks });
+    expect(map.getCodeLineAnchor(1)).toEqual('#N1');
+    expect(map.getCodeLineAnchor(2)).toEqual('#I2');
+  });
 
-    it('merges changes for all hunks', () => {
-      const hunks = [
-        {
-          ...fakeExternalDiff.hunks[0],
-          changes: [
-            createFakeExternalChange({
-              old_line_number: 1,
-              new_line_number: 1,
-              type: 'normal',
-            }),
-          ],
-        },
-        {
-          ...fakeExternalDiff.hunks[0],
-          changes: [
-            createFakeExternalChange({
-              old_line_number: -1,
-              new_line_number: 2,
-              type: 'insert',
-            }),
-          ],
-        },
-      ];
-
-      const map = newForwardComparisonMap({ hunks });
-      expect(map.getCodeLineAnchor(1)).toEqual('#N1');
-      expect(map.getCodeLineAnchor(2)).toEqual('#I2');
-    });
-
-    it('favors inserts', () => {
-      const changes = [
-        createFakeExternalChange({
-          old_line_number: 2,
-          new_line_number: -1,
-          type: 'delete',
-        }),
-        createFakeExternalChange({
-          old_line_number: -1,
-          new_line_number: 2,
-          type: 'insert',
-        }),
-        createFakeExternalChange({
-          old_line_number: 2,
-          new_line_number: 2,
-          type: 'normal',
-        }),
-      ];
-
-      expect(newForwardComparisonMap({ changes }).getCodeLineAnchor(2)).toEqual(
-        '#I2',
-      );
-    });
-
-    it('favors normal lines over deletes', () => {
-      const changes = [
-        createFakeExternalChange({
-          old_line_number: 1,
-          new_line_number: 1,
-          type: 'normal',
-        }),
-        createFakeExternalChange({
-          old_line_number: 1,
-          new_line_number: -1,
-          type: 'delete',
-        }),
-      ];
-
-      expect(newForwardComparisonMap({ changes }).getCodeLineAnchor(1)).toEqual(
-        '#N1',
-      );
-    });
-
-    it('handles unknown lines', () => {
-      const changes = [
-        createFakeExternalChange({
-          old_line_number: 1,
-          new_line_number: 1,
-          type: 'normal',
-        }),
-      ];
-
-      expect(newForwardComparisonMap({ changes }).getCodeLineAnchor(2)).toEqual(
-        '',
-      );
-    });
-
-    it('lets you create a bound getCodeLineAnchor callback', () => {
-      const line = 1;
-      const change = createFakeExternalChange({
-        old_line_number: line,
-        new_line_number: line,
+  it('favors inserts', () => {
+    const changes = [
+      createFakeExternalChange({
+        old_line_number: 2,
+        new_line_number: -1,
+        type: 'delete',
+      }),
+      createFakeExternalChange({
+        old_line_number: -1,
+        new_line_number: 2,
+        type: 'insert',
+      }),
+      createFakeExternalChange({
+        old_line_number: 2,
+        new_line_number: 2,
         type: 'normal',
-      });
+      }),
+    ];
 
-      const map = newForwardComparisonMap({ changes: [change] });
-      const codeLineAnchorGetter = map.createCodeLineAnchorGetter();
-
-      expect(codeLineAnchorGetter(line)).toEqual(
-        map.getCodeLineAnchor.bind(map)(line),
-      );
-    });
+    expect(newForwardComparisonMap({ changes }).getCodeLineAnchor(2)).toEqual(
+      '#I2',
+    );
   });
 
-  describe('codeShouldBeTrimmed', () => {
-    it('returns true if the code length >= slowLoadingCharCount', () => {
-      expect(codeShouldBeTrimmed(1, 1, false)).toEqual(true);
-      expect(codeShouldBeTrimmed(2, 1, false)).toEqual(true);
-    });
+  it('favors normal lines over deletes', () => {
+    const changes = [
+      createFakeExternalChange({
+        old_line_number: 1,
+        new_line_number: 1,
+        type: 'normal',
+      }),
+      createFakeExternalChange({
+        old_line_number: 1,
+        new_line_number: -1,
+        type: 'delete',
+      }),
+    ];
 
-    it('returns false if the code length < slowLoadingCharCount', () => {
-      expect(codeShouldBeTrimmed(1, 2, false)).toEqual(false);
-    });
-
-    it('returns true if isMinified is true', () => {
-      expect(codeShouldBeTrimmed(1, 2, true)).toEqual(true);
-      expect(codeShouldBeTrimmed(1, 1, false)).toEqual(true);
-    });
+    expect(newForwardComparisonMap({ changes }).getCodeLineAnchor(1)).toEqual(
+      '#N1',
+    );
   });
 
-  describe('sendPerfTiming', () => {
-    it('sends a renderPerf timing via tracking', () => {
-      const _tracking = { timing: jest.fn() };
-      const actualDuration = 19;
-      const id = 'some-id';
-      const phase = 'mount';
+  it('handles unknown lines', () => {
+    const changes = [
+      createFakeExternalChange({
+        old_line_number: 1,
+        new_line_number: 1,
+        type: 'normal',
+      }),
+    ];
 
-      sendPerfTiming({ _tracking, actualDuration, id, phase });
-      expect(_tracking.timing).toHaveBeenCalledWith({
-        category: 'renderPerf',
-        label: phase,
-        value: actualDuration,
-        variable: id,
-      });
+    expect(newForwardComparisonMap({ changes }).getCodeLineAnchor(2)).toEqual(
+      '',
+    );
+  });
+
+  it('lets you create a bound getCodeLineAnchor callback', () => {
+    const line = 1;
+    const change = createFakeExternalChange({
+      old_line_number: line,
+      new_line_number: line,
+      type: 'normal',
+    });
+
+    const map = newForwardComparisonMap({ changes: [change] });
+    const codeLineAnchorGetter = map.createCodeLineAnchorGetter();
+
+    expect(codeLineAnchorGetter(line)).toEqual(
+      map.getCodeLineAnchor.bind(map)(line),
+    );
+  });
+});
+
+describe('codeShouldBeTrimmed', () => {
+  const _codeShouldBeTrimmed = ({
+    codeCharLength = 0,
+    codeLineLength = 0,
+    isMinified = false,
+    minifiedFileTrimmedCharCount = 1,
+    slowLoadingLineCount = 1,
+  }) => {
+    return codeShouldBeTrimmed({
+      codeCharLength,
+      codeLineLength,
+      isMinified,
+      minifiedFileTrimmedCharCount,
+      slowLoadingLineCount,
+    });
+  };
+
+  it('returns true if the code line length >= slowLoadingLineCount', () => {
+    expect(
+      _codeShouldBeTrimmed({
+        codeLineLength: 2,
+        slowLoadingLineCount: 2,
+      }),
+    ).toEqual(true);
+    expect(
+      _codeShouldBeTrimmed({
+        codeLineLength: 2,
+        slowLoadingLineCount: 1,
+      }),
+    ).toEqual(true);
+  });
+
+  it('returns false if the code line length < slowLoadingLineCount', () => {
+    expect(
+      _codeShouldBeTrimmed({
+        codeLineLength: 1,
+        slowLoadingLineCount: 2,
+      }),
+    ).toEqual(false);
+  });
+
+  it('returns true if isMinified is true and the code length > minifiedFileTrimmedCharCount', () => {
+    expect(
+      _codeShouldBeTrimmed({
+        codeCharLength: 2,
+        isMinified: true,
+        minifiedFileTrimmedCharCount: 1,
+      }),
+    ).toEqual(true);
+  });
+
+  it('returns false if isMinified is true but the code length <= minifiedFileTrimmedCharCount', () => {
+    expect(
+      _codeShouldBeTrimmed({
+        codeCharLength: 1,
+        isMinified: true,
+        minifiedFileTrimmedCharCount: 2,
+      }),
+    ).toEqual(false);
+    expect(
+      _codeShouldBeTrimmed({
+        codeCharLength: 2,
+        isMinified: true,
+        minifiedFileTrimmedCharCount: 2,
+      }),
+    ).toEqual(false);
+  });
+});
+
+describe('sendPerfTiming', () => {
+  it('sends a renderPerf timing via tracking', () => {
+    const _tracking = { timing: jest.fn() };
+    const actualDuration = 19;
+    const id = 'some-id';
+    const phase = 'mount';
+
+    sendPerfTiming({ _tracking, actualDuration, id, phase });
+    expect(_tracking.timing).toHaveBeenCalledWith({
+      category: 'renderPerf',
+      label: phase,
+      value: actualDuration,
+      variable: id,
     });
   });
 });

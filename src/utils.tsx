@@ -11,10 +11,11 @@ import { changeTypes, CompareInfo } from './reducers/versions';
 import { getCodeLineAnchor } from './components/CodeView/utils';
 import tracking from './tracking';
 
-// This is how many characters of code it takes to slow down the UI.
-export const SLOW_LOADING_CHAR_COUNT = 3000;
-// This is how many characters of code we will include in trimmed content.
-export const TRIMMED_CHAR_COUNT = 2000;
+// This is how many lines of code it takes to slow down the UI.
+export const SLOW_LOADING_LINE_COUNT = 2000;
+// This is how many characters we will include in trimmed minfied file content.
+export const MINIFIED_FILE_TRIMMED_CHAR_COUNT = 2000;
+export const contentAddedByTrimmer = '/* truncated by code-manager */';
 
 // Querystring params used by the app.
 export const messageUidQueryParam = 'messageUid';
@@ -264,12 +265,23 @@ export const createCodeLineAnchorGetter = ({
   return getCodeLineAnchor;
 };
 
-export const codeShouldBeTrimmed = (
-  codeLength: number,
-  slowLoadingCharCount: number,
-  isMinified: boolean,
-) => {
-  return codeLength >= slowLoadingCharCount || isMinified;
+export const codeShouldBeTrimmed = ({
+  codeCharLength,
+  codeLineLength,
+  isMinified,
+  minifiedFileTrimmedCharCount,
+  slowLoadingLineCount,
+}: {
+  codeCharLength: number;
+  codeLineLength: number;
+  isMinified: boolean;
+  minifiedFileTrimmedCharCount: number;
+  slowLoadingLineCount: number;
+}) => {
+  return (
+    codeLineLength >= slowLoadingLineCount ||
+    (isMinified && codeCharLength > minifiedFileTrimmedCharCount)
+  );
 };
 
 export const sendPerfTiming = ({
