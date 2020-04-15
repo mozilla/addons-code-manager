@@ -48,6 +48,4 @@ export const SlowPageAlertBase = ({
   );
 };
 
-export default withRouter(SlowPageAlertBase) as React.ComponentType<
-  PublicProps
->;
+export default withRouter(SlowPageAlertBase);
