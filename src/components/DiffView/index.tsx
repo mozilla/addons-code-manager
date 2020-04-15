@@ -449,7 +449,6 @@ export class DiffViewBase extends React.Component<Props> {
           <SlowPageAlert
             allowSlowPagesByDefault={!isMinified}
             key="slowPageAlert"
-            location={location}
             getMessage={(allowSlowPages: boolean) => {
               return allowSlowPages
                 ? gettext('This diff may load slowly.')

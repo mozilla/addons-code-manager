@@ -974,19 +974,16 @@ describe(__filename, () => {
     const _trimHunkLines = jest
       .fn()
       .mockReturnValue([createHunkWithChanges([{}])]);
-    const location = createFakeLocation();
 
     const root = renderWithLinterProvider({
       _codeShouldBeTrimmed,
       _trimHunkLines,
       isMinified: false,
-      location,
     });
 
     const message = root.find(SlowPageAlert).at(0);
 
     expect(message).toHaveProp('allowSlowPagesByDefault', true);
-    expect(message).toHaveProp('location', location);
 
     expect(message).toHaveProp('getMessage');
     const getMessage = message.prop('getMessage');

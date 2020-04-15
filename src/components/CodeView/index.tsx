@@ -138,7 +138,6 @@ export class CodeViewBase extends React.Component<Props> {
       }
       slowAlert = (
         <SlowPageAlert
-          location={location}
           getMessage={(allowSlowPages: boolean) => {
             return allowSlowPages
               ? gettext('This file may be loading slowly.')

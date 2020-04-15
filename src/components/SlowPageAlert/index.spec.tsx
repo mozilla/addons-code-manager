@@ -1,22 +1,41 @@
-import { shallow } from 'enzyme';
+import { History, Location } from 'history';
 import queryString from 'query-string';
 import * as React from 'react';
 import { Alert } from 'react-bootstrap';
 
 import { allowSlowPagesParam } from '../../utils';
-import { createFakeLocation } from '../../test-helpers';
+import {
+  createContextWithFakeRouter,
+  createFakeHistory,
+  createFakeLocation,
+  shallowUntilTarget,
+} from '../../test-helpers';
 
-import SlowPageAlert from '.';
+import SlowPageAlert, { PublicProps, SlowPageAlertBase } from '.';
 
 describe(__filename, () => {
-  const render = (otherProps = {}) => {
-    const props = {
-      location: createFakeLocation(),
-      getLinkText: () => 'example link text',
-      getMessage: () => 'example message',
-      ...otherProps,
-    };
-    return shallow(<SlowPageAlert {...props} />);
+  type RenderParams = { history?: History; location?: Location } & Partial<
+    PublicProps
+  >;
+
+  const render = ({
+    getLinkText = () => 'example link text',
+    getMessage = () => 'example message',
+    history = createFakeHistory(),
+    location = createFakeLocation(),
+    ...props
+  }: RenderParams = {}) => {
+    const shallowOptions = createContextWithFakeRouter({ history, location });
+
+    return shallowUntilTarget(
+      <SlowPageAlert
+        getLinkText={getLinkText}
+        getMessage={getMessage}
+        {...props}
+      />,
+      SlowPageAlertBase,
+      { shallowOptions },
+    );
   };
 
   it('renders an alert with text callbacks', () => {
@@ -83,39 +102,48 @@ describe(__filename, () => {
   it.each([true, false])(
     'links to the inverse of allowSlowPages=%s',
     (allowSlowPages) => {
+      const history = createFakeHistory();
+      const location = createFakeLocation({ search: '' });
       const root = render({
         _shouldAllowSlowPages: jest.fn(() => allowSlowPages),
+        history,
+        location,
       });
 
-      expect(root.find(Alert.Link)).toHaveProp(
-        'href',
-        expect.urlWithTheseParams({
-          [allowSlowPagesParam]: String(!allowSlowPages),
+      root.find(Alert.Link).simulate('click');
+      expect(history.push).toHaveBeenCalledWith(
+        expect.objectContaining({
+          search: `${allowSlowPagesParam}=${String(!allowSlowPages)}`,
         }),
       );
     },
   );
 
   it('preserves existing query string parameters', () => {
+    const color = 'red';
     const location = createFakeLocation({
-      search: queryString.stringify({ color: 'red' }),
+      search: queryString.stringify({ color }),
     });
-    const link = render({ location }).find(Alert.Link);
+    const history = createFakeHistory();
+    const root = render({ history, location });
 
-    expect(link).toHaveProp(
-      'href',
-      expect.urlWithTheseParams({ color: 'red' }),
+    root.find(Alert.Link).simulate('click');
+    expect(history.push).toHaveBeenCalledWith(
+      expect.objectContaining({
+        search: expect.stringContaining(`color=${color}`),
+      }),
     );
   });
 
   it('preserves existing location pathname', () => {
     const pathname = '/some/path/to/page';
     const location = createFakeLocation({ pathname });
-    const link = render({ location }).find(Alert.Link);
+    const history = createFakeHistory();
+    const root = render({ history, location });
 
-    expect(link).toHaveProp(
-      'href',
-      expect.stringMatching(new RegExp(`^${pathname}`)),
+    root.find(Alert.Link).simulate('click');
+    expect(history.push).toHaveBeenCalledWith(
+      expect.objectContaining({ pathname }),
     );
   });
 });
