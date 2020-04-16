@@ -23,7 +23,6 @@ import {
   getLanguageFromMimeType,
   getLocalizedString,
   getPathFromQueryString,
-  getUrlFromLocation,
   makeReviewersURL,
   nl2br,
   sanitizeHTML,
@@ -795,17 +794,5 @@ describe('sendPerfTiming', () => {
       value: actualDuration,
       variable: id,
     });
-  });
-});
-
-describe('getUrlFromLocation', () => {
-  it('builds a url from location path and search', () => {
-    const pathname = 'some/path/';
-    const search = '?somevar=something';
-    const location = createFakeLocation({ pathname, search });
-
-    expect(getUrlFromLocation(location)).toEqual(
-      `${location.pathname}${location.search}`,
-    );
   });
 });

@@ -302,7 +302,3 @@ export const sendPerfTiming = ({
     variable: id,
   });
 };
-
-export const getUrlFromLocation = (location: Location) => {
-  return `${location.pathname}${location.search}`;
-};

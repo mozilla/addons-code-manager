@@ -22,7 +22,6 @@ import {
   allowSlowPagesParam,
   contentAddedByTrimmer,
   getLanguageFromMimeType,
-  getUrlFromLocation,
 } from '../../utils';
 import {
   SimulateCommentListParams,
@@ -387,8 +386,15 @@ describe(__filename, () => {
 
   it('configures base Profiler', () => {
     const _sendPerfTiming = jest.fn();
-    const location = createFakeLocation({ pathname: 'test/profiler/path' });
-    const root = render({ _sendPerfTiming, location });
+    const href = 'https://example.org/en-US/browse/4913/versions/1527/';
+    const _window = {
+      ...window,
+      location: {
+        ...window.location,
+        href,
+      },
+    } as typeof window;
+    const root = render({ _sendPerfTiming, _window });
     const instance = getInstance<CodeViewBase>(root);
     const { onRenderProfiler } = instance;
     const actualDuration = 19;
@@ -402,7 +408,7 @@ describe(__filename, () => {
     expect(_sendPerfTiming).toHaveBeenCalledWith({
       actualDuration,
       id,
-      url: getUrlFromLocation(location),
+      url: href,
     });
   });
 
