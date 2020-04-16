@@ -42,6 +42,7 @@ import {
   getAllHunkChanges,
   getLanguageFromMimeType,
   gettext,
+  getUrlFromLocation,
   sendPerfTiming,
   shouldAllowSlowPages,
 } from '../../utils';
@@ -189,7 +190,8 @@ export class DiffViewBase extends React.Component<Props> {
 
   // See https://github.com/reactjs/rfcs/blob/master/text/0051-profiler.md
   onRenderProfiler = (id: string, phase: string, actualDuration: number) => {
-    this.props._sendPerfTiming({ actualDuration, id, phase });
+    const { _sendPerfTiming, location } = this.props;
+    _sendPerfTiming({ actualDuration, id, url: getUrlFromLocation(location) });
   };
 
   componentDidMount() {

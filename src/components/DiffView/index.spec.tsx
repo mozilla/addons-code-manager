@@ -31,6 +31,7 @@ import {
   allowSlowPagesParam,
   getLanguageFromMimeType,
   getAllHunkChanges,
+  getUrlFromLocation,
 } from '../../utils';
 import {
   ExternalChange,
@@ -548,7 +549,8 @@ describe(__filename, () => {
 
   it('configures base Profiler', () => {
     const _sendPerfTiming = jest.fn();
-    const root = render({ _sendPerfTiming });
+    const location = createFakeLocation({ pathname: 'test/profiler/path' });
+    const root = render({ _sendPerfTiming, location });
     const instance = getInstance<DiffViewBase>(root);
     const { onRenderProfiler } = instance;
     const actualDuration = 19;
@@ -559,7 +561,11 @@ describe(__filename, () => {
     expect(profiler).toHaveProp('onRender', onRenderProfiler);
 
     onRenderProfiler(id, phase, actualDuration);
-    expect(_sendPerfTiming).toHaveBeenCalledWith({ actualDuration, id, phase });
+    expect(_sendPerfTiming).toHaveBeenCalledWith({
+      actualDuration,
+      id,
+      url: getUrlFromLocation(location),
+    });
   });
 
   it('renders global messages', () => {

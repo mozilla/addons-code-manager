@@ -23,6 +23,7 @@ import {
   getLanguageFromMimeType,
   getLocalizedString,
   getPathFromQueryString,
+  getUrlFromLocation,
   makeReviewersURL,
   nl2br,
   sanitizeHTML,
@@ -785,14 +786,26 @@ describe('sendPerfTiming', () => {
     const _tracking = { timing: jest.fn() };
     const actualDuration = 19;
     const id = 'some-id';
-    const phase = 'mount';
+    const url = 'some-url';
 
-    sendPerfTiming({ _tracking, actualDuration, id, phase });
+    sendPerfTiming({ _tracking, actualDuration, id, url });
     expect(_tracking.timing).toHaveBeenCalledWith({
       category: 'renderPerf',
-      label: phase,
+      label: url,
       value: actualDuration,
       variable: id,
     });
+  });
+});
+
+describe('getUrlFromLocation', () => {
+  it('builds a url from location path and search', () => {
+    const pathname = 'some/path/';
+    const search = '?somevar=something';
+    const location = createFakeLocation({ pathname, search });
+
+    expect(getUrlFromLocation(location)).toEqual(
+      `${location.pathname}${location.search}`,
+    );
   });
 });

@@ -288,17 +288,21 @@ export const sendPerfTiming = ({
   _tracking = tracking,
   actualDuration,
   id,
-  phase,
+  url,
 }: {
   _tracking?: typeof tracking;
   actualDuration: number;
   id: string;
-  phase: string;
+  url: string;
 }) => {
   _tracking.timing({
     category: 'renderPerf',
-    label: phase,
+    label: url,
     value: actualDuration,
     variable: id,
   });
+};
+
+export const getUrlFromLocation = (location: Location) => {
+  return `${location.pathname}${location.search}`;
 };
