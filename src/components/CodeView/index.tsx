@@ -92,7 +92,7 @@ export class CodeViewBase extends React.Component<Props> {
 
   // See https://github.com/reactjs/rfcs/blob/master/text/0051-profiler.md
   onRenderProfiler = (id: string, phase: string, actualDuration: number) => {
-    this.props._sendPerfTiming({ actualDuration, id, phase });
+    this.props._sendPerfTiming({ actualDuration, id });
   };
 
   renderWithLinterInfo = ({ selectedMessageMap }: LinterProviderInfo) => {

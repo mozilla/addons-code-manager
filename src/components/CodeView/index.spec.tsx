@@ -397,7 +397,7 @@ describe(__filename, () => {
     expect(profiler).toHaveProp('onRender', onRenderProfiler);
 
     onRenderProfiler(id, phase, actualDuration);
-    expect(_sendPerfTiming).toHaveBeenCalledWith({ actualDuration, id, phase });
+    expect(_sendPerfTiming).toHaveBeenCalledWith({ actualDuration, id });
   });
 
   it('renders a global LinterMessage', () => {
