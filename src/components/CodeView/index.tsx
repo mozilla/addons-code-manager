@@ -76,7 +76,6 @@ export type DefaultProps = {
   _scrollToSelectedLine: typeof scrollToSelectedLine;
   _sendPerfTiming: typeof sendPerfTiming;
   _slowLoadingLineCount: number;
-  _window: typeof window;
   enableCommenting: boolean;
 };
 
@@ -88,18 +87,12 @@ export class CodeViewBase extends React.Component<Props> {
     _scrollToSelectedLine: scrollToSelectedLine,
     _sendPerfTiming: sendPerfTiming,
     _slowLoadingLineCount: SLOW_LOADING_LINE_COUNT,
-    _window: window,
     enableCommenting: process.env.REACT_APP_ENABLE_COMMENTING === 'true',
   };
 
   // See https://github.com/reactjs/rfcs/blob/master/text/0051-profiler.md
   onRenderProfiler = (id: string, phase: string, actualDuration: number) => {
-    const { _sendPerfTiming, _window } = this.props;
-    _sendPerfTiming({
-      actualDuration,
-      id,
-      url: _window.location.href,
-    });
+    this.props._sendPerfTiming({ actualDuration, id });
   };
 
   renderWithLinterInfo = ({ selectedMessageMap }: LinterProviderInfo) => {

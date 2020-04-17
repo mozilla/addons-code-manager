@@ -161,7 +161,6 @@ export type DefaultProps = {
   _tokenize: typeof tokenize;
   _trimHunkChars: typeof trimHunkChars;
   _trimHunkLines: typeof trimHunkLines;
-  _window: typeof window;
   enableCommenting: boolean;
   viewType: DiffProps['viewType'];
 };
@@ -184,19 +183,13 @@ export class DiffViewBase extends React.Component<Props> {
     _tokenize: tokenize,
     _trimHunkChars: trimHunkChars,
     _trimHunkLines: trimHunkLines,
-    _window: window,
     enableCommenting: process.env.REACT_APP_ENABLE_COMMENTING === 'true',
     viewType: 'unified',
   };
 
   // See https://github.com/reactjs/rfcs/blob/master/text/0051-profiler.md
   onRenderProfiler = (id: string, phase: string, actualDuration: number) => {
-    const { _sendPerfTiming, _window } = this.props;
-    _sendPerfTiming({
-      actualDuration,
-      id,
-      url: _window.location.href,
-    });
+    this.props._sendPerfTiming({ actualDuration, id });
   };
 
   componentDidMount() {

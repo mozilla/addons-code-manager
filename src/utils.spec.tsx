@@ -785,12 +785,19 @@ describe('sendPerfTiming', () => {
     const _tracking = { timing: jest.fn() };
     const actualDuration = 19;
     const id = 'some-id';
-    const url = 'some-url';
+    const href = 'https://example.org/en-US/browse/4913/versions/1527/';
+    const _window = {
+      ...window,
+      location: {
+        ...window.location,
+        href,
+      },
+    } as typeof window;
 
-    sendPerfTiming({ _tracking, actualDuration, id, url });
+    sendPerfTiming({ _tracking, _window, actualDuration, id });
     expect(_tracking.timing).toHaveBeenCalledWith({
       category: 'renderPerf',
-      label: url,
+      label: href,
       value: actualDuration,
       variable: id,
     });

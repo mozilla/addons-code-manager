@@ -286,18 +286,18 @@ export const codeShouldBeTrimmed = ({
 
 export const sendPerfTiming = ({
   _tracking = tracking,
+  _window = window,
   actualDuration,
   id,
-  url,
 }: {
   _tracking?: typeof tracking;
+  _window?: typeof window;
   actualDuration: number;
   id: string;
-  url: string;
 }) => {
   _tracking.timing({
     category: 'renderPerf',
-    label: url,
+    label: _window.location.href,
     value: actualDuration,
     variable: id,
   });

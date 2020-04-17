@@ -386,15 +386,7 @@ describe(__filename, () => {
 
   it('configures base Profiler', () => {
     const _sendPerfTiming = jest.fn();
-    const href = 'https://example.org/en-US/browse/4913/versions/1527/';
-    const _window = {
-      ...window,
-      location: {
-        ...window.location,
-        href,
-      },
-    } as typeof window;
-    const root = render({ _sendPerfTiming, _window });
+    const root = render({ _sendPerfTiming });
     const instance = getInstance<CodeViewBase>(root);
     const { onRenderProfiler } = instance;
     const actualDuration = 19;
@@ -405,11 +397,7 @@ describe(__filename, () => {
     expect(profiler).toHaveProp('onRender', onRenderProfiler);
 
     onRenderProfiler(id, phase, actualDuration);
-    expect(_sendPerfTiming).toHaveBeenCalledWith({
-      actualDuration,
-      id,
-      url: href,
-    });
+    expect(_sendPerfTiming).toHaveBeenCalledWith({ actualDuration, id });
   });
 
   it('renders a global LinterMessage', () => {
