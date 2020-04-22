@@ -15260,10 +15260,10 @@ store2@^2.7.1:
   resolved "https://registry.yarnpkg.com/store2/-/store2-2.10.0.tgz#46b82bb91878daf1b0d56dec2f1d41e54d5103cf"
   integrity sha512-tWEpK0snS2RPUq1i3R6OahfJNjWCQYNxq0+by1amCSuw0mXtymJpzmZIeYpA1UAa+7B0grCpNYIbDcd7AgTbFg==
 
-storybook-addon-root-attribute@^0.2.0:
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/storybook-addon-root-attribute/-/storybook-addon-root-attribute-0.2.2.tgz#b9097d45dfcf6e0c738ff5c0d8b68d90571558ea"
-  integrity sha512-fcHn0yqS3wG7wLhDrRuvXS/k7YLCSHo2yAnAIzTKwJ2EhAxpQUNKA9g9VZDb15j6AlqmZPG4qjFtW0lmDi/wkw==
+storybook-addon-root-attribute@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/storybook-addon-root-attribute/-/storybook-addon-root-attribute-1.0.0.tgz#bc83c06eaf36c759748fb8a3bc1932426af75f16"
+  integrity sha512-irYOF4KkCQeuT4dtlHiaRkv0tdGXGhR4n5VVaazzq4ivRICMiZ0gXqLJYaf6DGZJzziTkBz/dkoGFVbIQUJTMg==
   dependencies:
     "@storybook/addons" ">=5.0.0"
     "@storybook/components" ">=5.0.0"
