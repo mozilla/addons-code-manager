@@ -26,9 +26,7 @@ import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import GlobalLinterMessages from '../GlobalLinterMessages';
 import SlowPageAlert from '../SlowPageAlert';
 import {
-  MINIFIED_FILE_TRIMMED_CHAR_COUNT,
-  SLOW_LOADING_LINE_COUNT,
-  allowSlowPagesParam,
+  TRIMMED_CHAR_COUNT,
   getLanguageFromMimeType,
   getAllHunkChanges,
 } from '../../utils';
@@ -66,7 +64,6 @@ import DiffView, {
   changeCanBeCommentedUpon,
   getChangeCharCount,
   trimHunkChars,
-  trimHunkLines,
 } from '.';
 
 describe(__filename, () => {
@@ -866,7 +863,7 @@ describe(__filename, () => {
 
   it('checks whether code should be trimmed', () => {
     const _codeShouldBeTrimmed = jest.fn();
-    const _minifiedFileTrimmedCharCount = 10;
+    const _trimmedCharCount = 10;
     const _slowLoadingLineCount = 10;
 
     const changeLength = 5;
@@ -878,7 +875,7 @@ describe(__filename, () => {
 
     renderWithLinterProvider({
       _codeShouldBeTrimmed,
-      _minifiedFileTrimmedCharCount,
+      _trimmedCharCount,
       _slowLoadingLineCount,
       diff,
       isMinified: true,
@@ -888,12 +885,12 @@ describe(__filename, () => {
       codeCharLength: changeLength * 2,
       codeLineLength: 2,
       isMinified: true,
-      minifiedFileTrimmedCharCount: _minifiedFileTrimmedCharCount,
+      trimmedCharCount: _trimmedCharCount,
       slowLoadingLineCount: _slowLoadingLineCount,
     });
   });
 
-  it('trims minified files by chars, when needed', () => {
+  it('trims files when needed', () => {
     const _codeShouldBeTrimmed = jest.fn().mockReturnValue(true);
     const _trimHunkChars = jest
       .fn()
@@ -916,51 +913,18 @@ describe(__filename, () => {
     expect(message).toHaveLength(2);
   });
 
-  it('trims non-minified files by lines, when needed', () => {
-    const _codeShouldBeTrimmed = jest.fn().mockReturnValue(true);
-    const _trimHunkLines = jest
-      .fn()
-      .mockReturnValue([createHunkWithChanges([{}])]);
-    // Non-minified files are not trimmed by default, so we need to force
-    // trimming via a URL param.
-    const location = createFakeLocation({
-      search: queryString.stringify({ [allowSlowPagesParam]: false }),
-    });
-
-    const root = renderWithLinterProvider({
-      _codeShouldBeTrimmed,
-      _trimHunkLines,
-      isMinified: false,
-      location,
-    });
-
-    expect(_codeShouldBeTrimmed).toHaveBeenCalled();
-    expect(_trimHunkLines).toHaveBeenCalled();
-
-    const fadableShell = root.find(FadableContent);
-    expect(fadableShell).toHaveProp('fade', true);
-
-    const message = root.find(SlowPageAlert);
-    // There should be a warning at the top and bottom.
-    expect(message).toHaveLength(2);
-  });
-
   it('does not trim non-minified files by default', () => {
     const _codeShouldBeTrimmed = jest.fn().mockReturnValue(true);
-    const _trimHunkLines = jest
-      .fn()
-      .mockReturnValue([createHunkWithChanges([{}])]);
-    // Non-minified files are not trimmed by default, so we need to force
-    // trimming via a URL param.
+    const _trimHunkChars = jest.fn();
 
     const root = renderWithLinterProvider({
       _codeShouldBeTrimmed,
-      _trimHunkLines,
+      _trimHunkChars,
       isMinified: false,
     });
 
     expect(_codeShouldBeTrimmed).toHaveBeenCalled();
-    expect(_trimHunkLines).not.toHaveBeenCalled();
+    expect(_trimHunkChars).not.toHaveBeenCalled();
 
     expect(root.find(FadableContent)).toHaveProp('fade', false);
 
@@ -971,13 +935,13 @@ describe(__filename, () => {
 
   it('configures SlowPageAlert', () => {
     const _codeShouldBeTrimmed = jest.fn().mockReturnValue(true);
-    const _trimHunkLines = jest
+    const _trimHunkChars = jest
       .fn()
       .mockReturnValue([createHunkWithChanges([{}])]);
 
     const root = renderWithLinterProvider({
       _codeShouldBeTrimmed,
-      _trimHunkLines,
+      _trimHunkChars,
       isMinified: false,
     });
 
@@ -1031,93 +995,17 @@ describe(__filename, () => {
     });
   });
 
-  describe('trimHunkLines', () => {
-    it('defaults _slowLoadingLineCount to SLOW_LOADING_LINE_COUNT', () => {
-      const changes = Array(SLOW_LOADING_LINE_COUNT + 10).fill({
-        content: '// example content',
-      });
-      const hunk = createInternalHunkWithChanges(changes);
-
-      // Add one to expected length for the message that gets added.
-      const expectedLength = SLOW_LOADING_LINE_COUNT + 1;
-
-      const trimmed = trimHunkLines({ hunks: [hunk] });
-      expect(trimmed[0].changes.length).toEqual(expectedLength);
-    });
-
-    describe('for a single hunk', () => {
-      it('does not trim when not necessary', () => {
-        const hunks = [
-          createInternalHunkWithChanges([
-            { content: '// example content 1' },
-            { content: '// example content 2' },
-          ]),
-        ];
-
-        expect(trimHunkLines({ _slowLoadingLineCount: 2, hunks })).toEqual(
-          hunks,
-        );
-      });
-
-      it('trims lines when there are too many', () => {
-        const hunk = createInternalHunkWithChanges([
-          { content: '// example content 1' },
-          { content: '// example content 2' },
-          { content: '// example content 3' },
-        ]);
-
-        expect(
-          trimHunkLines({ _slowLoadingLineCount: 2, hunks: [hunk] }),
-        ).toEqual([
-          { ...hunk, changes: [hunk.changes[0], hunk.changes[1], addedChange] },
-        ]);
-      });
-    });
-
-    describe('for multiple hunks', () => {
-      it('does not trim when not necessary', () => {
-        const hunks = [
-          createInternalHunkWithChanges([{ content: '// example content 1' }]),
-          createInternalHunkWithChanges([{ content: '// example content 2' }]),
-        ];
-
-        expect(trimHunkLines({ _slowLoadingLineCount: 2, hunks })).toEqual(
-          hunks,
-        );
-      });
-
-      it('trims lines when there are too many', () => {
-        const hunk1 = createInternalHunkWithChanges([
-          { content: '// example content 1' },
-        ]);
-        const hunk2 = createInternalHunkWithChanges([
-          { content: '// example content 2' },
-          { content: '// example content 3' },
-        ]);
-
-        expect(
-          trimHunkLines({ _slowLoadingLineCount: 2, hunks: [hunk1, hunk2] }),
-        ).toEqual([
-          hunk1,
-          { ...hunk2, changes: [hunk2.changes[0], addedChange] },
-        ]);
-      });
-    });
-  });
-
   describe('trimHunkChars', () => {
     const changeCharCount = 5;
 
-    it('defaults _trimmedCharCount to MINIFIED_FILE_TRIMMED_CHAR_COUNT', () => {
+    it('defaults _trimmedCharCount to TRIMMED_CHAR_COUNT', () => {
       const change = {
-        content: 'a'.repeat(MINIFIED_FILE_TRIMMED_CHAR_COUNT + 10),
+        content: 'a'.repeat(TRIMMED_CHAR_COUNT + 10),
       };
       const hunk = createInternalHunkWithChanges([change]);
 
       const trimmed = trimHunkChars({ hunks: [hunk] });
-      expect(trimmed[0].changes[0].content.length).toEqual(
-        MINIFIED_FILE_TRIMMED_CHAR_COUNT,
-      );
+      expect(trimmed[0].changes[0].content.length).toEqual(TRIMMED_CHAR_COUNT);
     });
 
     describe('for a single hunk', () => {
