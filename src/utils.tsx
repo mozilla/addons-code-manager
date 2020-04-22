@@ -12,7 +12,7 @@ import { getCodeLineAnchor } from './components/CodeView/utils';
 import tracking from './tracking';
 
 // This is how many lines of code it takes to slow down the UI.
-export const SLOW_LOADING_LINE_COUNT = 2000;
+export const SLOW_LOADING_LINE_COUNT = 5000;
 // This is how many characters we will include in trimmed minfied file content.
 export const MINIFIED_FILE_TRIMMED_CHAR_COUNT = 2000;
 export const contentAddedByTrimmer = '/* truncated by code-manager */';
