@@ -34,7 +34,7 @@ import {
   getRelativeDiffAnchor,
 } from '../../reducers/versions';
 import {
-  MINIFIED_FILE_TRIMMED_CHAR_COUNT,
+  TRIMMED_CHAR_COUNT,
   SLOW_LOADING_LINE_COUNT,
   codeCanBeHighlighted,
   codeShouldBeTrimmed,
@@ -61,39 +61,6 @@ export const addedChange: ChangeInfo = {
   type: 'normal',
 };
 
-// This is what is used to trim diffs that are not for minified files.
-// They are trimmed based on number of lines.
-export const trimHunkLines = ({
-  _slowLoadingLineCount = SLOW_LOADING_LINE_COUNT,
-  hunks,
-}: {
-  _slowLoadingLineCount?: number;
-  hunks: Hunks;
-}): Hunks => {
-  let lengthSoFar = 0;
-  const trimmed = [];
-
-  for (let hunk of hunks) {
-    const lengthOfHunkChanges = hunk.changes.length;
-    if (lengthOfHunkChanges + lengthSoFar > _slowLoadingLineCount) {
-      const changes = hunk.changes.slice(
-        0,
-        _slowLoadingLineCount - lengthSoFar,
-      );
-      // Push an additional change with a comment that says the content has
-      // been trimmed.
-      changes.push(addedChange);
-
-      hunk = { ...hunk, changes };
-      trimmed.push(hunk);
-      return trimmed;
-    }
-    trimmed.push(hunk);
-    lengthSoFar += lengthOfHunkChanges;
-  }
-  return trimmed;
-};
-
 export const getChangeCharCount = (hunks: Hunks) => {
   const changes = getAllHunkChanges(hunks);
   return changes.reduce((charCount, change) => {
@@ -101,11 +68,9 @@ export const getChangeCharCount = (hunks: Hunks) => {
   }, 0);
 };
 
-// This is what is used to trim diffs that are for minified files.
-// They are trimmed based on number of characters.
 export const trimHunkChars = ({
   hunks,
-  _trimmedCharCount = MINIFIED_FILE_TRIMMED_CHAR_COUNT,
+  _trimmedCharCount = TRIMMED_CHAR_COUNT,
 }: {
   hunks: Hunks;
   _trimmedCharCount?: number;
@@ -155,12 +120,11 @@ export type DefaultProps = {
   _document: typeof document;
   _getDiffAnchors: typeof getDiffAnchors;
   _getRelativeDiffAnchor: typeof getRelativeDiffAnchor;
-  _minifiedFileTrimmedCharCount: number;
+  _trimmedCharCount: number;
   _sendPerfTiming: typeof sendPerfTiming;
   _slowLoadingLineCount: number;
   _tokenize: typeof tokenize;
   _trimHunkChars: typeof trimHunkChars;
-  _trimHunkLines: typeof trimHunkLines;
   enableCommenting: boolean;
   viewType: DiffProps['viewType'];
 };
@@ -177,12 +141,11 @@ export class DiffViewBase extends React.Component<Props> {
     _document: document,
     _getDiffAnchors: getDiffAnchors,
     _getRelativeDiffAnchor: getRelativeDiffAnchor,
-    _minifiedFileTrimmedCharCount: MINIFIED_FILE_TRIMMED_CHAR_COUNT,
+    _trimmedCharCount: TRIMMED_CHAR_COUNT,
     _sendPerfTiming: sendPerfTiming,
     _slowLoadingLineCount: SLOW_LOADING_LINE_COUNT,
     _tokenize: tokenize,
     _trimHunkChars: trimHunkChars,
-    _trimHunkLines: trimHunkLines,
     enableCommenting: process.env.REACT_APP_ENABLE_COMMENTING === 'true',
     viewType: 'unified',
   };
@@ -394,11 +357,10 @@ export class DiffViewBase extends React.Component<Props> {
     const {
       _codeCanBeHighlighted,
       _codeShouldBeTrimmed,
-      _minifiedFileTrimmedCharCount,
+      _trimmedCharCount,
       _slowLoadingLineCount,
       _tokenize,
       _trimHunkChars,
-      _trimHunkLines,
       diff,
       isMinified,
       mimeType,
@@ -435,14 +397,12 @@ export class DiffViewBase extends React.Component<Props> {
           codeCharLength: getChangeCharCount(hunks),
           codeLineLength: changeCount,
           isMinified,
-          minifiedFileTrimmedCharCount: _minifiedFileTrimmedCharCount,
+          trimmedCharCount: _trimmedCharCount,
           slowLoadingLineCount: _slowLoadingLineCount,
         })
       ) {
         if (!shouldAllowSlowPages({ allowByDefault: !isMinified, location })) {
-          hunks = isMinified
-            ? _trimHunkChars({ hunks })
-            : _trimHunkLines({ hunks });
+          hunks = _trimHunkChars({ hunks });
           diffWasTrimmed = true;
         }
         diffIsSlowAlert = (

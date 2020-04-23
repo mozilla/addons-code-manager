@@ -16,7 +16,7 @@ import {
 } from './utils';
 import refractor from '../../refractor';
 import {
-  MINIFIED_FILE_TRIMMED_CHAR_COUNT,
+  TRIMMED_CHAR_COUNT,
   SLOW_LOADING_LINE_COUNT,
   codeShouldBeTrimmed,
   contentAddedByTrimmer,
@@ -64,6 +64,10 @@ export const scrollToSelectedLine = (element: HTMLElement | null) => {
   }
 };
 
+export const trimCode = (content: string) => {
+  return `${content.substring(0, TRIMMED_CHAR_COUNT)} ${contentAddedByTrimmer}`;
+};
+
 export type PublicProps = {
   content: string;
   isMinified: boolean;
@@ -72,7 +76,9 @@ export type PublicProps = {
 };
 
 export type DefaultProps = {
-  _minifiedFileTrimmedCharCount: number;
+  _codeShouldBeTrimmed: typeof codeShouldBeTrimmed;
+  _trimCode: typeof trimCode;
+  _trimmedCharCount: number;
   _scrollToSelectedLine: typeof scrollToSelectedLine;
   _sendPerfTiming: typeof sendPerfTiming;
   _slowLoadingLineCount: number;
@@ -83,7 +89,9 @@ type Props = PublicProps & DefaultProps & RouteComponentProps;
 
 export class CodeViewBase extends React.Component<Props> {
   static defaultProps: DefaultProps = {
-    _minifiedFileTrimmedCharCount: MINIFIED_FILE_TRIMMED_CHAR_COUNT,
+    _codeShouldBeTrimmed: codeShouldBeTrimmed,
+    _trimCode: trimCode,
+    _trimmedCharCount: TRIMMED_CHAR_COUNT,
     _scrollToSelectedLine: scrollToSelectedLine,
     _sendPerfTiming: sendPerfTiming,
     _slowLoadingLineCount: SLOW_LOADING_LINE_COUNT,
@@ -97,7 +105,9 @@ export class CodeViewBase extends React.Component<Props> {
 
   renderWithLinterInfo = ({ selectedMessageMap }: LinterProviderInfo) => {
     const {
-      _minifiedFileTrimmedCharCount,
+      _codeShouldBeTrimmed,
+      _trimCode,
+      _trimmedCharCount,
       _scrollToSelectedLine,
       _slowLoadingLineCount,
       content,
@@ -114,26 +124,16 @@ export class CodeViewBase extends React.Component<Props> {
     let slowAlert;
 
     if (
-      codeShouldBeTrimmed({
+      _codeShouldBeTrimmed({
         codeCharLength: content.length,
         codeLineLength: codeLines.length,
         isMinified,
-        minifiedFileTrimmedCharCount: _minifiedFileTrimmedCharCount,
+        trimmedCharCount: _trimmedCharCount,
         slowLoadingLineCount: _slowLoadingLineCount,
       })
     ) {
       if (!shouldAllowSlowPages({ location })) {
-        if (isMinified) {
-          codeLines = getLines(
-            `${content.substring(
-              0,
-              _minifiedFileTrimmedCharCount,
-            )} ${contentAddedByTrimmer}`,
-          );
-        } else {
-          codeLines = codeLines.slice(0, _slowLoadingLineCount);
-          codeLines.push(contentAddedByTrimmer);
-        }
+        codeLines = getLines(_trimCode(content));
         codeWasTrimmed = true;
       }
       slowAlert = (

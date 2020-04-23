@@ -716,14 +716,14 @@ describe('codeShouldBeTrimmed', () => {
     codeCharLength = 0,
     codeLineLength = 0,
     isMinified = false,
-    minifiedFileTrimmedCharCount = 1,
+    trimmedCharCount = 1,
     slowLoadingLineCount = 1,
   }) => {
     return codeShouldBeTrimmed({
       codeCharLength,
       codeLineLength,
       isMinified,
-      minifiedFileTrimmedCharCount,
+      trimmedCharCount,
       slowLoadingLineCount,
     });
   };
@@ -752,29 +752,29 @@ describe('codeShouldBeTrimmed', () => {
     ).toEqual(false);
   });
 
-  it('returns true if isMinified is true and the code length > minifiedFileTrimmedCharCount', () => {
+  it('returns true if isMinified is true and the code length > trimmedCharCount', () => {
     expect(
       _codeShouldBeTrimmed({
         codeCharLength: 2,
         isMinified: true,
-        minifiedFileTrimmedCharCount: 1,
+        trimmedCharCount: 1,
       }),
     ).toEqual(true);
   });
 
-  it('returns false if isMinified is true but the code length <= minifiedFileTrimmedCharCount', () => {
+  it('returns false if isMinified is true but the code length <= trimmedCharCount', () => {
     expect(
       _codeShouldBeTrimmed({
         codeCharLength: 1,
         isMinified: true,
-        minifiedFileTrimmedCharCount: 2,
+        trimmedCharCount: 2,
       }),
     ).toEqual(false);
     expect(
       _codeShouldBeTrimmed({
         codeCharLength: 2,
         isMinified: true,
-        minifiedFileTrimmedCharCount: 2,
+        trimmedCharCount: 2,
       }),
     ).toEqual(false);
   });

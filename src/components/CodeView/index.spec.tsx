@@ -22,6 +22,7 @@ import {
   allowSlowPagesParam,
   contentAddedByTrimmer,
   getLanguageFromMimeType,
+  TRIMMED_CHAR_COUNT,
 } from '../../utils';
 import {
   SimulateCommentListParams,
@@ -44,6 +45,7 @@ import CodeView, {
   DefaultProps,
   PublicProps,
   scrollToSelectedLine,
+  trimCode,
 } from '.';
 
 describe(__filename, () => {
@@ -480,62 +482,52 @@ describe(__filename, () => {
     expect(root.find(GlobalLinterMessages)).toHaveProp('messages', []);
   });
 
-  it('trims the code when too long', () => {
-    const contentLineCount = 5;
-    const _slowLoadingLineCount = contentLineCount - 2;
-    const root = renderSlowLoadingCode({
+  it('checks whether code should be trimmed', () => {
+    const _codeShouldBeTrimmed = jest.fn();
+    const _trimmedCharCount = 1;
+    const _slowLoadingLineCount = 2;
+    const content = 'some-content';
+    const isMinified = true;
+
+    renderWithLinterProvider({
+      _codeShouldBeTrimmed,
       _slowLoadingLineCount,
-      contentLineCount,
+      _trimmedCharCount,
+      content,
+      isMinified,
     });
 
-    const fadable = root.find(FadableContent);
-    expect(fadable).toHaveProp('fade', true);
-
-    // The number of lines should be the number to trim to, plus one for the
-    // added message.
-    expect(fadable.find(`.${styles.line}`)).toHaveLength(
-      _slowLoadingLineCount + 1,
-    );
-
-    // Show the warning twice: top and bottom.
-    expect(root.find(SlowPageAlert)).toHaveLength(2);
+    expect(_codeShouldBeTrimmed).toHaveBeenCalledWith({
+      codeCharLength: content.length,
+      codeLineLength: 1,
+      isMinified,
+      trimmedCharCount: _trimmedCharCount,
+      slowLoadingLineCount: _slowLoadingLineCount,
+    });
   });
 
-  it('trims the code when identified as minified', () => {
-    const content = 'some-content';
-    const _minifiedFileTrimmedCharCount = content.length - 2;
-    const isMinified = true;
-    const mimeType = 'mime/type';
+  it('trims files when needed', () => {
+    const _codeShouldBeTrimmed = jest.fn().mockReturnValue(true);
+    const _trimCode = jest.fn().mockReturnValue('some trimmed content');
 
     const root = renderWithLinterProvider({
-      _minifiedFileTrimmedCharCount,
-      content,
-      isMinified,
+      _codeShouldBeTrimmed,
+      _trimCode,
+      isMinified: true,
     });
+
+    expect(_codeShouldBeTrimmed).toHaveBeenCalled();
+    expect(_trimCode).toHaveBeenCalled();
 
     const fadable = root.find(FadableContent);
     expect(fadable).toHaveProp('fade', true);
 
     // Show the warning twice: top and bottom.
     expect(root.find(SlowPageAlert)).toHaveLength(2);
-
-    const { renderContent } = simulateCommentableLine({
-      _minifiedFileTrimmedCharCount,
-      content,
-      isMinified,
-      mimeType,
-    });
-    const line = renderContent();
-
-    expect(line.find('.innerHighlightedCode')).toHaveText(
-      `${content.substring(
-        0,
-        _minifiedFileTrimmedCharCount,
-      )} ${contentAddedByTrimmer}`,
-    );
   });
 
   it('does not trim code when slow pages are allowed', () => {
+    const _trimCode = jest.fn();
     const contentLineCount = 5;
     const location = createFakeLocation({
       search: queryString.stringify({ [allowSlowPagesParam]: true }),
@@ -543,14 +535,15 @@ describe(__filename, () => {
 
     const root = renderSlowLoadingCode({
       _slowLoadingLineCount: contentLineCount - 2,
+      _trimCode,
       contentLineCount,
       location,
     });
 
+    expect(_trimCode).not.toHaveBeenCalled();
+
     const fadable = root.find(FadableContent);
     expect(fadable).toHaveProp('fade', false);
-
-    expect(fadable.find(`.${styles.line}`)).toHaveLength(contentLineCount);
 
     // The warning should only be shown once, at the top.
     expect(root.find(SlowPageAlert)).toHaveLength(1);
@@ -670,6 +663,15 @@ describe(__filename, () => {
       const element = null;
 
       expect(() => scrollToSelectedLine(element)).not.toThrow();
+    });
+  });
+
+  describe('trimCode', () => {
+    it('trims code, adding a comment', () => {
+      const codeChar = 'a';
+      const code = codeChar.repeat(TRIMMED_CHAR_COUNT + 10);
+      const trimmedCode = codeChar.repeat(TRIMMED_CHAR_COUNT);
+      expect(trimCode(code)).toEqual(`${trimmedCode} ${contentAddedByTrimmer}`);
     });
   });
 });
