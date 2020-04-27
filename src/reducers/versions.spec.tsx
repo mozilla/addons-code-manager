@@ -60,7 +60,6 @@ import {
   createFakeEntry,
   createFakeHistory,
   createFakeLocation,
-  createFakeLogger,
   createStoreWithVersion,
   createFakeThunk,
   createVersionAndEntryStatusMap,
@@ -100,7 +99,7 @@ describe(__filename, () => {
         expect.objectContaining({
           versionFiles: {
             [version.id]: {
-              [path]: createInternalVersionFile({ file: version.file, path }),
+              [path]: createInternalVersionFile(version.file),
             },
           },
         }),
@@ -122,14 +121,8 @@ describe(__filename, () => {
         expect.objectContaining({
           versionFiles: {
             [version.id]: {
-              [path1]: createInternalVersionFile({
-                file: version.file,
-                path: path1,
-              }),
-              [path2]: createInternalVersionFile({
-                file: version.file,
-                path: path2,
-              }),
+              [path1]: createInternalVersionFile(version.file),
+              [path2]: createInternalVersionFile(version.file),
             },
           },
         }),
@@ -703,13 +696,7 @@ describe(__filename, () => {
           base_file: {
             id: baseFileId,
           },
-          entries: {
-            ...fakeVersionWithDiff.file.entries,
-            [path]: {
-              ...fakeVersionWithDiff.file.entries[path],
-              mimetype: mimeType,
-            },
-          },
+          mimetype: mimeType,
           // eslint-disable-next-line @typescript-eslint/camelcase
           selected_file: path,
         },
@@ -751,41 +738,6 @@ describe(__filename, () => {
           headVersionId,
         ),
       ).toEqual(false);
-    });
-
-    it('throws an error when entry is missing on loadDiff()', () => {
-      const addonId = 1;
-      const baseVersionId = 2;
-      const path = 'some/other/file.js';
-
-      const version = {
-        ...fakeVersionWithDiff,
-        file: {
-          ...fakeVersionWithDiff.file,
-          // eslint-disable-next-line @typescript-eslint/camelcase
-          selected_file: path,
-        },
-      };
-      const headVersionId = version.id;
-
-      const previousState = reducer(
-        undefined,
-        _loadVersionInfo({
-          version,
-        }),
-      );
-
-      expect(() => {
-        reducer(
-          previousState,
-          actions.loadDiff({
-            addonId,
-            baseVersionId,
-            headVersionId,
-            version,
-          }),
-        );
-      }).toThrow(/Entry missing for headVersionId/);
     });
 
     it('throws an error message when headVersion is missing on loadDiff()', () => {
@@ -843,50 +795,28 @@ describe(__filename, () => {
       expect(createInternalVersionEntry(entry)).toEqual({
         depth: entry.depth,
         filename: entry.filename,
-        mimeType: entry.mimetype,
-        modified: entry.modified,
         path: entry.path,
-        sha256: entry.sha256,
         type: entry.mime_category,
       });
-    });
-
-    it('can handle a null sha256', () => {
-      const entry = { ...fakeVersionEntry, sha256: null };
-
-      expect(createInternalVersionEntry(entry)).toEqual(
-        expect.objectContaining({
-          sha256: null,
-        }),
-      );
     });
   });
 
   describe('createInternalVersionFile', () => {
-    it('creates a version file with sha256=null if the path does not exists in version.entries', () => {
-      const versionFile = createInternalVersionFile({
-        path: 'path.js',
-        file: {
-          ...fakeVersionFile,
-          entries: { 'manifest.json': fakeVersionEntry },
-        },
-      });
+    it('creates a version file with values from an external file object', () => {
+      const versionFile = createInternalVersionFile(fakeVersionFile);
 
-      expect(versionFile.sha256).toBe(null);
-    });
-
-    it('creates a version file with sha256 string if the path exists in version.entries', () => {
-      const sha256 = 'some-sha256';
-      const path = 'path.js';
-      const versionFile = createInternalVersionFile({
-        path,
-        file: {
-          ...fakeVersionFile,
-          entries: { [path]: { ...fakeVersionEntry, sha256 } },
-        },
-      });
-
-      expect(versionFile.sha256).toEqual(sha256);
+      expect(versionFile.content).toEqual(fakeVersionFile.content);
+      expect(versionFile.created).toEqual(fakeVersionFile.created);
+      expect(versionFile.downloadURL).toEqual(fakeVersionFile.download_url);
+      expect(versionFile.filename).toEqual(fakeVersionFile.filename);
+      expect(versionFile.id).toEqual(fakeVersionFile.id);
+      expect(versionFile.isMinified).toEqual(
+        fakeVersionFile.uses_unknown_minified_code,
+      );
+      expect(versionFile.mimeType).toEqual(fakeVersionFile.mimetype);
+      expect(versionFile.sha256).toEqual(fakeVersionFile.sha256);
+      expect(versionFile.size).toEqual(fakeVersionFile.size);
+      expect(versionFile.type).toEqual(fakeVersionFile.mime_category);
     });
   });
 
@@ -950,17 +880,11 @@ describe(__filename, () => {
         ...fakeVersion,
         file: {
           ...fakeVersionFile,
+          filename,
           download_url: downloadURL,
-          entries: {
-            [path]: {
-              ...fakeVersionEntry,
-              filename,
-              mime_category: type as VersionEntryType,
-              mimetype: mimeType,
-              path,
-              sha256,
-            },
-          },
+          mime_category: type as VersionEntryType,
+          mimetype: mimeType,
+          sha256,
           selected_file: path,
           uses_unknown_minified_code: isMinified,
         },
@@ -970,7 +894,7 @@ describe(__filename, () => {
       state = reducer(state, actions.loadVersionFile({ version, path }));
 
       expect(getVersionFile(state, version.id, path)).toEqual({
-        ...createInternalVersionFile({ file: version.file, path }),
+        ...createInternalVersionFile(version.file),
         downloadURL,
         isMinified,
         filename,
@@ -1016,66 +940,6 @@ describe(__filename, () => {
         undefined,
       );
     });
-
-    it('returns undefined if there is no entry for the path', () => {
-      const version = fakeVersion;
-      let state = reducer(undefined, _loadVersionInfo({ version }));
-      state = reducer(
-        state,
-        actions.loadVersionFile({ version, path: version.file.selected_file }),
-      );
-
-      // We have to manually remove the entry to test this. This is because the
-      // condition that checks for a file will return undefined before we reach
-      // this test under normal circumstances.
-      (state.versionInfo[version.id] as Version).entries = [];
-      expect(
-        getVersionFile(state, version.id, version.file.selected_file),
-      ).toEqual(undefined);
-    });
-
-    it('returns undefined if there is no sha256 for the entry', () => {
-      const path = 'some/dir/test.js';
-      const version = {
-        ...fakeVersion,
-        file: {
-          ...fakeVersionFile,
-          entries: {
-            [path]: {
-              ...fakeVersionEntry,
-              path,
-              sha256: null,
-            },
-          },
-          selected_file: path,
-        },
-      };
-      let state = reducer(undefined, _loadVersionInfo({ version }));
-      state = reducer(state, actions.loadVersionFile({ version, path }));
-
-      expect(
-        getVersionFile(state, version.id, version.file.selected_file),
-      ).toEqual(undefined);
-    });
-
-    it('logs a debug message if there is no entry for the path', async () => {
-      const _log = createFakeLogger();
-
-      const version = fakeVersion;
-      let state = reducer(undefined, _loadVersionInfo({ version }));
-      state = reducer(
-        state,
-        actions.loadVersionFile({ version, path: version.file.selected_file }),
-      );
-
-      // We have to manually remove the entry to test this. This is because the
-      // condition that checks for a file will return undefined before we reach
-      // this test under normal circumstances.
-      (state.versionInfo[version.id] as Version).entries = [];
-      getVersionFile(state, version.id, version.file.selected_file, { _log });
-
-      expect(_log.debug).toHaveBeenCalled();
-    });
   });
 
   describe('getVersionFiles', () => {
@@ -1090,14 +954,8 @@ describe(__filename, () => {
       );
       state = reducer(state, actions.loadVersionFile({ path: path2, version }));
 
-      const internalVersionFile1 = createInternalVersionFile({
-        file: version.file,
-        path: path1,
-      });
-      const internalVersionFile2 = createInternalVersionFile({
-        file: version.file,
-        path: path2,
-      });
+      const internalVersionFile1 = createInternalVersionFile(version.file);
+      const internalVersionFile2 = createInternalVersionFile(version.file);
       expect(getVersionFiles(state, version.id)).toEqual({
         [path1]: internalVersionFile1,
         [path2]: internalVersionFile2,

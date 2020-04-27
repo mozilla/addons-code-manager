@@ -42,13 +42,11 @@ import {
   ExternalVersionsList,
   ExternalVersionsListItem,
   Version,
-  VersionEntry,
   VersionEntryType,
   actions as versionsActions,
   createEntryStatusMap,
   createInternalCompareInfo,
   createInternalVersion,
-  createInternalVersionEntry,
 } from './reducers/versions';
 import Commentable, {
   ChildrenArgValue as CommentableChildrenArgValue,
@@ -92,13 +90,11 @@ export const fakeVersionEntry: ExternalVersionEntry = Object.freeze({
 export const createFakeEntry = (
   mime_category: VersionEntryType,
   path: string,
-  mimetype = 'application/json',
 ): ExternalVersionEntry => {
   return {
     ...fakeVersionEntry,
     filename: path,
     mime_category,
-    mimetype,
     path,
   };
 };
@@ -110,14 +106,18 @@ export const fakeVersionFile: ExternalVersionFileWithContent = Object.freeze({
   entries: {
     'manifest.json': fakeVersionEntry,
   },
+  filename: 'manifest.json',
   hash: 'some-hash',
   id: 789,
   is_mozilla_signed_extension: true,
   is_restart_required: false,
   is_webextension: true,
+  mime_category: 'text',
+  mimetype: 'application/json',
   permissions: [],
   platform: 'all',
   selected_file: 'manifest.json',
+  sha256: 'some-sha',
   size: 123,
   status: 'public',
   url: 'http://example.com/edit/',
@@ -443,22 +443,14 @@ export const createFakeLinterMessagesByPath = ({
 export const createFakeCompareInfo = ({
   baseVersionId = 1,
   headVersionId = 2,
-  mimeType = 'mime/type',
-  entry = createInternalVersionEntry({
-    ...fakeVersionEntry,
-    mimetype: mimeType,
-  }),
   version = fakeVersionWithDiff,
 }: {
   baseVersionId?: number;
   headVersionId?: number;
-  mimeType?: string;
-  entry?: VersionEntry;
   version?: ExternalVersionWithDiff;
 } = {}) => {
   return createInternalCompareInfo({
     baseVersionId,
-    entry,
     headVersionId,
     version,
   });

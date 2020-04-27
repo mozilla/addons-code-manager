@@ -335,13 +335,7 @@ describe(__filename, () => {
       id: baseVersionId + 1,
       file: {
         ...fakeVersionWithDiff.file,
-        entries: {
-          ...fakeVersionWithDiff.file.entries,
-          [path]: {
-            ...fakeVersionWithDiff.file.entries[path],
-            mimetype: mimeType,
-          },
-        },
+        mimetype: mimeType,
         selected_file: path,
       },
     };

@@ -6,7 +6,6 @@ import { History } from 'history';
 
 import {
   createExternalVersionWithEntries,
-  createFakeEntry,
   createFakeHistory,
   createFakeLocation,
   createFakeThunk,
@@ -23,6 +22,7 @@ import configureStore from '../../configureStore';
 import {
   actions as versionsActions,
   createInternalVersion,
+  VersionEntryType,
 } from '../../reducers/versions';
 import { actions as fileTreeActions } from '../../reducers/fileTree';
 import Loading from '../../components/Loading';
@@ -277,14 +277,13 @@ describe(__filename, () => {
 
   it('renders an image file', () => {
     const path = 'image.png';
-    const entry = createFakeEntry('image', path);
     const downloadUrl = '/some/download/url/';
     const version = {
       ...fakeVersion,
       file: {
         ...fakeVersionFile,
-        entries: { [path]: entry },
         download_url: downloadUrl,
+        mime_category: 'image' as VersionEntryType,
         selected_file: path,
       },
     };
