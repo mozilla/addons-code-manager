@@ -191,7 +191,7 @@ export class BrowseBase extends React.Component<Props> {
     if (!file || !version) {
       return <Loading message={gettext('Loading content...')} />;
     }
-    if (file.type === 'image' && file.downloadURL) {
+    if (file.fileType === 'image' && file.downloadURL) {
       return (
         <div className={styles.Image}>
           <img

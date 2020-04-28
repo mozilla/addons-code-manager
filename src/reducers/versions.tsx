@@ -159,7 +159,7 @@ type InternalVersionFile = {
   mimeType: string;
   sha256: string;
   size: number;
-  type: VersionEntryType;
+  fileType: VersionEntryType;
 };
 
 export type VersionFile = {
@@ -175,7 +175,7 @@ export type VersionFile = {
   path: string;
   sha256: string;
   size: number;
-  type: VersionEntryType;
+  fileType: VersionEntryType;
   version: string;
 };
 
@@ -439,7 +439,7 @@ export const createInternalVersionFile = (
     mimeType: file.mimetype,
     sha256: file.sha256,
     size: file.size,
-    type: file.mime_category,
+    fileType: file.mime_category,
   };
 };
 

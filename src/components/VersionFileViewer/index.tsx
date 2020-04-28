@@ -127,7 +127,7 @@ const VersionFileViewer = ({
         altSidePanel={
           file ? (
             <CodeOverview
-              content={file.type === 'image' ? '' : file.content}
+              content={file.fileType === 'image' ? '' : file.content}
               getCodeLineAnchor={getCodeLineAnchor}
               insertedLines={insertedLines}
               version={version}

@@ -816,7 +816,7 @@ describe(__filename, () => {
       expect(versionFile.mimeType).toEqual(fakeVersionFile.mimetype);
       expect(versionFile.sha256).toEqual(fakeVersionFile.sha256);
       expect(versionFile.size).toEqual(fakeVersionFile.size);
-      expect(versionFile.type).toEqual(fakeVersionFile.mime_category);
+      expect(versionFile.fileType).toEqual(fakeVersionFile.mime_category);
     });
   });
 
@@ -901,7 +901,7 @@ describe(__filename, () => {
         mimeType,
         path,
         sha256,
-        type,
+        fileType: type,
         version: versionString,
       });
     });
