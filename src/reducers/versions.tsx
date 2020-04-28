@@ -41,11 +41,7 @@ export type ExternalVersionEntry = {
   depth: number;
   filename: string;
   mime_category: VersionEntryType;
-  mimetype: string;
-  modified: string;
   path: string;
-  sha256: string | null;
-  size: number | null;
   status?: VersionEntryStatus;
 };
 
@@ -55,14 +51,18 @@ type PartialExternalVersionFile = {
   entries: {
     [nodeName: string]: ExternalVersionEntry;
   };
+  filename: string;
   hash: string;
   id: number;
   is_mozilla_signed_extension: boolean;
   is_restart_required: boolean;
   is_webextension: boolean;
+  mime_category: VersionEntryType;
+  mimetype: string;
   permissions: string[];
   platform: string;
   selected_file: string;
+  sha256: string;
   size: number;
   status: string;
   url: string;
@@ -153,10 +153,13 @@ type InternalVersionFile = {
   content: string;
   created: string;
   downloadURL: string | null;
+  filename: string;
   id: number;
   isMinified: boolean;
-  sha256: string | null;
+  mimeType: string;
+  sha256: string;
   size: number;
+  fileType: VersionEntryType;
 };
 
 export type VersionFile = {
@@ -172,17 +175,15 @@ export type VersionFile = {
   path: string;
   sha256: string;
   size: number;
-  type: VersionEntryType;
+  fileType: VersionEntryType;
   version: string;
 };
 
 export type VersionEntry = {
   depth: number;
   filename: string;
-  mimeType: string;
-  modified: string;
   path: string;
-  sha256: string | null;
+  status?: VersionEntryStatus;
   type: VersionEntryType;
 };
 
@@ -425,21 +426,20 @@ export const getParentFolders = (path: string): string[] => {
   return parents;
 };
 
-export const createInternalVersionFile = ({
-  file,
-  path,
-}: {
-  file: ExternalVersionFileWithContent;
-  path: string;
-}): InternalVersionFile => {
+export const createInternalVersionFile = (
+  file: ExternalVersionFileWithContent,
+): InternalVersionFile => {
   return {
     content: file.content,
     created: file.created,
     downloadURL: file.download_url,
+    filename: file.filename,
     id: file.id,
     isMinified: file.uses_unknown_minified_code,
-    sha256: file.entries[path] ? file.entries[path].sha256 : null,
+    mimeType: file.mimetype,
+    sha256: file.sha256,
     size: file.size,
+    fileType: file.mime_category,
   };
 };
 
@@ -449,10 +449,7 @@ export const createInternalVersionEntry = (
   return {
     depth: entry.depth,
     filename: entry.filename,
-    mimeType: entry.mimetype,
-    modified: entry.modified,
     path: entry.path,
-    sha256: entry.sha256,
     type: entry.mime_category,
   };
 };
@@ -597,7 +594,6 @@ export const getVersionFile = (
   versions: VersionsState,
   versionId: number,
   path: string,
-  { _log = log } = {},
 ): VersionFile | undefined | null => {
   const version = getVersionInfo(versions, versionId);
   const filesForVersion = getVersionFiles(versions, versionId);
@@ -611,26 +607,10 @@ export const getVersionFile = (
       return null;
     }
 
-    const entry = version.entries.find((e) => e.path === path);
-
-    if (!entry) {
-      _log.debug(`Entry missing for path: ${path}, versionId: ${versionId}`);
-      return undefined;
-    }
-
     if (file) {
-      if (!file.sha256) {
-        _log.debug(`sha256 missing for file: ${path}, versionId: ${versionId}`);
-        return undefined;
-      }
-
       return {
         ...file,
-        filename: entry.filename,
-        mimeType: entry.mimeType,
         path,
-        sha256: file.sha256,
-        type: entry.type,
         version: version.version,
       };
     }
@@ -1023,12 +1003,10 @@ export const getCompareInfoKey = ({
 export const createInternalCompareInfo = ({
   baseVersionId,
   headVersionId,
-  entry,
   version,
 }: {
   baseVersionId: number;
   headVersionId: number;
-  entry: VersionEntry;
   version: ExternalVersionWithDiff;
 }): CompareInfo => {
   return {
@@ -1038,7 +1016,7 @@ export const createInternalCompareInfo = ({
       headVersionId,
       version,
     }),
-    mimeType: entry.mimeType,
+    mimeType: version.file.mimetype,
   };
 };
 
@@ -1376,7 +1354,7 @@ export const createReducer = ({
             ...state.versionFiles,
             [version.id]: {
               ...state.versionFiles[version.id],
-              [path]: createInternalVersionFile({ file: version.file, path }),
+              [path]: createInternalVersionFile(version.file),
             },
           },
           versionFilesLoading: {
@@ -1632,13 +1610,6 @@ export const createReducer = ({
           );
         }
 
-        const { entries, selectedPath } = headVersion;
-        const entry = entries.find((e) => e.path === selectedPath);
-
-        if (!entry) {
-          throw new Error(`Entry missing for headVersionId: ${headVersionId}`);
-        }
-
         return {
           ...state,
           compareInfo: {
@@ -1646,7 +1617,6 @@ export const createReducer = ({
             [compareInfoKey]: createInternalCompareInfo({
               baseVersionId,
               headVersionId,
-              entry,
               version,
             }),
           },

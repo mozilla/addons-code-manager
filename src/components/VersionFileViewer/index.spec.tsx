@@ -19,10 +19,11 @@ import {
   actions as versionsActions,
   getVersionFile,
   getVersionInfo,
+  ExternalVersionFileWithContent,
+  createInternalVersion,
 } from '../../reducers/versions';
 import {
   createFakeCompareInfo,
-  createFakeEntry,
   createFakeExternalLinterResult,
   dispatchLoadVersionInfo,
   fakeExternalLinterMessage,
@@ -30,6 +31,7 @@ import {
   fakeVersionEntry,
   getContentShellPanel,
   simulateLinterProvider,
+  fakeVersionFile,
 } from '../../test-helpers';
 import styles from './styles.module.scss';
 
@@ -41,11 +43,13 @@ describe(__filename, () => {
     path = 'background.js',
     entry,
     fileContent = 'example file content',
+    fileProps = {},
   }: {
     store?: Store;
     path?: string;
     entry?: ExternalVersionEntry;
     fileContent?: string;
+    fileProps?: Partial<ExternalVersionFileWithContent>;
   } = {}) => {
     // TODO: add a real createInternalVersionFile().
     // See https://github.com/mozilla/addons-code-manager/issues/685
@@ -66,6 +70,7 @@ describe(__filename, () => {
         },
         // eslint-disable-next-line @typescript-eslint/camelcase
         selected_file: path,
+        ...fileProps,
       },
     };
     dispatchLoadVersionInfo({ store, version });
@@ -206,9 +211,14 @@ describe(__filename, () => {
   });
 
   it('renders a message in the information panel for the deleted file', () => {
-    const { file, version } = getInternalVersionAndFile();
+    const filename = 'someFileName.js';
+    const version = createInternalVersion({
+      ...fakeVersion,
+      // eslint-disable-next-line @typescript-eslint/camelcase
+      file: { ...fakeVersionFile, filename, selected_file: filename },
+    });
     const entryStatusMap: EntryStatusMap = {
-      [file.filename]: 'D',
+      [filename]: 'D',
     };
     const root = renderPanel(
       { entryStatusMap, file: null, version },
@@ -360,14 +370,12 @@ describe(__filename, () => {
   });
 
   it('does not render CodeOverview content for images', () => {
-    const path = 'image.png';
-    const entry = createFakeEntry('image', path, 'image/png');
     const fileContent = 'some image data';
 
     const { file, version } = getInternalVersionAndFile({
       fileContent,
-      path,
-      entry,
+      // eslint-disable-next-line @typescript-eslint/camelcase
+      fileProps: { mime_category: 'image' },
     });
     const root = renderPanel({ file, version }, PanelAttribs.altSidePanel);
 
