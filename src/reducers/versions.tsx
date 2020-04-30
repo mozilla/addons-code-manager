@@ -46,26 +46,17 @@ export type ExternalVersionEntry = {
 };
 
 type PartialExternalVersionFile = {
-  created: string;
   download_url: string | null;
   entries: {
     [nodeName: string]: ExternalVersionEntry;
   };
   filename: string;
-  hash: string;
   id: number;
-  is_mozilla_signed_extension: boolean;
-  is_restart_required: boolean;
-  is_webextension: boolean;
   mime_category: VersionEntryType;
   mimetype: string;
-  permissions: string[];
-  platform: string;
   selected_file: string;
   sha256: string;
   size: number;
-  status: string;
-  url: string;
   uses_unknown_minified_code: boolean;
 };
 
@@ -151,7 +142,6 @@ export type ExternalVersionWithDiff = PartialExternalVersion & {
 // returns more info, which is defined in VersionFile, below.
 type InternalVersionFile = {
   content: string;
-  created: string;
   downloadURL: string | null;
   filename: string;
   id: number;
@@ -164,7 +154,6 @@ type InternalVersionFile = {
 
 export type VersionFile = {
   content: string;
-  created: string;
   downloadURL: string | null;
   // This is the basename of the file.
   filename: string;
@@ -431,7 +420,6 @@ export const createInternalVersionFile = (
 ): InternalVersionFile => {
   return {
     content: file.content,
-    created: file.created,
     downloadURL: file.download_url,
     filename: file.filename,
     id: file.id,
