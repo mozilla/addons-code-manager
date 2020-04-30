@@ -276,6 +276,22 @@ describe(__filename, () => {
     });
   });
 
+  it('does not tokenize the hunks to add syntax highlighting if the diff has been trimmed', () => {
+    const _codeCanBeHighlighted = jest.fn().mockReturnValue(true);
+    const _codeShouldBeTrimmed = jest.fn().mockReturnValue(true);
+    const _tokenize = jest.fn();
+
+    renderWithLinterProvider({
+      _codeCanBeHighlighted,
+      _codeShouldBeTrimmed,
+      _tokenize,
+      // A minified file will be trimmed by default.
+      isMinified: true,
+    });
+
+    expect(_tokenize).not.toHaveBeenCalled();
+  });
+
   it('configures anchors/links on each line number', () => {
     const root = renderWithLinterProvider();
 

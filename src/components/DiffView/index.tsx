@@ -426,7 +426,11 @@ export class DiffViewBase extends React.Component<Props> {
     }
 
     let tokens;
-    if (hunks && _codeCanBeHighlighted({ code: getAllHunkChanges(hunks) })) {
+    if (
+      hunks &&
+      _codeCanBeHighlighted({ code: getAllHunkChanges(hunks) }) &&
+      !diffWasTrimmed
+    ) {
       // TODO: always highlight when we can use a Web Worker.
       // https://github.com/mozilla/addons-code-manager/issues/928
       tokens = _tokenize(hunks, options);
