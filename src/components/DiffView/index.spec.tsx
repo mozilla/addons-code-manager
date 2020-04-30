@@ -296,17 +296,18 @@ describe(__filename, () => {
   it('resets tokens to undefined if they seem invalid', () => {
     const _codeCanBeHighlighted = jest.fn().mockReturnValue(true);
     const _codeShouldBeTrimmed = jest.fn().mockReturnValue(false);
-    const _tokenize = jest
-      .fn()
-      .mockReturnValue(createFakeTokens({ invalid: true }));
+    const badCode =
+      '!function(e){function r(r){for(var n,l,f=r[0],i=r[1],a=r[2]';
+    const diff = createDiffWithHunks([
+      createHunkWithChanges([{ content: badCode }]),
+    ]);
 
     const root = renderWithLinterProvider({
       _codeCanBeHighlighted,
       _codeShouldBeTrimmed,
-      _tokenize,
+      diff,
     });
 
-    expect(_tokenize).toHaveBeenCalled();
     expect(root.find(Diff)).toHaveProp('tokens', undefined);
   });
 
