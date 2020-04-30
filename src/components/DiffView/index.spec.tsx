@@ -2,16 +2,7 @@
 import queryString from 'query-string';
 import React from 'react';
 import { Alert } from 'react-bootstrap';
-import {
-  Diff,
-  HunkInfo,
-  Hunks,
-  RenderGutterParams,
-  WidgetMap,
-  parseDiff,
-  getChangeKey,
-  tokenize,
-} from 'react-diff-view';
+import * as ReactDiffView from 'react-diff-view';
 import { ShallowWrapper, shallow } from 'enzyme';
 import { History, Location } from 'history';
 
@@ -44,9 +35,9 @@ import {
   createFakeHistory,
   createFakeLinterMessagesByPath,
   createFakeLocation,
-  createFakeTokens,
   fakeChangeInfo,
   fakeExternalDiff,
+  fakeTokens,
   fakeVersion,
   getInstance,
   nextUniqueId,
@@ -84,7 +75,7 @@ describe(__filename, () => {
     return shallowUntilTarget(
       <DiffView
         _codeCanBeHighlighted={_codeCanBeHighlighted}
-        diff={parseDiff(basicDiff)[0]}
+        diff={ReactDiffView.parseDiff(basicDiff)[0]}
         enableCommenting={enableCommenting}
         isMinified={false}
         mimeType="text/plain"
@@ -116,10 +107,10 @@ describe(__filename, () => {
 
   const renderAndGetWidgets = (
     params: RenderWithLinterProviderParams = {},
-  ): WidgetMap => {
+  ): ReactDiffView.WidgetMap => {
     const root = renderWithLinterProvider(params);
 
-    const diffView = root.find(Diff);
+    const diffView = root.find(ReactDiffView.Diff);
     expect(diffView).toHaveProp('widgets');
 
     const widgets = diffView.prop('widgets');
@@ -130,7 +121,11 @@ describe(__filename, () => {
     return widgets;
   };
 
-  const renderWidget = (hunks: Hunks, widgets: WidgetMap, line: number) => {
+  const renderWidget = (
+    hunks: ReactDiffView.Hunks,
+    widgets: ReactDiffView.WidgetMap,
+    line: number,
+  ) => {
     const result = getAllHunkChanges(hunks).filter(
       (change) => change.lineNumber === line,
     );
@@ -138,11 +133,11 @@ describe(__filename, () => {
       throw new Error(`Could not find a change at line ${line}`);
     }
 
-    const key = getChangeKey(result[0]);
+    const key = ReactDiffView.getChangeKey(result[0]);
     return shallow(<div>{widgets[key]}</div>);
   };
 
-  const getWidgetNodes = (widgets: WidgetMap) => {
+  const getWidgetNodes = (widgets: ReactDiffView.WidgetMap) => {
     // Return a list of truthy React nodes in arbitrary order.
     return Object.values(widgets).filter(Boolean);
   };
@@ -198,7 +193,7 @@ describe(__filename, () => {
   it('renders with no differences', () => {
     const root = renderWithLinterProvider({ diff: null });
 
-    expect(root.find(Diff)).toHaveLength(0);
+    expect(root.find(ReactDiffView.Diff)).toHaveLength(0);
     expect(root.find(`.${styles.header}`)).toHaveLength(1);
     expect(root.find(`.${styles.noDiffs}`)).toIncludeText('No differences');
   });
@@ -206,22 +201,22 @@ describe(__filename, () => {
   it('defaults the viewType to unified', () => {
     const root = renderWithLinterProvider();
 
-    expect(root.find(Diff)).toHaveProp('viewType', 'unified');
+    expect(root.find(ReactDiffView.Diff)).toHaveProp('viewType', 'unified');
   });
 
   it('renders with a specified viewType', () => {
     const viewType = 'split';
     const root = renderWithLinterProvider({ viewType });
 
-    expect(root.find(Diff)).toHaveProp('viewType', viewType);
+    expect(root.find(ReactDiffView.Diff)).toHaveProp('viewType', viewType);
   });
 
   it('passes parsed diff information to DiffView', () => {
-    const diff = parseDiff(basicDiff)[0];
+    const diff = ReactDiffView.parseDiff(basicDiff)[0];
     const root = renderWithLinterProvider({ diff });
 
-    expect(root.find(Diff)).toHaveProp('diffType', diff.type);
-    expect(root.find(Diff)).toHaveProp('hunks', diff.hunks);
+    expect(root.find(ReactDiffView.Diff)).toHaveProp('diffType', diff.type);
+    expect(root.find(ReactDiffView.Diff)).toHaveProp('hunks', diff.hunks);
   });
 
   it('renders a header with diff stats', () => {
@@ -234,7 +229,7 @@ describe(__filename, () => {
 
   it('renders a header with diff stats for multiple hunks', () => {
     const root = renderWithLinterProvider({
-      diff: parseDiff(diffWithDeletions)[0],
+      diff: ReactDiffView.parseDiff(diffWithDeletions)[0],
     });
 
     expect(root.find(`.${styles.header}`)).toHaveLength(1);
@@ -243,11 +238,11 @@ describe(__filename, () => {
   });
 
   it('renders hunks with separators', () => {
-    const diff = parseDiff(diffWithDeletions)[0];
+    const diff = ReactDiffView.parseDiff(diffWithDeletions)[0];
     const root = renderWithLinterProvider({ diff });
 
     // Simulate the interface of <Diff />
-    const children = root.find(Diff).prop('children');
+    const children = root.find(ReactDiffView.Diff).prop('children');
     const diffWrapper = shallow(<div>{children(diff.hunks)}</div>);
 
     expect(diffWrapper.find(`.${styles.hunk}`)).toHaveLength(diff.hunks.length);
@@ -258,7 +253,7 @@ describe(__filename, () => {
   });
 
   it('tokenizes the hunks to add syntax highlighting', () => {
-    const diff = parseDiff(multipleDiff)[0];
+    const diff = ReactDiffView.parseDiff(multipleDiff)[0];
     const mimeType = 'application/javascript';
     const _codeCanBeHighlighted = jest.fn().mockReturnValue(true);
     const _tokenize = jest.fn();
@@ -296,6 +291,10 @@ describe(__filename, () => {
   it('resets tokens to undefined if they seem invalid', () => {
     const _codeCanBeHighlighted = jest.fn().mockReturnValue(true);
     const _codeShouldBeTrimmed = jest.fn().mockReturnValue(false);
+    const _tokenize = (jest.spyOn(
+      ReactDiffView,
+      'tokenize',
+    ) as unknown) as typeof ReactDiffView.tokenize;
     const badCode =
       '!function(e){function r(r){for(var n,l,f=r[0],i=r[1],a=r[2]';
     const diff = createDiffWithHunks([
@@ -305,18 +304,23 @@ describe(__filename, () => {
     const root = renderWithLinterProvider({
       _codeCanBeHighlighted,
       _codeShouldBeTrimmed,
+      _tokenize,
       diff,
     });
 
-    expect(root.find(Diff)).toHaveProp('tokens', undefined);
+    expect(_tokenize).toHaveBeenCalled();
+    expect(root.find(ReactDiffView.Diff)).toHaveProp('tokens', undefined);
   });
 
   it('configures anchors/links on each line number', () => {
     const root = renderWithLinterProvider();
 
-    expect(root.find(Diff)).toHaveProp('gutterType', 'anchor');
+    expect(root.find(ReactDiffView.Diff)).toHaveProp('gutterType', 'anchor');
     // More info about the `getChangeKey()` function here: https://github.com/otakustay/react-diff-view/tree/6aa5399c52392e19f7f8fbe4af17b374b4339862#key-of-change
-    expect(root.find(Diff)).toHaveProp('generateAnchorID', getChangeKey);
+    expect(root.find(ReactDiffView.Diff)).toHaveProp(
+      'generateAnchorID',
+      ReactDiffView.getChangeKey,
+    );
   });
 
   it('passes a selected change from the location hash to the Diff component', () => {
@@ -326,7 +330,9 @@ describe(__filename, () => {
 
     const root = renderWithLinterProvider({ location });
 
-    expect(root.find(Diff)).toHaveProp('selectedChanges', [selectedChange]);
+    expect(root.find(ReactDiffView.Diff)).toHaveProp('selectedChanges', [
+      selectedChange,
+    ]);
   });
 
   it('passes an empty list of selected changes when location hash is empty', () => {
@@ -334,7 +340,7 @@ describe(__filename, () => {
 
     const root = renderWithLinterProvider({ location });
 
-    expect(root.find(Diff)).toHaveProp('selectedChanges', []);
+    expect(root.find(ReactDiffView.Diff)).toHaveProp('selectedChanges', []);
   });
 
   it('tries to find the selected line element on mount', () => {
@@ -436,7 +442,7 @@ describe(__filename, () => {
 
     expect(history.push).not.toHaveBeenCalled();
 
-    root.setProps({ diff: parseDiff(basicDiff)[0] });
+    root.setProps({ diff: ReactDiffView.parseDiff(basicDiff)[0] });
 
     expect(history.push).toHaveBeenCalledWith(newLocation);
   });
@@ -470,7 +476,7 @@ describe(__filename, () => {
 
     expect(history.push).not.toHaveBeenCalled();
 
-    root.setProps({ diff: parseDiff(basicDiff)[0] });
+    root.setProps({ diff: ReactDiffView.parseDiff(basicDiff)[0] });
 
     expect(history.push).toHaveBeenCalledWith(newLocation);
   });
@@ -623,7 +629,7 @@ describe(__filename, () => {
       { line: 23, uid: 'second' },
     ];
 
-    const diff = parseDiff(diffWithDeletions)[0];
+    const diff = ReactDiffView.parseDiff(diffWithDeletions)[0];
     const widgets = renderAndGetWidgets({
       diff,
       selectedMessageMap: createFakeLinterMessagesByPath({
@@ -698,7 +704,7 @@ describe(__filename, () => {
       { line, uid: 'second' },
     ];
 
-    const diff = parseDiff(diffWithDeletions)[0];
+    const diff = ReactDiffView.parseDiff(diffWithDeletions)[0];
     const widgets = renderAndGetWidgets({
       diff,
       selectedMessageMap: createFakeLinterMessagesByPath({
@@ -854,7 +860,7 @@ describe(__filename, () => {
   });
 
   it('enables syntax highlighting for diffs when possible', () => {
-    const _tokenize = jest.fn(tokenize).mockReturnValue(createFakeTokens());
+    const _tokenize = jest.fn().mockReturnValue(fakeTokens);
     const root = renderWithLinterProvider({
       _codeCanBeHighlighted: jest.fn(() => true),
       _tokenize,
@@ -863,7 +869,7 @@ describe(__filename, () => {
       ]),
     });
 
-    const diff = root.find(Diff);
+    const diff = root.find(ReactDiffView.Diff);
     expect(diff).toHaveProp('tokens');
     expect(diff.prop('tokens')).toBeDefined();
     expect(_tokenize).toHaveBeenCalled();
@@ -871,7 +877,7 @@ describe(__filename, () => {
   });
 
   it('disables syntax highlighting when it is not possible', () => {
-    const _tokenize = jest.fn(tokenize);
+    const _tokenize = jest.fn();
     const root = renderWithLinterProvider({
       _codeCanBeHighlighted: jest.fn(() => false),
       _tokenize,
@@ -880,7 +886,7 @@ describe(__filename, () => {
       ]),
     });
 
-    expect(root.find(Diff)).toHaveProp('tokens', undefined);
+    expect(root.find(ReactDiffView.Diff)).toHaveProp('tokens', undefined);
     expect(_tokenize).not.toHaveBeenCalled();
 
     const message = root.find(Alert);
@@ -1137,7 +1143,7 @@ describe(__filename, () => {
         enableCommenting,
         version,
       });
-      const { renderGutter } = root.find(Diff).props();
+      const { renderGutter } = root.find(ReactDiffView.Diff).props();
       if (renderGutter) {
         const params: RenderGutterParams = {
           change,

@@ -1033,13 +1033,7 @@ export const fakeChange: ExternalChange = Object.freeze({
   type: 'normal',
 });
 
-export const createFakeTokens = ({
-  invalid = false,
-}: {
-  invalid?: boolean;
-} = {}): Tokens => {
-  const tokens = invalid
-    ? [[]]
-    : [{ type: 'token type', value: 'token value' }];
-  return { new: tokens, old: tokens };
-};
+export const fakeTokens: Tokens = Object.freeze({
+  new: [{ type: 'token type', value: 'token value' }],
+  old: [{ type: 'token type', value: 'token value' }],
+});
