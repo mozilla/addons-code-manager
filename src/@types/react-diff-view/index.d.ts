@@ -100,10 +100,12 @@ declare module 'react-diff-view' {
     refractor: typeof import('refractor');
   };
 
-  type Token = {
-    type: string;
-    value: string;
-  };
+  type Token =
+    | {
+        type: string;
+        value: string;
+      }
+    | string[];
 
   type Tokens = {
     old: Token[];

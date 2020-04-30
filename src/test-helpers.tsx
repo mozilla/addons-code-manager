@@ -9,7 +9,7 @@ import { History, Location } from 'history';
 import { ShallowRendererProps, ShallowWrapper, shallow } from 'enzyme';
 import { Store } from 'redux';
 import log from 'loglevel';
-import { ChangeInfo } from 'react-diff-view';
+import { ChangeInfo, Tokens } from 'react-diff-view';
 import { createAction } from 'typesafe-actions';
 
 import {
@@ -1032,3 +1032,14 @@ export const fakeChange: ExternalChange = Object.freeze({
   old_line_number: 1,
   type: 'normal',
 });
+
+export const createFakeTokens = ({
+  invalid = false,
+}: {
+  invalid?: boolean;
+} = {}): Tokens => {
+  const tokens = invalid
+    ? [[]]
+    : [{ type: 'token type', value: 'token value' }];
+  return { new: tokens, old: tokens };
+};

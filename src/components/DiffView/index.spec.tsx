@@ -44,6 +44,7 @@ import {
   createFakeHistory,
   createFakeLinterMessagesByPath,
   createFakeLocation,
+  createFakeTokens,
   fakeChangeInfo,
   fakeExternalDiff,
   fakeVersion,
@@ -290,6 +291,23 @@ describe(__filename, () => {
     });
 
     expect(_tokenize).not.toHaveBeenCalled();
+  });
+
+  it('resets tokens to undefined if they seem invalid', () => {
+    const _codeCanBeHighlighted = jest.fn().mockReturnValue(true);
+    const _codeShouldBeTrimmed = jest.fn().mockReturnValue(false);
+    const _tokenize = jest
+      .fn()
+      .mockReturnValue(createFakeTokens({ invalid: true }));
+
+    const root = renderWithLinterProvider({
+      _codeCanBeHighlighted,
+      _codeShouldBeTrimmed,
+      _tokenize,
+    });
+
+    expect(_tokenize).toHaveBeenCalled();
+    expect(root.find(Diff)).toHaveProp('tokens', undefined);
   });
 
   it('configures anchors/links on each line number', () => {
@@ -835,7 +853,7 @@ describe(__filename, () => {
   });
 
   it('enables syntax highlighting for diffs when possible', () => {
-    const _tokenize = jest.fn(tokenize);
+    const _tokenize = jest.fn(tokenize).mockReturnValue(createFakeTokens());
     const root = renderWithLinterProvider({
       _codeCanBeHighlighted: jest.fn(() => true),
       _tokenize,
