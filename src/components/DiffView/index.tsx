@@ -439,7 +439,7 @@ export class DiffViewBase extends React.Component<Props> {
     // If tokenize fails to create valid tokens, we can end up with an object
     // that looks like:
     // { new: [[]], old: [[]] }
-    // which is what we're trying to catch here so that invlaid tokens do not
+    // which is what we're trying to catch here so that invalid tokens do not
     // get passed into the Diff component.
     if (
       tokens &&
