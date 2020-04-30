@@ -158,7 +158,7 @@ describe(__filename, () => {
 
   const createInternalHunkWithChanges = (
     changes: Partial<ExternalChange>[],
-  ): HunkInfo => {
+  ): ReactDiffView.HunkInfo => {
     return createInternalHunk(createHunkWithChanges(changes));
   };
 
@@ -1129,7 +1129,7 @@ describe(__filename, () => {
       side = 'new',
       version = createInternalVersion(fakeVersion),
       wrapInAnchor = jest.fn().mockReturnValue(defaultGutter),
-    }: Partial<RenderGutterParams> &
+    }: Partial<ReactDiffView.RenderGutterParams> &
       RenderParams & {
         defaultGutter?: React.ReactElement;
       } = {}) => {
@@ -1145,7 +1145,7 @@ describe(__filename, () => {
       });
       const { renderGutter } = root.find(ReactDiffView.Diff).props();
       if (renderGutter) {
-        const params: RenderGutterParams = {
+        const params: ReactDiffView.RenderGutterParams = {
           change,
           renderDefault,
           inHoverState: false,
