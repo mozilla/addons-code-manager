@@ -426,10 +426,29 @@ export class DiffViewBase extends React.Component<Props> {
     }
 
     let tokens;
-    if (hunks && _codeCanBeHighlighted({ code: getAllHunkChanges(hunks) })) {
+    if (
+      hunks &&
+      _codeCanBeHighlighted({ code: getAllHunkChanges(hunks) }) &&
+      !diffWasTrimmed
+    ) {
       // TODO: always highlight when we can use a Web Worker.
       // https://github.com/mozilla/addons-code-manager/issues/928
       tokens = _tokenize(hunks, options);
+    }
+
+    // If tokenize fails to create valid tokens, we can end up with an object
+    // that looks like:
+    // { new: [[]], old: [[]] }
+    // which is what we're trying to catch here so that invlaid tokens do not
+    // get passed into the Diff component.
+    if (
+      tokens &&
+      tokens.old.length === 1 &&
+      Array.isArray(tokens.old[0]) &&
+      tokens.new.length === 1 &&
+      Array.isArray(tokens.new[0])
+    ) {
+      tokens = undefined;
     }
 
     if (diff && !tokens) {

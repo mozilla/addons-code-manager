@@ -100,10 +100,15 @@ declare module 'react-diff-view' {
     refractor: typeof import('refractor');
   };
 
-  type Token = {
-    type: string;
-    value: string;
-  };
+  type Token =
+    | {
+        type: string;
+        value: string;
+      }
+    // When tokenize fails to properly parse some content, it returns an
+    // empty array as the Token, which is what the following is meant to
+    // illustrate.
+    | string[];
 
   type Tokens = {
     old: Token[];
