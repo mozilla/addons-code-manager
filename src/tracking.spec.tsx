@@ -77,7 +77,7 @@ describe(__filename, () => {
       createTracking({ _reactGA, trackingId });
       expect(_reactGA.initialize).toHaveBeenCalledWith(
         trackingId,
-        expect.objectContaining({ debug: true }),
+        expect.objectContaining({ debug: false }),
       );
       expect(_reactGA.set).toHaveBeenCalledWith({ transport: 'beacon' });
     });
