@@ -105,6 +105,9 @@ declare module 'react-diff-view' {
         type: string;
         value: string;
       }
+    // When tokenize fails to properly parse some content, it returns an
+    // empty array as the Token, which is what the following is meant to
+    // illustrate.
     | string[];
 
   type Tokens = {

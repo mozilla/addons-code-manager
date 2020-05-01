@@ -295,10 +295,10 @@ describe(__filename, () => {
       ReactDiffView,
       'tokenize',
     ) as unknown) as typeof ReactDiffView.tokenize;
-    const badCode =
+    const truncatedCode =
       '!function(e){function r(r){for(var n,l,f=r[0],i=r[1],a=r[2]';
     const diff = createDiffWithHunks([
-      createHunkWithChanges([{ content: badCode }]),
+      createHunkWithChanges([{ content: truncatedCode }]),
     ]);
 
     const root = renderWithLinterProvider({
@@ -309,6 +309,10 @@ describe(__filename, () => {
     });
 
     expect(_tokenize).toHaveBeenCalled();
+    // If this assertion starts to fail, check what is returned by `tokenize`
+    // for the truncated code used in this case. At this point we are expecting
+    // an empty array in place of the token, but that implementation detail
+    // could change.
     expect(root.find(ReactDiffView.Diff)).toHaveProp('tokens', undefined);
   });
 
