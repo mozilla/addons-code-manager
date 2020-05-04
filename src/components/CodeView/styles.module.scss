@@ -1,5 +1,9 @@
 @import '../../scss/variables';
 
+.CodeView {
+  height: 100%;
+}
+
 .table {
   display: table;
   table-layout: fixed;
@@ -7,8 +11,6 @@
 }
 
 .tableBody {
-  overflow: auto;
-  width: 100%;
 }
 
 .selectedLine {

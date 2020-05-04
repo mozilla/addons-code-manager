@@ -1,12 +1,14 @@
 import * as React from 'react';
 import { withRouter, Link, RouteComponentProps } from 'react-router-dom';
 import makeClassName from 'classnames';
+import { FixedSizeList as List } from 'react-window';
+// @ts-ignore
+import AutoSizer from 'react-virtualized-auto-sizer';
 
 import styles from './styles.module.scss';
 import Commentable from '../Commentable';
 import CommentList from '../CommentList';
 import FadableContent from '../FadableContent';
-import LinterMessage from '../LinterMessage';
 import {
   getCodeLineAnchor,
   getCodeLineAnchorID,
@@ -172,94 +174,96 @@ export class CodeViewBase extends React.Component<Props> {
         {slowAlert}
         <FadableContent fade={codeWasTrimmed}>
           <div className={styles.CodeView}>
-            <table className={styles.table}>
-              <colgroup>
-                <col className={styles.lineNumberCol} />
-                <col />
-              </colgroup>
-              <tbody className={styles.tableBody}>
-                {codeLines.map((code, i) => {
-                  const line = i + 1;
-                  const id = getCodeLineAnchorID(line);
+            <AutoSizer>
+              {({ height, width }: any) => (
+                <table className={styles.table}>
+                  <colgroup>
+                    <col className={styles.lineNumberCol} />
+                    <col />
+                  </colgroup>
 
-                  let className = styles.line;
-                  let shellRef;
+                  <tbody className={styles.tableBody}>
+                    <List
+                      className="List"
+                      height={height}
+                      itemCount={codeLines.length}
+                      itemSize={19}
+                      width={width}
+                      itemData={codeLines}
+                    >
+                      {({ index, style, data }: any) => {
+                        const i = index;
+                        const code = data[i];
 
-                  if (isLineSelected(id, location)) {
-                    className = makeClassName(className, styles.selectedLine);
-                    shellRef = _scrollToSelectedLine;
-                  }
+                        const line = i + 1;
+                        const id = getCodeLineAnchorID(line);
 
-                  return (
-                    <React.Fragment key={`fragment-${line}`}>
-                      <Commentable
-                        as="tr"
-                        id={id}
-                        className={className}
-                        line={line}
-                        fileName={version.selectedPath}
-                        shellRef={shellRef}
-                        versionId={version.id}
-                      >
-                        {(addCommentButton) => (
-                          <>
-                            <td className={styles.lineNumber}>
-                              <Link
-                                className={styles.lineNumberLink}
-                                to={{
-                                  ...location,
-                                  hash: getCodeLineAnchor(line),
-                                }}
-                              >{`${line}`}</Link>
-                              {enableCommenting && addCommentButton}
-                            </td>
-                            <td className={styles.code}>
-                              {renderCode({
-                                code,
-                                language,
-                              })}
-                            </td>
-                          </>
-                        )}
-                      </Commentable>
-                      {selectedMessageMap && selectedMessageMap.byLine[line] && (
-                        <tr>
-                          <td
-                            id={`line-${line}-messages`}
-                            className={styles.linterMessages}
-                            colSpan={2}
-                          >
-                            {selectedMessageMap.byLine[line].map((msg) => {
-                              return (
-                                <LinterMessage
-                                  inline
-                                  key={msg.uid}
-                                  message={msg}
-                                />
-                              );
-                            })}
-                          </td>
-                        </tr>
-                      )}
-                      {enableCommenting && (
-                        <CommentList
-                          addonId={version.addon.id}
-                          fileName={version.selectedPath}
-                          line={line}
-                          versionId={version.id}
-                        >
-                          {(commentList) => (
-                            <tr>
-                              <td colSpan={2}>{commentList}</td>
-                            </tr>
-                          )}
-                        </CommentList>
-                      )}
-                    </React.Fragment>
-                  );
-                })}
-              </tbody>
-            </table>
+                        let className = styles.line;
+                        let shellRef;
+
+                        if (isLineSelected(id, location)) {
+                          className = makeClassName(
+                            className,
+                            styles.selectedLine,
+                          );
+                          shellRef = _scrollToSelectedLine;
+                        }
+
+                        return (
+                          <React.Fragment key={`fragment-${line}`}>
+                            <Commentable
+                              style={style}
+                              as="div"
+                              id={id}
+                              className={className}
+                              line={line}
+                              fileName={version.selectedPath}
+                              shellRef={shellRef}
+                              versionId={version.id}
+                            >
+                              {(addCommentButton) => (
+                                <>
+                                  <td className={styles.lineNumber}>
+                                    <Link
+                                      className={styles.lineNumberLink}
+                                      to={{
+                                        ...location,
+                                        hash: getCodeLineAnchor(line),
+                                      }}
+                                    >{`${line}`}</Link>
+                                    {enableCommenting && addCommentButton}
+                                  </td>
+                                  <td className={styles.code}>
+                                    {renderCode({
+                                      code,
+                                      language,
+                                    })}
+                                  </td>
+                                </>
+                              )}
+                            </Commentable>
+                            {enableCommenting && (
+                              <CommentList
+                                addonId={version.addon.id}
+                                fileName={version.selectedPath}
+                                line={line}
+                                versionId={version.id}
+                              >
+                                {(commentList) => (
+                                  <tr>
+                                    <td colSpan={2}>{commentList}</td>
+                                  </tr>
+                                )}
+                              </CommentList>
+                            )}
+                          </React.Fragment>
+                        );
+                      }}
+                    </List>
+                  </tbody>
+                </table>
+              )}
+            </AutoSizer>
           </div>
         </FadableContent>
         {/* Only show a slow alert at the bottom if the code was trimmed. */}
