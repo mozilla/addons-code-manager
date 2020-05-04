@@ -46,7 +46,7 @@ export class Tracking {
   constructor({
     _isDoNotTrackEnabled = isDoNotTrackEnabled,
     _reactGA = ReactGA,
-    trackingEnabled = Boolean(process.env.REACT_APP_TRACKING_ENABLED),
+    trackingEnabled = process.env.REACT_APP_TRACKING_ENABLED === 'true',
     trackingId = process.env.REACT_APP_TRACKING_ID,
     // We need to set useMock to true in the tests in order to use a provided
     // mock, because of the check below for
@@ -80,7 +80,9 @@ export class Tracking {
     if (this.trackingEnabled && trackingId) {
       this._reactGA = _reactGA;
       this._reactGA.initialize(trackingId, {
-        debug: process.env.NODE_ENV !== 'production',
+        debug:
+          process.env.NODE_ENV !== 'production' &&
+          process.env.REACT_APP_GA_DEBUG_MODE === 'true',
         titleCase: false,
         gaOptions: {
           siteSpeedSampleRate: 100,
