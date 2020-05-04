@@ -806,7 +806,6 @@ describe(__filename, () => {
       const versionFile = createInternalVersionFile(fakeVersionFile);
 
       expect(versionFile.content).toEqual(fakeVersionFile.content);
-      expect(versionFile.created).toEqual(fakeVersionFile.created);
       expect(versionFile.downloadURL).toEqual(fakeVersionFile.download_url);
       expect(versionFile.filename).toEqual(fakeVersionFile.filename);
       expect(versionFile.id).toEqual(fakeVersionFile.id);
