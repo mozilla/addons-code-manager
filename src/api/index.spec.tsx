@@ -28,7 +28,9 @@ import {
   getComments,
   getCurrentUser,
   getDiff,
+  getDiffFileOnly,
   getVersion,
+  getVersionFileOnly,
   getVersionsList,
   isErrorResponse,
   logOutFromServer,
@@ -439,6 +441,54 @@ describe(__filename, () => {
     });
   });
 
+  describe('getVersionFileOnly', () => {
+    it('calls the API to retrieve information for just a file', async () => {
+      const addonId = 999;
+      const versionId = 123;
+
+      await getVersionFileOnly({
+        apiState: defaultApiState,
+        addonId,
+        versionId,
+      });
+
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringMatching(
+          `/api/${defaultVersion}/reviewers/addon/${addonId}/versions/${versionId}/`,
+        ),
+        expect.any(Object),
+      );
+      expect(fetch).toHaveBeenCalledWith(
+        expect.urlWithTheseParams({ file_only: 'true' }),
+        expect.any(Object),
+      );
+    });
+
+    it('calls the API to retrieve information for just a specific file', async () => {
+      const addonId = 999;
+      const path = 'test.js';
+      const versionId = 123;
+
+      await getVersionFileOnly({
+        apiState: defaultApiState,
+        addonId,
+        path,
+        versionId,
+      });
+
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringMatching(
+          `/api/${defaultVersion}/reviewers/addon/${addonId}/versions/${versionId}/`,
+        ),
+        expect.any(Object),
+      );
+      expect(fetch).toHaveBeenCalledWith(
+        expect.urlWithTheseParams({ file_only: 'true', file: path }),
+        expect.any(Object),
+      );
+    });
+  });
+
   describe('getVersionsList', () => {
     it('calls the API to retrieve the list of versions for an add-on', async () => {
       const addonId = 999;
@@ -522,6 +572,46 @@ describe(__filename, () => {
         expect.urlWithTheseParams({ file: path }),
         expect.any(Object),
       );
+    });
+
+    describe('getDiffFileOnly', () => {
+      it('calls the API to retrieve just a diff of the default file between two versions', async () => {
+        const addonId = 999;
+        const baseVersionId = 1;
+        const headVersionId = 2;
+
+        await getDiffFileOnly({
+          apiState: defaultApiState,
+          addonId,
+          baseVersionId,
+          headVersionId,
+        });
+
+        expect(fetch).toHaveBeenCalledWith(
+          expect.urlWithTheseParams({ file_only: 'true' }),
+          expect.any(Object),
+        );
+      });
+
+      it('calls the API to retrieve just a diff of a specific file between two versions', async () => {
+        const addonId = 999;
+        const baseVersionId = 1;
+        const headVersionId = 2;
+        const path = 'test.js';
+
+        await getDiffFileOnly({
+          apiState: defaultApiState,
+          addonId,
+          baseVersionId,
+          headVersionId,
+          path,
+        });
+
+        expect(fetch).toHaveBeenCalledWith(
+          expect.urlWithTheseParams({ file: path, file_only: 'true' }),
+          expect.any(Object),
+        );
+      });
     });
   });
 

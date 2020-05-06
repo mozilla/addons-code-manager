@@ -1256,7 +1256,7 @@ describe(__filename, () => {
       );
     });
 
-    it('dispatches loadVersionFile() when API response is successful', async () => {
+    it('dispatches loadVersionFileFromVersion() when API response is successful', async () => {
       const version = fakeVersion;
 
       const { dispatch, thunk } = thunkTester({
@@ -1266,7 +1266,7 @@ describe(__filename, () => {
       await thunk();
 
       expect(dispatch).toHaveBeenCalledWith(
-        actions.loadVersionFile({
+        actions.loadVersionFileFromVersion({
           path: version.file.selected_file,
           version,
         }),
@@ -1313,13 +1313,13 @@ describe(__filename, () => {
       addonId = 123,
       path = 'some/path.js',
       version = fakeVersion,
-      _getVersion = jest.fn().mockReturnValue(Promise.resolve(version)),
+      _getVersionFileOnly = jest.fn().mockReturnValue(Promise.resolve(version)),
       store = configureStore(),
     } = {}) => {
       return thunkTester({
         createThunk: () =>
           fetchVersionFile({
-            _getVersion,
+            _getVersionFileOnly,
             addonId,
             path,
             versionId: version.id,
@@ -1328,15 +1328,17 @@ describe(__filename, () => {
       });
     };
 
-    it('calls getVersion', async () => {
+    it('calls getVersionFileOnly', async () => {
       const addonId = 123;
       const path = 'some/path.js';
       const version = fakeVersion;
 
-      const _getVersion = jest.fn().mockReturnValue(Promise.resolve(version));
+      const _getVersionFileOnly = jest
+        .fn()
+        .mockReturnValue(Promise.resolve(version));
 
       const { store, thunk } = _fetchVersionFile({
-        _getVersion,
+        _getVersionFileOnly,
         addonId,
         path,
         version,
@@ -1344,7 +1346,7 @@ describe(__filename, () => {
 
       await thunk();
 
-      expect(_getVersion).toHaveBeenCalledWith({
+      expect(_getVersionFileOnly).toHaveBeenCalledWith({
         addonId,
         apiState: store.getState().api,
         versionId: version.id,
@@ -1400,9 +1402,11 @@ describe(__filename, () => {
 
     it('dispatches addError() when API response is not successful', async () => {
       const error = new Error('Bad Request');
-      const _getVersion = jest.fn().mockReturnValue(Promise.resolve({ error }));
+      const _getVersionFileOnly = jest
+        .fn()
+        .mockReturnValue(Promise.resolve({ error }));
 
-      const { dispatch, thunk } = _fetchVersionFile({ _getVersion });
+      const { dispatch, thunk } = _fetchVersionFile({ _getVersionFileOnly });
 
       await thunk();
 
@@ -1417,7 +1421,7 @@ describe(__filename, () => {
     it('dispatches abortFetchVersionFile() when API response is not successful', async () => {
       const path = 'scripts/background.js';
       const version = { ...fakeVersion, id: 54123 };
-      const _getVersion = jest
+      const _getVersionFileOnly = jest
         .fn()
         .mockReturnValue(
           Promise.resolve(
@@ -1426,7 +1430,7 @@ describe(__filename, () => {
         );
 
       const { dispatch, thunk } = _fetchVersionFile({
-        _getVersion,
+        _getVersionFileOnly,
         path,
         version,
       });

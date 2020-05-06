@@ -13,7 +13,13 @@ import {
 import { push } from 'connected-react-router';
 
 import { ThunkActionCreator } from '../configureStore';
-import { getDiff, getVersion, getVersionsList, isErrorResponse } from '../api';
+import {
+  getDiff,
+  getVersion,
+  getVersionFileOnly,
+  getVersionsList,
+  isErrorResponse,
+} from '../api';
 import {
   LocalizedStringMap,
   createAdjustedQueryString,
@@ -138,6 +144,16 @@ export type ExternalVersionWithDiff = PartialExternalVersion & {
   file: ExternalVersionFileWithDiff;
 };
 
+export type ExternalVersionWithContentFileOnly = {
+  id: number;
+  file: ExternalVersionFileWithContent;
+};
+
+export type ExternalVersionWithDiffFileOnly = {
+  id: number;
+  file: ExternalVersionFileWithDiff;
+};
+
 // This is how we store file information, but the getVersionFile selector
 // returns more info, which is defined in VersionFile, below.
 type InternalVersionFile = {
@@ -227,9 +243,18 @@ export type EntryStatusMap = {
 };
 
 export const actions = {
+  loadVersionFileFromVersion: createAction(
+    'LOAD_VERSION_FILE_FROM_VERSION',
+    (resolve) => {
+      return (payload: { path: string; version: ExternalVersionWithContent }) =>
+        resolve(payload);
+    },
+  ),
   loadVersionFile: createAction('LOAD_VERSION_FILE', (resolve) => {
-    return (payload: { path: string; version: ExternalVersionWithContent }) =>
-      resolve(payload);
+    return (payload: {
+      path: string;
+      version: ExternalVersionWithContentFileOnly;
+    }) => resolve(payload);
   }),
   loadVersionInfo: createAction('LOAD_VERSION_INFO', (resolve) => {
     return (payload: {
@@ -819,21 +844,24 @@ export const fetchVersion = ({
         }),
       );
       dispatch(
-        actions.loadVersionFile({ version: response, path: selected_file }),
+        actions.loadVersionFileFromVersion({
+          version: response,
+          path: selected_file,
+        }),
       );
     }
   };
 };
 
 type FetchVersionFileParams = {
-  _getVersion?: typeof getVersion;
+  _getVersionFileOnly?: typeof getVersionFileOnly;
   addonId: number;
   path: string;
   versionId: number;
 };
 
 export const fetchVersionFile = ({
-  _getVersion = getVersion,
+  _getVersionFileOnly = getVersionFileOnly,
   addonId,
   path,
   versionId,
@@ -847,7 +875,7 @@ export const fetchVersionFile = ({
 
     dispatch(actions.beginFetchVersionFile({ path, versionId }));
 
-    const response = await _getVersion({
+    const response = await _getVersionFileOnly({
       addonId,
       apiState,
       versionId,
@@ -1330,6 +1358,27 @@ export const createReducer = ({
           entryStatusMaps: {
             ...state.entryStatusMaps,
             [key]: createEntryStatusMap(version),
+          },
+        };
+      }
+      case getType(actions.loadVersionFileFromVersion): {
+        const { path, version } = action.payload;
+
+        return {
+          ...state,
+          versionFiles: {
+            ...state.versionFiles,
+            [version.id]: {
+              ...state.versionFiles[version.id],
+              [path]: createInternalVersionFile(version.file),
+            },
+          },
+          versionFilesLoading: {
+            ...state.versionFilesLoading,
+            [version.id]: {
+              ...state.versionFilesLoading[version.id],
+              [path]: false,
+            },
           },
         };
       }
