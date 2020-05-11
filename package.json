@@ -52,7 +52,7 @@
     "query-string": "6.12.1",
     "react": "16.13.1",
     "react-bootstrap": "1.0.0-beta.16",
-    "react-diff-view": "2.4.3",
+    "react-diff-view": "2.4.4",
     "react-dom": "16.13.1",
     "react-ga": "2.7.0",
     "react-helmet": "6.0.0",
