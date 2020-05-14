@@ -92,7 +92,7 @@
     "dedent": "^0.7.0",
     "enzyme": "^3.8.0",
     "enzyme-adapter-react-16": "^1.7.1",
-    "eslint-config-amo": "^1.19.1",
+    "eslint-config-amo": "^2.0.0",
     "eslint-config-prettier": "^6.0.0",
     "eslint-plugin-amo": "^1.10.1",
     "jest-enzyme": "^7.1.2",
