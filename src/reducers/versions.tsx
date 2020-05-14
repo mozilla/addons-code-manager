@@ -47,9 +47,6 @@ export type ExternalVersionEntry = {
 
 type PartialExternalVersionFile = {
   download_url: string | null;
-  entries: {
-    [nodeName: string]: ExternalVersionEntry;
-  };
   filename: string;
   id: number;
   mime_category: VersionEntryType;
@@ -71,6 +68,9 @@ type PartialExternalVersion = {
   addon: ExternalVersionAddon;
   channel: string;
   has_been_validated: boolean;
+  file_entries: {
+    [nodeName: string]: ExternalVersionEntry;
+  };
   id: number;
   reviewed: string;
   url: string;
@@ -455,11 +455,11 @@ export const getEntryStatusMapKey = ({
 export const createEntryStatusMap = (
   version: ExternalVersionWithContent | ExternalVersionWithDiff,
 ): EntryStatusMap => {
-  const { entries } = version.file;
+  const { file_entries } = version;
   const entryStatusMap: EntryStatusMap = {};
 
-  for (const nodeName of Object.keys(entries)) {
-    entryStatusMap[nodeName] = entries[nodeName].status;
+  for (const nodeName of Object.keys(file_entries)) {
+    entryStatusMap[nodeName] = file_entries[nodeName].status;
   }
 
   return entryStatusMap;
@@ -482,8 +482,8 @@ export const createInternalVersion = (
   return {
     addon: createInternalVersionAddon(version.addon),
     initialPath: version.file.selected_file,
-    entries: Object.keys(version.file.entries).map((nodeName) => {
-      return createInternalVersionEntry(version.file.entries[nodeName]);
+    entries: Object.keys(version.file_entries).map((nodeName) => {
+      return createInternalVersionEntry(version.file_entries[nodeName]);
     }),
     expandedPaths: getParentFolders(version.file.selected_file),
     id: version.id,

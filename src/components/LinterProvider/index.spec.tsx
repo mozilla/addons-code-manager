@@ -92,9 +92,9 @@ describe(__filename, () => {
       ...fakeVersion,
       file: {
         ...fakeVersionFile,
-        entries: { [path]: { ...fakeVersionEntry, path } },
         selected_file: path,
       },
+      file_entries: { [path]: { ...fakeVersionEntry, path } },
     });
 
     const linterResult = createFakeExternalLinterResult({
@@ -179,11 +179,11 @@ describe(__filename, () => {
       ...fakeVersion,
       file: {
         ...fakeVersionFile,
-        entries: {
-          [manifestPath]: { ...fakeVersionEntry, path: manifestPath },
-          [libPath]: { ...fakeVersionEntry, path: libPath },
-        },
         selected_file: manifestPath,
+      },
+      file_entries: {
+        [manifestPath]: { ...fakeVersionEntry, path: manifestPath },
+        [libPath]: { ...fakeVersionEntry, path: libPath },
       },
     });
 
@@ -263,11 +263,11 @@ describe(__filename, () => {
       ...fakeVersion,
       file: {
         ...fakeVersionFile,
-        entries: {
-          [manifestPath]: { ...fakeVersionEntry, path: manifestPath },
-          [libPath]: { ...fakeVersionEntry, path: libPath },
-        },
         selected_file: manifestPath,
+      },
+      file_entries: {
+        [manifestPath]: { ...fakeVersionEntry, path: manifestPath },
+        [libPath]: { ...fakeVersionEntry, path: libPath },
       },
     });
 
