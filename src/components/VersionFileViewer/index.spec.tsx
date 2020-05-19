@@ -64,13 +64,14 @@ describe(__filename, () => {
       file: {
         ...fakeVersion.file,
         content: fileContent,
-        entries: {
-          ...fakeVersion.file.entries,
-          [path]: entry || { ...fakeVersionEntry, filename: path, path },
-        },
         // eslint-disable-next-line @typescript-eslint/camelcase
         selected_file: path,
         ...fileProps,
+      },
+      // eslint-disable-next-line @typescript-eslint/camelcase
+      file_entries: {
+        ...fakeVersion.file_entries,
+        [path]: entry || { ...fakeVersionEntry, filename: path, path },
       },
     };
     dispatchLoadVersionInfo({ store, version });

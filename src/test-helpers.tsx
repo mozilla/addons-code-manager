@@ -77,14 +77,10 @@ export const fakeVersionEntry: ExternalVersionEntry = Object.freeze({
   // This is always the base filename, no subdirectories.
   filename: 'manifest.json',
   mime_category: 'text' as VersionEntryType,
-  mimetype: 'application/json',
-  modified: '2017-08-15T12:01:13Z',
   // This is the complete relative path. For example, it might include
   // subdirectories like scripts/background.js
   path: 'manifest.json',
-  sha256: 'some-sha',
   status: 'M',
-  size: 123,
 });
 
 export const createFakeEntry = (
@@ -103,9 +99,6 @@ export const fakeVersionFile: ExternalVersionFileWithContent = Object.freeze({
   content: 'some file content',
   created: '2017-08-15T12:01:13Z',
   download_url: 'https://example.org/download/manifest.json',
-  entries: {
-    'manifest.json': fakeVersionEntry,
-  },
   filename: 'manifest.json',
   hash: 'some-hash',
   id: 789,
@@ -135,6 +128,9 @@ export const fakeVersion: ExternalVersionWithContent = Object.freeze({
   addon: fakeVersionAddon,
   channel: 'some channel',
   file: fakeVersionFile,
+  file_entries: {
+    'manifest.json': fakeVersionEntry,
+  },
   has_been_validated: true,
   id: 123,
   reviewed: '2017-08-15T12:01:13Z',
@@ -239,19 +235,19 @@ export const createExternalVersionWithEntries = (
         id: nextUniqueId(),
       },
       diff,
-      entries: partialEntries.reduce((entries, file) => {
-        return {
-          ...entries,
-          [file.path]: {
-            ...fakeVersionEntry,
-            filename: pathLib.basename(file.path),
-            path: file.path,
-            ...file,
-          },
-        };
-      }, {}),
       selected_file,
     },
+    file_entries: partialEntries.reduce((entries, file) => {
+      return {
+        ...entries,
+        [file.path]: {
+          ...fakeVersionEntry,
+          filename: pathLib.basename(file.path),
+          path: file.path,
+          ...file,
+        },
+      };
+    }, {}),
   };
 };
 

@@ -56,17 +56,18 @@ describe(__filename, () => {
       id: versionId,
       file: {
         ...fakeVersion.file,
-        entries: pathList.reduce((pathMap, path: string) => {
-          return {
-            ...pathMap,
-            [path]: {
-              ...fakeVersionEntry,
-              filename: path,
-              path,
-            },
-          };
-        }, {}),
       },
+      // eslint-disable-next-line @typescript-eslint/camelcase
+      file_entries: pathList.reduce((pathMap, path: string) => {
+        return {
+          ...pathMap,
+          [path]: {
+            ...fakeVersionEntry,
+            filename: path,
+            path,
+          },
+        };
+      }, {}),
     },
     store = createStoreWithVersion({ version: externalVersion }),
   }: {

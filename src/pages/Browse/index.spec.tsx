@@ -127,11 +127,11 @@ describe(__filename, () => {
       id: versionId,
       file: {
         ...fakeVersion.file,
-        entries: {
-          ...fakeVersion.file.entries,
-          ...extraFileEntries,
-        },
         selected_file: initialPath,
+      },
+      file_entries: {
+        ...fakeVersion.file_entries,
+        ...extraFileEntries,
       },
     };
     const store = configureStore();

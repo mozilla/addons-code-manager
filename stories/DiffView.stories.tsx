@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/camelcase */
 import { Location } from 'history';
 import queryString from 'query-string';
 import React from 'react';
@@ -74,10 +75,9 @@ const renderWithMessages = (
     ...fakeVersion,
     file: {
       ...fakeVersionFile,
-      entries: { [path]: { ...fakeVersionEntry, path } },
-      // eslint-disable-next-line @typescript-eslint/camelcase
       selected_file: path,
     },
+    file_entries: { [path]: { ...fakeVersionEntry, path } },
   });
 
   store.dispatch(actions.loadLinterResult({ versionId: version.id, result }));

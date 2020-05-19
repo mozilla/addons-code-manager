@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/camelcase */
 import * as React from 'react';
 import { Store } from 'redux';
 import { storiesOf } from '@storybook/react';
@@ -96,10 +97,9 @@ const renderJSWithMessages = (
     ...fakeVersion,
     file: {
       ...fakeVersionFile,
-      entries: { [path]: { ...fakeVersionEntry, path } },
-      // eslint-disable-next-line @typescript-eslint/camelcase
       selected_file: path,
     },
+    file_entries: { [path]: { ...fakeVersionEntry, path } },
   });
 
   const result = createFakeExternalLinterResult({

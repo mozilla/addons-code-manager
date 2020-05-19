@@ -51,6 +51,7 @@ import reducer, {
   selectVersionIsLoading,
   versionPathExists,
   viewVersionFile,
+  ExternalVersionFileWithContent,
 } from './versions';
 import { ROOT_PATH, RelativePathPosition } from './fileTree';
 import configureStore from '../configureStore';
@@ -536,12 +537,16 @@ describe(__filename, () => {
     it('adds all paths to expandedPaths when expandTree is dispatched', () => {
       const path1 = 'path/1';
       const path2 = 'path/2';
-      const entries = {
+      const file_entries = {
         [path1]: createFakeEntry('directory', path1),
         [path2]: createFakeEntry('directory', path2),
       };
 
-      const version = { ...fakeVersion, file: { ...fakeVersionFile, entries } };
+      const version: ExternalVersionWithContent = {
+        ...fakeVersion,
+        file: { ...fakeVersionFile },
+        file_entries,
+      };
       let state = reducer(undefined, _loadVersionInfo({ version }));
 
       state = reducer(state, actions.expandTree({ versionId: version.id }));
@@ -563,12 +568,16 @@ describe(__filename, () => {
     it('does not add paths for files to expandedPaths when expandTree is dispatched', () => {
       const path1 = 'scripts/';
       const path2 = 'scripts/background.js';
-      const entries = {
+      const file_entries = {
         [path1]: createFakeEntry('directory', path1),
         [path2]: createFakeEntry('text', path2),
       };
 
-      const version = { ...fakeVersion, file: { ...fakeVersionFile, entries } };
+      const version: ExternalVersionWithContent = {
+        ...fakeVersion,
+        file: { ...fakeVersionFile },
+        file_entries,
+      };
       let state = reducer(undefined, _loadVersionInfo({ version }));
 
       state = reducer(state, actions.expandTree({ versionId: version.id }));
@@ -822,7 +831,7 @@ describe(__filename, () => {
   describe('createInternalVersion', () => {
     it('creates a Version', () => {
       const version = fakeVersion;
-      const entry = version.file.entries[Object.keys(version.file.entries)[0]];
+      const entry = version.file_entries[Object.keys(version.file_entries)[0]];
 
       expect(createInternalVersion(version)).toEqual({
         addon: createInternalVersionAddon(version.addon),
@@ -841,14 +850,17 @@ describe(__filename, () => {
     it('creates a Version with multiple entries', () => {
       const entry1 = { ...fakeVersionEntry, filename: 'entry1' };
       const entry2 = { ...fakeVersionEntry, filename: 'entry2' };
-      const file = {
+      const file: ExternalVersionFileWithContent = {
         ...fakeVersionFile,
-        entries: {
+      };
+      const version = {
+        ...fakeVersion,
+        file,
+        file_entries: {
           'file1.js': entry1,
           'file2.js': entry2,
         },
       };
-      const version = { ...fakeVersion, file };
 
       expect(createInternalVersion(version)).toMatchObject({
         addon: createInternalVersionAddon(version.addon),
@@ -2936,10 +2948,10 @@ describe(__filename, () => {
             id: versionId,
             file: {
               ...fakeVersion.file,
-              entries: {
-                ...fakeVersion.file.entries,
-                [path]: { ...fakeVersionEntry, path },
-              },
+            },
+            file_entries: {
+              ...fakeVersion.file_entries,
+              [path]: { ...fakeVersionEntry, path },
             },
           },
         }),
@@ -2986,9 +2998,9 @@ describe(__filename, () => {
             id: versionId,
             file: {
               ...fakeVersion.file,
-              entries: {
-                [path]: { ...fakeVersionEntry, path },
-              },
+            },
+            file_entries: {
+              [path]: { ...fakeVersionEntry, path },
             },
           },
         }),
