@@ -4,11 +4,6 @@ import { ActionType, deprecated, getType } from 'typesafe-actions';
 import { ThunkActionCreator } from '../configureStore';
 import { actions as errorsActions } from './errors';
 import {
-  ExternalVersionWithContent,
-  Version,
-  createInternalVersion,
-} from './versions';
-import {
   createOrUpdateComment,
   deleteComment as apiDeleteComment,
   getAllComments,
@@ -40,7 +35,9 @@ export type ExternalComment = CommentBase & {
     url: string | null;
     username: string;
   };
-  version: ExternalVersionWithContent;
+  version: {
+    id: number;
+  };
 };
 
 export type Comment = CommentBase & {
@@ -51,7 +48,7 @@ export type Comment = CommentBase & {
   userName: string | null;
   userUrl: string | null;
   userUsername: string;
-  version: Version;
+  versionId: number;
 };
 
 export const createInternalComment = (comment: ExternalComment): Comment => {
@@ -66,7 +63,7 @@ export const createInternalComment = (comment: ExternalComment): Comment => {
     userName: comment.user.name,
     userUrl: comment.user.url,
     userUsername: comment.user.username,
-    version: createInternalVersion(comment.version),
+    versionId: comment.version.id,
   };
 };
 

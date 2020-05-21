@@ -22,12 +22,10 @@ import reducer, {
   selectVersionHasComments,
   stateForVersion,
 } from './comments';
-import { createInternalVersion } from './versions';
 import {
   createFakeCommentsResponse,
   createFakeExternalComment,
   createErrorResponse,
-  fakeVersion,
   nextUniqueId,
   thunkTester,
 } from '../test-helpers';
@@ -317,7 +315,6 @@ describe(__filename, () => {
 
     it('sets comments for a version, file, and a line', () => {
       const versionId = 1;
-      const version = { ...fakeVersion, id: versionId };
 
       const commentId1 = 1;
       const commentId2 = 2;
@@ -335,7 +332,6 @@ describe(__filename, () => {
         ...params
       }: Partial<ExternalComment>) => {
         return createFakeExternalComment({
-          version,
           filename,
           lineno,
           ...params,
@@ -390,7 +386,6 @@ describe(__filename, () => {
 
     it('loads comments separately by file line', () => {
       const versionId = 1;
-      const version = { ...fakeVersion, id: versionId };
 
       const commentId1 = 1;
       const commentId2 = 2;
@@ -403,7 +398,6 @@ describe(__filename, () => {
 
       const comment = (params: Partial<ExternalComment> = {}) => {
         return createFakeExternalComment({
-          version,
           filename: fileName,
           ...params,
         });
@@ -493,14 +487,14 @@ describe(__filename, () => {
   describe('createInternalComment', () => {
     it('creates a comment', () => {
       const comment = 'Example comment';
-      const id = 1;
-      const lineno = 321;
+      const id = nextUniqueId();
+      const lineno = nextUniqueId();
       const filename = 'manifest.json';
-      const userId = 1;
+      const userId = nextUniqueId();
       const userName = 'Toni';
       const userUrl = 'https://domain/user';
       const userUsername = 'some_user';
-      const version = fakeVersion;
+      const versionId = nextUniqueId();
 
       expect(
         createInternalComment({
@@ -515,7 +509,7 @@ describe(__filename, () => {
             url: userUrl,
             username: userUsername,
           },
-          version,
+          version: { id: versionId },
         }),
       ).toEqual({
         beginDelete: false,
@@ -528,7 +522,7 @@ describe(__filename, () => {
         userName,
         userUrl,
         userUsername,
-        version: createInternalVersion(version),
+        versionId,
       });
     });
   });
