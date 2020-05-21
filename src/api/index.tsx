@@ -7,6 +7,8 @@ import { ApiState } from '../reducers/api';
 import { ExternalComment } from '../reducers/comments';
 import { ExternalUser } from '../reducers/users';
 import {
+  ExternalVersionWithContentFileOnly,
+  ExternalVersionWithDiffFileOnly,
   ExternalVersionWithContent,
   ExternalVersionWithDiff,
   ExternalVersionsList,
@@ -104,6 +106,8 @@ export enum HttpMethod {
   PUT = 'PUT',
 }
 
+type CallApiQuery = { [key: string]: string };
+
 type CallApiParams<BodyDataType extends undefined | {}> = {
   _makeQueryString?: typeof makeQueryString;
   apiState: ApiState;
@@ -113,7 +117,7 @@ type CallApiParams<BodyDataType extends undefined | {}> = {
   includeCredentials?: boolean;
   lang?: string;
   method?: HttpMethod;
-  query?: { [key: string]: string };
+  query?: CallApiQuery;
   version?: string;
 };
 
@@ -302,6 +306,17 @@ export const fetchAllPages = async <ResultsType,>(
   );
 };
 
+const makeApiQuery = (path?: string, fileOnly?: boolean) => {
+  const query: CallApiQuery = {};
+  if (path) {
+    query.file = path;
+  }
+  if (fileOnly) {
+    query.file_only = 'true';
+  }
+  return Object.keys(query).length ? query : undefined;
+};
+
 type GetVersionParams = {
   addonId: number;
   apiState: ApiState;
@@ -310,15 +325,28 @@ type GetVersionParams = {
 };
 
 export const getVersion = async ({
+  addonId,
   apiState,
   path,
-  addonId,
   versionId,
 }: GetVersionParams) => {
   return callApi<ResponseOnly<ExternalVersionWithContent>>({
     apiState,
     endpoint: `reviewers/addon/${addonId}/versions/${versionId}`,
-    query: path ? { file: path } : undefined,
+    query: makeApiQuery(path),
+  });
+};
+
+export const getVersionFileOnly = async ({
+  addonId,
+  apiState,
+  path,
+  versionId,
+}: GetVersionParams) => {
+  return callApi<ResponseOnly<ExternalVersionWithContentFileOnly>>({
+    apiState,
+    endpoint: `reviewers/addon/${addonId}/versions/${versionId}`,
+    query: makeApiQuery(path, true),
   });
 };
 
@@ -374,7 +402,21 @@ export const getDiff = async ({
   return callApi<ResponseOnly<ExternalVersionWithDiff>>({
     apiState,
     endpoint: `reviewers/addon/${addonId}/versions/${baseVersionId}/compare_to/${headVersionId}`,
-    query: path ? { file: path } : undefined,
+    query: makeApiQuery(path),
+  });
+};
+
+export const getDiffFileOnly = async ({
+  addonId,
+  apiState,
+  baseVersionId,
+  headVersionId,
+  path,
+}: GetDiffParams) => {
+  return callApi<ResponseOnly<ExternalVersionWithDiffFileOnly>>({
+    apiState,
+    endpoint: `reviewers/addon/${addonId}/versions/${baseVersionId}/compare_to/${headVersionId}`,
+    query: makeApiQuery(path, true),
   });
 };
 
