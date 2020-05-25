@@ -34,7 +34,7 @@ describe(__filename, () => {
   };
 
   type RenderParams = Partial<CodeOverviewProps> & {
-    location?: Location<{}>;
+    location?: Location<Record<string, unknown>>;
   };
 
   const getProps = ({

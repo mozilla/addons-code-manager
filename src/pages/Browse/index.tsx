@@ -34,7 +34,7 @@ import Loading from '../../components/Loading';
 import CodeView from '../../components/CodeView';
 import styles from './styles.module.scss';
 
-export type PublicProps = {};
+export type PublicProps = Record<string, unknown>;
 
 export type DefaultProps = {
   _fetchVersion: typeof fetchVersion;

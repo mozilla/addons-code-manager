@@ -1,4 +1,3 @@
-/* eslint @typescript-eslint/camelcase: 0 */
 /* global fetchMock */
 import configureStore from '../configureStore';
 import {

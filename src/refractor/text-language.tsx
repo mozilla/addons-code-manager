@@ -3,7 +3,7 @@
 
 type Prism = {
   languages: {
-    text: object;
+    text: Record<string, unknown>;
   };
 };
 

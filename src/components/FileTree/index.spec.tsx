@@ -1,4 +1,3 @@
-/* eslint @typescript-eslint/camelcase: 0 */
 import { shallow } from 'enzyme';
 import * as React from 'react';
 import Treefold from 'react-treefold';
@@ -26,7 +25,12 @@ import { getTreefoldRenderProps } from '../FileTreeNode/index.spec';
 import FileTreeNode from '../FileTreeNode';
 import Loading from '../Loading';
 
-import FileTree, { DefaultProps, FileTreeBase, PublicProps } from '.';
+import FileTree, {
+  DefaultProps,
+  FileTreeBase,
+  PublicProps,
+  isNodeExpanded,
+} from '.';
 
 describe(__filename, () => {
   describe('FileTree', () => {
@@ -202,7 +206,7 @@ describe(__filename, () => {
       const treeFold = root.find(Treefold);
       expect(treeFold).toHaveProp('onToggleExpand');
 
-      const onToggleExpand = treeFold.prop('onToggleExpand') as Function;
+      const onToggleExpand = treeFold.prop('onToggleExpand') as () => void;
       onToggleExpand(node);
 
       expect(dispatch).toHaveBeenCalledWith(
@@ -241,8 +245,10 @@ describe(__filename, () => {
       const treeFold = root.find(Treefold);
       expect(treeFold).toHaveProp('isNodeExpanded');
 
-      const isNodeExpanded = treeFold.prop('isNodeExpanded') as Function;
-      expect(isNodeExpanded(node)).toBeTruthy();
+      const isNodeExpandedFn = treeFold.prop(
+        'isNodeExpanded',
+      ) as typeof isNodeExpanded;
+      expect(isNodeExpandedFn(node)).toBeTruthy();
     });
 
     it('recognizes a node as not expanded when it has not been added to expandedPaths', () => {
@@ -261,8 +267,10 @@ describe(__filename, () => {
       const treeFold = root.find(Treefold);
       expect(treeFold).toHaveProp('isNodeExpanded');
 
-      const isNodeExpanded = treeFold.prop('isNodeExpanded') as Function;
-      expect(isNodeExpanded(node)).toBeFalsy();
+      const isNodeExpandedFn = treeFold.prop(
+        'isNodeExpanded',
+      ) as typeof isNodeExpanded;
+      expect(isNodeExpandedFn(node)).toBeFalsy();
     });
 
     it('renders a Loading component when no version is loaded', () => {
@@ -289,10 +297,10 @@ describe(__filename, () => {
       };
       const root = render();
 
-      const { isNodeExpanded } = getInstance<FileTreeBase>(root);
+      const isNodeExpandedFn = getInstance<FileTreeBase>(root).isNodeExpanded;
 
       expect(() => {
-        isNodeExpanded(node);
+        isNodeExpandedFn(node);
       }).toThrow('Cannot check if node is expanded without expandedPaths set');
     });
 

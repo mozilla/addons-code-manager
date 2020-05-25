@@ -237,7 +237,7 @@ describe(__filename, () => {
     const root = render({ store });
 
     // User clicks the "close" button of the first error shown.
-    const onClose = root.find(Alert).at(0).prop('onClose') as Function;
+    const onClose = root.find(Alert).at(0).prop('onClose') as () => void;
     onClose();
 
     const { errors } = store.getState().errors;

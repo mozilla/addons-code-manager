@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/camelcase */
 import { ShallowWrapper } from 'enzyme';
 import React from 'react';
 import { Store } from 'redux';

@@ -1,4 +1,3 @@
-/* eslint @typescript-eslint/camelcase: 0 */
 import { push } from 'connected-react-router';
 import { createBrowserHistory } from 'history';
 import { ChangeInfo, DiffInfo, parseDiff } from 'react-diff-view';
@@ -925,7 +924,6 @@ describe(__filename, () => {
   });
 
   describe('getVersionFile', () => {
-    /* eslint-disable @typescript-eslint/camelcase */
     it('returns a version file', () => {
       const downloadURL = 'http://example.org/download/file';
       const isMinified = true;
@@ -960,7 +958,6 @@ describe(__filename, () => {
         fileType: type,
       });
     });
-    /* eslint-enable @typescript-eslint/camelcase */
 
     it('returns undefined if there is no version found', () => {
       const state = initialState;
@@ -2096,9 +2093,7 @@ describe(__filename, () => {
     ])('creates "%s" changes', (type) => {
       const hunk = createInternalHunk(
         createExternalHunkWithChange({
-          // eslint-disable-next-line @typescript-eslint/camelcase
           old_line_number: oldLineNumber,
-          // eslint-disable-next-line @typescript-eslint/camelcase
           new_line_number: newLineNumber,
           type,
         }),

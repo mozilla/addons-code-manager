@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/camelcase */
 import * as React from 'react';
 import { Store } from 'redux';
 import { storiesOf } from '@storybook/react';

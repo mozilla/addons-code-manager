@@ -1,4 +1,3 @@
-/* eslint @typescript-eslint/camelcase: 0 */
 import { actions as errorsActions } from './errors';
 import configureStore from '../configureStore';
 import reducer, {

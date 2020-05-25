@@ -1,4 +1,3 @@
-/* eslint @typescript-eslint/camelcase: 0 */
 /* global fetchMock */
 import pathLib from 'path';
 
@@ -650,7 +649,7 @@ export const createFakeLogger = () => {
   };
 };
 
-export const spyOn = <T extends {}>(
+export const spyOn = <T extends Record<string, unknown>>(
   object: T,
   method: jest.FunctionPropertyNames<T>,
 ) => {
@@ -735,7 +734,9 @@ export const simulateLinterProvider = (
  *
  * The `children` render prop can only take one argument.
  */
-const multiRenderPropSimulator = <RenderArgValue extends {}>({
+const multiRenderPropSimulator = <
+  RenderArgValue extends Record<string, unknown>
+>({
   Component,
   renderArgValue,
   root,

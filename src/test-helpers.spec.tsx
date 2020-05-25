@@ -14,7 +14,7 @@ describe(__filename, () => {
     const wrapper = () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (WrappedComponent: any) => {
-        return (props: object) => {
+        return (props: Record<string, unknown>) => {
           // eslint-disable-next-line react/jsx-props-no-spreading
           return <WrappedComponent {...props} />;
         };

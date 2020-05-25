@@ -1,4 +1,3 @@
-/* eslint @typescript-eslint/camelcase: 0 */
 import { Reducer } from 'redux';
 import { ActionType, deprecated, getType } from 'typesafe-actions';
 import log from 'loglevel';

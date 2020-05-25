@@ -46,7 +46,10 @@ declare module 'react-diff-view' {
     type: DiffInfoType;
   };
 
-  declare function parseDiff(text: string, options?: object): DiffInfo[];
+  declare function parseDiff(
+    text: string,
+    options?: Record<string, unknown>,
+  ): DiffInfo[];
 
   type ViewType = 'split' | 'unified';
 
@@ -75,14 +78,20 @@ declare module 'react-diff-view' {
   };
 
   // eslint-disable-next-line no-undef
-  export class Diff extends React.Component<DiffProps, {}> {}
+  export class Diff extends React.Component<
+    DiffProps,
+    Record<string, unknown>
+  > {}
 
   type DecorationProps = {
     className?: string;
   };
 
   // eslint-disable-next-line no-undef
-  export class Decoration extends React.Component<DecorationProps, {}> {}
+  export class Decoration extends React.Component<
+    DecorationProps,
+    Record<string, unknown>
+  > {}
 
   type HunkProps = {
     className?: string;
@@ -90,7 +99,10 @@ declare module 'react-diff-view' {
   };
 
   // eslint-disable-next-line no-undef
-  export class Hunk extends React.Component<HunkProps, {}> {}
+  export class Hunk extends React.Component<
+    HunkProps,
+    Record<string, unknown>
+  > {}
 
   type TokenizeOptions = {
     highlight: boolean;
