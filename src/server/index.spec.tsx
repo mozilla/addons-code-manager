@@ -290,7 +290,7 @@ describe(__filename, () => {
         expect(() => {
           request(
             createServer({
-              // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
               // @ts-ignore
               env: fakeEnv,
               rootPath: fixturesPath,

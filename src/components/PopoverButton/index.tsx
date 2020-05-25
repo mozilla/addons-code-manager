@@ -101,7 +101,7 @@ export class PopoverButtonBase extends React.Component<Props, State> {
           }}
           // This type has a conflicting definition. See:
           // https://github.com/react-bootstrap/react-bootstrap/issues/4706
-          // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           ref={this.buttonRef}
           size="sm"
