@@ -445,8 +445,10 @@ export class DiffViewBase extends React.Component<Props> {
       tokens &&
       tokens.old.length === 1 &&
       Array.isArray(tokens.old[0]) &&
+      tokens.old[0].length === 0 &&
       tokens.new.length === 1 &&
-      Array.isArray(tokens.new[0])
+      Array.isArray(tokens.new[0]) &&
+      tokens.new[0].length === 0
     ) {
       tokens = undefined;
     }
