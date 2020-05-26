@@ -295,11 +295,18 @@ describe(__filename, () => {
       ReactDiffView,
       'tokenize',
     ) as unknown) as typeof ReactDiffView.tokenize;
-    const truncatedCode =
-      '!function(e){function r(r){for(var n,l,f=r[0],i=r[1],a=r[2]';
-    const diff = createDiffWithHunks([
-      createHunkWithChanges([{ content: truncatedCode }]),
-    ]);
+    // This creates a hunk with just the line that is added via the trimmer.
+    // It is the undefined line numbers that cause tokenize to fail.
+    const hunk = {
+      ...createHunkWithChanges([
+        {
+          content: 'any content',
+          new_line_number: undefined,
+          old_line_number: undefined,
+        },
+      ]),
+    };
+    const diff = createDiffWithHunks([hunk]);
 
     const root = renderWithLinterProvider({
       _codeCanBeHighlighted,
@@ -314,6 +321,30 @@ describe(__filename, () => {
     // an empty array in place of the token, but that implementation detail
     // could change.
     expect(root.find(ReactDiffView.Diff)).toHaveProp('tokens', undefined);
+  });
+
+  it('does not reset tokens to undefined for a single line of code', () => {
+    const _codeCanBeHighlighted = jest.fn().mockReturnValue(true);
+    const _codeShouldBeTrimmed = jest.fn().mockReturnValue(false);
+    const _tokenize = (jest.spyOn(
+      ReactDiffView,
+      'tokenize',
+    ) as unknown) as typeof ReactDiffView.tokenize;
+    const code =
+      '<!DOCTYPE html><html><head></head><body><script src="/src/manifest.js"></body></html>';
+    const diff = createDiffWithHunks([
+      createHunkWithChanges([{ content: code }]),
+    ]);
+
+    const root = renderWithLinterProvider({
+      _codeCanBeHighlighted,
+      _codeShouldBeTrimmed,
+      _tokenize,
+      diff,
+    });
+
+    expect(_tokenize).toHaveBeenCalled();
+    expect(root.find(ReactDiffView.Diff)).not.toHaveProp('tokens', undefined);
   });
 
   it('configures anchors/links on each line number', () => {
