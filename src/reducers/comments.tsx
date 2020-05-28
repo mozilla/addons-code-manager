@@ -35,9 +35,7 @@ export type ExternalComment = CommentBase & {
     url: string | null;
     username: string;
   };
-  version: {
-    id: number;
-  };
+  version_id: number;
 };
 
 export type Comment = CommentBase & {
@@ -63,7 +61,7 @@ export const createInternalComment = (comment: ExternalComment): Comment => {
     userName: comment.user.name,
     userUrl: comment.user.url,
     userUsername: comment.user.username,
-    versionId: comment.version.id,
+    versionId: comment.version_id,
   };
 };
 

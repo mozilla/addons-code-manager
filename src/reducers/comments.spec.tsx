@@ -509,7 +509,7 @@ describe(__filename, () => {
             url: userUrl,
             username: userUsername,
           },
-          version: { id: versionId },
+          version_id: versionId,
         }),
       ).toEqual({
         beginDelete: false,
