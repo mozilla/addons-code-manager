@@ -897,7 +897,7 @@ export const createFakeExternalComment = (
       url: null,
       username: 'some_user',
     },
-    version: fakeVersion,
+    version_id: nextUniqueId(),
     ...comment,
   };
 };
