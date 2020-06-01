@@ -64,7 +64,7 @@ body.fullscreen {
 .FullscreenGridStory-content,
 .FullscreenGridStory-altSidePanel {
   align-items: center;
-  display: flex;
+  display: inline-grid;
 }
 
 .FullscreenGridStory-placeholder {
