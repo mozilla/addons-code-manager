@@ -7,6 +7,7 @@ import Skeleton from '../Skeleton';
 import {
   ExternalVersionsList,
   createVersionsMap,
+  createInternalVersionsListItem,
 } from '../../reducers/versions';
 import {
   createFakeEvent,
@@ -184,8 +185,12 @@ describe(__filename, () => {
 
     render({ isSelectable, versions });
 
-    expect(isSelectable).toHaveBeenCalledWith(versions[0]);
-    expect(isSelectable).toHaveBeenCalledWith(versions[1]);
+    expect(isSelectable).toHaveBeenCalledWith(
+      createInternalVersionsListItem(versions[0]),
+    );
+    expect(isSelectable).toHaveBeenCalledWith(
+      createInternalVersionsListItem(versions[1]),
+    );
   });
 
   it('marks versions as disabled when they are not selectable', () => {

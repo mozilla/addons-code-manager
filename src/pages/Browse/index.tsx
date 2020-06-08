@@ -222,7 +222,7 @@ export class BrowseBase extends React.Component<Props> {
             {version
               ? gettext(
                   `Browse ${getLocalizedString(version.addon.name)}: ${
-                    version.version
+                    version.versionString
                   }`,
                 )
               : gettext('Browse add-on version')}

@@ -232,7 +232,7 @@ describe(__filename, () => {
     expect(item.find(Loading)).toHaveLength(0);
     expect(message).toHaveLength(1);
     expect(message).toHaveText(
-      `The file has been deleted in the new version ${version.version}`,
+      `The file has been deleted in the new version ${version.versionString}`,
     );
   });
 

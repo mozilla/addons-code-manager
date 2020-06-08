@@ -181,7 +181,7 @@ export type VersionFile = {
   sha256: string;
   size: number;
   fileType: VersionEntryType;
-  version: string;
+  versionString: string;
 };
 
 export type VersionEntry = {
@@ -206,7 +206,7 @@ export type Version = {
   id: number;
   reviewed: string;
   validationURL: string;
-  version: string;
+  versionString: string;
   // TODO: remove `expandedPaths`, `selectedPath` and `visibleSelectedPath`
   // from `version` object once no code depends on these
   // See https://github.com/mozilla/addons-code-manager/issues/1218
@@ -215,13 +215,17 @@ export type Version = {
   visibleSelectedPath: string | null;
 };
 
-export type VersionsListItem = {
+export type ExternalVersionsListItem = {
   channel: 'unlisted' | 'listed';
   id: number;
   version: string;
 };
 
-export type ExternalVersionsListItem = VersionsListItem;
+export type VersionsListItem = {
+  channel: 'unlisted' | 'listed';
+  id: number;
+  versionString: string;
+};
 
 export type ExternalVersionsList = ExternalVersionsListItem[];
 
@@ -514,7 +518,7 @@ export const createInternalVersion = (
     id: version.id,
     reviewed: version.reviewed,
     selectedPath: version.file.selected_file,
-    version: version.version,
+    versionString: version.version,
     validationURL: version.validation_url_json,
     visibleSelectedPath: null,
   };
@@ -624,7 +628,7 @@ export const getVersionFile = (
       return {
         ...file,
         path,
-        version: version.version,
+        versionString: version.versionString,
       };
     }
   }
@@ -891,11 +895,25 @@ export const fetchVersionFile = ({
   };
 };
 
+export const createInternalVersionsListItem = (
+  version: ExternalVersionsListItem,
+) => {
+  return {
+    channel: version.channel,
+    id: version.id,
+    versionString: version.version,
+  };
+};
+
 export const createVersionsMap = (
   versions: ExternalVersionsList,
 ): VersionsMap => {
-  const listed = versions.filter((version) => version.channel === 'listed');
-  const unlisted = versions.filter((version) => version.channel === 'unlisted');
+  const listed = versions
+    .filter((version) => version.channel === 'listed')
+    .map(createInternalVersionsListItem);
+  const unlisted = versions
+    .filter((version) => version.channel === 'unlisted')
+    .map(createInternalVersionsListItem);
 
   return {
     listed,

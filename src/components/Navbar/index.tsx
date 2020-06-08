@@ -94,9 +94,11 @@ export class NavbarBase extends React.Component<Props, State> {
 
     if (
       currentBaseVersion &&
-      nextBaseVersionImprint !== currentBaseVersion.version
+      nextBaseVersionImprint !== currentBaseVersion.versionString
     ) {
-      this.setState({ nextBaseVersionImprint: currentBaseVersion.version });
+      this.setState({
+        nextBaseVersionImprint: currentBaseVersion.versionString,
+      });
     }
 
     if (
@@ -204,12 +206,13 @@ export class NavbarBase extends React.Component<Props, State> {
                         })}
                       >
                         {`${
-                          (currentBaseVersion && currentBaseVersion.version) ||
+                          (currentBaseVersion &&
+                            currentBaseVersion.versionString) ||
                           nextBaseVersionImprint
                         }…`}
                       </span>
                     ) : null}
-                    {currentVersion.version}
+                    {currentVersion.versionString}
                   </div>
                 </div>
               </>

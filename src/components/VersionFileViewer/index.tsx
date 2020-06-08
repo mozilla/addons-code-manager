@@ -77,7 +77,7 @@ const VersionFileViewer = ({
         ? _getInsertedLines(compareInfo.diff)
         : [];
 
-    const { version: versionString, selectedPath } = version;
+    const { versionString, selectedPath } = version;
 
     const renderFileInfo = () => {
       if (file) {
