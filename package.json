@@ -31,7 +31,7 @@
     "@types/redux-logger": "3.0.6",
     "@types/redux-sentry-middleware": "0.1.2",
     "bootstrap": "4.5.0",
-    "chalk": "4.0.0",
+    "chalk": "4.1.0",
     "classnames": "2.2.6",
     "connected-react-router": "5.0.1",
     "dompurify": "2.0.11",
