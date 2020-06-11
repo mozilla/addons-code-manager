@@ -14,6 +14,7 @@ import {
   ExternalVersionsList,
   ExternalVersionsListItem,
   actions as versionsActions,
+  createInternalVersionsListItem,
 } from '../../reducers/versions';
 import { pathQueryParam } from '../../utils';
 import {
@@ -219,8 +220,14 @@ describe(__filename, () => {
       const { content } = renderForm({ addonId, store });
 
       const select = content.find(VersionSelect).at(selectIndex);
-      expect(select).toHaveProp('listedVersions', listedVersions);
-      expect(select).toHaveProp('unlistedVersions', unlistedVersions);
+      expect(select).toHaveProp(
+        'listedVersions',
+        listedVersions.map(createInternalVersionsListItem),
+      );
+      expect(select).toHaveProp(
+        'unlistedVersions',
+        unlistedVersions.map(createInternalVersionsListItem),
+      );
     },
   );
 
@@ -704,28 +711,28 @@ describe(__filename, () => {
     const versionId = '2';
 
     it('returns a function that returns `true` when given version has an ID higher than a pre-configured version ID', () => {
-      const version = {
+      const version = createInternalVersionsListItem({
         ...fakeVersionsListItem,
         id: 3,
-      };
+      });
 
       expect(higherVersionsThan(versionId)(version)).toEqual(true);
     });
 
     it('returns a function that returns `false` when given version has an ID higher than a pre-configured version ID', () => {
-      const version = {
+      const version = createInternalVersionsListItem({
         ...fakeVersionsListItem,
         id: 1,
-      };
+      });
 
       expect(higherVersionsThan(versionId)(version)).toEqual(false);
     });
 
     it('returns a function that returns `false` when given version has an ID equals to a pre-configured version ID', () => {
-      const version = {
+      const version = createInternalVersionsListItem({
         ...fakeVersionsListItem,
         id: parseInt(versionId, 10),
-      };
+      });
 
       expect(higherVersionsThan(versionId)(version)).toEqual(false);
     });
@@ -735,28 +742,28 @@ describe(__filename, () => {
     const versionId = '2';
 
     it('returns a function that returns `false` when given version has an ID lower than a pre-configured version ID', () => {
-      const version = {
+      const version = createInternalVersionsListItem({
         ...fakeVersionsListItem,
         id: 3,
-      };
+      });
 
       expect(lowerVersionsThan(versionId)(version)).toEqual(false);
     });
 
     it('returns a function that returns `true` when given version has an ID lower than a pre-configured version ID', () => {
-      const version = {
+      const version = createInternalVersionsListItem({
         ...fakeVersionsListItem,
         id: 1,
-      };
+      });
 
       expect(lowerVersionsThan(versionId)(version)).toEqual(true);
     });
 
     it('returns a function that returns `false` when given version has an ID equals to a pre-configured version ID', () => {
-      const version = {
+      const version = createInternalVersionsListItem({
         ...fakeVersionsListItem,
         id: parseInt(versionId, 10),
-      };
+      });
 
       expect(lowerVersionsThan(versionId)(version)).toEqual(false);
     });

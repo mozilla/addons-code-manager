@@ -43,7 +43,7 @@ class VersionSelectBase extends React.Component<PublicProps> {
         key={version.id}
         value={version.id}
       >
-        {version.version}
+        {version.versionString}
       </option>
     );
   };

@@ -14,7 +14,7 @@ const FileMetadataBase = ({ file }: PublicProps) => {
     <div className={styles.FileMetadata}>
       <dl>
         <dt>{gettext('Version')}</dt>
-        <dd className={styles.version}>{file.version}</dd>
+        <dd className={styles.version}>{file.versionString}</dd>
         <dt>{gettext('Size')}</dt>
         <dd className={styles.size}>{formatFilesize(file.size)}</dd>
         <dt>{gettext('SHA256 hash')}</dt>

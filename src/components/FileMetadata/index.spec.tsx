@@ -38,7 +38,7 @@ describe(__filename, () => {
     const file = _getVersionFile();
     const root = shallow(<FileMetadata file={file} />);
 
-    expect(root.find(`.${styles.version}`)).toHaveText(file.version);
+    expect(root.find(`.${styles.version}`)).toHaveText(file.versionString);
     expect(root.find(`.${styles.sha256}`)).toHaveText(file.sha256);
 
     const downloadLink = root.find(`.${styles.downloadURL}`).find('a');

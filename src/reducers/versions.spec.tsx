@@ -23,6 +23,7 @@ import reducer, {
   createInternalVersionAddon,
   createInternalVersionEntry,
   createInternalVersionFile,
+  createInternalVersionsListItem,
   createReducer,
   createVersionsMap,
   fetchDiff,
@@ -840,7 +841,7 @@ describe(__filename, () => {
         id: version.id,
         initialPath: version.file.selected_file,
         reviewed: version.reviewed,
-        version: version.version,
+        versionString: version.version,
         selectedPath: version.file.selected_file,
         validationURL: fakeVersion.validation_url_json,
         visibleSelectedPath: null,
@@ -870,7 +871,7 @@ describe(__filename, () => {
         ],
         id: version.id,
         reviewed: version.reviewed,
-        version: version.version,
+        versionString: version.version,
         selectedPath: version.file.selected_file,
       });
     });
@@ -913,7 +914,7 @@ describe(__filename, () => {
         path,
         sha256,
         fileType: type,
-        version: versionString,
+        versionString,
       });
     });
     /* eslint-enable @typescript-eslint/camelcase */
@@ -1545,11 +1546,13 @@ describe(__filename, () => {
       expect(unlisted).toHaveLength(unlistedVersions.length);
 
       listedVersions.forEach((version, index) => {
-        expect(listed[index]).toEqual(version);
+        expect(listed[index]).toEqual(createInternalVersionsListItem(version));
       });
 
       unlistedVersions.forEach((version, index) => {
-        expect(unlisted[index]).toEqual(version);
+        expect(unlisted[index]).toEqual(
+          createInternalVersionsListItem(version),
+        );
       });
     });
   });
