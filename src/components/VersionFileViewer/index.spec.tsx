@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { DiffInfo } from 'react-diff-view';
 import { Store } from 'redux';
 import { ShallowWrapper, shallow } from 'enzyme';
 
@@ -33,6 +34,7 @@ import {
   simulateLinterProvider,
   fakeVersionFile,
 } from '../../test-helpers';
+import { flattenDiffChanges } from '../../utils';
 import styles from './styles.module.scss';
 
 import VersionFileViewer, { ItemTitles, PublicProps } from '.';
@@ -364,10 +366,20 @@ describe(__filename, () => {
     expect(_getInsertedLines).not.toHaveBeenCalled();
   });
 
-  it('does not render CodeOverview without a file', () => {
-    const root = renderPanel({ file: null }, PanelAttribs.altSidePanel);
+  it('passes the content of a diff to CodeOverview', () => {
+    const { file, version } = getInternalVersionAndFile();
+    const compareInfo = createFakeCompareInfo();
+    const diff = compareInfo.diff as DiffInfo;
 
-    expect(root.find(CodeOverview)).toHaveLength(0);
+    const root = renderPanel(
+      { compareInfo, file, version },
+      PanelAttribs.altSidePanel,
+    );
+
+    expect(root.find(CodeOverview)).toHaveProp(
+      'content',
+      flattenDiffChanges(diff),
+    );
   });
 
   it('does not render CodeOverview content for images', () => {

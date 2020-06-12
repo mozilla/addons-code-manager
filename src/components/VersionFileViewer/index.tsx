@@ -18,7 +18,7 @@ import {
   getInsertedLines,
 } from '../../reducers/versions';
 import { AnyReactNode } from '../../typeUtils';
-import { gettext } from '../../utils';
+import { flattenDiffChanges, gettext } from '../../utils';
 import styles from './styles.module.scss';
 
 export enum ItemTitles {
@@ -97,6 +97,15 @@ const VersionFileViewer = ({
       return <Loading message={gettext('Loading file...')} />;
     };
 
+    let overviewContent = '';
+    if (file) {
+      if (compareInfo && compareInfo.diff) {
+        overviewContent = flattenDiffChanges(compareInfo.diff);
+      } else if (file.fileType !== 'image') {
+        overviewContent = file.content;
+      }
+    }
+
     return (
       <ContentShell
         topContent={topContent}
@@ -125,14 +134,12 @@ const VersionFileViewer = ({
           </AccordionMenu>
         }
         altSidePanel={
-          file ? (
-            <CodeOverview
-              content={file.fileType === 'image' ? '' : file.content}
-              getCodeLineAnchor={getCodeLineAnchor}
-              insertedLines={insertedLines}
-              version={version}
-            />
-          ) : null
+          <CodeOverview
+            content={overviewContent}
+            getCodeLineAnchor={getCodeLineAnchor}
+            insertedLines={insertedLines}
+            version={version}
+          />
         }
       >
         {messageMap ? (

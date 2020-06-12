@@ -172,6 +172,12 @@ export const getAllHunkChanges = (hunks: Hunks): ChangeInfo[] => {
   );
 };
 
+export const flattenDiffChanges = (diff: DiffInfo): string => {
+  return getAllHunkChanges(diff.hunks)
+    .map((change) => change.content)
+    .join('\n');
+};
+
 type ForwardChangeMap = {
   [line: string]: ChangeInfo[];
 };
