@@ -18,6 +18,7 @@ import {
   createAdjustedQueryString,
   createCodeLineAnchorGetter,
   extractNumber,
+  flattenDiffChanges,
   formatFilesize,
   getAllHunkChanges,
   getLanguageFromMimeType,
@@ -505,6 +506,23 @@ describe('getAllHunkChanges', () => {
     expect(changes.filter((c) => c.lineNumber === 50)[0].content).toEqual(
       '          </Diff>',
     );
+  });
+});
+
+describe('flattenDiffChanges', () => {
+  it('returns a line-break delimited string of all changes', () => {
+    const diff = parseDiff(diffWithDeletions)[0];
+    const flattenedChanges = flattenDiffChanges(diff);
+    const lines = flattenedChanges.split('\n');
+
+    // Check a line from the first hunk:
+    expect(lines[1]).toEqual(
+      "import { Diff, DiffProps, parseDiff } from 'react-diff-view';",
+    );
+    // Check a line from the second hunk:
+    expect(lines[12]).toEqual('    console.log({ hunk });');
+    // Check a line from the third hunk:
+    expect(lines[28]).toEqual('          </Diff>');
   });
 });
 
