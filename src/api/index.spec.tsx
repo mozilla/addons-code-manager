@@ -29,6 +29,7 @@ import {
   getCurrentUser,
   getDiff,
   getDiffFileOnly,
+  getValidation,
   getVersion,
   getVersionFileOnly,
   getVersionsList,
@@ -1139,6 +1140,16 @@ describe(__filename, () => {
 
       expect(isErrorResponse(response)).toEqual(true);
       expect(getNext.mock.calls).toHaveLength(1);
+    });
+  });
+
+  describe('getValidation', () => {
+    it('calls the API to retrieve validation information', async () => {
+      const url = 'some-url';
+
+      await getValidation({ apiState: defaultApiState, url });
+
+      expect(fetch).toHaveBeenCalledWith(url, expect.any(Object));
     });
   });
 });
