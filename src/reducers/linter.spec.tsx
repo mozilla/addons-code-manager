@@ -1,4 +1,3 @@
-/* global fetchMock */
 import {
   createFakeExternalLinterResult,
   createFakeLinterMessagesByPath,
@@ -7,6 +6,7 @@ import {
   fakeExternalLinterMessage,
   setMockFetchResponseJSON,
   thunkTester,
+  nextUniqueId,
 } from '../test-helpers';
 import linterReducer, {
   ExternalLinterMessage,
@@ -22,7 +22,7 @@ import linterReducer, {
   selectMessageMap,
 } from './linter';
 import { actions as errorsActions } from './errors';
-import { makeApiURL } from '../api';
+import { getValidation } from '../api';
 import configureStore from '../configureStore';
 
 describe(__filename, () => {
@@ -426,12 +426,16 @@ describe(__filename, () => {
   });
 
   describe('fetchLinterMessagesIfNeeded', () => {
+    const store = configureStore();
+
     const _fetchLinterMessagesIfNeeded = ({
+      _getValidation = undefined,
       versionId = 123,
       url = '/validation/1234/validation.json',
       result = createExternalLinterResult(),
       respondWithResult = true,
     }: {
+      _getValidation?: typeof getValidation;
       versionId?: number;
       url?: string;
       result?: ExternalLinterResult;
@@ -442,18 +446,25 @@ describe(__filename, () => {
       }
 
       return thunkTester({
-        createThunk: () => fetchLinterMessagesIfNeeded({ url, versionId }),
+        createThunk: () =>
+          fetchLinterMessagesIfNeeded({ _getValidation, url, versionId }),
+        store,
       });
     };
 
-    it('fetches the URL', async () => {
+    it('calls getValidation', async () => {
+      const validation = fakeExternalLinterResult;
+      const _getValidation = jest
+        .fn()
+        .mockReturnValue(Promise.resolve(validation));
       const url = 'validation/3215/validation.json';
 
-      const { thunk } = _fetchLinterMessagesIfNeeded({ url });
+      const { thunk } = _fetchLinterMessagesIfNeeded({ _getValidation, url });
       await thunk();
 
-      expect(fetchMock).toHaveBeenCalledWith(makeApiURL({ url }), {
-        credentials: 'include',
+      expect(_getValidation).toHaveBeenCalledWith({
+        apiState: store.getState().api,
+        url,
       });
     });
 
@@ -485,33 +496,14 @@ describe(__filename, () => {
     });
 
     it('handles a bad response status', async () => {
-      fetchMock.mockResponse('', { status: 400 });
-      const versionId = 124;
+      const error = new Error('Bad Request');
+      const _getValidation = jest
+        .fn()
+        .mockReturnValue(Promise.resolve(createErrorResponse({ error })));
+      const versionId = nextUniqueId();
 
       const { dispatch, thunk } = _fetchLinterMessagesIfNeeded({
-        versionId,
-        respondWithResult: false,
-      });
-
-      await thunk();
-
-      expect(dispatch).toHaveBeenCalledWith(
-        errorsActions.addError(
-          createErrorResponse({
-            error: expect.any(Error),
-          }),
-        ),
-      );
-      expect(dispatch).toHaveBeenCalledWith(
-        actions.abortFetchLinterResult({ versionId }),
-      );
-    });
-
-    it('handles an invalid JSON response', async () => {
-      fetchMock.mockResponse('_this is not ^& valid JSON');
-      const versionId = 124;
-
-      const { dispatch, thunk } = _fetchLinterMessagesIfNeeded({
+        _getValidation,
         versionId,
         respondWithResult: false,
       });
@@ -533,7 +525,6 @@ describe(__filename, () => {
     it('early returns and does not do anything when linter messages are already being fetched', async () => {
       const url = '/some/url';
       const versionId = 123;
-      const store = configureStore();
       store.dispatch(actions.beginFetchLinterResult({ versionId }));
 
       const { dispatch, thunk } = thunkTester({
@@ -550,7 +541,6 @@ describe(__filename, () => {
       const url = '/some/url';
       const versionId = 123;
       const anotherVersionId = versionId + 246;
-      const store = configureStore();
       store.dispatch(actions.beginFetchLinterResult({ versionId }));
 
       const { dispatch, thunk } = thunkTester({

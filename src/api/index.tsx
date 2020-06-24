@@ -5,6 +5,7 @@ import log from 'loglevel';
 
 import { ApiState } from '../reducers/api';
 import { ExternalComment } from '../reducers/comments';
+import { ExternalLinterResult } from '../reducers/linter';
 import { ExternalUser } from '../reducers/users';
 import {
   ExternalVersionWithContentFileOnly,
@@ -540,5 +541,17 @@ export const deleteComment = async ({
     apiState,
     endpoint: `reviewers/addon/${addonId}/versions/${versionId}/draft_comments/${commentId}`,
     method: HttpMethod.DELETE,
+  });
+};
+
+type GetValidationParams = {
+  apiState: ApiState;
+  url: string;
+};
+
+export const getValidation = async ({ apiState, url }: GetValidationParams) => {
+  return callApi<ResponseOnly<ExternalLinterResult>>({
+    apiState,
+    endpointUrl: url,
   });
 };

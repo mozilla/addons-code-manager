@@ -4,7 +4,7 @@ import { ActionType, deprecated, getType } from 'typesafe-actions';
 
 import { ThunkActionCreator } from '../configureStore';
 import { actions as errorsActions } from './errors';
-import { makeApiURL } from '../api';
+import { getValidation, isErrorResponse } from '../api';
 
 // See: https://github.com/piotrwitek/typesafe-actions/issues/143
 const { createAction } = deprecated;
@@ -194,14 +194,16 @@ export const actions = {
 };
 
 export const fetchLinterMessagesIfNeeded = ({
+  _getValidation = getValidation,
   url,
   versionId,
 }: {
+  _getValidation?: typeof getValidation;
   url: string;
   versionId: number;
 }): ThunkActionCreator => {
   return async (dispatch, getState) => {
-    const { linter } = getState();
+    const { api: apiState, linter } = getState();
     // See: https://github.com/mozilla/addons-code-manager/issues/591
     if (linter.isLoading && linter.forVersionId === versionId) {
       log.debug('Aborting because linter messages are already being fetched');
@@ -210,21 +212,22 @@ export const fetchLinterMessagesIfNeeded = ({
 
     dispatch(actions.beginFetchLinterResult({ versionId }));
 
-    // This is a special URL and returns a non-standard JSON response.
-    const response = await fetch(makeApiURL({ url }), {
-      credentials: 'include',
+    const response = await _getValidation({
+      apiState,
+      url,
     });
 
-    try {
-      if (!response.ok) {
-        throw new Error(`Got status ${response.status} for URL ${url}`);
-      }
-      const result = await response.json();
-      dispatch(actions.loadLinterResult({ versionId, result }));
-    } catch (error) {
-      dispatch(errorsActions.addError({ error }));
+    if (isErrorResponse(response)) {
       dispatch(actions.abortFetchLinterResult({ versionId }));
+      dispatch(errorsActions.addError({ error: response.error }));
     }
+
+    dispatch(
+      actions.loadLinterResult({
+        versionId,
+        result: response as ExternalLinterResult,
+      }),
+    );
   };
 };
 
