@@ -41,8 +41,6 @@ declare module 'react-diff-view' {
     hunks: Hunks;
     oldEndingNewLine: boolean;
     newEndingNewLine: boolean;
-    oldRevision: string;
-    newRevision: string;
     newMode: string;
     oldMode: string;
     type: DiffInfoType;

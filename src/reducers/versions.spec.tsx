@@ -1603,8 +1603,6 @@ describe(__filename, () => {
         version,
       });
 
-      expect(diff).toHaveProperty('oldRevision', String(baseVersionId));
-      expect(diff).toHaveProperty('newRevision', String(headVersionId));
       expect(diff).toHaveProperty('oldMode', externalDiff.mode);
       expect(diff).toHaveProperty('newMode', externalDiff.mode);
       expect(diff).toHaveProperty('oldPath', externalDiff.old_path);
