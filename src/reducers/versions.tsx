@@ -979,8 +979,6 @@ export const createInternalHunk = (hunk: ExternalHunk): HunkInfo => {
 };
 
 export const createInternalDiff = ({
-  baseVersionId,
-  headVersionId,
   version,
 }: CreateInternalDiffParams): DiffInfo | null => {
   const GIT_STATUS_TO_TYPE: { [status: string]: DiffInfoType } = {
@@ -994,8 +992,6 @@ export const createInternalDiff = ({
   const { diff } = version.file;
   if (diff) {
     return {
-      newRevision: String(headVersionId),
-      oldRevision: String(baseVersionId),
       hunks: diff.hunks.map(createInternalHunk),
       type: GIT_STATUS_TO_TYPE[diff.mode] || GIT_STATUS_TO_TYPE.M,
       newEndingNewLine: diff.new_ending_new_line,

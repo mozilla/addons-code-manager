@@ -363,9 +363,10 @@ export class DiffViewBase extends React.Component<Props> {
       _trimHunkChars,
       diff,
       isMinified,
-      mimeType,
-      viewType,
       location,
+      mimeType,
+      version,
+      viewType,
     } = this.props;
 
     const options = {
@@ -480,7 +481,7 @@ export class DiffViewBase extends React.Component<Props> {
         {extraMessages.length ? this.renderExtraMessages(extraMessages) : null}
 
         {diff && hunks && (
-          <React.Fragment key={`${diff.oldRevision}-${diff.newRevision}`}>
+          <React.Fragment key={version.id}>
             {this.renderHeader(diff)}
             <FadableContent fade={diffWasTrimmed}>
               <Diff
