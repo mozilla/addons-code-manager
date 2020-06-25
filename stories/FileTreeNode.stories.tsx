@@ -3,7 +3,10 @@ import { Store } from 'redux';
 import { storiesOf } from '@storybook/react';
 
 import FileTreeNode, { PublicProps } from '../src/components/FileTreeNode';
-import { createStoreWithVersion, fakeVersion } from '../src/test-helpers';
+import {
+  createStoreWithVersion,
+  fakeVersionWithContent,
+} from '../src/test-helpers';
 import { renderWithStoreAndRouter } from './utils';
 
 type GetPropsParams = {
@@ -19,7 +22,7 @@ const getProps = ({
   nodeName = 'node name',
   nodeId = 'node-id',
   renderChildNodes = () => ({}),
-  versionId = fakeVersion.id,
+  versionId = fakeVersionWithContent.id,
 }: GetPropsParams = {}) => {
   return {
     getToggleProps: () => ({
@@ -46,7 +49,7 @@ const getProps = ({
 const render = ({
   versionId = 543219,
   store = createStoreWithVersion({
-    version: { ...fakeVersion, id: versionId },
+    version: { ...fakeVersionWithContent, id: versionId },
   }),
   ...props
 }: { store?: Store } & GetPropsParams = {}) => {
@@ -86,7 +89,7 @@ storiesOf('FileTreeNode', module).addWithChapters('all variants', {
             const versionId = 921;
             const store = createStoreWithVersion({
               version: {
-                ...fakeVersion,
+                ...fakeVersionWithContent,
                 id: versionId,
               },
             });
@@ -115,7 +118,7 @@ storiesOf('FileTreeNode', module).addWithChapters('all variants', {
         {
           title: 'selected node',
           sectionFn: () => {
-            const externalVersion = fakeVersion;
+            const externalVersion = fakeVersionWithContent;
             const store = createStoreWithVersion({ version: externalVersion });
 
             return render({

@@ -17,7 +17,7 @@ import {
 import {
   createFakeLogger,
   dispatchLoadVersionInfo,
-  fakeVersion,
+  fakeVersionWithContent,
   getInstance,
   shallowUntilTarget,
   spyOn,
@@ -32,7 +32,7 @@ describe(__filename, () => {
   describe('FileTree', () => {
     const getVersion = ({
       store = configureStore(),
-      version = fakeVersion,
+      version = fakeVersionWithContent,
     }): Version => {
       dispatchLoadVersionInfo({ store, version });
 

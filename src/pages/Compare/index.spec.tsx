@@ -12,7 +12,7 @@ import {
   createStoreWithVersion,
   dispatchLoadVersionInfo,
   externallyLocalizedString,
-  fakeVersion,
+  fakeVersionWithContent,
   fakeVersionWithDiff,
   shallowUntilTarget,
   spyOn,
@@ -159,10 +159,10 @@ describe(__filename, () => {
           // Make a version with file content out of the given version
           // diff response.
           version: {
-            ...fakeVersion,
+            ...fakeVersionWithContent,
             id: version.id,
             file: {
-              ...fakeVersion.file,
+              ...fakeVersionWithContent.file,
               ...version.file,
             },
           },
@@ -1027,7 +1027,7 @@ describe(__filename, () => {
       store.dispatch(
         fileTreeActions.buildTree({
           version: createInternalVersion({
-            ...fakeVersion,
+            ...fakeVersionWithContent,
             id: forVersionId,
           }),
           comparedToVersionId,
@@ -1330,7 +1330,7 @@ describe(__filename, () => {
       const store = configureStore();
       dispatchLoadVersionInfo({
         store,
-        version: { ...fakeVersion, id: headVersionId },
+        version: { ...fakeVersionWithContent, id: headVersionId },
       });
       store.dispatch(
         versionsActions.loadDiff({

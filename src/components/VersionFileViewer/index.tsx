@@ -14,7 +14,7 @@ import {
   CompareInfo,
   EntryStatusMap,
   Version,
-  VersionFile,
+  VersionFileWithContent,
   getInsertedLines,
 } from '../../reducers/versions';
 import { AnyReactNode } from '../../typeUtils';
@@ -33,7 +33,7 @@ export type PublicProps = {
   comparedToVersionId: number | null;
   compareInfo?: CompareInfo | null | undefined;
   entryStatusMap?: EntryStatusMap;
-  file: VersionFile | null | undefined;
+  file: VersionFileWithContent | null | undefined;
   getCodeLineAnchor?: GetCodeLineAnchor;
   onSelectFile: FileTreeProps['onSelect'];
   version: Version | undefined | null;
@@ -81,7 +81,7 @@ const VersionFileViewer = ({
 
     const renderFileInfo = () => {
       if (file) {
-        return <FileMetadata file={file} />;
+        return <FileMetadata file={file} versionString={versionString} />;
       }
 
       if (entryStatusMap && entryStatusMap[selectedPath] === 'D') {

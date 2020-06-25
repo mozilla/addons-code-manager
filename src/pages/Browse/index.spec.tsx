@@ -11,9 +11,9 @@ import {
   createFakeThunk,
   dispatchLoadVersionInfo,
   externallyLocalizedString,
-  fakeVersion,
+  fakeVersionWithContent,
   fakeVersionEntry,
-  fakeVersionFile,
+  fakeVersionFileWithContent,
   shallowUntilTarget,
   spyOn,
   nextUniqueId,
@@ -92,7 +92,7 @@ describe(__filename, () => {
 
   const _loadVersionAndFile = ({
     store = configureStore(),
-    version = { ...fakeVersion, id: nextUniqueId() },
+    version = { ...fakeVersionWithContent, id: nextUniqueId() },
     setCurrentVersionId = true,
     loadVersionFile = true,
   }) => {
@@ -123,14 +123,14 @@ describe(__filename, () => {
     versionId = nextUniqueId(),
   } = {}) => {
     const version = {
-      ...fakeVersion,
+      ...fakeVersionWithContent,
       id: versionId,
       file: {
-        ...fakeVersion.file,
+        ...fakeVersionWithContent.file,
         selected_file: initialPath,
       },
       file_entries: {
-        ...fakeVersion.file_entries,
+        ...fakeVersionWithContent.file_entries,
         ...extraFileEntries,
       },
     };
@@ -234,7 +234,7 @@ describe(__filename, () => {
   it('dispatches setCurrentVersionId when switching versions', () => {
     const newVersionId = 789;
     const oldVersionId = 987;
-    const version = { ...fakeVersion, id: newVersionId };
+    const version = { ...fakeVersionWithContent, id: newVersionId };
     const store = configureStore();
     store.dispatch(
       versionsActions.setCurrentVersionId({ versionId: oldVersionId }),
@@ -251,10 +251,10 @@ describe(__filename, () => {
 
   it('renders a VersionFileViewer', () => {
     const version = {
-      ...fakeVersion,
+      ...fakeVersionWithContent,
       id: 87652,
       file: {
-        ...fakeVersion.file,
+        ...fakeVersionWithContent.file,
         id: 991234,
       },
     };
@@ -279,9 +279,9 @@ describe(__filename, () => {
     const path = 'image.png';
     const downloadUrl = '/some/download/url/';
     const version = {
-      ...fakeVersion,
+      ...fakeVersionWithContent,
       file: {
-        ...fakeVersionFile,
+        ...fakeVersionFileWithContent,
         download_url: downloadUrl,
         mime_category: 'image' as VersionEntryType,
         selected_file: path,
@@ -299,7 +299,7 @@ describe(__filename, () => {
   });
 
   it('renders a loading message when we do not have the content of a file yet', () => {
-    const version = fakeVersion;
+    const version = fakeVersionWithContent;
 
     const store = configureStore();
     _loadVersionAndFile({ store, version });
@@ -322,7 +322,7 @@ describe(__filename, () => {
 
   it('dispatches viewVersionFile without preserving the URL hash when a file is selected', () => {
     const addonId = 123456;
-    const version = { ...fakeVersion, id: 98765 };
+    const version = { ...fakeVersionWithContent, id: 98765 };
     const path = 'some-path';
 
     const store = configureStore();
@@ -503,7 +503,7 @@ describe(__filename, () => {
   });
 
   it('does not dispatch fetchVersion on mount if a version is already loaded', () => {
-    const version = fakeVersion;
+    const version = fakeVersionWithContent;
 
     const store = configureStore();
     _loadVersionAndFile({ store, version });
@@ -540,7 +540,7 @@ describe(__filename, () => {
   });
 
   it('does not dispatch anything on update when an API error has occured', () => {
-    const version = fakeVersion;
+    const version = fakeVersionWithContent;
     const store = configureStore();
     _loadVersionAndFile({ store, version });
 
@@ -593,10 +593,10 @@ describe(__filename, () => {
     const name = 'AdBlockPlus';
     const versionString = '1.0-beta';
     const version = {
-      ...fakeVersion,
-      id: fakeVersion.id + 1,
+      ...fakeVersionWithContent,
+      id: fakeVersionWithContent.id + 1,
       addon: {
-        ...fakeVersion.addon,
+        ...fakeVersionWithContent.addon,
         name: externallyLocalizedString(name),
       },
       version: versionString,
@@ -709,8 +709,8 @@ describe(__filename, () => {
     const addonId = nextUniqueId();
     const versionId = nextUniqueId();
     const version = {
-      ...fakeVersion,
-      addon: { ...fakeVersion.addon, id: addonId },
+      ...fakeVersionWithContent,
+      addon: { ...fakeVersionWithContent.addon, id: addonId },
       id: versionId,
     };
     const store = configureStore();
@@ -750,8 +750,8 @@ describe(__filename, () => {
     const addonId = nextUniqueId();
     const versionId = nextUniqueId();
     const version = {
-      ...fakeVersion,
-      addon: { ...fakeVersion.addon, id: addonId },
+      ...fakeVersionWithContent,
+      addon: { ...fakeVersionWithContent.addon, id: addonId },
       id: versionId,
     };
     const store = configureStore();

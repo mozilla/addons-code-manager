@@ -31,7 +31,7 @@ import {
   createFakeExternalLinterResult,
   createFakeLocation,
   fakeExternalLinterMessage,
-  fakeVersion,
+  fakeVersionWithContent,
   getInstance,
   shallowUntilTarget,
   simulateCommentList,
@@ -74,7 +74,7 @@ describe(__filename, () => {
       isMinified: false,
       linterMessagesByLine: undefined,
       mimeType: 'mime/type',
-      version: createInternalVersion(fakeVersion),
+      version: createInternalVersion(fakeVersionWithContent),
       ...otherProps,
     };
     return shallowUntilTarget(<CodeView {...props} />, CodeViewBase, {
@@ -377,7 +377,7 @@ describe(__filename, () => {
   });
 
   it('configures LinterProvider', () => {
-    const version = createInternalVersion(fakeVersion);
+    const version = createInternalVersion(fakeVersionWithContent);
     const root = render({ version });
 
     const provider = root.find(LinterProvider);
@@ -602,7 +602,7 @@ describe(__filename, () => {
 
   describe('comment list', () => {
     it('renders a comment list', () => {
-      const version = createInternalVersion(fakeVersion);
+      const version = createInternalVersion(fakeVersionWithContent);
       const { shell } = simulateInlineCommentList({
         content: 'single line of code',
         enableCommenting: true,

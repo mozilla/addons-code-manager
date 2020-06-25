@@ -18,7 +18,7 @@ import {
   createStoreWithVersionComments,
   dispatchLoadVersionInfo,
   fakeUser,
-  fakeVersion,
+  fakeVersionWithContent,
   fakeVersionAddon,
   nextUniqueId,
   shallowUntilTarget,
@@ -85,10 +85,10 @@ describe(__filename, () => {
   } = {}) => {
     return createStoreWithVersion({
       version: {
-        ...fakeVersion,
+        ...fakeVersionWithContent,
         id,
         version: versionString,
-        addon: { ...fakeVersion.addon, id: addonId },
+        addon: { ...fakeVersionWithContent.addon, id: addonId },
       },
       makeCurrent: true,
     });
@@ -99,7 +99,7 @@ describe(__filename, () => {
       const addonName = 'addon name example';
       const store = createStoreWithVersion({
         version: {
-          ...fakeVersion,
+          ...fakeVersionWithContent,
           addon: { ...fakeVersionAddon, name: { 'en-US': addonName } },
         },
         makeCurrent: true,
@@ -114,7 +114,7 @@ describe(__filename, () => {
       const slug = 'some-slug';
       const store = createStoreWithVersion({
         version: {
-          ...fakeVersion,
+          ...fakeVersionWithContent,
           addon: { ...fakeVersionAddon, slug },
         },
         makeCurrent: true,
@@ -385,7 +385,7 @@ describe(__filename, () => {
       const currentBaseVersionId = nextUniqueId();
       dispatchLoadVersionInfo({
         store,
-        version: { ...fakeVersion, id: currentBaseVersionId },
+        version: { ...fakeVersionWithContent, id: currentBaseVersionId },
       });
       store.dispatch(
         versionsActions.setCurrentBaseVersionId({
@@ -426,7 +426,11 @@ describe(__filename, () => {
       id?: number;
       versionString?: string;
     }) => {
-      const baseVersion = { ...fakeVersion, id, version: versionString };
+      const baseVersion = {
+        ...fakeVersionWithContent,
+        id,
+        version: versionString,
+      };
       dispatchLoadVersionInfo({ store, version: baseVersion });
       store.dispatch(
         versionsActions.setCurrentBaseVersionId({ versionId: baseVersion.id }),

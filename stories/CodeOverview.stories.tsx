@@ -14,8 +14,8 @@ import { JS_SAMPLE } from './CodeView.stories';
 import { createInternalVersion } from '../src/reducers/versions';
 import {
   createFakeExternalLinterResult,
-  fakeVersion,
-  fakeVersionFile,
+  fakeVersionWithContent,
+  fakeVersionFileWithContent,
   fakeVersionEntry,
 } from '../src/test-helpers';
 import {
@@ -35,9 +35,9 @@ const render = ({
 } = {}) => {
   const path = 'background.js';
   const version = createInternalVersion({
-    ...fakeVersion,
+    ...fakeVersionWithContent,
     file: {
-      ...fakeVersionFile,
+      ...fakeVersionFileWithContent,
       selected_file: path,
     },
     file_entries: { [path]: { ...fakeVersionEntry, path } },

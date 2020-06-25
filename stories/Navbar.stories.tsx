@@ -12,7 +12,7 @@ import {
   createStoreWithVersionComments,
   dispatchLoadVersionInfo,
   fakeUser,
-  fakeVersion,
+  fakeVersionWithContent,
   fakeVersionAddon,
   nextUniqueId,
 } from '../src/test-helpers';
@@ -44,7 +44,7 @@ const dispatchBaseVersion = ({
   store: Store;
   versionString?: string;
 }) => {
-  const baseVersion = { ...fakeVersion, id, version: versionString };
+  const baseVersion = { ...fakeVersionWithContent, id, version: versionString };
   dispatchLoadVersionInfo({ store, version: baseVersion });
   store.dispatch(
     versionsActions.setCurrentBaseVersionId({ versionId: baseVersion.id }),
@@ -61,7 +61,7 @@ storiesOf('Navbar', module)
   })
   .add('with current version', () => {
     const version = {
-      ...fakeVersion,
+      ...fakeVersionWithContent,
       addon: { ...fakeVersionAddon, name: { 'en-US': 'uBlock Origin' } },
     };
     const store = createStoreWithVersion({ version, makeCurrent: true });
@@ -69,7 +69,7 @@ storiesOf('Navbar', module)
   })
   .add('with base version, current version', () => {
     const version = {
-      ...fakeVersion,
+      ...fakeVersionWithContent,
       id: nextUniqueId(),
       version: '2.0',
       addon: { ...fakeVersionAddon, name: { 'en-US': 'uBlock Origin' } },
@@ -81,7 +81,7 @@ storiesOf('Navbar', module)
   })
   .add('with new base version loading', () => {
     const version = {
-      ...fakeVersion,
+      ...fakeVersionWithContent,
       version: '2.0',
       addon: { ...fakeVersionAddon, name: { 'en-US': 'uBlock Origin' } },
     };

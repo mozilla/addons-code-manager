@@ -31,7 +31,7 @@ import {
   createFakeLocation,
   createFakeThunk,
   createVersionWithInternalEntries,
-  fakeVersion,
+  fakeVersionWithContent,
   fakeVersionEntry,
   getFakeVersionAndPathList,
   nextUniqueId,
@@ -42,7 +42,7 @@ import { getLocalizedString } from '../utils';
 describe(__filename, () => {
   describe('reducer', () => {
     it('builds and loads a tree', () => {
-      const version = createInternalVersion(fakeVersion);
+      const version = createInternalVersion(fakeVersionWithContent);
       const comparedToVersionId = nextUniqueId();
       const state = reducer(
         undefined,
@@ -62,14 +62,14 @@ describe(__filename, () => {
         undefined,
         actions.buildTree({
           comparedToVersionId: null,
-          version: createInternalVersion(fakeVersion),
+          version: createInternalVersion(fakeVersionWithContent),
         }),
       );
       state = reducer(
         state,
         versionsActions.loadVersionInfo({
           updatePathInfo: true,
-          version: fakeVersion,
+          version: fakeVersionWithContent,
         }),
       );
 
@@ -87,14 +87,17 @@ describe(__filename, () => {
         undefined,
         actions.buildTree({
           comparedToVersionId: null,
-          version: createInternalVersion({ ...fakeVersion, id: oldVerisonId }),
+          version: createInternalVersion({
+            ...fakeVersionWithContent,
+            id: oldVerisonId,
+          }),
         }),
       );
       state = reducer(
         state,
         versionsActions.loadVersionInfo({
           updatePathInfo: true,
-          version: { ...fakeVersion, id: newVersionId },
+          version: { ...fakeVersionWithContent, id: newVersionId },
         }),
       );
 
@@ -108,7 +111,7 @@ describe(__filename, () => {
 
   describe('getTree', () => {
     it('returns a tree', () => {
-      const version = createInternalVersion(fakeVersion);
+      const version = createInternalVersion(fakeVersionWithContent);
       const state = reducer(
         undefined,
         actions.buildTree({ comparedToVersionId: null, version }),
@@ -118,15 +121,21 @@ describe(__filename, () => {
     });
 
     it('returns undefined if there is no tree loaded', () => {
-      const version = createInternalVersion(fakeVersion);
+      const version = createInternalVersion(fakeVersionWithContent);
       const state = initialState;
 
       expect(getTree(state, version.id)).toEqual(undefined);
     });
 
     it('returns undefined if a version is requested that has not been loaded', () => {
-      const version1 = createInternalVersion({ ...fakeVersion, id: 1 });
-      const version2 = createInternalVersion({ ...fakeVersion, id: 2 });
+      const version1 = createInternalVersion({
+        ...fakeVersionWithContent,
+        id: 1,
+      });
+      const version2 = createInternalVersion({
+        ...fakeVersionWithContent,
+        id: 2,
+      });
       const state = reducer(
         undefined,
         actions.buildTree({ comparedToVersionId: null, version: version2 }),

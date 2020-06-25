@@ -38,7 +38,7 @@ import {
   fakeChangeInfo,
   fakeExternalDiff,
   fakeTokens,
-  fakeVersion,
+  fakeVersionWithContent,
   getInstance,
   nextUniqueId,
   shallowUntilTarget,
@@ -79,7 +79,7 @@ describe(__filename, () => {
         enableCommenting={enableCommenting}
         isMinified={false}
         mimeType="text/plain"
-        version={createInternalVersion(fakeVersion)}
+        version={createInternalVersion(fakeVersionWithContent)}
         {...props}
       />,
       DiffViewBase,
@@ -166,10 +166,10 @@ describe(__filename, () => {
     const baseVersionId = 1;
     const headVersionId = 2;
     const version = {
-      ...fakeVersion,
+      ...fakeVersionWithContent,
       id: headVersionId,
       file: {
-        ...fakeVersion.file,
+        ...fakeVersionWithContent.file,
         base_file: {
           id: nextUniqueId(),
         },
@@ -608,8 +608,8 @@ describe(__filename, () => {
 
   it('configures LinterProvider', () => {
     const version = createInternalVersion({
-      ...fakeVersion,
-      id: fakeVersion.id + 1,
+      ...fakeVersionWithContent,
+      id: fakeVersionWithContent.id + 1,
     });
     const root = render({ version });
 
@@ -703,7 +703,7 @@ describe(__filename, () => {
       { line: secondLine, uid: 'second' },
     ];
     const version = createInternalVersion({
-      ...fakeVersion,
+      ...fakeVersionWithContent,
       id: nextUniqueId(),
     });
     const diff = createDiffWithHunks([
@@ -775,7 +775,7 @@ describe(__filename, () => {
     const line = nextUniqueId();
     const externalMessages = [{ line, uid: 'first' }];
     const version = createInternalVersion({
-      ...fakeVersion,
+      ...fakeVersionWithContent,
       id: nextUniqueId(),
     });
     const diff = createDiffWithHunks([
@@ -797,7 +797,7 @@ describe(__filename, () => {
       const CommentListResult = () => <div />;
       const lineNumber = nextUniqueId();
       const version = createInternalVersion({
-        ...fakeVersion,
+        ...fakeVersionWithContent,
         id: nextUniqueId(),
       });
       const diff = createDiffWithHunks([
@@ -854,7 +854,7 @@ describe(__filename, () => {
       const _changeCanBeCommentedUpon = jest.fn().mockReturnValue(false);
       const lineNumber = nextUniqueId();
       const version = createInternalVersion({
-        ...fakeVersion,
+        ...fakeVersionWithContent,
         id: nextUniqueId(),
       });
       const diff = createDiffWithHunks([
@@ -875,7 +875,7 @@ describe(__filename, () => {
     it('does not render inline comments when the feature is disabled', () => {
       const line = nextUniqueId();
       const version = createInternalVersion({
-        ...fakeVersion,
+        ...fakeVersionWithContent,
         id: nextUniqueId(),
       });
       const diff = createDiffWithHunks([
@@ -1162,7 +1162,7 @@ describe(__filename, () => {
       enableCommenting = true,
       renderDefault = jest.fn(),
       side = 'new',
-      version = createInternalVersion(fakeVersion),
+      version = createInternalVersion(fakeVersionWithContent),
       wrapInAnchor = jest.fn().mockReturnValue(defaultGutter),
     }: Partial<ReactDiffView.RenderGutterParams> &
       RenderParams & {
@@ -1197,7 +1197,7 @@ describe(__filename, () => {
       const className = 'test-class';
       const defaultGutter = <div className={className} />;
       const renderDefault = jest.fn();
-      const version = createInternalVersion(fakeVersion);
+      const version = createInternalVersion(fakeVersionWithContent);
       const wrapInAnchor = jest.fn().mockReturnValue(defaultGutter);
       const gutter = _renderGutter({
         change,

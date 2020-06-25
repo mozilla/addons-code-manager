@@ -4,9 +4,12 @@ import { shallow } from 'enzyme';
 import {
   actions as versionActions,
   getVersionFile,
-  VersionFile,
+  VersionFileWithContent,
 } from '../../reducers/versions';
-import { fakeVersion, createStoreWithVersion } from '../../test-helpers';
+import {
+  fakeVersionWithContent,
+  createStoreWithVersion,
+} from '../../test-helpers';
 import styles from './styles.module.scss';
 import { formatFilesize } from '../../utils';
 import { makeApiURL } from '../../api';
@@ -15,7 +18,7 @@ import FileMetadata from '.';
 
 describe(__filename, () => {
   const _getVersionFile = (props = {}) => {
-    const version = fakeVersion;
+    const version = fakeVersionWithContent;
     const store = createStoreWithVersion({ version });
     store.dispatch(
       versionActions.loadVersionFile({
@@ -29,16 +32,19 @@ describe(__filename, () => {
         store.getState().versions,
         version.id,
         version.file.selected_file,
-      ) as VersionFile),
+      ) as VersionFileWithContent),
       ...props,
     };
   };
 
   it('renders metadata for a file', () => {
     const file = _getVersionFile();
-    const root = shallow(<FileMetadata file={file} />);
+    const versionString = '1.2';
+    const root = shallow(
+      <FileMetadata file={file} versionString={versionString} />,
+    );
 
-    expect(root.find(`.${styles.version}`)).toHaveText(file.versionString);
+    expect(root.find(`.${styles.version}`)).toHaveText(versionString);
     expect(root.find(`.${styles.sha256}`)).toHaveText(file.sha256);
 
     const downloadLink = root.find(`.${styles.downloadURL}`).find('a');
@@ -54,7 +60,7 @@ describe(__filename, () => {
   it('renders a formatted filesize', () => {
     const size = 12345;
     const file = _getVersionFile({ size });
-    const root = shallow(<FileMetadata file={file} />);
+    const root = shallow(<FileMetadata file={file} versionString="1.2" />);
 
     expect(root.find(`.${styles.size}`)).toHaveText(formatFilesize(size));
   });

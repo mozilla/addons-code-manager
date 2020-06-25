@@ -12,7 +12,7 @@ import {
   CompareInfo,
   EntryStatusMap,
   Version,
-  VersionFile,
+  VersionFileWithContent,
   fetchDiff,
   fetchVersionFile,
   isFileLoading,
@@ -54,7 +54,7 @@ type PropsFromState = {
   currentBaseVersionId: number | null | undefined | false;
   currentVersionId: number | null | undefined | false;
   nextCompareInfo: CompareInfo | null | undefined;
-  nextFile: VersionFile | null | undefined;
+  nextFile: VersionFileWithContent | null | undefined;
   nextFileIsLoading: boolean;
   nextFilePath: string | undefined;
   entryStatusMap: EntryStatusMap | undefined;
@@ -63,7 +63,7 @@ type PropsFromState = {
   path: string | undefined;
   selectedPath: string | null;
   version: Version | undefined | null;
-  versionFile: VersionFile | undefined | null;
+  versionFile: VersionFileWithContent | undefined | null;
   versionFileIsLoading: boolean;
 };
 

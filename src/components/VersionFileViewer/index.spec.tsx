@@ -28,11 +28,11 @@ import {
   createFakeExternalLinterResult,
   dispatchLoadVersionInfo,
   fakeExternalLinterMessage,
-  fakeVersion,
+  fakeVersionWithContent,
   fakeVersionEntry,
   getContentShellPanel,
   simulateLinterProvider,
-  fakeVersionFile,
+  fakeVersionFileWithContent,
 } from '../../test-helpers';
 import { flattenDiffChanges } from '../../utils';
 import styles from './styles.module.scss';
@@ -62,9 +62,9 @@ describe(__filename, () => {
     //   file: createInternalVersionFile(...),
     // };
     const version = {
-      ...fakeVersion,
+      ...fakeVersionWithContent,
       file: {
-        ...fakeVersion.file,
+        ...fakeVersionWithContent.file,
         content: fileContent,
         // eslint-disable-next-line @typescript-eslint/camelcase
         selected_file: path,
@@ -72,7 +72,7 @@ describe(__filename, () => {
       },
       // eslint-disable-next-line @typescript-eslint/camelcase
       file_entries: {
-        ...fakeVersion.file_entries,
+        ...fakeVersionWithContent.file_entries,
         [path]: entry || { ...fakeVersionEntry, filename: path, path },
       },
     };
@@ -216,9 +216,13 @@ describe(__filename, () => {
   it('renders a message in the information panel for the deleted file', () => {
     const filename = 'someFileName.js';
     const version = createInternalVersion({
-      ...fakeVersion,
+      ...fakeVersionWithContent,
       // eslint-disable-next-line @typescript-eslint/camelcase
-      file: { ...fakeVersionFile, filename, selected_file: filename },
+      file: {
+        ...fakeVersionFileWithContent,
+        filename,
+        selected_file: filename,
+      },
     });
     const entryStatusMap: EntryStatusMap = {
       [filename]: 'D',
