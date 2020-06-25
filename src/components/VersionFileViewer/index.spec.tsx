@@ -217,10 +217,10 @@ describe(__filename, () => {
     const filename = 'someFileName.js';
     const version = createInternalVersion({
       ...fakeVersionWithContent,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       file: {
         ...fakeVersionFileWithContent,
         filename,
+        // eslint-disable-next-line @typescript-eslint/camelcase
         selected_file: filename,
       },
     });

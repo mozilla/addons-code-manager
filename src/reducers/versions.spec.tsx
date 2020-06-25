@@ -72,7 +72,6 @@ import {
   fakeVersionAddon,
   fakeVersionEntry,
   fakeVersionFileWithContent,
-  fakeVersionFileWithDiff,
   fakeVersionWithDiff,
   fakeVersionsList,
   fakeVersionsListItem,

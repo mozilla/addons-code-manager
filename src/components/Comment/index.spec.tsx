@@ -420,20 +420,24 @@ describe(__filename, () => {
 
     it('does not add/remove listeners with an undefined ref', () => {
       // Make sure this doesn't throw an error.
-      const { root } = setUpStoreAndRender({
-        beginEdit: true,
-        createTextareaRef: () => undefined,
-      });
-      root.unmount();
+      expect(() => {
+        const { root } = setUpStoreAndRender({
+          beginEdit: true,
+          createTextareaRef: () => undefined,
+        });
+        root.unmount();
+      }).not.toThrow();
     });
 
     it('does not add/remove listeners with a null DOM node', () => {
       // Make sure this doesn't throw an error.
-      const { root } = setUpStoreAndRender({
-        beginEdit: true,
-        createTextareaRef: () => React.createRef(),
-      });
-      root.unmount();
+      expect(() => {
+        const { root } = setUpStoreAndRender({
+          beginEdit: true,
+          createTextareaRef: () => React.createRef(),
+        });
+        root.unmount();
+      }).not.toThrow();
     });
   });
 

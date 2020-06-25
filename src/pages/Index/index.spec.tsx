@@ -64,9 +64,11 @@ describe(__filename, () => {
   });
 
   it('will not throw an error when simulation is not allowed', () => {
-    const root = render({ allowErrorSimulation: false });
+    expect(() => {
+      const root = render({ allowErrorSimulation: false });
 
-    getInstance<IndexBase>(root).throwAnError();
+      getInstance<IndexBase>(root).throwAnError();
+    }).not.toThrow();
   });
 
   it('logs a simulated error', () => {
@@ -79,10 +81,12 @@ describe(__filename, () => {
   });
 
   it('logs a simulated error with console', () => {
-    const root = render({ allowErrorSimulation: true });
+    expect(() => {
+      const root = render({ allowErrorSimulation: true });
 
-    // Make sure this doesn't throw an error.
-    root.find(`.${styles.logAnErrorWithConsoleButton}`).simulate('click');
+      // Make sure this doesn't throw an error.
+      root.find(`.${styles.logAnErrorWithConsoleButton}`).simulate('click');
+    }).not.toThrow();
   });
 
   it('will not log an error when simulation is not allowed', () => {
