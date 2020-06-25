@@ -45,7 +45,12 @@ const renderDescription = (description: LinterMessage['description']) => {
         .reduce((allParts: React.ReactNode[], part) => {
           if (urlPattern.test(part)) {
             allParts.push(
-              <Alert.Link key={`link:${part}`} href={part}>
+              <Alert.Link
+                key={`link:${part}`}
+                href={part}
+                rel="noreferrer noopener"
+                target="_blank"
+              >
                 {part}
               </Alert.Link>,
             );
