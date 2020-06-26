@@ -169,6 +169,22 @@ export type VersionFileWithContent = PartialVersionFile & {
   content: string;
 };
 
+export type VersionFileWithDiff = PartialVersionFile & {
+  diff: DiffInfo | null;
+};
+
+export function isFileWithContent(
+  file: VersionFileWithContent | VersionFileWithDiff,
+): file is VersionFileWithContent {
+  return (file as VersionFileWithContent).content !== undefined;
+}
+
+export function isFileWithDiff(
+  file: VersionFileWithContent | VersionFileWithDiff,
+): file is VersionFileWithDiff {
+  return (file as VersionFileWithDiff).diff !== undefined;
+}
+
 export type VersionEntry = {
   depth: number;
   filename: string;
@@ -429,11 +445,77 @@ export const getParentFolders = (path: string): string[] => {
   return parents;
 };
 
-export const createInternalVersionFile = (
-  file: ExternalVersionFileWithContent,
-): VersionFileWithContent => {
+function isExternalFileWithContent(
+  file: ExternalVersionFileWithContent | ExternalVersionFileWithDiff,
+): file is ExternalVersionFileWithContent {
+  return (file as ExternalVersionFileWithContent).content !== undefined;
+}
+
+function isExternalFileWithDiff(
+  file: ExternalVersionFileWithContent | ExternalVersionFileWithDiff,
+): file is ExternalVersionFileWithDiff {
+  return (file as ExternalVersionFileWithDiff).diff !== undefined;
+}
+
+export const createInternalChangeInfo = (
+  change: ExternalChange,
+): ChangeInfo => {
   return {
-    content: file.content,
+    content: change.content,
+    isDelete: change.type === 'delete',
+    isInsert: change.type === 'insert',
+    isNormal: change.type === 'normal',
+    lineNumber: ['delete', 'delete-eofnl'].includes(change.type)
+      ? change.old_line_number
+      : change.new_line_number,
+    newLineNumber: change.new_line_number,
+    oldLineNumber: change.old_line_number,
+    type: change.type,
+  };
+};
+
+export const createInternalHunk = (hunk: ExternalHunk): HunkInfo => {
+  return {
+    changes: hunk.changes.map(createInternalChangeInfo),
+    content: hunk.header,
+    isPlain: false,
+    newLines: hunk.new_lines,
+    newStart: hunk.new_start,
+    oldLines: hunk.old_lines,
+    oldStart: hunk.old_start,
+  };
+};
+
+export const createInternalDiff = (
+  diff: ExternalDiff | null,
+): DiffInfo | null => {
+  const GIT_STATUS_TO_TYPE: { [status: string]: DiffInfoType } = {
+    A: 'add',
+    C: 'copy',
+    D: 'delete',
+    M: 'modify',
+    R: 'rename',
+  };
+
+  if (diff) {
+    return {
+      hunks: diff.hunks.map(createInternalHunk),
+      type: GIT_STATUS_TO_TYPE[diff.mode] || GIT_STATUS_TO_TYPE.M,
+      newEndingNewLine: diff.new_ending_new_line,
+      oldEndingNewLine: diff.old_ending_new_line,
+      newMode: diff.mode,
+      oldMode: diff.mode,
+      newPath: diff.path,
+      oldPath: diff.old_path,
+    };
+  }
+  return null;
+};
+
+export const createInternalVersionFile = (
+  file: ExternalVersionFileWithContent | ExternalVersionFileWithDiff,
+): VersionFileWithContent | VersionFileWithDiff => {
+  const partialInternalFile = {
     downloadURL: file.download_url,
     filename: file.filename,
     id: file.id,
@@ -443,6 +525,22 @@ export const createInternalVersionFile = (
     size: file.size,
     fileType: file.mime_category,
   };
+
+  if (isExternalFileWithContent(file)) {
+    return {
+      ...partialInternalFile,
+      content: file.content,
+    } as VersionFileWithContent;
+  }
+
+  if (isExternalFileWithDiff(file)) {
+    return {
+      ...partialInternalFile,
+      diff: createInternalDiff(file.diff),
+    } as VersionFileWithDiff;
+  }
+
+  throw new Error('An invalid type was passed to createInternalVersionFile.');
 };
 
 export const createInternalVersionEntry = (
@@ -924,68 +1022,6 @@ export const fetchVersionsList = ({
   };
 };
 
-type CreateInternalDiffParams = {
-  version: ExternalVersionWithDiff;
-  baseVersionId: number;
-  headVersionId: number;
-};
-
-export const createInternalChangeInfo = (
-  change: ExternalChange,
-): ChangeInfo => {
-  return {
-    content: change.content,
-    isDelete: change.type === 'delete',
-    isInsert: change.type === 'insert',
-    isNormal: change.type === 'normal',
-    lineNumber: ['delete', 'delete-eofnl'].includes(change.type)
-      ? change.old_line_number
-      : change.new_line_number,
-    newLineNumber: change.new_line_number,
-    oldLineNumber: change.old_line_number,
-    type: change.type,
-  };
-};
-
-export const createInternalHunk = (hunk: ExternalHunk): HunkInfo => {
-  return {
-    changes: hunk.changes.map(createInternalChangeInfo),
-    content: hunk.header,
-    isPlain: false,
-    newLines: hunk.new_lines,
-    newStart: hunk.new_start,
-    oldLines: hunk.old_lines,
-    oldStart: hunk.old_start,
-  };
-};
-
-export const createInternalDiff = ({
-  version,
-}: CreateInternalDiffParams): DiffInfo | null => {
-  const GIT_STATUS_TO_TYPE: { [status: string]: DiffInfoType } = {
-    A: 'add',
-    C: 'copy',
-    D: 'delete',
-    M: 'modify',
-    R: 'rename',
-  };
-
-  const { diff } = version.file;
-  if (diff) {
-    return {
-      hunks: diff.hunks.map(createInternalHunk),
-      type: GIT_STATUS_TO_TYPE[diff.mode] || GIT_STATUS_TO_TYPE.M,
-      newEndingNewLine: diff.new_ending_new_line,
-      oldEndingNewLine: diff.old_ending_new_line,
-      newMode: diff.mode,
-      oldMode: diff.mode,
-      newPath: diff.path,
-      oldPath: diff.old_path,
-    };
-  }
-  return null;
-};
-
 type FetchDiffParams = {
   _getDiff?: typeof getDiff;
   addonId: number;
@@ -1012,8 +1048,6 @@ export const getCompareInfoKey = ({
 };
 
 export const createInternalCompareInfo = ({
-  baseVersionId,
-  headVersionId,
   version,
 }: {
   baseVersionId: number;
@@ -1022,11 +1056,7 @@ export const createInternalCompareInfo = ({
 }): CompareInfo => {
   return {
     baseFileId: version.file.base_file.id,
-    diff: createInternalDiff({
-      baseVersionId,
-      headVersionId,
-      version,
-    }),
+    diff: createInternalDiff(version.file.diff),
     mimeType: version.file.mimetype,
   };
 };
@@ -1365,7 +1395,9 @@ export const createReducer = ({
             ...state.versionFiles,
             [version.id]: {
               ...state.versionFiles[version.id],
-              [path]: createInternalVersionFile(version.file),
+              [path]: createInternalVersionFile(
+                version.file,
+              ) as VersionFileWithContent,
             },
           },
           versionFilesLoading: {
@@ -1386,7 +1418,9 @@ export const createReducer = ({
             ...state.versionFiles,
             [version.id]: {
               ...state.versionFiles[version.id],
-              [path]: createInternalVersionFile(version.file),
+              [path]: createInternalVersionFile(
+                version.file,
+              ) as VersionFileWithContent,
             },
           },
           versionFilesLoading: {

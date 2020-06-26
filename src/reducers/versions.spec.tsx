@@ -7,7 +7,6 @@ import { getType } from 'typesafe-actions';
 import { actions as errorsActions } from './errors';
 import reducer, {
   ScrollTarget,
-  ExternalDiff,
   ExternalVersionWithContent,
   ExternalVersionWithDiff,
   ExternalVersionsList,
@@ -16,6 +15,7 @@ import reducer, {
   VersionEntryStatus,
   VersionEntryType,
   VersionFileWithContent,
+  VersionFileWithDiff,
   actions,
   createEntryStatusMap,
   createInternalDiff,
@@ -72,6 +72,7 @@ import {
   fakeVersionAddon,
   fakeVersionEntry,
   fakeVersionFileWithContent,
+  fakeVersionFileWithDiff,
   fakeVersionWithDiff,
   fakeVersionsList,
   fakeVersionsListItem,
@@ -734,11 +735,7 @@ describe(__filename, () => {
         getCompareInfo(versionsState, addonId, baseVersionId, headVersionId),
       ).toEqual({
         baseFileId,
-        diff: createInternalDiff({
-          baseVersionId,
-          headVersionId,
-          version,
-        }),
+        diff: createInternalDiff(version.file.diff),
         mimeType,
       });
       expect(
@@ -819,6 +816,30 @@ describe(__filename, () => {
       ) as VersionFileWithContent;
 
       expect(versionFile.content).toEqual(fakeVersionFileWithContent.content);
+      expect(versionFile.downloadURL).toEqual(
+        fakeVersionFileWithContent.download_url,
+      );
+      expect(versionFile.filename).toEqual(fakeVersionFileWithContent.filename);
+      expect(versionFile.id).toEqual(fakeVersionFileWithContent.id);
+      expect(versionFile.isMinified).toEqual(
+        fakeVersionFileWithContent.uses_unknown_minified_code,
+      );
+      expect(versionFile.mimeType).toEqual(fakeVersionFileWithContent.mimetype);
+      expect(versionFile.sha256).toEqual(fakeVersionFileWithContent.sha256);
+      expect(versionFile.size).toEqual(fakeVersionFileWithContent.size);
+      expect(versionFile.fileType).toEqual(
+        fakeVersionFileWithContent.mime_category,
+      );
+    });
+
+    it('creates a version file with values from an external file object with a diff', () => {
+      const versionFile = createInternalVersionFile(
+        fakeVersionFileWithDiff,
+      ) as VersionFileWithDiff;
+
+      expect(versionFile.diff).toEqual(
+        createInternalDiff(fakeVersionFileWithDiff.diff),
+      );
       expect(versionFile.downloadURL).toEqual(
         fakeVersionFileWithContent.download_url,
       );
@@ -1567,50 +1588,10 @@ describe(__filename, () => {
   });
 
   describe('createInternalDiff', () => {
-    type CreateInternalDiffParams = {
-      baseVersionId?: number;
-      headVersionId?: number;
-      version: ExternalVersionWithDiff;
-    };
-
-    const _createInternalDiff = ({
-      baseVersionId = 1,
-      headVersionId = 2,
-      version,
-    }: CreateInternalDiffParams): DiffInfo => {
-      return createInternalDiff({
-        baseVersionId,
-        headVersionId,
-        version,
-      }) as DiffInfo;
-    };
-
-    const _createVersionWithDiff = (
-      diff: ExternalDiff | null,
-    ): ExternalVersionWithDiff => {
-      return {
-        ...fakeVersionWithContent,
-        file: {
-          ...fakeVersionWithContent.file,
-          base_file: {
-            id: nextUniqueId(),
-          },
-          diff,
-        },
-      };
-    };
-
-    it('creates a DiffInfo object from a version with diff', () => {
-      const baseVersionId = 132;
-      const headVersionId = 133;
+    it('creates a DiffInfo object from a diff', () => {
       const externalDiff = fakeExternalDiff;
-      const version = _createVersionWithDiff(externalDiff);
 
-      const diff = _createInternalDiff({
-        baseVersionId,
-        headVersionId,
-        version,
-      });
+      const diff = createInternalDiff(externalDiff);
 
       expect(diff).toHaveProperty('oldMode', externalDiff.mode);
       expect(diff).toHaveProperty('newMode', externalDiff.mode);
@@ -1631,17 +1612,7 @@ describe(__filename, () => {
     });
 
     it('returns null if diff is falsey', () => {
-      const baseVersionId = 132;
-      const headVersionId = 133;
-      const version = _createVersionWithDiff(null);
-
-      expect(
-        _createInternalDiff({
-          baseVersionId,
-          headVersionId,
-          version,
-        }),
-      ).toEqual(null);
+      expect(createInternalDiff(null)).toEqual(null);
     });
 
     it.each([
@@ -1653,15 +1624,16 @@ describe(__filename, () => {
       // This simulates an unknown mode.
       ['modify', 'unknown'],
     ])('sets type "%s" for mode "%s"', (type, mode) => {
-      const version = _createVersionWithDiff({ ...fakeExternalDiff, mode });
-      const diff = _createInternalDiff({ version });
+      const diff = createInternalDiff({
+        ...fakeExternalDiff,
+        mode,
+      }) as DiffInfo;
 
       expect(diff.type).toEqual(type);
     });
 
     it('creates hunks from external diff hunks', () => {
-      const version = _createVersionWithDiff(fakeExternalDiff);
-      const diff = _createInternalDiff({ version });
+      const diff = createInternalDiff(fakeExternalDiff) as DiffInfo;
 
       expect(diff.hunks).toHaveLength(fakeExternalDiff.hunks.length);
       diff.hunks.forEach((hunk, index) => {
