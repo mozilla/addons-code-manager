@@ -540,6 +540,10 @@ export const createInternalVersionFile = (
     } as VersionFileWithDiff;
   }
 
+  // This isn't possible because TS will fail to compile if `file` is neither
+  // an ExternalVersionFileWithContent nor an ExternalVersionFileWithDiff, but
+  // we also need the statement to satisfy TS for this function.
+  /* istanbul ignore next */
   throw new Error('An invalid type was passed to createInternalVersionFile.');
 };
 

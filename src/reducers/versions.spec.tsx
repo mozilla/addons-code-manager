@@ -49,6 +49,8 @@ import reducer, {
   initialState,
   isCompareInfoLoading,
   isFileLoading,
+  isFileWithContent,
+  isFileWithDiff,
   selectCurrentVersionInfo,
   selectVersionIsLoading,
   versionPathExists,
@@ -3644,6 +3646,36 @@ describe(__filename, () => {
       ]);
 
       expect(getInsertedLines(diff)).toEqual([1]);
+    });
+  });
+
+  describe('isFileWithContent', () => {
+    it('returns true for a file with content', () => {
+      expect(
+        isFileWithContent(
+          createInternalVersionFile(fakeVersionFileWithContent),
+        ),
+      ).toEqual(true);
+    });
+
+    it('returns false for a file with a diff', () => {
+      expect(
+        isFileWithContent(createInternalVersionFile(fakeVersionFileWithDiff)),
+      ).toEqual(false);
+    });
+  });
+
+  describe('isFileWithDiff', () => {
+    it('returns true for a file with a diff', () => {
+      expect(
+        isFileWithDiff(createInternalVersionFile(fakeVersionFileWithDiff)),
+      ).toEqual(true);
+    });
+
+    it('returns false for a file with content', () => {
+      expect(
+        isFileWithDiff(createInternalVersionFile(fakeVersionFileWithContent)),
+      ).toEqual(false);
     });
   });
 });
