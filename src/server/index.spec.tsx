@@ -731,6 +731,32 @@ describe(__filename, () => {
         ]);
       });
 
+      it('does not use debug analytics path when REACT_APP_GA_DEBUG_MODE is false', async () => {
+        const content = '<h1>It works!</h1>';
+        fakeCreateReactAppServerApp.get('/*', (req, res) => res.send(content));
+
+        const server = request(
+          createServer({
+            env: {
+              ...devEnv,
+              REACT_APP_GA_DEBUG_MODE: 'false',
+            } as ServerEnvVars,
+            rootPath: fixturesPath,
+          }),
+        );
+
+        const response = await server.get('/');
+        expect(response.status).toEqual(200);
+        expect(response.header).toHaveProperty('content-security-policy');
+
+        const policy = cspParser(response.header['content-security-policy']);
+        expect(policy['script-src']).toEqual([
+          "'self'",
+          "'unsafe-inline'",
+          `${devEnv.REACT_APP_ANALYTICS_HOST}${ANALYTICS_PATH}`,
+        ]);
+      });
+
       it('relaxes style-src for local dev', async () => {
         const content = '<h1>It works!</h1>';
         fakeCreateReactAppServerApp.get('/*', (req, res) => res.send(content));
