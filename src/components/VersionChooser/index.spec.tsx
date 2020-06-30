@@ -22,7 +22,7 @@ import {
   createFakeHistory,
   createFakeThunk,
   createStoreWithVersion,
-  fakeVersion,
+  fakeVersionWithContent,
   fakeVersionsList,
   fakeVersionsListItem,
   nextUniqueId,
@@ -533,7 +533,7 @@ describe(__filename, () => {
     const headVersionId = nextUniqueId();
 
     const store = createStoreWithVersion({
-      version: { ...fakeVersion, id: headVersionId },
+      version: { ...fakeVersionWithContent, id: headVersionId },
     });
     const { addonId } = _loadVersionsList({ store });
 

@@ -20,7 +20,7 @@ import {
   createFakeExternalLinterResult,
   dispatchComments,
   fakeExternalLinterMessage,
-  fakeVersion,
+  fakeVersionWithContent,
   fakeVersionEntry,
 } from '../src/test-helpers';
 import { renderWithStoreAndRouter } from './utils';
@@ -31,10 +31,10 @@ const fakeDirectoryEntry = {
 };
 
 const defaultVersion = {
-  ...fakeVersion,
+  ...fakeVersionWithContent,
   id: 456,
   file: {
-    ...fakeVersion.file,
+    ...fakeVersionWithContent.file,
     entries: {
       'manifest.json': {
         ...fakeVersionEntry,

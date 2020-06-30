@@ -6,15 +6,15 @@ import FileMetadata from '../src/components/FileMetadata';
 import {
   actions as versionActions,
   getVersionFile,
-  VersionFile,
+  VersionFileWithContent,
 } from '../src/reducers/versions';
 import {
   createStoreWithVersion,
-  fakeVersion,
+  fakeVersionWithContent,
   fakeVersionEntry,
 } from '../src/test-helpers';
 
-const loadVersionFile = (version = fakeVersion) => {
+const loadVersionFile = (version = fakeVersionWithContent) => {
   const store = createStoreWithVersion({ version });
   store.dispatch(
     versionActions.loadVersionFile({
@@ -27,7 +27,7 @@ const loadVersionFile = (version = fakeVersion) => {
     store.getState().versions,
     version.id,
     version.file.selected_file,
-  ) as VersionFile;
+  ) as VersionFileWithContent;
   return versionFile;
 };
 
@@ -40,7 +40,7 @@ storiesOf('FileMetadata', module).addWithChapters('all variants', {
           sectionFn: () => {
             const versionFile = loadVersionFile();
 
-            return <FileMetadata file={versionFile} />;
+            return <FileMetadata file={versionFile} versionString="1.2" />;
           },
         },
         {
@@ -48,9 +48,9 @@ storiesOf('FileMetadata', module).addWithChapters('all variants', {
           sectionFn: () => {
             const path = 'very-long-file-name.json';
             const version = {
-              ...fakeVersion,
+              ...fakeVersionWithContent,
               file: {
-                ...fakeVersion.file,
+                ...fakeVersionWithContent.file,
                 entries: {
                   [path]: {
                     ...fakeVersionEntry,
@@ -68,7 +68,7 @@ storiesOf('FileMetadata', module).addWithChapters('all variants', {
 
             return (
               <div style={{ width: '200px' }}>
-                <FileMetadata file={versionFile} />
+                <FileMetadata file={versionFile} versionString="1.2" />
               </div>
             );
           },

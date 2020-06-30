@@ -156,7 +156,7 @@ index ba61d34..0000000
 -};
 -
 -// This is how we store file information, but the getVersionFile selector
--// returns more info, which is defined in VersionFile, below.
+-// returns more info, which is defined in VersionFileWithContent, below.
 -type InternalVersionFile = {
 -  content: string;
 -  created: string;
@@ -165,7 +165,7 @@ index ba61d34..0000000
 -  size: number;
 -};
 -
--export type VersionFile = {
+-export type VersionFileWithContent = {
 -  content: string;
 -  created: string;
 -  downloadURL: string | null;
@@ -485,7 +485,7 @@ index ba61d34..0000000
 -  versionId: number,
 -  path: string,
 -  { _log = log } = {},
--): VersionFile | void | null => {
+-): VersionFileWithContent | void | null => {
 -  const version = getVersionInfo(versions, versionId);
 -  const filesForVersion = getVersionFiles(versions, versionId);
 -

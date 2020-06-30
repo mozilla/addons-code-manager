@@ -10,7 +10,7 @@ import { ApiState } from '../../reducers/api';
 import VersionFileViewer from '../../components/VersionFileViewer';
 import {
   Version,
-  VersionFile,
+  VersionFileWithContent,
   fetchVersion,
   fetchVersionFile,
   getVersionFile,
@@ -50,12 +50,12 @@ type PropsFromRouter = {
 
 type PropsFromState = {
   apiState: ApiState;
-  file: VersionFile | null | undefined;
+  file: VersionFileWithContent | null | undefined;
   fileIsLoading: boolean;
   fileTreeComparedToVersionId: number | null;
   fileTreeVersionId: number | undefined;
   nextFilePath: string | undefined;
-  nextFile: VersionFile | null | undefined;
+  nextFile: VersionFileWithContent | null | undefined;
   nextFileIsLoading: boolean;
   version: Version | undefined | null;
   currentBaseVersionId: number | null | undefined | false;

@@ -37,10 +37,13 @@ import {
   ExternalVersionAddon,
   ExternalVersionEntry,
   ExternalVersionFileWithContent,
+  ExternalVersionFileWithDiff,
   ExternalVersionWithContent,
   ExternalVersionWithDiff,
   ExternalVersionsList,
   ExternalVersionsListItem,
+  PartialExternalVersion,
+  PartialExternalVersionFile,
   Version,
   VersionEntryType,
   actions as versionsActions,
@@ -95,50 +98,24 @@ export const createFakeEntry = (
   };
 };
 
-export const fakeVersionFile: ExternalVersionFileWithContent = Object.freeze({
-  content: 'some file content',
-  created: '2017-08-15T12:01:13Z',
+const partialFakeVersionFile: PartialExternalVersionFile = {
   download_url: 'https://example.org/download/manifest.json',
   filename: 'manifest.json',
-  hash: 'some-hash',
   id: 789,
-  is_mozilla_signed_extension: true,
-  is_restart_required: false,
-  is_webextension: true,
   mime_category: 'text',
   mimetype: 'application/json',
-  permissions: [],
-  platform: 'all',
   selected_file: 'manifest.json',
   sha256: 'some-sha',
   size: 123,
-  status: 'public',
-  url: 'http://example.com/edit/',
   uses_unknown_minified_code: false,
-});
+};
 
-export const fakeVersionAddon: ExternalVersionAddon = Object.freeze({
-  icon_url: 'some-icon-url',
-  id: 111,
-  name: { 'en-US': 'addon name' },
-  slug: 'addon-slug',
-});
-
-export const fakeVersion: ExternalVersionWithContent = Object.freeze({
-  addon: fakeVersionAddon,
-  channel: 'some channel',
-  file: fakeVersionFile,
-  file_entries: {
-    'manifest.json': fakeVersionEntry,
+export const fakeVersionFileWithContent: ExternalVersionFileWithContent = Object.freeze(
+  {
+    ...partialFakeVersionFile,
+    content: 'some file content',
   },
-  has_been_validated: true,
-  id: 123,
-  reviewed: '2017-08-15T12:01:13Z',
-  url: 'http://example.com/',
-  validation_url: 'http://example.com/validation/',
-  validation_url_json: 'http://example.com/validation/json/',
-  version: '1.0',
-});
+);
 
 export const fakeExternalDiff = Object.freeze({
   path: 'manifest.json',
@@ -214,23 +191,65 @@ export const fakeExternalDiff = Object.freeze({
   new_ending_new_line: false,
 });
 
+export const fakeVersionFileWithDiff: ExternalVersionFileWithDiff = Object.freeze(
+  {
+    ...partialFakeVersionFile,
+    base_file: {
+      id: nextUniqueId(),
+    },
+    diff: fakeExternalDiff,
+  },
+);
+
+export const fakeVersionAddon: ExternalVersionAddon = Object.freeze({
+  icon_url: 'some-icon-url',
+  id: 111,
+  name: { 'en-US': 'addon name' },
+  slug: 'addon-slug',
+});
+
+export const partialFakeVersion: PartialExternalVersion = {
+  addon: fakeVersionAddon,
+  channel: 'some channel',
+  file_entries: {
+    'manifest.json': fakeVersionEntry,
+  },
+  has_been_validated: true,
+  id: 123,
+  reviewed: '2017-08-15T12:01:13Z',
+  url: 'http://example.com/',
+  validation_url: 'http://example.com/validation/',
+  validation_url_json: 'http://example.com/validation/json/',
+  version: '1.0',
+};
+
+export const fakeVersionWithContent: ExternalVersionWithContent = Object.freeze(
+  {
+    ...partialFakeVersion,
+    file: fakeVersionFileWithContent,
+  },
+);
+
 export const createExternalVersionWithEntries = (
   partialEntries: ({ path: string } & Partial<ExternalVersionEntry>)[],
   {
+    addonId = nextUniqueId(),
     diff = null,
-    id = fakeVersion.id,
-    selected_file = fakeVersion.file.selected_file,
+    id = fakeVersionWithContent.id,
+    selected_file = fakeVersionWithContent.file.selected_file,
   }: {
+    addonId?: number;
     diff?: typeof fakeExternalDiff | null;
-    id?: typeof fakeVersion.id;
-    selected_file?: typeof fakeVersion.file.selected_file;
+    id?: typeof fakeVersionWithContent.id;
+    selected_file?: typeof fakeVersionWithContent.file.selected_file;
   } = {},
 ) => {
   return {
-    ...fakeVersion,
+    ...fakeVersionWithContent,
     id,
+    addon: { ...fakeVersionAddon, id: addonId },
     file: {
-      ...fakeVersion.file,
+      ...fakeVersionWithContent.file,
       base_file: {
         id: nextUniqueId(),
       },
@@ -257,7 +276,7 @@ export const createVersionWithInternalEntries = (
   entries: Version['entries'],
 ): Version => {
   return {
-    ...createInternalVersion(fakeVersion),
+    ...createInternalVersion(fakeVersionWithContent),
     id: nextUniqueId(),
     entries,
   };
@@ -360,16 +379,10 @@ export const fakeExternalLinterResult = Object.freeze({
 
 /* eslint-enable @typescript-eslint/camelcase */
 
-export const fakeVersionWithDiff: ExternalVersionWithDiff = {
-  ...fakeVersion,
-  file: {
-    ...fakeVersion.file,
-    diff: fakeExternalDiff,
-    base_file: {
-      id: nextUniqueId(),
-    },
-  },
-};
+export const fakeVersionWithDiff: ExternalVersionWithDiff = Object.freeze({
+  ...partialFakeVersion,
+  file: fakeVersionFileWithDiff,
+});
 
 export const fakeVersionsListItem: ExternalVersionsListItem = {
   id: nextUniqueId(),
@@ -853,7 +866,7 @@ export const dispatchLoadVersionInfo = ({
 export const createStoreWithVersion = (
   /* istanbul ignore next */
   {
-    version = fakeVersion,
+    version = fakeVersionWithContent,
     makeCurrent = false,
   }: {
     version?: ExternalVersionWithDiff | ExternalVersionWithContent;
@@ -943,7 +956,7 @@ export const createStoreWithVersionComments = ({
   versionId = 1,
   comments = [createFakeExternalComment()],
 } = {}) => {
-  const version = { ...fakeVersion, id: versionId };
+  const version = { ...fakeVersionWithContent, id: versionId };
   const store = createStoreWithVersion({ version, makeCurrent: true });
 
   dispatchComments({ versionId, store, comments });

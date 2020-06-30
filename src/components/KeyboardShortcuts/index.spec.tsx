@@ -25,7 +25,7 @@ import {
   createStoreWithVersion,
   fakeAction,
   fakeExternalLinterMessage,
-  fakeVersion,
+  fakeVersionWithContent,
   fakeVersionEntry,
   fakeVersionWithDiff,
   getInstance,
@@ -52,10 +52,10 @@ describe(__filename, () => {
     pathList = ['file1.js'],
     versionId = 321,
     externalVersion = {
-      ...fakeVersion,
+      ...fakeVersionWithContent,
       id: versionId,
       file: {
-        ...fakeVersion.file,
+        ...fakeVersionWithContent.file,
       },
       // eslint-disable-next-line @typescript-eslint/camelcase
       file_entries: pathList.reduce((pathMap, path: string) => {
@@ -73,7 +73,7 @@ describe(__filename, () => {
   }: {
     pathList?: string[];
     versionId?: number;
-    externalVersion?: typeof fakeVersion;
+    externalVersion?: typeof fakeVersionWithContent;
     store?: Store;
   } = {}) => {
     store.dispatch(

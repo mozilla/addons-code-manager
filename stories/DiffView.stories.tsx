@@ -20,9 +20,9 @@ import { createInternalVersion } from '../src/reducers/versions';
 import {
   createFakeExternalLinterResult,
   createFakeLocation,
-  fakeVersion,
+  fakeVersionWithContent,
   fakeVersionEntry,
-  fakeVersionFile,
+  fakeVersionFileWithContent,
 } from '../src/test-helpers';
 import { allowSlowPagesParam } from '../src/utils';
 import longUnbrokenMinifiedDiff from './fixtures/long-unbroken-minified-diff';
@@ -44,7 +44,7 @@ const render = (
     diff: parseDiff(basicDiff)[0],
     isMinified: false,
     mimeType: 'application/javascript',
-    version: createInternalVersion(fakeVersion),
+    version: createInternalVersion(fakeVersionWithContent),
     ...remainingProps,
   };
 
@@ -72,9 +72,9 @@ const renderWithMessages = (
 
   const store = configureStore();
   const version = createInternalVersion({
-    ...fakeVersion,
+    ...fakeVersionWithContent,
     file: {
-      ...fakeVersionFile,
+      ...fakeVersionFileWithContent,
       selected_file: path,
     },
     file_entries: { [path]: { ...fakeVersionEntry, path } },

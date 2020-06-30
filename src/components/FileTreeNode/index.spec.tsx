@@ -23,7 +23,7 @@ import {
   createFakeRef,
   createStoreWithVersion,
   fakeExternalLinterMessage,
-  fakeVersion,
+  fakeVersionWithContent,
   shallowUntilTarget,
   simulateLinterProvider,
   spyOn,
@@ -86,7 +86,7 @@ describe(__filename, () => {
     versionId = 12349876,
     comparedToVersionId = 123,
     store = createStoreWithVersion({
-      version: { ...fakeVersion, id: versionId },
+      version: { ...fakeVersionWithContent, id: versionId },
     }),
     ...props
   }: RenderParams = {}) => {
@@ -135,7 +135,7 @@ describe(__filename, () => {
     messages = [fakeExternalLinterMessage],
     treefoldRenderProps = {},
   }) => {
-    const externalVersion = fakeVersion;
+    const externalVersion = fakeVersionWithContent;
     const comparedToVersionId = 22;
     const store = createStoreWithVersion({ version: externalVersion });
     store.dispatch(
@@ -238,9 +238,9 @@ describe(__filename, () => {
 
   it('requires a loaded version', () => {
     const store = configureStore();
-    expect(() => render({ store, versionId: fakeVersion.id + 1 })).toThrow(
-      /No version exists/,
-    );
+    expect(() =>
+      render({ store, versionId: fakeVersionWithContent.id + 1 }),
+    ).toThrow(/No version exists/);
   });
 
   it('renders a simple directory node', () => {
@@ -373,7 +373,7 @@ describe(__filename, () => {
   });
 
   it('marks a file node as selected', () => {
-    const externalVersion = fakeVersion;
+    const externalVersion = fakeVersionWithContent;
     const store = createStoreWithVersion({ version: externalVersion });
 
     const root = renderWithLinterProvider({
@@ -815,7 +815,7 @@ describe(__filename, () => {
   });
 
   it('configures LinterProvider', () => {
-    const externalVersion = fakeVersion;
+    const externalVersion = fakeVersionWithContent;
     const store = createStoreWithVersion({ version: externalVersion });
     const root = render({ store, versionId: externalVersion.id });
 
@@ -850,7 +850,7 @@ describe(__filename, () => {
   });
 
   it('focuses a node when selected and not already in focus', () => {
-    const externalVersion = fakeVersion;
+    const externalVersion = fakeVersionWithContent;
     const nodeId = externalVersion.file.selected_file;
 
     const store = createStoreWithVersion({ version: externalVersion });
@@ -885,7 +885,7 @@ describe(__filename, () => {
   it('does not focus a node when not selected', () => {
     const versionId = 8765;
     const store = createStoreWithVersion({
-      version: { ...fakeVersion, id: versionId },
+      version: { ...fakeVersionWithContent, id: versionId },
     });
     // Make sure the path is not in focus.
     store.dispatch(
@@ -906,7 +906,7 @@ describe(__filename, () => {
   });
 
   it('does not focus a node when selected and already in focus', () => {
-    const externalVersion = fakeVersion;
+    const externalVersion = fakeVersionWithContent;
     const store = createStoreWithVersion({ version: externalVersion });
     const nodeId = externalVersion.file.selected_file;
 

@@ -13,9 +13,9 @@ import {
   createContextWithFakeRouter,
   createFakeExternalLinterResult,
   createFakeThunk,
-  fakeVersion,
+  fakeVersionWithContent,
   fakeVersionEntry,
-  fakeVersionFile,
+  fakeVersionFileWithContent,
   shallowUntilTarget,
   spyOn,
 } from '../../test-helpers';
@@ -36,7 +36,7 @@ describe(__filename, () => {
 
   const render = ({
     children = jest.fn(),
-    version = createInternalVersion(fakeVersion),
+    version = createInternalVersion(fakeVersionWithContent),
     store = configureStore(),
     ...moreProps
   }: RenderParams = {}) => {
@@ -89,9 +89,9 @@ describe(__filename, () => {
     store: Store;
   }) => {
     const version = createInternalVersion({
-      ...fakeVersion,
+      ...fakeVersionWithContent,
       file: {
-        ...fakeVersionFile,
+        ...fakeVersionFileWithContent,
         selected_file: path,
       },
       file_entries: { [path]: { ...fakeVersionEntry, path } },
@@ -136,8 +136,8 @@ describe(__filename, () => {
   it('dispatches fetchLinterMessagesIfNeeded when linterMessages is undefined', () => {
     const url = '/path/to/validation.json';
     const version = createInternalVersion({
-      ...fakeVersion,
-      id: fakeVersion.id + 1,
+      ...fakeVersionWithContent,
+      id: fakeVersionWithContent.id + 1,
       validation_url_json: url,
     });
 
@@ -176,9 +176,9 @@ describe(__filename, () => {
 
     // Create a version where the manifestPath is selected.
     const version = createInternalVersion({
-      ...fakeVersion,
+      ...fakeVersionWithContent,
       file: {
-        ...fakeVersionFile,
+        ...fakeVersionFileWithContent,
         selected_file: manifestPath,
       },
       file_entries: {
@@ -260,9 +260,9 @@ describe(__filename, () => {
 
     // Create a version with manifestPath selected.
     const version = createInternalVersion({
-      ...fakeVersion,
+      ...fakeVersionWithContent,
       file: {
-        ...fakeVersionFile,
+        ...fakeVersionFileWithContent,
         selected_file: manifestPath,
       },
       file_entries: {
@@ -298,7 +298,7 @@ describe(__filename, () => {
     const children = jest.fn();
     const store = configureStore();
 
-    const version = createInternalVersion(fakeVersion);
+    const version = createInternalVersion(fakeVersionWithContent);
     store.dispatch(
       linterActions.beginFetchLinterResult({ versionId: version.id }),
     );

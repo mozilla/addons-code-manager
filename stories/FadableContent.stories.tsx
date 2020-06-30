@@ -5,7 +5,7 @@ import configureStore from '../src/configureStore';
 import CodeView from '../src/components/CodeView';
 import FadableContent from '../src/components/FadableContent';
 import { createInternalVersion } from '../src/reducers/versions';
-import { fakeVersion } from '../src/test-helpers';
+import { fakeVersionWithContent } from '../src/test-helpers';
 import { JS_SAMPLE } from './CodeView.stories';
 import { generateParagraphs, renderWithStoreAndRouter } from './utils';
 
@@ -25,7 +25,7 @@ storiesOf('FadableContent', module)
         content={JS_SAMPLE}
         isMinified={false}
         mimeType="application/javascript"
-        version={createInternalVersion(fakeVersion)}
+        version={createInternalVersion(fakeVersionWithContent)}
       />,
     );
   })

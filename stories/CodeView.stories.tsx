@@ -20,9 +20,9 @@ import {
 } from './utils';
 import {
   createFakeExternalLinterResult,
-  fakeVersion,
+  fakeVersionWithContent,
   fakeVersionEntry,
-  fakeVersionFile,
+  fakeVersionFileWithContent,
 } from '../src/test-helpers';
 
 const getParams = () => rootAttributeParams({ fullscreen: true });
@@ -70,7 +70,7 @@ const render = ({
     content,
     isMinified: false,
     mimeType: 'application/javascript',
-    version: createInternalVersion(fakeVersion),
+    version: createInternalVersion(fakeVersionWithContent),
     ...moreProps,
   };
   return renderWithStoreAndRouter(
@@ -94,9 +94,9 @@ const renderJSWithMessages = (
 ) => {
   const path = 'lib/some-file.js';
   const version = createInternalVersion({
-    ...fakeVersion,
+    ...fakeVersionWithContent,
     file: {
-      ...fakeVersionFile,
+      ...fakeVersionFileWithContent,
       selected_file: path,
     },
     file_entries: { [path]: { ...fakeVersionEntry, path } },

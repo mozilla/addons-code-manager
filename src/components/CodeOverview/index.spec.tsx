@@ -15,7 +15,7 @@ import {
   createFakeExternalLinterResult,
   createFakeLocation,
   createFakeRef,
-  fakeVersion,
+  fakeVersionWithContent,
   getInstance,
   shallowUntilTarget,
   simulateLinterProvider,
@@ -47,7 +47,7 @@ describe(__filename, () => {
       _debounce,
       _window: createFakeWindow(),
       content: 'example code content',
-      version: createInternalVersion(fakeVersion),
+      version: createInternalVersion(fakeVersionWithContent),
       ...otherProps,
     };
   };
@@ -159,7 +159,7 @@ describe(__filename, () => {
   };
 
   it('configures LinterProvider', () => {
-    const version = createInternalVersion(fakeVersion);
+    const version = createInternalVersion(fakeVersionWithContent);
     const root = render({ version });
 
     const provider = root.find(LinterProvider);

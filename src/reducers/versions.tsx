@@ -51,7 +51,7 @@ export type ExternalVersionEntry = {
   status?: VersionEntryStatus;
 };
 
-type PartialExternalVersionFile = {
+export type PartialExternalVersionFile = {
   download_url: string | null;
   filename: string;
   id: number;
@@ -70,7 +70,7 @@ export type ExternalVersionAddon = {
   slug: string;
 };
 
-type PartialExternalVersion = {
+export type PartialExternalVersion = {
   addon: ExternalVersionAddon;
   channel: string;
   has_been_validated: boolean;
@@ -154,34 +154,19 @@ export type ExternalVersionWithDiffFileOnly = {
   file: ExternalVersionFileWithDiff;
 };
 
-// This is how we store file information, but the getVersionFile selector
-// returns more info, which is defined in VersionFile, below.
-type InternalVersionFile = {
-  content: string;
+type PartialVersionFile = {
   downloadURL: string | null;
   filename: string;
+  fileType: VersionEntryType;
   id: number;
   isMinified: boolean;
   mimeType: string;
   sha256: string;
   size: number;
-  fileType: VersionEntryType;
 };
 
-export type VersionFile = {
+export type VersionFileWithContent = PartialVersionFile & {
   content: string;
-  downloadURL: string | null;
-  // This is the basename of the file.
-  filename: string;
-  id: number;
-  isMinified: boolean;
-  mimeType: string;
-  // This is the relative path to the file, including directories.
-  path: string;
-  sha256: string;
-  size: number;
-  fileType: VersionEntryType;
-  versionString: string;
 };
 
 export type VersionEntry = {
@@ -401,7 +386,7 @@ export type VersionsState = {
   versionFiles: {
     [versionId: number]: {
       [path: string]:
-        | InternalVersionFile // data successfully loaded
+        | VersionFileWithContent // data successfully loaded
         | null // an error has occured
         | undefined; // data not fetched yet
     };
@@ -446,7 +431,7 @@ export const getParentFolders = (path: string): string[] => {
 
 export const createInternalVersionFile = (
   file: ExternalVersionFileWithContent,
-): InternalVersionFile => {
+): VersionFileWithContent => {
   return {
     content: file.content,
     downloadURL: file.download_url,
@@ -611,7 +596,7 @@ export const getVersionFile = (
   versions: VersionsState,
   versionId: number,
   path: string,
-): VersionFile | undefined | null => {
+): VersionFileWithContent | undefined | null => {
   const version = getVersionInfo(versions, versionId);
   const filesForVersion = getVersionFiles(versions, versionId);
 
@@ -625,11 +610,7 @@ export const getVersionFile = (
     }
 
     if (file) {
-      return {
-        ...file,
-        path,
-        versionString: version.versionString,
-      };
+      return file;
     }
   }
 

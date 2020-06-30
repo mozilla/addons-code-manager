@@ -6,7 +6,10 @@ import {
   ExternalComment,
   createInternalComment,
 } from '../../reducers/comments';
-import { createFakeExternalComment, fakeVersion } from '../../test-helpers';
+import {
+  createFakeExternalComment,
+  fakeVersionWithContent,
+} from '../../test-helpers';
 
 import CommentSummary, { PublicProps } from '.';
 
@@ -33,7 +36,7 @@ describe(__filename, () => {
     return {
       filename: null,
       lineno: null,
-      version: fakeVersion,
+      version: fakeVersionWithContent,
       ...props,
     };
   };
