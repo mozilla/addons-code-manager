@@ -30,6 +30,7 @@ export type ServerEnvVars = {
   REACT_APP_REVIEWERS_HOST: string;
   REACT_APP_SENTRY_DSN: string;
   REACT_APP_ANALYTICS_HOST: string;
+  REACT_APP_GA_DEBUG_MODE: string;
   REACT_APP_USE_INSECURE_PROXY: string;
   SERVER_HOST: string;
 };
@@ -67,7 +68,10 @@ export const createServer = ({
   const useInsecureProxy = env.REACT_APP_USE_INSECURE_PROXY === 'true';
   const isProduction = env.NODE_ENV === 'production';
   const analyticsHost = env.REACT_APP_ANALYTICS_HOST;
-  const analyticsPath = isProduction ? ANALYTICS_PATH : ANALYTICS_DEBUG_PATH;
+  const analyticsPath =
+    !isProduction && env.REACT_APP_GA_DEBUG_MODE === 'true'
+      ? ANALYTICS_DEBUG_PATH
+      : ANALYTICS_PATH;
 
   const reportUri = `${getApiHost({
     apiHost: env.REACT_APP_API_HOST,
