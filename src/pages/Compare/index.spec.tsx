@@ -357,14 +357,7 @@ describe(__filename, () => {
 
     const diffView = root.find(DiffView);
     expect(diffView).toHaveLength(1);
-    expect(diffView).toHaveProp(
-      'diff',
-      createInternalDiff({
-        baseVersionId,
-        headVersionId: version.id,
-        version,
-      }),
-    );
+    expect(diffView).toHaveProp('diff', createInternalDiff(version.file.diff));
     expect(diffView).toHaveProp('mimeType', mimeType);
     expect(diffView).toHaveProp('version', createInternalVersion(version));
   });

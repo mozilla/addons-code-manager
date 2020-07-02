@@ -548,22 +548,12 @@ describe('ForwardComparisonMap', () => {
     changes?: ExternalChange[];
     hunks?: ExternalHunk[];
   } = {}) => {
-    const version = {
-      ...fakeVersionWithDiff,
-      file: {
-        ...fakeVersionWithDiff.file,
-        diff: {
-          ...fakeExternalDiff,
-          hunks,
-        },
-      },
+    const diff = {
+      ...fakeExternalDiff,
+      hunks,
     };
 
-    const diffInfo = createInternalDiff({
-      baseVersionId: 1,
-      headVersionId: 2,
-      version,
-    });
+    const diffInfo = createInternalDiff(diff);
     if (!diffInfo) {
       throw new Error('diffInfo was unexpectedly empty');
     }

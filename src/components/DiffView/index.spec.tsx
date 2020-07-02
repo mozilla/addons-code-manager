@@ -163,26 +163,9 @@ describe(__filename, () => {
   };
 
   const createDiffWithHunks = (hunks: ExternalHunk[]) => {
-    const baseVersionId = 1;
-    const headVersionId = 2;
-    const version = {
-      ...fakeVersionWithContent,
-      id: headVersionId,
-      file: {
-        ...fakeVersionWithContent.file,
-        base_file: {
-          id: nextUniqueId(),
-        },
-        diff: {
-          ...fakeExternalDiff,
-          hunks,
-        },
-      },
-    };
     const diff = createInternalDiff({
-      baseVersionId,
-      headVersionId,
-      version,
+      ...fakeExternalDiff,
+      hunks,
     });
     if (!diff) {
       throw new Error('The diff was unexpectedly empty');
