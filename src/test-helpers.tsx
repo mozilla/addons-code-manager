@@ -39,7 +39,6 @@ import {
   ExternalVersionFileWithContent,
   ExternalVersionFileWithDiff,
   ExternalVersionWithContent,
-  ExternalVersionWithContentFileOnly,
   ExternalVersionWithDiff,
   ExternalVersionWithDiffFileOnly,
   ExternalVersionsList,
@@ -225,13 +224,6 @@ export const fakeVersionWithContent: ExternalVersionWithContent = Object.freeze(
   {
     ...partialFakeVersion,
     file: fakeVersionFileWithContent,
-  },
-);
-
-export const fakeVersionWithContentFileOnly: ExternalVersionWithContentFileOnly = Object.freeze(
-  {
-    id: fakeVersionWithContent.id,
-    file: fakeVersionWithContent.file,
   },
 );
 

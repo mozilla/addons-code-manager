@@ -717,6 +717,49 @@ describe(__filename, () => {
     expect(dispatchSpy).not.toHaveBeenCalledWith(fakeThunk.thunk);
   });
 
+  it('dispatches fetchDiffFile() when the version, but not the specific diff is already loaded', () => {
+    const addonId = nextUniqueId();
+    const baseVersionId = nextUniqueId();
+    const headVersionId = baseVersionId + 1;
+    const path = 'a/different/file.js';
+    const history = createFakeHistory({
+      location: createFakeLocation({
+        search: queryString.stringify({ path }),
+      }),
+    });
+    const version = {
+      ...fakeVersionWithDiff,
+      id: headVersionId,
+    };
+
+    const fakeThunk = createFakeThunk();
+    const _fetchDiffFile = createFakeThunk().createThunk;
+
+    const store = configureStore();
+    _loadDiff({ baseVersionId, headVersionId, store, version });
+
+    const dispatchSpy = spyOn(store, 'dispatch');
+
+    render({
+      _fetchDiffFile,
+      addonId: String(addonId),
+      baseVersionId: String(baseVersionId),
+      headVersionId: String(headVersionId),
+      history,
+      store,
+    });
+
+    expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
+    expect(_fetchDiffFile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        addonId,
+        baseVersionId,
+        headVersionId,
+        path,
+      }),
+    );
+  });
+
   it('does not dispatch fetchVersionWithDiff() when path remains the same on update', () => {
     const path = 'manifest.json';
     const { dispatchSpy, fakeThunk, root } = loadDiffAndRender({
