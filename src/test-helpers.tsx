@@ -194,9 +194,6 @@ export const fakeExternalDiff = Object.freeze({
 export const fakeVersionFileWithDiff: ExternalVersionFileWithDiff = Object.freeze(
   {
     ...partialFakeVersionFile,
-    base_file: {
-      id: nextUniqueId(),
-    },
     diff: fakeExternalDiff,
   },
 );
@@ -250,9 +247,6 @@ export const createExternalVersionWithEntries = (
     addon: { ...fakeVersionAddon, id: addonId },
     file: {
       ...fakeVersionWithContent.file,
-      base_file: {
-        id: nextUniqueId(),
-      },
       diff,
       selected_file,
     },

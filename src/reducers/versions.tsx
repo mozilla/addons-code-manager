@@ -131,9 +131,6 @@ export type ExternalVersionFileWithContent = PartialExternalVersionFile & {
 
 export type ExternalVersionFileWithDiff = PartialExternalVersionFile & {
   diff: ExternalDiff | null;
-  base_file: {
-    id: number;
-  };
 };
 
 export type ExternalVersionWithContent = PartialExternalVersion & {
@@ -238,7 +235,6 @@ export type VersionsMap = {
 };
 
 export type CompareInfo = {
-  baseFileId: number;
   diff: DiffInfo | null;
   mimeType: string;
 };
@@ -1059,7 +1055,6 @@ export const createInternalCompareInfo = ({
   version: ExternalVersionWithDiff;
 }): CompareInfo => {
   return {
-    baseFileId: version.file.base_file.id,
     diff: createInternalDiff(version.file.diff),
     mimeType: version.file.mimetype,
   };

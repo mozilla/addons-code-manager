@@ -698,7 +698,6 @@ describe(__filename, () => {
 
     it('loads compare info', () => {
       const addonId = nextUniqueId();
-      const baseFileId = nextUniqueId();
       const baseVersionId = nextUniqueId();
       const path = 'manifest.json';
       const mimeType = 'mime/type';
@@ -707,9 +706,6 @@ describe(__filename, () => {
         ...fakeVersionWithDiff,
         file: {
           ...fakeVersionWithDiff.file,
-          base_file: {
-            id: baseFileId,
-          },
           mimetype: mimeType,
           // eslint-disable-next-line @typescript-eslint/camelcase
           selected_file: path,
@@ -736,7 +732,6 @@ describe(__filename, () => {
       expect(
         getCompareInfo(versionsState, addonId, baseVersionId, headVersionId),
       ).toEqual({
-        baseFileId,
         diff: createInternalDiff(version.file.diff),
         mimeType,
       });
