@@ -39,7 +39,9 @@ import {
   ExternalVersionFileWithContent,
   ExternalVersionFileWithDiff,
   ExternalVersionWithContent,
+  ExternalVersionWithContentFileOnly,
   ExternalVersionWithDiff,
+  ExternalVersionWithDiffFileOnly,
   ExternalVersionsList,
   ExternalVersionsListItem,
   PartialExternalVersion,
@@ -227,6 +229,13 @@ export const fakeVersionWithContent: ExternalVersionWithContent = Object.freeze(
   },
 );
 
+export const fakeVersionWithContentFileOnly: ExternalVersionWithContentFileOnly = Object.freeze(
+  {
+    id: fakeVersionWithContent.id,
+    file: fakeVersionWithContent.file,
+  },
+);
+
 export const createExternalVersionWithEntries = (
   partialEntries: ({ path: string } & Partial<ExternalVersionEntry>)[],
   {
@@ -377,6 +386,13 @@ export const fakeVersionWithDiff: ExternalVersionWithDiff = Object.freeze({
   ...partialFakeVersion,
   file: fakeVersionFileWithDiff,
 });
+
+export const fakeVersionWithDiffFileOnly: ExternalVersionWithDiffFileOnly = Object.freeze(
+  {
+    id: fakeVersionWithDiff.id,
+    file: fakeVersionWithDiff.file,
+  },
+);
 
 export const fakeVersionsListItem: ExternalVersionsListItem = {
   id: nextUniqueId(),
