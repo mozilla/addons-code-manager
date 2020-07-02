@@ -1,12 +1,15 @@
 import * as React from 'react';
 
-import { VersionFileWithContent } from '../../reducers/versions';
+import {
+  VersionFileWithContent,
+  VersionFileWithDiff,
+} from '../../reducers/versions';
 import styles from './styles.module.scss';
 import { formatFilesize, gettext } from '../../utils';
 import { makeApiURL } from '../../api';
 
 type PublicProps = {
-  file: VersionFileWithContent;
+  file: VersionFileWithContent | VersionFileWithDiff;
   versionString: string;
 };
 

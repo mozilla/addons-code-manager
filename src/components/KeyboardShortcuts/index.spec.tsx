@@ -12,19 +12,23 @@ import { getMessageMap } from '../../reducers/linter';
 import {
   actions as versionsActions,
   createInternalVersion,
+  createInternalVersionFile,
+  VersionFileWithContent,
+  VersionFileWithDiff,
 } from '../../reducers/versions';
 import { actions as fullscreenGridActions } from '../../reducers/fullscreenGrid';
 import {
   CreateKeydownEventParams,
   createContextWithFakeRouter,
   createKeydownEvent,
-  createFakeCompareInfo,
   createFakeExternalLinterResult,
   createFakeLocation,
   createFakeThunk,
   createStoreWithVersion,
   fakeAction,
   fakeExternalLinterMessage,
+  fakeVersionFileWithContent,
+  fakeVersionFileWithDiff,
   fakeVersionWithContent,
   fakeVersionEntry,
   fakeVersionWithDiff,
@@ -92,8 +96,8 @@ describe(__filename, () => {
     _goToRelativeFile = jest.fn().mockReturnValue(fakeAction),
     _goToRelativeMessage = jest.fn().mockReturnValue(fakeAction),
     comparedToVersionId = 1,
-    compareInfo = null,
     currentPath = 'file1.js',
+    file = null,
     location = createFakeLocation(),
     messageMap = getMessageMap(
       createFakeExternalLinterResult({ messages: [fakeExternalLinterMessage] }),
@@ -107,9 +111,9 @@ describe(__filename, () => {
       _goToRelativeDiff,
       _goToRelativeFile,
       _goToRelativeMessage,
-      compareInfo,
       comparedToVersionId,
       currentPath,
+      file,
       location,
       messageMap,
       versionId,
@@ -167,7 +171,11 @@ describe(__filename, () => {
   });
 
   it('renders one line descriptions for keys "p"/"n" and "k"/"j" in Browse', () => {
-    const root = render({ compareInfo: null });
+    const root = render({
+      file: createInternalVersionFile(
+        fakeVersionFileWithContent,
+      ) as VersionFileWithContent,
+    });
 
     expect(root.find(`dt.${styles.hasAlias}`)).toHaveLength(2);
     expect(root.find(`dd.${styles.hasAlias}`)).toHaveLength(2);
@@ -202,18 +210,21 @@ describe(__filename, () => {
   });
 
   it('generates a getCodeLineAnchor function using _createCodeLineAnchorGetter', () => {
-    const compareInfo = createFakeCompareInfo();
+    const file = createInternalVersionFile(
+      fakeVersionFileWithContent,
+    ) as VersionFileWithContent;
+
     const _createCodeLineAnchorGetter = jest.fn();
 
     renderAndTriggerKeyEvent(
       { key: Object.keys(supportedKeys)[0] },
       {
         _createCodeLineAnchorGetter,
-        compareInfo,
+        file,
       },
     );
 
-    expect(_createCodeLineAnchorGetter).toHaveBeenCalledWith({ compareInfo });
+    expect(_createCodeLineAnchorGetter).toHaveBeenCalledWith(file);
   });
 
   it.each([
@@ -262,7 +273,9 @@ describe(__filename, () => {
       const pathList = [currentPath];
       const versionId = 123;
       const comparedToVersionId = 11;
-      const compareInfo = createFakeCompareInfo();
+      const file = createInternalVersionFile(
+        fakeVersionFileWithDiff,
+      ) as VersionFileWithDiff;
       const location = createFakeLocation({
         search: queryString.stringify({ path: currentPath }),
         hash,
@@ -278,8 +291,8 @@ describe(__filename, () => {
         { key: key as string },
         {
           _goToRelativeDiff,
-          compareInfo,
           currentPath,
+          file,
           location,
           store,
           versionId,
@@ -290,7 +303,7 @@ describe(__filename, () => {
       expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
       expect(_goToRelativeDiff).toHaveBeenCalledWith({
         currentAnchor: hash.replace(/^#/, ''),
-        diff: compareInfo.diff,
+        diff: file.diff,
         pathList,
         position,
         versionId,
@@ -303,7 +316,7 @@ describe(__filename, () => {
     ['previous', 'p', RelativePathPosition.previous],
     ['next', 'n', RelativePathPosition.next],
   ])(
-    'only dispatches goToRelativeFile with %s when "%s" is pressed when compareInfo is falsey',
+    'only dispatches goToRelativeFile with %s when "%s" is pressed when in browse mode',
     (direction, key, position) => {
       const currentPath = 'file1.js';
       const pathList = [currentPath];
@@ -318,7 +331,9 @@ describe(__filename, () => {
         { key: key as string },
         {
           _goToRelativeFile,
-          compareInfo: null,
+          file: createInternalVersionFile(
+            fakeVersionFileWithContent,
+          ) as VersionFileWithContent,
           currentPath,
           store,
           versionId,

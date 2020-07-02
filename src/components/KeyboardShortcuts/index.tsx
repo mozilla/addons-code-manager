@@ -16,9 +16,12 @@ import {
 } from '../../reducers/fileTree';
 import { LinterMessage } from '../../reducers/linter';
 import {
-  CompareInfo,
+  VersionFileWithContent,
+  VersionFileWithDiff,
   actions as versionsActions,
   goToRelativeDiff,
+  isFileWithContent,
+  isFileWithDiff,
 } from '../../reducers/versions';
 import { actions as fullscreenGridActions } from '../../reducers/fullscreenGrid';
 import styles from './styles.module.scss';
@@ -51,7 +54,7 @@ const mapKeyInBrowse = (key: string) => {
 };
 
 export type PublicProps = {
-  compareInfo: CompareInfo | null | undefined;
+  file: VersionFileWithContent | VersionFileWithDiff | null | undefined;
   comparedToVersionId: number | null;
   currentPath: string;
   messageMap: LinterProviderInfo['messageMap'];
@@ -88,7 +91,9 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
   };
 
   isInBrowseMode = () => {
-    return !this.props.compareInfo;
+    const { file } = this.props;
+
+    return file && isFileWithContent(file);
   };
 
   getKey = (key: string) => {
@@ -101,11 +106,11 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
       _goToRelativeDiff,
       _goToRelativeFile,
       _goToRelativeMessage,
-      compareInfo,
       comparedToVersionId,
       currentAnchor,
       currentPath,
       dispatch,
+      file,
       messageMap,
       messageUid,
       pathList,
@@ -126,7 +131,7 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
     ) {
       event.preventDefault();
 
-      const getCodeLineAnchor = _createCodeLineAnchorGetter({ compareInfo });
+      const getCodeLineAnchor = _createCodeLineAnchorGetter(file);
 
       switch (this.getKey(event.key)) {
         case 'k':
@@ -167,12 +172,12 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
           );
           break;
         case 'n':
-          if (compareInfo) {
+          if (file && isFileWithDiff(file)) {
             dispatch(
               _goToRelativeDiff({
                 currentAnchor,
                 comparedToVersionId,
-                diff: compareInfo.diff,
+                diff: file.diff,
                 pathList,
                 position: RelativePathPosition.next,
                 versionId,
@@ -181,12 +186,12 @@ export class KeyboardShortcutsBase extends React.Component<Props> {
           }
           break;
         case 'p':
-          if (compareInfo) {
+          if (file && isFileWithDiff(file)) {
             dispatch(
               _goToRelativeDiff({
                 currentAnchor,
                 comparedToVersionId,
-                diff: compareInfo.diff,
+                diff: file.diff,
                 pathList,
                 position: RelativePathPosition.previous,
                 versionId,
