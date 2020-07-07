@@ -337,8 +337,7 @@ export class CodeOverviewBase extends React.Component<Props, State> {
     return (
       <LinterProvider
         key={overviewHeight ? String(overviewHeight) : ''}
-        versionId={version.id}
-        validationURL={version.validationURL}
+        version={version}
         selectedPath={version.selectedPath}
       >
         {

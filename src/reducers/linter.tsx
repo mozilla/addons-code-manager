@@ -5,6 +5,7 @@ import { ActionType, deprecated, getType } from 'typesafe-actions';
 import { ThunkActionCreator } from '../configureStore';
 import { actions as errorsActions } from './errors';
 import { getValidation, isErrorResponse } from '../api';
+import { Version } from './versions';
 
 // See: https://github.com/piotrwitek/typesafe-actions/issues/143
 const { createAction } = deprecated;
@@ -195,17 +196,16 @@ export const actions = {
 
 export const fetchLinterMessagesIfNeeded = ({
   _getValidation = getValidation,
-  url,
-  versionId,
+  version,
 }: {
   _getValidation?: typeof getValidation;
-  url: string;
-  versionId: number;
+  version: Version;
 }): ThunkActionCreator => {
   return async (dispatch, getState) => {
     const { api: apiState, linter } = getState();
+    const versionId = version.id;
     // See: https://github.com/mozilla/addons-code-manager/issues/591
-    if (linter.isLoading && linter.forVersionId === versionId) {
+    if (linter.isLoading && linter.forVersionId === version.id) {
       log.debug('Aborting because linter messages are already being fetched');
       return;
     }
@@ -214,7 +214,8 @@ export const fetchLinterMessagesIfNeeded = ({
 
     const response = await _getValidation({
       apiState,
-      url,
+      addonId: version.addon.id,
+      fileId: version.fileId,
     });
 
     if (isErrorResponse(response)) {

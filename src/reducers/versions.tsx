@@ -201,9 +201,9 @@ export type Version = {
   addon: VersionAddon;
   initialPath: string;
   entries: VersionEntry[];
+  fileId: number;
   id: number;
   reviewed: string;
-  validationURL: string;
   versionString: string;
   // TODO: remove `expandedPaths`, `selectedPath` and `visibleSelectedPath`
   // from `version` object once no code depends on these
@@ -598,11 +598,11 @@ export const createInternalVersion = (
       return createInternalVersionEntry(version.file_entries[nodeName]);
     }),
     expandedPaths: getParentFolders(version.file.selected_file),
+    fileId: version.file.id,
     id: version.id,
     reviewed: version.reviewed,
     selectedPath: version.file.selected_file,
     versionString: version.version,
-    validationURL: version.validation_url_json,
     visibleSelectedPath: null,
   };
 };

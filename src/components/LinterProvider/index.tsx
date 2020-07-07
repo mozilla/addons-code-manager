@@ -10,6 +10,7 @@ import {
   fetchLinterMessagesIfNeeded,
   selectMessageMap,
 } from '../../reducers/linter';
+import { Version } from '../../reducers/versions';
 
 export type LinterProviderInfo = {
   messageMap: LinterMessageMap | undefined;
@@ -24,8 +25,7 @@ export type RenderWithMessages = (info: LinterProviderInfo) => React.ReactNode;
 export type PublicProps = {
   _loadData?: LoadData;
   children: RenderWithMessages;
-  versionId: number;
-  validationURL: string;
+  version: Version;
   selectedPath: string;
 };
 
@@ -67,15 +67,13 @@ export class LinterProviderBase extends React.Component<Props> {
       _fetchLinterMessagesIfNeeded,
       dispatch,
       messageMap,
-      validationURL,
-      versionId,
+      version,
     } = this.props;
 
     if (messageMap === undefined) {
       dispatch(
         _fetchLinterMessagesIfNeeded({
-          versionId,
-          url: validationURL,
+          version,
         }),
       );
     }
@@ -98,10 +96,10 @@ const mapStateToProps = (
   // ownProps.location via withRouter(). See the comment below for details.
   ownProps: PublicProps & RouteComponentProps,
 ): PropsFromState => {
-  const { selectedPath, versionId } = ownProps;
+  const { selectedPath, version } = ownProps;
 
   let selectedMessageMap;
-  const map = selectMessageMap(state.linter, versionId);
+  const map = selectMessageMap(state.linter, version.id);
   if (map) {
     selectedMessageMap = map.byPath[selectedPath]
       ? map.byPath[selectedPath]

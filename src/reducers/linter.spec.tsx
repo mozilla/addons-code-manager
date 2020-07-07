@@ -4,9 +4,12 @@ import {
   createErrorResponse,
   fakeExternalLinterResult,
   fakeExternalLinterMessage,
+  fakeVersionWithContent,
   setMockFetchResponseJSON,
   thunkTester,
   nextUniqueId,
+  fakeVersionAddon,
+  fakeVersionFileWithContent,
 } from '../test-helpers';
 import linterReducer, {
   ExternalLinterMessage,
@@ -22,6 +25,7 @@ import linterReducer, {
   selectMessageMap,
 } from './linter';
 import { actions as errorsActions } from './errors';
+import { Version, createInternalVersion } from './versions';
 import { getValidation } from '../api';
 import configureStore from '../configureStore';
 
@@ -430,16 +434,19 @@ describe(__filename, () => {
 
     const _fetchLinterMessagesIfNeeded = ({
       _getValidation = undefined,
-      versionId = 123,
-      url = '/validation/1234/validation.json',
       result = createExternalLinterResult(),
       respondWithResult = true,
+      versionId = nextUniqueId(),
+      version = createInternalVersion({
+        ...fakeVersionWithContent,
+        id: versionId,
+      }),
     }: {
       _getValidation?: typeof getValidation;
-      versionId?: number;
-      url?: string;
       result?: ExternalLinterResult;
       respondWithResult?: boolean;
+      versionId?: number;
+      version?: Version;
     } = {}) => {
       if (respondWithResult) {
         setMockFetchResponseJSON(result);
@@ -447,7 +454,10 @@ describe(__filename, () => {
 
       return thunkTester({
         createThunk: () =>
-          fetchLinterMessagesIfNeeded({ _getValidation, url, versionId }),
+          fetchLinterMessagesIfNeeded({
+            _getValidation,
+            version,
+          }),
         store,
       });
     };
@@ -457,14 +467,24 @@ describe(__filename, () => {
       const _getValidation = jest
         .fn()
         .mockReturnValue(Promise.resolve(validation));
-      const url = 'validation/3215/validation.json';
+      const addonId = nextUniqueId();
+      const fileId = nextUniqueId();
+      const version = createInternalVersion({
+        ...fakeVersionWithContent,
+        addon: { ...fakeVersionAddon, id: addonId },
+        file: { ...fakeVersionFileWithContent, id: fileId },
+      });
 
-      const { thunk } = _fetchLinterMessagesIfNeeded({ _getValidation, url });
+      const { thunk } = _fetchLinterMessagesIfNeeded({
+        _getValidation,
+        version,
+      });
       await thunk();
 
       expect(_getValidation).toHaveBeenCalledWith({
         apiState: store.getState().api,
-        url,
+        addonId,
+        fileId,
       });
     });
 
@@ -523,12 +543,15 @@ describe(__filename, () => {
     });
 
     it('early returns and does not do anything when linter messages are already being fetched', async () => {
-      const url = '/some/url';
-      const versionId = 123;
+      const versionId = nextUniqueId();
+      const version = createInternalVersion({
+        ...fakeVersionWithContent,
+        id: versionId,
+      });
       store.dispatch(actions.beginFetchLinterResult({ versionId }));
 
       const { dispatch, thunk } = thunkTester({
-        createThunk: () => fetchLinterMessagesIfNeeded({ url, versionId }),
+        createThunk: () => fetchLinterMessagesIfNeeded({ version }),
         store,
       });
 
@@ -538,14 +561,19 @@ describe(__filename, () => {
     });
 
     it('does not abort if linter messages are being fetched for a different version ID', async () => {
-      const url = '/some/url';
-      const versionId = 123;
-      const anotherVersionId = versionId + 246;
+      const versionId = nextUniqueId();
+      const anotherVersionId = nextUniqueId();
+      const version = createInternalVersion({
+        ...fakeVersionWithContent,
+        id: anotherVersionId,
+      });
       store.dispatch(actions.beginFetchLinterResult({ versionId }));
 
       const { dispatch, thunk } = thunkTester({
         createThunk: () =>
-          fetchLinterMessagesIfNeeded({ url, versionId: anotherVersionId }),
+          fetchLinterMessagesIfNeeded({
+            version,
+          }),
         store,
       });
 
