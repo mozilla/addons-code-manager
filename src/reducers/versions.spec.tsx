@@ -1148,7 +1148,6 @@ describe(__filename, () => {
     const headVersionId = baseVersionId + 1;
     const path = 'some-file.js';
 
-    /* eslint-disable @typescript-eslint/camelcase */
     it('returns a version diff', () => {
       const downloadURL = 'http://example.org/download/file';
       const isMinified = true;
@@ -1205,7 +1204,6 @@ describe(__filename, () => {
         fileType: type,
       });
     });
-    /* eslint-enable @typescript-eslint/camelcase */
 
     it('returns `null` when the file was not retrieved from the API', () => {
       const versions = reducer(
@@ -3543,6 +3541,20 @@ describe(__filename, () => {
       expect(
         isDiffFileLoading(
           // Nothing has been loaded in this state.
+          initialState,
+          addonId,
+          baseVersionId,
+          headVersionId,
+          path,
+        ),
+      ).toEqual(false);
+    });
+
+    it('returns false with a falsey path', () => {
+      const path = undefined;
+
+      expect(
+        isDiffFileLoading(
           initialState,
           addonId,
           baseVersionId,
