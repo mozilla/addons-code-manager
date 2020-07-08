@@ -3357,7 +3357,7 @@ describe(__filename, () => {
       const path = undefined;
 
       expect(
-        isDiffFileLoading(
+        isDiffLoading(
           initialState,
           addonId,
           baseVersionId,
