@@ -13,7 +13,6 @@ import {
   actions as versionsActions,
   createInternalVersion,
   createInternalVersionFile,
-  VersionFileWithContent,
   VersionFileWithDiff,
 } from '../../reducers/versions';
 import { actions as fullscreenGridActions } from '../../reducers/fullscreenGrid';

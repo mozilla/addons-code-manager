@@ -24,7 +24,6 @@ import { actions as fileTreeActions } from '../../reducers/fileTree';
 import {
   ExternalVersionWithDiff,
   VersionEntryStatus,
-  VersionFileWithDiff,
   actions as versionsActions,
   createEntryStatusMap,
   createInternalDiff,
