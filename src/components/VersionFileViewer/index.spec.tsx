@@ -41,30 +41,35 @@ import styles from './styles.module.scss';
 import VersionFileViewer, { ItemTitles, PublicProps } from '.';
 
 describe(__filename, () => {
+  enum ContentOrDiff {
+    content,
+    diff,
+  }
+
   const getInternalVersionAndFile = ({
-    contentOrDiff = 'content',
+    contentOrDiff = ContentOrDiff.content,
     entry,
     fileProps = {},
     path = 'background.js',
   }: {
-    contentOrDiff?: string;
+    contentOrDiff?: ContentOrDiff;
     entry?: ExternalVersionEntry;
     fileContent?: string;
     fileProps?: Partial<ExternalVersionFileWithContent>;
     path?: string;
   } = {}) => {
     const baseFile =
-      contentOrDiff === 'content'
+      contentOrDiff === ContentOrDiff.content
         ? fakeVersionFileWithContent
         : fakeVersionFileWithDiff;
     const externalFile = { ...baseFile, ...fileProps };
     const file =
-      contentOrDiff === 'content'
+      contentOrDiff === ContentOrDiff.content
         ? (createInternalVersionFile(externalFile) as VersionFileWithContent)
         : (createInternalVersionFile(externalFile) as VersionFileWithDiff);
 
     const version =
-      contentOrDiff === 'content'
+      contentOrDiff === ContentOrDiff.content
         ? ({
             ...fakeVersionWithContent,
             file_entries: {
@@ -318,7 +323,7 @@ describe(__filename, () => {
     const insertedLines = [1, 2];
     const _getInsertedLines = jest.fn().mockReturnValue(insertedLines);
     const fileAndVersion = getInternalVersionAndFile({
-      contentOrDiff: 'diff',
+      contentOrDiff: ContentOrDiff.diff,
     });
     const file = fileAndVersion.file as VersionFileWithDiff;
     const { version } = fileAndVersion;
@@ -335,7 +340,7 @@ describe(__filename, () => {
   it('does not call getInsertedLines if no diff exists', () => {
     const _getInsertedLines = jest.fn();
     const { file, version } = getInternalVersionAndFile({
-      contentOrDiff: 'content',
+      contentOrDiff: ContentOrDiff.content,
     });
 
     const root = renderPanel(
@@ -349,7 +354,7 @@ describe(__filename, () => {
 
   it('passes the content of a diff to CodeOverview', () => {
     const fileAndVersion = getInternalVersionAndFile({
-      contentOrDiff: 'diff',
+      contentOrDiff: ContentOrDiff.diff,
     });
     const file = fileAndVersion.file as VersionFileWithDiff;
     const { version } = fileAndVersion;

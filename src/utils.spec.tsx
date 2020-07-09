@@ -312,7 +312,7 @@ describe(__filename, () => {
           createInternalVersionFile({
             ...fakeVersionFileWithDiff,
             diff: null,
-          }) as VersionFileWithDiff,
+          }),
         ),
       ).toEqual(getCodeLineAnchor);
     });
@@ -332,7 +332,7 @@ describe(__filename, () => {
         createInternalVersionFile({
           ...fakeVersionFileWithDiff,
           diff: null,
-        }) as VersionFileWithDiff,
+        }),
       );
 
       expect(getterFromFactory).not.toEqual(getterFromFactoryWithoutDiff);

@@ -172,9 +172,7 @@ describe(__filename, () => {
 
   it('renders one line descriptions for keys "p"/"n" and "k"/"j" in Browse', () => {
     const root = render({
-      file: createInternalVersionFile(
-        fakeVersionFileWithContent,
-      ) as VersionFileWithContent,
+      file: createInternalVersionFile(fakeVersionFileWithContent),
     });
 
     expect(root.find(`dt.${styles.hasAlias}`)).toHaveLength(2);
@@ -210,9 +208,7 @@ describe(__filename, () => {
   });
 
   it('generates a getCodeLineAnchor function using _createCodeLineAnchorGetter', () => {
-    const file = createInternalVersionFile(
-      fakeVersionFileWithContent,
-    ) as VersionFileWithContent;
+    const file = createInternalVersionFile(fakeVersionFileWithContent);
 
     const _createCodeLineAnchorGetter = jest.fn();
 
@@ -331,9 +327,7 @@ describe(__filename, () => {
         { key: key as string },
         {
           _goToRelativeFile,
-          file: createInternalVersionFile(
-            fakeVersionFileWithContent,
-          ) as VersionFileWithContent,
+          file: createInternalVersionFile(fakeVersionFileWithContent),
           currentPath,
           store,
           versionId,

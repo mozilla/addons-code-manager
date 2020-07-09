@@ -297,7 +297,7 @@ describe(__filename, () => {
       headVersionId,
       path,
       versions: store.getState().versions,
-    }) as VersionFileWithDiff;
+    });
 
     const viewer = root.find(VersionFileViewer);
     expect(viewer).toHaveLength(1);
@@ -1124,9 +1124,7 @@ describe(__filename, () => {
       version,
     });
 
-    const expectedFile = createInternalVersionFile(
-      version.file,
-    ) as VersionFileWithDiff;
+    const expectedFile = createInternalVersionFile(version.file);
 
     const viewer = root.find(VersionFileViewer);
     expect(viewer).toHaveProp('getCodeLineAnchor');

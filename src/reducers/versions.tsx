@@ -336,7 +336,7 @@ export const actions = {
     return (payload: { path: string; versionId: number }) => resolve(payload);
   }),
   abortFetchVersionWithDiff: createAction(
-    'ABORT_FETCH__VERSION_WITH_DIFF',
+    'ABORT_FETCH_VERSION_WITH_DIFF',
     (resolve) => {
       return (payload: {
         addonId: number;
