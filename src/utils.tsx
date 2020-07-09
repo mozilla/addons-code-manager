@@ -7,7 +7,12 @@ import queryString from 'query-string';
 import log from 'loglevel';
 import { Hunks, ChangeInfo, DiffInfo, getChangeKey } from 'react-diff-view';
 
-import { changeTypes, CompareInfo } from './reducers/versions';
+import {
+  VersionFileWithContent,
+  VersionFileWithDiff,
+  changeTypes,
+  isFileWithDiff,
+} from './reducers/versions';
 import { getCodeLineAnchor } from './components/CodeView/utils';
 import tracking from './tracking';
 
@@ -259,13 +264,11 @@ export class ForwardComparisonMap {
   }
 }
 
-export const createCodeLineAnchorGetter = ({
-  compareInfo,
-}: {
-  compareInfo: CompareInfo | null | undefined;
-}) => {
-  if (compareInfo && compareInfo.diff) {
-    const map = new ForwardComparisonMap(compareInfo.diff);
+export const createCodeLineAnchorGetter = (
+  file: VersionFileWithContent | VersionFileWithDiff | null | undefined,
+) => {
+  if (file && isFileWithDiff(file) && file.diff) {
+    const map = new ForwardComparisonMap(file.diff);
     return map.createCodeLineAnchorGetter();
   }
   return getCodeLineAnchor;

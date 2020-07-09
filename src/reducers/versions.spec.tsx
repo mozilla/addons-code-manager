@@ -27,14 +27,12 @@ import reducer, {
   createInternalVersionsListItem,
   createReducer,
   createVersionsMap,
-  fetchDiff,
+  fetchVersionWithDiff,
   fetchDiffFile,
   fetchVersion,
   fetchVersionFile,
   fetchVersionsList,
   getInsertedLines,
-  getCompareInfo,
-  getCompareInfoKey,
   getDiffAnchors,
   getDiffKey,
   getEntryStatusMapKey,
@@ -51,8 +49,7 @@ import reducer, {
   getVersionInfo,
   goToRelativeDiff,
   initialState,
-  isCompareInfoLoading,
-  isDiffFileLoading,
+  isDiffLoading,
   isFileLoading,
   isFileWithContent,
   isFileWithDiff,
@@ -710,68 +707,6 @@ describe(__filename, () => {
       expect(state.byAddonId[addonId]).toEqual(createVersionsMap(versions));
     });
 
-    it('sets the compare info to `null` and the loading flag to `false` on abortFetchDiff()', () => {
-      const addonId = 1;
-      const baseVersionId = 2;
-      const headVersionId = 2;
-
-      let versionsState = reducer(
-        undefined,
-        actions.beginFetchDiff({
-          addonId,
-          baseVersionId,
-          headVersionId,
-        }),
-      );
-      versionsState = reducer(
-        versionsState,
-        actions.abortFetchDiff({
-          addonId,
-          baseVersionId,
-          headVersionId,
-        }),
-      );
-
-      expect(
-        getCompareInfo(versionsState, addonId, baseVersionId, headVersionId),
-      ).toEqual(null);
-      expect(
-        isCompareInfoLoading(
-          versionsState,
-          addonId,
-          baseVersionId,
-          headVersionId,
-        ),
-      ).toEqual(false);
-    });
-
-    it('resets the compare info and sets the loading flag to `true` on beginFetchDiff()', () => {
-      const addonId = 1;
-      const baseVersionId = 2;
-      const headVersionId = 2;
-
-      let versionsState = reducer(
-        undefined,
-        actions.abortFetchDiff({ addonId, baseVersionId, headVersionId }),
-      );
-      versionsState = reducer(
-        versionsState,
-        actions.beginFetchDiff({ addonId, baseVersionId, headVersionId }),
-      );
-
-      expect(
-        getCompareInfo(versionsState, addonId, baseVersionId, headVersionId),
-      ).toEqual(undefined);
-      expect(
-        isCompareInfoLoading(
-          versionsState,
-          addonId,
-          baseVersionId,
-          headVersionId,
-        ),
-      ).toEqual(true);
-    });
-
     it('sets the VersionDiff to `null` and the loading flag to `false` on abortFetchDiffFile()', () => {
       const addonId = nextUniqueId();
       const baseVersionId = nextUniqueId();
@@ -808,13 +743,7 @@ describe(__filename, () => {
         }),
       ).toEqual(null);
       expect(
-        isDiffFileLoading(
-          versions,
-          addonId,
-          baseVersionId,
-          headVersionId,
-          path,
-        ),
+        isDiffLoading(versions, addonId, baseVersionId, headVersionId, path),
       ).toEqual(false);
     });
 
@@ -853,82 +782,8 @@ describe(__filename, () => {
         }),
       ).toEqual(undefined);
       expect(
-        isDiffFileLoading(
-          versions,
-          addonId,
-          baseVersionId,
-          headVersionId,
-          path,
-        ),
+        isDiffLoading(versions, addonId, baseVersionId, headVersionId, path),
       ).toEqual(true);
-    });
-
-    it('loads compare info', () => {
-      const addonId = nextUniqueId();
-      const baseVersionId = nextUniqueId();
-      const path = 'manifest.json';
-      const mimeType = 'mime/type';
-
-      const version = {
-        ...fakeVersionWithDiff,
-        file: {
-          ...fakeVersionWithDiff.file,
-          mimetype: mimeType,
-          // eslint-disable-next-line @typescript-eslint/camelcase
-          selected_file: path,
-        },
-      };
-      const headVersionId = version.id;
-
-      let versionsState = reducer(
-        undefined,
-        _loadVersionInfo({
-          version,
-        }),
-      );
-      versionsState = reducer(
-        versionsState,
-        actions.loadDiff({
-          addonId,
-          baseVersionId,
-          headVersionId,
-          version,
-        }),
-      );
-
-      expect(
-        getCompareInfo(versionsState, addonId, baseVersionId, headVersionId),
-      ).toEqual({
-        diff: createInternalDiff(version.file.diff),
-        mimeType,
-      });
-      expect(
-        isCompareInfoLoading(
-          versionsState,
-          addonId,
-          baseVersionId,
-          headVersionId,
-        ),
-      ).toEqual(false);
-    });
-
-    it('throws an error message when headVersion is missing on loadDiff()', () => {
-      const addonId = 1;
-      const baseVersionId = 2;
-      const version = fakeVersionWithDiff;
-      const headVersionId = version.id;
-
-      expect(() => {
-        reducer(
-          undefined,
-          actions.loadDiff({
-            addonId,
-            baseVersionId,
-            headVersionId,
-            version,
-          }),
-        );
-      }).toThrow(/Version missing for headVersionId/);
     });
   });
 
@@ -2264,8 +2119,8 @@ describe(__filename, () => {
     });
   });
 
-  describe('fetchDiff', () => {
-    const _fetchDiff = ({
+  describe('fetchVersionWithDiff', () => {
+    const _fetchVersionWithDiff = ({
       addonId = 1,
       baseVersionId = 2,
       forceReloadVersion = false,
@@ -2278,7 +2133,7 @@ describe(__filename, () => {
       return thunkTester({
         store,
         createThunk: () =>
-          fetchDiff({
+          fetchVersionWithDiff({
             _getDiff,
             addonId,
             baseVersionId,
@@ -2289,12 +2144,12 @@ describe(__filename, () => {
       });
     };
 
-    it('dispatches beginFetchDiff()', async () => {
+    it('dispatches beginFetchVersionWithDiff()', async () => {
       const addonId = 1;
       const baseVersionId = 2;
       const headVersionId = 3;
 
-      const { dispatch, thunk } = _fetchDiff({
+      const { dispatch, thunk } = _fetchVersionWithDiff({
         addonId,
         baseVersionId,
         headVersionId,
@@ -2302,7 +2157,7 @@ describe(__filename, () => {
       await thunk();
 
       expect(dispatch).toHaveBeenCalledWith(
-        actions.beginFetchDiff({
+        actions.beginFetchVersionWithDiff({
           addonId,
           baseVersionId,
           headVersionId,
@@ -2313,7 +2168,7 @@ describe(__filename, () => {
     it('dispatches setCurrentVersionId() for headVersionId', async () => {
       const headVersionId = 3;
 
-      const { dispatch, thunk } = _fetchDiff({ headVersionId });
+      const { dispatch, thunk } = _fetchVersionWithDiff({ headVersionId });
       await thunk();
 
       expect(dispatch).toHaveBeenCalledWith(
@@ -2331,7 +2186,7 @@ describe(__filename, () => {
       const baseVersionId = version.id - 1;
       const headVersionId = version.id;
 
-      const { store, thunk } = _fetchDiff({
+      const { store, thunk } = _fetchVersionWithDiff({
         _getDiff,
         addonId,
         baseVersionId,
@@ -2352,7 +2207,7 @@ describe(__filename, () => {
       const headVersionId = 2;
       const version = { ...fakeVersionWithDiff, id: headVersionId };
 
-      const { dispatch, thunk } = _fetchDiff({
+      const { dispatch, thunk } = _fetchVersionWithDiff({
         baseVersionId,
         headVersionId,
         version,
@@ -2378,7 +2233,7 @@ describe(__filename, () => {
         }),
       );
 
-      const { dispatch, thunk } = _fetchDiff({
+      const { dispatch, thunk } = _fetchVersionWithDiff({
         baseVersionId,
         headVersionId,
         version,
@@ -2405,7 +2260,7 @@ describe(__filename, () => {
         }),
       );
 
-      const { dispatch, thunk } = _fetchDiff({
+      const { dispatch, thunk } = _fetchVersionWithDiff({
         baseVersionId,
         forceReloadVersion: true,
         headVersionId,
@@ -2433,7 +2288,7 @@ describe(__filename, () => {
         }),
       );
 
-      const { dispatch, thunk } = _fetchDiff({
+      const { dispatch, thunk } = _fetchVersionWithDiff({
         baseVersionId,
         headVersionId,
         version,
@@ -2468,7 +2323,7 @@ describe(__filename, () => {
         }),
       );
 
-      const { dispatch, thunk } = _fetchDiff({
+      const { dispatch, thunk } = _fetchVersionWithDiff({
         baseVersionId,
         headVersionId,
         version,
@@ -2484,13 +2339,13 @@ describe(__filename, () => {
       );
     });
 
-    it('dispatches loadDiff() when API response is successful', async () => {
-      const version = { ...fakeVersionWithDiff, id: 3 };
-      const addonId = 1;
-      const baseVersionId = 2;
-      const headVersionId = version.id;
+    it('dispatches loadDiffFileFromVersion when API response is successful', async () => {
+      const addonId = nextUniqueId();
+      const baseVersionId = nextUniqueId();
+      const headVersionId = nextUniqueId();
+      const version = { ...fakeVersionWithDiff, id: headVersionId };
 
-      const { dispatch, thunk } = _fetchDiff({
+      const { dispatch, thunk } = _fetchVersionWithDiff({
         addonId,
         baseVersionId,
         headVersionId,
@@ -2499,16 +2354,16 @@ describe(__filename, () => {
       await thunk();
 
       expect(dispatch).toHaveBeenCalledWith(
-        actions.loadDiff({
-          addonId,
+        actions.loadDiffFileFromVersion({
           baseVersionId,
           headVersionId,
+          path: version.file.selected_file,
           version,
         }),
       );
     });
 
-    it('dispatches abortFetchDiff() when API call has failed', async () => {
+    it('dispatches  abortFetchVersionWithDiff() when API call has failed', async () => {
       const addonId = 1;
       const baseVersionId = 2;
       const headVersionId = 2;
@@ -2520,7 +2375,7 @@ describe(__filename, () => {
         ),
       );
 
-      const { dispatch, thunk } = _fetchDiff({
+      const { dispatch, thunk } = _fetchVersionWithDiff({
         _getDiff,
         addonId,
         baseVersionId,
@@ -2529,7 +2384,7 @@ describe(__filename, () => {
       await thunk();
 
       expect(dispatch).toHaveBeenCalledWith(
-        actions.abortFetchDiff({
+        actions.abortFetchVersionWithDiff({
           addonId,
           baseVersionId,
           headVersionId,
@@ -2547,7 +2402,10 @@ describe(__filename, () => {
         ),
       );
 
-      const { dispatch, thunk } = _fetchDiff({ _getDiff, headVersionId });
+      const { dispatch, thunk } = _fetchVersionWithDiff({
+        _getDiff,
+        headVersionId,
+      });
       await thunk();
 
       expect(dispatch).toHaveBeenCalledWith(
@@ -2562,14 +2420,18 @@ describe(__filename, () => {
       const baseVersionId = 2;
       const headVersionId = 3;
 
-      const { dispatch, thunk, store } = _fetchDiff({
+      const { dispatch, thunk, store } = _fetchVersionWithDiff({
         addonId,
         baseVersionId,
         headVersionId,
       });
-      // This simulates another previous call to `fetchDiff()`.
+      // This simulates another previous call to `fetchVersionWithDiff()`.
       store.dispatch(
-        actions.beginFetchDiff({ addonId, baseVersionId, headVersionId }),
+        actions.beginFetchVersionWithDiff({
+          addonId,
+          baseVersionId,
+          headVersionId,
+        }),
       );
 
       await thunk();
@@ -3459,65 +3321,6 @@ describe(__filename, () => {
     });
   });
 
-  describe('getCompareInfoKey', () => {
-    it('computes a key given an addonId, baseVersionId and headVersionId', () => {
-      const addonId = 123;
-      const baseVersionId = 1;
-      const headVersionId = 2;
-
-      expect(
-        getCompareInfoKey({ addonId, baseVersionId, headVersionId }),
-      ).toEqual(`${addonId}/${baseVersionId}/${headVersionId}/`);
-    });
-
-    it('computes a key given an addonId, baseVersionId, headVersionId and path', () => {
-      const addonId = 123;
-      const baseVersionId = 1;
-      const headVersionId = 2;
-      const path = 'path';
-
-      expect(
-        getCompareInfoKey({ addonId, baseVersionId, headVersionId, path }),
-      ).toEqual(`${addonId}/${baseVersionId}/${headVersionId}/${path}`);
-    });
-  });
-
-  describe('isCompareInfoLoading', () => {
-    it('returns false by default', () => {
-      const addonId = 123;
-      const baseVersionId = 1;
-      const headVersionId = 2;
-
-      expect(
-        isCompareInfoLoading(
-          // Nothing has been loaded in this state.
-          initialState,
-          addonId,
-          baseVersionId,
-          headVersionId,
-        ),
-      ).toEqual(false);
-    });
-
-    it('returns true when loading compare info', () => {
-      const addonId = 123;
-      const baseVersionId = 1;
-      const headVersionId = 2;
-      const state = reducer(
-        undefined,
-        actions.beginFetchDiff({
-          addonId,
-          baseVersionId,
-          headVersionId,
-        }),
-      );
-
-      expect(
-        isCompareInfoLoading(state, addonId, baseVersionId, headVersionId),
-      ).toEqual(true);
-    });
-  });
-
   describe('getDiffKey', () => {
     const addonId = nextUniqueId();
     const baseVersionId = nextUniqueId();
@@ -3530,7 +3333,7 @@ describe(__filename, () => {
     });
   });
 
-  describe('isDiffFileLoading', () => {
+  describe('isDiffLoading', () => {
     const addonId = nextUniqueId();
     const baseVersionId = nextUniqueId();
     const headVersionId = nextUniqueId();
@@ -3539,7 +3342,7 @@ describe(__filename, () => {
       const path = 'some-file.js';
 
       expect(
-        isDiffFileLoading(
+        isDiffLoading(
           // Nothing has been loaded in this state.
           initialState,
           addonId,
@@ -3554,7 +3357,7 @@ describe(__filename, () => {
       const path = undefined;
 
       expect(
-        isDiffFileLoading(
+        isDiffLoading(
           initialState,
           addonId,
           baseVersionId,
@@ -3578,7 +3381,7 @@ describe(__filename, () => {
       );
 
       expect(
-        isDiffFileLoading(state, addonId, baseVersionId, headVersionId, path),
+        isDiffLoading(state, addonId, baseVersionId, headVersionId, path),
       ).toEqual(true);
     });
 
@@ -3595,7 +3398,7 @@ describe(__filename, () => {
       );
 
       expect(
-        isDiffFileLoading(
+        isDiffLoading(
           state,
           addonId,
           baseVersionId,

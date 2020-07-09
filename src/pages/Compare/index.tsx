@@ -9,16 +9,14 @@ import DiffView from '../../components/DiffView';
 import Loading from '../../components/Loading';
 import VersionFileViewer from '../../components/VersionFileViewer';
 import {
-  CompareInfo,
   EntryStatusMap,
   Version,
-  VersionFileWithContent,
-  fetchDiff,
-  fetchVersionFile,
-  isFileLoading,
-  getCompareInfo,
+  VersionFileWithDiff,
+  fetchVersionWithDiff,
+  fetchDiffFile,
+  isDiffLoading,
   getEntryStatusMap,
-  getVersionFile,
+  getVersionDiff,
   getVersionInfo,
   viewVersionFile,
   actions as versionsActions,
@@ -36,8 +34,8 @@ import {
 } from '../../utils';
 
 export type PublicProps = {
-  _fetchDiff: typeof fetchDiff;
-  _fetchVersionFile: typeof fetchVersionFile;
+  _fetchVersionWithDiff: typeof fetchVersionWithDiff;
+  _fetchDiffFile: typeof fetchDiffFile;
   _viewVersionFile: typeof viewVersionFile;
 };
 
@@ -50,21 +48,19 @@ type PropsFromRouter = {
 
 type PropsFromState = {
   addonId: number;
-  compareInfo: CompareInfo | null | undefined;
   currentBaseVersionId: number | null | undefined | false;
   currentVersionId: number | null | undefined | false;
-  nextCompareInfo: CompareInfo | null | undefined;
-  nextFile: VersionFileWithContent | null | undefined;
-  nextFileIsLoading: boolean;
-  nextFilePath: string | undefined;
   entryStatusMap: EntryStatusMap | undefined;
   fileTreeComparedToVersionId: number | null;
   fileTreeVersionId: number | undefined;
+  nextDiff: VersionFileWithDiff | undefined | null;
+  nextDiffIsLoading: boolean;
+  nextDiffPath: string | undefined;
   path: string | undefined;
   selectedPath: string | null;
   version: Version | undefined | null;
-  versionFile: VersionFileWithContent | undefined | null;
-  versionFileIsLoading: boolean;
+  versionDiff: VersionFileWithDiff | undefined | null;
+  versionDiffIsLoading: boolean;
 };
 
 type Props = RouteComponentProps<PropsFromRouter> &
@@ -74,8 +70,8 @@ type Props = RouteComponentProps<PropsFromRouter> &
 
 export class CompareBase extends React.Component<Props> {
   static defaultProps = {
-    _fetchDiff: fetchDiff,
-    _fetchVersionFile: fetchVersionFile,
+    _fetchVersionWithDiff: fetchVersionWithDiff,
+    _fetchDiffFile: fetchDiffFile,
     _viewVersionFile: viewVersionFile,
   };
 
@@ -89,9 +85,8 @@ export class CompareBase extends React.Component<Props> {
 
   loadData() {
     const {
-      _fetchDiff,
-      _fetchVersionFile,
-      compareInfo,
+      _fetchVersionWithDiff,
+      _fetchDiffFile,
       currentBaseVersionId,
       currentVersionId,
       entryStatusMap,
@@ -100,15 +95,14 @@ export class CompareBase extends React.Component<Props> {
       dispatch,
       history,
       match,
-      nextCompareInfo,
-      nextFile,
-      nextFileIsLoading,
-      nextFilePath,
+      nextDiff,
+      nextDiffIsLoading,
+      nextDiffPath,
       path,
       selectedPath,
       version,
-      versionFile,
-      versionFileIsLoading,
+      versionDiff,
+      versionDiffIsLoading,
     } = this.props;
     const { addonId, baseVersionId, headVersionId, lang } = match.params;
 
@@ -124,8 +118,8 @@ export class CompareBase extends React.Component<Props> {
       return;
     }
 
-    if (compareInfo === null) {
-      // An error has occured when fetching the compare info.
+    if (versionDiff === null) {
+      // An error has occured when fetching the diff.
       return;
     }
 
@@ -143,19 +137,31 @@ export class CompareBase extends React.Component<Props> {
         newVersionId !== fileTreeVersionId
       : false;
 
+    // Fetch full version, if we need it.
     if (
-      compareInfo === undefined ||
-      version === undefined ||
-      entryStatusMap === undefined ||
-      forceReloadVersion
+      !versionDiffIsLoading &&
+      (version === undefined ||
+        entryStatusMap === undefined ||
+        forceReloadVersion)
     ) {
       dispatch(
-        _fetchDiff({
+        _fetchVersionWithDiff({
           addonId: parseInt(addonId, 10),
           baseVersionId: oldVersionId,
           headVersionId: newVersionId,
           path: path || undefined,
           forceReloadVersion,
+        }),
+      );
+      return;
+    }
+    if (!versionDiffIsLoading && path && !versionDiff) {
+      dispatch(
+        _fetchDiffFile({
+          addonId: parseInt(addonId, 10),
+          baseVersionId: oldVersionId,
+          headVersionId: newVersionId,
+          path,
         }),
       );
       return;
@@ -179,44 +185,15 @@ export class CompareBase extends React.Component<Props> {
         );
       }
 
-      const shouldFetchVersionFile =
-        !versionFile && entryStatusMap[version.selectedPath] !== 'D';
-
-      if (!versionFileIsLoading && shouldFetchVersionFile) {
+      if (nextDiffPath && nextDiff === undefined && !nextDiffIsLoading) {
         dispatch(
-          _fetchVersionFile({
+          _fetchDiffFile({
             addonId: parseInt(addonId, 10),
-            versionId: version.id,
-            path: version.selectedPath,
+            baseVersionId: oldVersionId,
+            headVersionId: newVersionId,
+            path: nextDiffPath,
           }),
         );
-      }
-
-      if (!shouldFetchVersionFile && nextFilePath) {
-        if (
-          !nextFileIsLoading &&
-          nextFile === undefined &&
-          entryStatusMap[nextFilePath] !== 'D'
-        ) {
-          dispatch(
-            _fetchVersionFile({
-              addonId: parseInt(addonId, 10),
-              versionId: version.id,
-              path: nextFilePath,
-            }),
-          );
-        }
-
-        if (nextCompareInfo === undefined) {
-          dispatch(
-            _fetchDiff({
-              addonId: parseInt(addonId, 10),
-              baseVersionId: oldVersionId,
-              headVersionId: newVersionId,
-              path: nextFilePath,
-            }),
-          );
-        }
       }
     }
   }
@@ -237,9 +214,9 @@ export class CompareBase extends React.Component<Props> {
   };
 
   renderLoadingMessageOrError(message: string) {
-    const { compareInfo } = this.props;
+    const { version, versionDiff } = this.props;
 
-    if (compareInfo === null) {
+    if (version === null || versionDiff === null) {
       return <p>{gettext('Oops, an error has occurred.')}</p>;
     }
 
@@ -252,14 +229,7 @@ export class CompareBase extends React.Component<Props> {
   }
 
   render() {
-    const {
-      compareInfo,
-      entryStatusMap,
-      match,
-      path,
-      version,
-      versionFile,
-    } = this.props;
+    const { entryStatusMap, match, path, version, versionDiff } = this.props;
 
     const { baseVersionId, headVersionId } = match.params;
     const comparedToVersionId = parseInt(baseVersionId, 10);
@@ -278,21 +248,20 @@ export class CompareBase extends React.Component<Props> {
           </title>
         </Helmet>
         <VersionFileViewer
-          compareInfo={compareInfo}
           comparedToVersionId={comparedToVersionId}
           entryStatusMap={entryStatusMap}
-          file={versionFile}
-          getCodeLineAnchor={createCodeLineAnchorGetter({ compareInfo })}
+          file={versionDiff}
+          getCodeLineAnchor={createCodeLineAnchorGetter(versionDiff)}
           onSelectFile={this.viewVersionFile}
           version={version}
         >
-          {version && versionFile && compareInfo ? (
+          {version && versionDiff ? (
             <DiffView
-              diff={compareInfo.diff}
-              isMinified={versionFile.isMinified}
+              diff={versionDiff.diff}
+              isMinified={versionDiff.isMinified}
               // This key resets scrollbars between files
               key={`${version.id}:${path}`}
-              mimeType={compareInfo.mimeType}
+              mimeType={versionDiff.mimeType}
               version={version}
             />
           ) : (
@@ -316,14 +285,6 @@ export const mapStateToProps = (
   const headVersionId = parseInt(match.params.headVersionId, 10);
   const path = getPathFromQueryString(history) || undefined;
 
-  const compareInfo = getCompareInfo(
-    state.versions,
-    addonId,
-    baseVersionId,
-    headVersionId,
-    path,
-  );
-
   // The Compare API returns the version info of the head/newest version.
   const version = getVersionInfo(state.versions, headVersionId);
 
@@ -337,19 +298,18 @@ export const mapStateToProps = (
     ? state.versions.currentVersionId
     : undefined;
 
-  let versionFile;
-  if (version) {
-    versionFile = getVersionFile(
-      state.versions,
-      headVersionId,
-      version.selectedPath,
-    );
-  }
+  const versionDiff = getVersionDiff({
+    addonId,
+    baseVersionId,
+    headVersionId,
+    path: (version && version.selectedPath) || '',
+    versions: state.versions,
+  });
 
   const tree = getTree(state.fileTree, headVersionId);
   const paths = version ? version.entries.map((entry) => entry.path) : [];
 
-  const nextFilePath =
+  const nextDiffPath =
     version &&
     tree &&
     entryStatusMap &&
@@ -364,38 +324,46 @@ export const mapStateToProps = (
         })
       : undefined;
 
-  const nextCompareInfo = nextFilePath
-    ? getCompareInfo(
-        state.versions,
+  const nextDiff = nextDiffPath
+    ? getVersionDiff({
         addonId,
         baseVersionId,
         headVersionId,
-        nextFilePath,
-      )
+        path: nextDiffPath,
+        versions: state.versions,
+      })
     : undefined;
 
   return {
     addonId,
-    compareInfo,
     currentBaseVersionId: state.versions.currentBaseVersionId,
     currentVersionId,
     entryStatusMap,
     fileTreeComparedToVersionId: fileTree.comparedToVersionId,
     fileTreeVersionId: fileTree.forVersionId,
-    nextCompareInfo,
-    nextFile: nextFilePath
-      ? getVersionFile(state.versions, headVersionId, nextFilePath)
-      : undefined,
-    nextFileIsLoading: nextFilePath
-      ? isFileLoading(state.versions, headVersionId, nextFilePath)
+    nextDiff,
+    nextDiffIsLoading: nextDiffPath
+      ? isDiffLoading(
+          state.versions,
+          addonId,
+          baseVersionId,
+          headVersionId,
+          nextDiffPath,
+        )
       : false,
-    nextFilePath,
+    nextDiffPath,
     path,
     selectedPath,
     version,
-    versionFile,
-    versionFileIsLoading: version
-      ? isFileLoading(state.versions, version.id, version.selectedPath)
+    versionDiff,
+    versionDiffIsLoading: version
+      ? isDiffLoading(
+          state.versions,
+          addonId,
+          baseVersionId,
+          headVersionId,
+          version.selectedPath,
+        )
       : false,
   };
 };

@@ -1,14 +1,10 @@
 import * as React from 'react';
 import { shallow } from 'enzyme';
 
+import { createInternalVersionFile } from '../../reducers/versions';
 import {
-  actions as versionActions,
-  getVersionFile,
-  VersionFileWithContent,
-} from '../../reducers/versions';
-import {
-  fakeVersionWithContent,
-  createStoreWithVersion,
+  fakeVersionFileWithContent,
+  fakeVersionFileWithDiff,
 } from '../../test-helpers';
 import styles from './styles.module.scss';
 import { formatFilesize } from '../../utils';
@@ -17,28 +13,8 @@ import { makeApiURL } from '../../api';
 import FileMetadata from '.';
 
 describe(__filename, () => {
-  const _getVersionFile = (props = {}) => {
-    const version = fakeVersionWithContent;
-    const store = createStoreWithVersion({ version });
-    store.dispatch(
-      versionActions.loadVersionFile({
-        path: version.file.selected_file,
-        version,
-      }),
-    );
-
-    return {
-      ...(getVersionFile(
-        store.getState().versions,
-        version.id,
-        version.file.selected_file,
-      ) as VersionFileWithContent),
-      ...props,
-    };
-  };
-
-  it('renders metadata for a file', () => {
-    const file = _getVersionFile();
+  it('renders metadata for a file with content', () => {
+    const file = createInternalVersionFile(fakeVersionFileWithContent);
     const versionString = '1.2';
     const root = shallow(
       <FileMetadata file={file} versionString={versionString} />,
@@ -57,9 +33,22 @@ describe(__filename, () => {
     );
   });
 
+  it('can render for a file with a diff', () => {
+    const file = createInternalVersionFile(fakeVersionFileWithDiff);
+    const versionString = '1.2';
+    const root = shallow(
+      <FileMetadata file={file} versionString={versionString} />,
+    );
+
+    expect(root.find(`.${styles.version}`)).toHaveText(versionString);
+  });
+
   it('renders a formatted filesize', () => {
     const size = 12345;
-    const file = _getVersionFile({ size });
+    const file = createInternalVersionFile({
+      ...fakeVersionFileWithContent,
+      size,
+    });
     const root = shallow(<FileMetadata file={file} versionString="1.2" />);
 
     expect(root.find(`.${styles.size}`)).toHaveText(formatFilesize(size));

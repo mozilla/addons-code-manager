@@ -11,11 +11,13 @@ import KeyboardShortcuts from '../KeyboardShortcuts';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import Loading from '../Loading';
 import {
-  CompareInfo,
   EntryStatusMap,
   Version,
   VersionFileWithContent,
+  VersionFileWithDiff,
   getInsertedLines,
+  isFileWithContent,
+  isFileWithDiff,
 } from '../../reducers/versions';
 import { AnyReactNode } from '../../typeUtils';
 import { flattenDiffChanges, gettext } from '../../utils';
@@ -31,9 +33,8 @@ export type PublicProps = {
   _getInsertedLines?: typeof getInsertedLines;
   children: AnyReactNode;
   comparedToVersionId: number | null;
-  compareInfo?: CompareInfo | null | undefined;
   entryStatusMap?: EntryStatusMap;
-  file: VersionFileWithContent | null | undefined;
+  file: VersionFileWithContent | VersionFileWithDiff | null | undefined;
   getCodeLineAnchor?: GetCodeLineAnchor;
   onSelectFile: FileTreeProps['onSelect'];
   version: Version | undefined | null;
@@ -43,7 +44,6 @@ const VersionFileViewer = ({
   _getInsertedLines = getInsertedLines,
   children,
   comparedToVersionId,
-  compareInfo,
   entryStatusMap,
   file,
   getCodeLineAnchor,
@@ -73,8 +73,8 @@ const VersionFileViewer = ({
         : null;
 
     const insertedLines =
-      compareInfo && compareInfo.diff
-        ? _getInsertedLines(compareInfo.diff)
+      file && isFileWithDiff(file) && file.diff
+        ? _getInsertedLines(file.diff)
         : [];
 
     const { versionString, selectedPath } = version;
@@ -99,9 +99,9 @@ const VersionFileViewer = ({
 
     let overviewContent = '';
     if (file) {
-      if (compareInfo && compareInfo.diff) {
-        overviewContent = flattenDiffChanges(compareInfo.diff);
-      } else if (file.fileType !== 'image') {
+      if (isFileWithDiff(file) && file.diff) {
+        overviewContent = flattenDiffChanges(file.diff);
+      } else if (isFileWithContent(file) && file.fileType !== 'image') {
         overviewContent = file.content;
       }
     }
@@ -125,8 +125,8 @@ const VersionFileViewer = ({
             <AccordionItem title={ItemTitles.Shortcuts}>
               <KeyboardShortcuts
                 comparedToVersionId={comparedToVersionId}
-                compareInfo={compareInfo}
                 currentPath={version.selectedPath}
+                file={file}
                 messageMap={messageMap}
                 versionId={version.id}
               />
