@@ -545,13 +545,18 @@ export const deleteComment = async ({
 };
 
 type GetValidationParams = {
+  addonId: number;
   apiState: ApiState;
-  url: string;
+  fileId: number;
 };
 
-export const getValidation = async ({ apiState, url }: GetValidationParams) => {
+export const getValidation = async ({
+  addonId,
+  apiState,
+  fileId,
+}: GetValidationParams) => {
   return callApi<ResponseOnly<ExternalLinterResult>>({
     apiState,
-    endpointUrl: url,
+    endpoint: `reviewers/addon/${addonId}/file/${fileId}/validation/`,
   });
 };

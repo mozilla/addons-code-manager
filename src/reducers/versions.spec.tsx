@@ -885,12 +885,12 @@ describe(__filename, () => {
         addon: createInternalVersionAddon(version.addon),
         entries: [createInternalVersionEntry(entry)],
         expandedPaths: getParentFolders(version.file.selected_file),
+        fileId: version.file.id,
         id: version.id,
         initialPath: version.file.selected_file,
         reviewed: version.reviewed,
         versionString: version.version,
         selectedPath: version.file.selected_file,
-        validationURL: fakeVersionWithContent.validation_url_json,
         visibleSelectedPath: null,
       });
     });

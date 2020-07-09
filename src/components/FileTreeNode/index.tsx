@@ -329,11 +329,7 @@ export class FileTreeNodeBase<TreeNodeType> extends React.Component<Props> {
     const { version } = this.props;
 
     return (
-      <LinterProvider
-        versionId={version.id}
-        validationURL={version.validationURL}
-        selectedPath={version.selectedPath}
-      >
+      <LinterProvider version={version} selectedPath={version.selectedPath}>
         {(info: LinterProviderInfo) => this.renderWithLinterInfo(info)}
       </LinterProvider>
     );

@@ -13,8 +13,9 @@ import {
 } from '../../reducers/linter';
 import LinterProvider, { LinterProviderInfo } from '../LinterProvider';
 import {
-  actions as versionsActions,
   VersionEntryStatus,
+  actions as versionsActions,
+  createInternalVersion,
 } from '../../reducers/versions';
 import {
   createExternalVersionWithEntries,
@@ -820,10 +821,9 @@ describe(__filename, () => {
     const root = render({ store, versionId: externalVersion.id });
 
     const provider = root.find(LinterProvider);
-    expect(provider).toHaveProp('versionId', externalVersion.id);
     expect(provider).toHaveProp(
-      'validationURL',
-      externalVersion.validation_url_json,
+      'version',
+      createInternalVersion(externalVersion),
     );
     expect(provider).toHaveProp(
       'selectedPath',

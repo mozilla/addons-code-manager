@@ -273,11 +273,7 @@ export class CodeViewBase extends React.Component<Props> {
 
     return (
       <React.Profiler id="CodeView-Render" onRender={this.onRenderProfiler}>
-        <LinterProvider
-          versionId={version.id}
-          validationURL={version.validationURL}
-          selectedPath={version.selectedPath}
-        >
+        <LinterProvider version={version} selectedPath={version.selectedPath}>
           {
             // This needs to be an anonymous function (which defeats memoization)
             // so that the component gets re-rendered in the case of adding

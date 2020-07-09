@@ -1145,11 +1145,21 @@ describe(__filename, () => {
 
   describe('getValidation', () => {
     it('calls the API to retrieve validation information', async () => {
-      const url = 'some-url';
+      const addonId = nextUniqueId();
+      const fileId = nextUniqueId();
 
-      await getValidation({ apiState: defaultApiState, url });
+      await getValidation({
+        apiState: defaultApiState,
+        addonId,
+        fileId,
+      });
 
-      expect(fetch).toHaveBeenCalledWith(url, expect.any(Object));
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringMatching(
+          `/api/${defaultVersion}/reviewers/addon/${addonId}/file/${fileId}/validation/`,
+        ),
+        expect.any(Object),
+      );
     });
   });
 });

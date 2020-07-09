@@ -152,11 +152,7 @@ const VersionFileViewer = ({
   };
 
   return (
-    <LinterProvider
-      versionId={version.id}
-      validationURL={version.validationURL}
-      selectedPath={version.selectedPath}
-    >
+    <LinterProvider version={version} selectedPath={version.selectedPath}>
       {renderWithLinterProvider}
     </LinterProvider>
   );

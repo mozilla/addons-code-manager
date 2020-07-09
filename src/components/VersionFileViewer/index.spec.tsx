@@ -256,8 +256,7 @@ describe(__filename, () => {
     const root = render({ version });
 
     const provider = root.find(LinterProvider);
-    expect(provider).toHaveProp('versionId', version.id);
-    expect(provider).toHaveProp('validationURL', version.validationURL);
+    expect(provider).toHaveProp('version', version);
     expect(provider).toHaveProp('selectedPath', version.selectedPath);
   });
 

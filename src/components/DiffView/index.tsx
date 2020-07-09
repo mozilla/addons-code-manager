@@ -515,11 +515,7 @@ export class DiffViewBase extends React.Component<Props> {
 
     return (
       <Profiler id="DiffView-Render" onRender={this.onRenderProfiler}>
-        <LinterProvider
-          versionId={version.id}
-          validationURL={version.validationURL}
-          selectedPath={version.selectedPath}
-        >
+        <LinterProvider version={version} selectedPath={version.selectedPath}>
           {this.renderWithMessages}
         </LinterProvider>
       </Profiler>

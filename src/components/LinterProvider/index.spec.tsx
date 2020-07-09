@@ -42,8 +42,7 @@ describe(__filename, () => {
   }: RenderParams = {}) => {
     const props = {
       children,
-      versionId: version.id,
-      validationURL: version.validationURL,
+      version,
       selectedPath: version.selectedPath,
       ...moreProps,
     };
@@ -134,12 +133,7 @@ describe(__filename, () => {
   });
 
   it('dispatches fetchLinterMessagesIfNeeded when linterMessages is undefined', () => {
-    const url = '/path/to/validation.json';
-    const version = createInternalVersion({
-      ...fakeVersionWithContent,
-      id: fakeVersionWithContent.id + 1,
-      validation_url_json: url,
-    });
+    const version = createInternalVersion(fakeVersionWithContent);
 
     const {
       _fetchLinterMessagesIfNeeded,
@@ -151,8 +145,7 @@ describe(__filename, () => {
 
     expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
     expect(_fetchLinterMessagesIfNeeded).toHaveBeenCalledWith({
-      versionId: version.id,
-      url,
+      version,
     });
   });
 
