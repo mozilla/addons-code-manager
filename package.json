@@ -21,7 +21,7 @@
     "@types/lodash.debounce": "4.0.6",
     "@types/lodash.unescape": "4.0.6",
     "@types/node": "10.17.27",
-    "@types/react": "16.9.41",
+    "@types/react": "16.9.43",
     "@types/react-bootstrap": "0.32.22",
     "@types/react-dom": "16.9.8",
     "@types/react-helmet": "6.0.0",
