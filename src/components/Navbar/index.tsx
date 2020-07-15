@@ -163,6 +163,9 @@ export class NavbarBase extends React.Component<Props, State> {
     const { nextBaseVersionImprint } = this.state;
     const path = getPathFromQueryString(history);
     const baseUrlToLegacy = `${reviewersHost}/${lang}/firefox/files`;
+    const addonSlugOrId = currentVersion
+      ? currentVersion.addon.slug || currentVersion.addon.id
+      : '';
 
     return (
       <Navbar className={styles.Navbar} expand="lg" variant="dark">
@@ -173,7 +176,7 @@ export class NavbarBase extends React.Component<Props, State> {
                 <div className={styles.infoItem}>
                   <a
                     className={styles.reviewerToolsLink}
-                    href={`${reviewersHost}/reviewers/review/${currentVersion.addon.slug}`}
+                    href={`${reviewersHost}/reviewers/review/${addonSlugOrId}`}
                     rel="noopener noreferrer"
                     target="_blank"
                   >
