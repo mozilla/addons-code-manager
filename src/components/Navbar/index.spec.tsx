@@ -127,6 +127,24 @@ describe(__filename, () => {
       );
     });
 
+    it('renders a link to reviewer tools for a deleted add-on', () => {
+      const reviewersHost = 'https://example.com';
+      const id = 456;
+      const store = createStoreWithVersion({
+        version: {
+          ...fakeVersionWithContent,
+          addon: { ...fakeVersionAddon, id, slug: null },
+        },
+        makeCurrent: true,
+      });
+      const root = render({ reviewersHost, store });
+
+      expect(root.find(`.${styles.reviewerToolsLink}`)).toHaveProp(
+        'href',
+        `${reviewersHost}/reviewers/review/${id}`,
+      );
+    });
+
     it('renders VersionChooser', () => {
       const addonId = nextUniqueId();
       const store = createStoreWithCurrentVersion({ addonId });
