@@ -68,7 +68,7 @@ export type ExternalVersionAddon = {
   icon_url: string;
   id: number;
   name: LocalizedStringMap;
-  slug: string;
+  slug: string | null;
 };
 
 export type PartialExternalVersion = {
@@ -195,7 +195,7 @@ type VersionAddon = {
   iconUrl: string;
   id: number;
   name: LocalizedStringMap;
-  slug: string;
+  slug: string | null;
 };
 
 export type Version = {
