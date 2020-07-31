@@ -149,6 +149,8 @@ export class AppBase extends React.Component<Props> {
     }
 
     if (user) {
+      // Important: when adding a new route below, you will also have to update
+      // the Nginx config (maintained by ops).
       return (
         <Switch>
           <Route exact path="/" component={Index} />
