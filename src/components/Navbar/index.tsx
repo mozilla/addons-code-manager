@@ -2,14 +2,9 @@ import makeClassName from 'classnames';
 import * as React from 'react';
 import { Button, Navbar } from 'react-bootstrap';
 import { connect } from 'react-redux';
-import { withRouter, RouteComponentProps } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import {
-  gettext,
-  getLocalizedString,
-  getPathFromQueryString,
-} from '../../utils';
+import { gettext, getLocalizedString } from '../../utils';
 import CommentSummaryButton from '../CommentSummaryButton';
 import LoginButton from '../LoginButton';
 import VersionChooser from '../VersionChooser';
@@ -27,7 +22,6 @@ import styles from './styles.module.scss';
 
 export type PublicProps = {
   _requestLogOut: typeof requestLogOut;
-  lang: string;
   reviewersHost: string;
 };
 
@@ -40,30 +34,20 @@ type PropsFromState = {
   currentBaseVersion: Version | null | undefined | false;
   currentBaseVersionId: number | undefined | false;
   currentVersion: Version | null | undefined | false;
-  currentVersionId: number | undefined | false;
   selectedPath: string | null;
   user: User | null;
 };
 
-type Props = PublicProps &
-  DefaultProps &
-  PropsFromState &
-  ConnectedReduxProps &
-  RouteComponentProps<{}>;
+type Props = PublicProps & DefaultProps & PropsFromState & ConnectedReduxProps;
 
 type State = {
   nextBaseVersionImprint: string | undefined;
-};
-
-export const legacyQuerystring = (path: string | null) => {
-  return path ? `?file=${path}` : '';
 };
 
 export class NavbarBase extends React.Component<Props, State> {
   static defaultProps = {
     _fetchVersion: fetchVersion,
     _requestLogOut: requestLogOut,
-    lang: process.env.REACT_APP_DEFAULT_API_LANG,
     reviewersHost: process.env.REACT_APP_REVIEWERS_HOST,
   };
 
@@ -152,17 +136,11 @@ export class NavbarBase extends React.Component<Props, State> {
   render() {
     const {
       currentBaseVersion,
-      currentBaseVersionId,
       currentVersion,
-      currentVersionId,
-      history,
-      lang,
       reviewersHost,
       user,
     } = this.props;
     const { nextBaseVersionImprint } = this.state;
-    const path = getPathFromQueryString(history);
-    const baseUrlToLegacy = `${reviewersHost}/${lang}/firefox/files`;
     const addonSlugOrId = currentVersion
       ? currentVersion.addon.slug || currentVersion.addon.id
       : '';
@@ -229,24 +207,6 @@ export class NavbarBase extends React.Component<Props, State> {
           </div>
         </Navbar.Brand>
         <Navbar.Text className={styles.text}>
-          {currentVersionId ? (
-            <a
-              className={styles.legacyLink}
-              href={
-                currentBaseVersionId
-                  ? `${baseUrlToLegacy}/compare-redirect/${currentVersionId}...${currentBaseVersionId}/${legacyQuerystring(
-                      path,
-                    )}`
-                  : `${baseUrlToLegacy}/browse-redirect/${currentVersionId}/${legacyQuerystring(
-                      path,
-                    )}`
-              }
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              {gettext('Legacy Viewer')}
-            </a>
-          ) : null}
           {user ? <span className={styles.username}>{user.name}</span> : null}
           {user ? (
             <Button size="sm" className={styles.logOut} onClick={this.logOut}>
@@ -281,9 +241,8 @@ export const mapStateToProps = (state: ApplicationState): PropsFromState => {
     currentBaseVersion,
     currentBaseVersionId,
     currentVersion,
-    currentVersionId: state.versions.currentVersionId,
     selectedPath,
   };
 };
 
-export default withRouter(connect(mapStateToProps)(NavbarBase));
+export default connect(mapStateToProps)(NavbarBase);
