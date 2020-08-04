@@ -9,10 +9,7 @@ import LoginButton from '../LoginButton';
 import VersionChooser from '../VersionChooser';
 import styles from './styles.module.scss';
 import {
-  createContextWithFakeRouter,
   createFakeExternalComment,
-  createFakeHistory,
-  createFakeLocation,
   createFakeThunk,
   createStoreWithVersion,
   createStoreWithVersionComments,
@@ -35,7 +32,6 @@ describe(__filename, () => {
 
   const render = ({
     store = configureStore(),
-    path = 'default/path.js',
     ...moreProps
   }: RenderParams = {}) => {
     const props = {
@@ -44,22 +40,9 @@ describe(__filename, () => {
       ...moreProps,
     };
 
-    const shallowOptions = createContextWithFakeRouter();
-    const history = createFakeHistory({
-      location: createFakeLocation({
-        searchQuery: { path },
-      }),
-    });
-
     return shallowUntilTarget(<Navbar {...props} />, NavbarBase, {
       shallowOptions: {
-        ...shallowOptions,
         context: {
-          ...shallowOptions.context,
-          router: {
-            ...shallowOptions.context.router,
-            history,
-          },
           store,
         },
       },
