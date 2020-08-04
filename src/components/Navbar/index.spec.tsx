@@ -27,12 +27,7 @@ import {
 import { actions as userActions } from '../../reducers/users';
 import { actions as versionsActions } from '../../reducers/versions';
 
-import Navbar, {
-  NavbarBase,
-  PublicProps,
-  legacyQuerystring,
-  mapStateToProps,
-} from '.';
+import Navbar, { NavbarBase, PublicProps, mapStateToProps } from '.';
 
 describe(__filename, () => {
   type RenderParams = Partial<PublicProps> &
@@ -173,48 +168,6 @@ describe(__filename, () => {
       const root = render();
 
       expect(root.find(VersionChooser)).toHaveLength(0);
-    });
-
-    it('renders a link to the legacy file viewer when only currentVersionId is set', () => {
-      const lang = 'fr';
-      const reviewersHost = 'https://example.com';
-      const path = '/some/file/path/file.js';
-      const store = configureStore();
-      const versionId = 12345;
-      store.dispatch(versionsActions.setCurrentVersionId({ versionId }));
-
-      const root = render({ lang, reviewersHost, store, path });
-
-      expect(root.find(`.${styles.legacyLink}`)).toHaveProp(
-        'href',
-        `${reviewersHost}/${lang}/firefox/files/browse-redirect/${versionId}/${legacyQuerystring(
-          path,
-        )}`,
-      );
-    });
-
-    it('renders a link to the legacy diff viewer when both currentVersionId and baseVersionId are set', () => {
-      const baseVersionId = 12345;
-      const lang = 'fr';
-      const reviewersHost = 'https://example.com';
-      const path = '/some/file/path/file.js';
-      const store = configureStore();
-      const versionId = 54321;
-      store.dispatch(versionsActions.setCurrentVersionId({ versionId }));
-      store.dispatch(
-        versionsActions.setCurrentBaseVersionId({
-          versionId: baseVersionId,
-        }),
-      );
-
-      const root = render({ lang, reviewersHost, store, path });
-
-      expect(root.find(`.${styles.legacyLink}`)).toHaveProp(
-        'href',
-        `${reviewersHost}/${lang}/firefox/files/compare-redirect/${versionId}...${baseVersionId}/${legacyQuerystring(
-          path,
-        )}`,
-      );
     });
   });
 
@@ -534,17 +487,6 @@ describe(__filename, () => {
 
       const info = root.find(`.${styles.versionIndicator}`);
       expect(info).toHaveText(`${current}`);
-    });
-  });
-
-  describe('legacyQuerystring', () => {
-    it('returns a query string with a file query param when path exists', () => {
-      const path = 'path/to/file.js';
-      expect(legacyQuerystring(path)).toEqual(`?file=${path}`);
-    });
-
-    it.each(['', null])('returns nothing when path does not exist', (path) => {
-      expect(legacyQuerystring(path)).toEqual('');
     });
   });
 });

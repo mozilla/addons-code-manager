@@ -5,11 +5,7 @@ import { connect } from 'react-redux';
 import { withRouter, RouteComponentProps } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import {
-  gettext,
-  getLocalizedString,
-  getPathFromQueryString,
-} from '../../utils';
+import { gettext, getLocalizedString } from '../../utils';
 import CommentSummaryButton from '../CommentSummaryButton';
 import LoginButton from '../LoginButton';
 import VersionChooser from '../VersionChooser';
@@ -53,10 +49,6 @@ type Props = PublicProps &
 
 type State = {
   nextBaseVersionImprint: string | undefined;
-};
-
-export const legacyQuerystring = (path: string | null) => {
-  return path ? `?file=${path}` : '';
 };
 
 export class NavbarBase extends React.Component<Props, State> {
@@ -152,17 +144,11 @@ export class NavbarBase extends React.Component<Props, State> {
   render() {
     const {
       currentBaseVersion,
-      currentBaseVersionId,
       currentVersion,
-      currentVersionId,
-      history,
-      lang,
       reviewersHost,
       user,
     } = this.props;
     const { nextBaseVersionImprint } = this.state;
-    const path = getPathFromQueryString(history);
-    const baseUrlToLegacy = `${reviewersHost}/${lang}/firefox/files`;
     const addonSlugOrId = currentVersion
       ? currentVersion.addon.slug || currentVersion.addon.id
       : '';
@@ -229,24 +215,6 @@ export class NavbarBase extends React.Component<Props, State> {
           </div>
         </Navbar.Brand>
         <Navbar.Text className={styles.text}>
-          {currentVersionId ? (
-            <a
-              className={styles.legacyLink}
-              href={
-                currentBaseVersionId
-                  ? `${baseUrlToLegacy}/compare-redirect/${currentVersionId}...${currentBaseVersionId}/${legacyQuerystring(
-                      path,
-                    )}`
-                  : `${baseUrlToLegacy}/browse-redirect/${currentVersionId}/${legacyQuerystring(
-                      path,
-                    )}`
-              }
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              {gettext('Legacy Viewer')}
-            </a>
-          ) : null}
           {user ? <span className={styles.username}>{user.name}</span> : null}
           {user ? (
             <Button size="sm" className={styles.logOut} onClick={this.logOut}>
