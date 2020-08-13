@@ -154,7 +154,6 @@ export const createServer = ({
   app.use(
     helmet.contentSecurityPolicy({
       directives: baseCSP,
-      browserSniff: false,
     }),
   );
 
@@ -248,7 +247,6 @@ export const createServer = ({
     app.use(
       helmet.contentSecurityPolicy({
         directives: prodCSP,
-        browserSniff: false,
       }),
     );
 
@@ -286,7 +284,6 @@ export const createServer = ({
           ],
           styleSrc: ["'self'", "'unsafe-inline'"],
         },
-        browserSniff: false,
       }),
     );
 
