@@ -98,7 +98,7 @@
     "jest-enzyme": "^7.1.2",
     "jest-fetch-mock": "^3.0.0",
     "prettier": "2.1.1",
-    "pretty-quick": "^2.0.0",
+    "pretty-quick": "^3.0.0",
     "react-storybook-addon-chapters": "^3.1.1",
     "stmux": "^1.6.1",
     "storybook-addon-root-attribute": "^1.0.0",
