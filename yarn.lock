@@ -3176,10 +3176,10 @@
     "@types/history" "*"
     "@types/react" "*"
 
-"@types/react-bootstrap@0.32.22":
-  version "0.32.22"
-  resolved "https://registry.yarnpkg.com/@types/react-bootstrap/-/react-bootstrap-0.32.22.tgz#26a1a5a95ce46759672c56168b46de9e759d89c6"
-  integrity sha512-pjUVcJzogMxns3lbvMqnnU+I8EOYxl3aI13tS2vvRm0RdAe1rs7Ds/VZA29GI6p8p3Un6NqKUpW3+dgwAjyzxg==
+"@types/react-bootstrap@0.32.23":
+  version "0.32.23"
+  resolved "https://registry.yarnpkg.com/@types/react-bootstrap/-/react-bootstrap-0.32.23.tgz#fd86a76bf9ab70b0c7fdf51444e2ccf31638074a"
+  integrity sha512-XsP4uUbtm3HBuDyerNqp/wanivtUT6kiQbrV7WT4Ck4Z1xotExoW8MY40JukDcfwwDtDHBDlT6JfFm2tjWA5dw==
   dependencies:
     "@types/react" "*"
 
