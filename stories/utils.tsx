@@ -11,7 +11,7 @@ export const renderWithStoreAndRouter = (
   element: JSX.Element,
   options: {
     store?: Store;
-    location?: Location<{}>;
+    location?: Location;
   } = {},
 ) => {
   return (
