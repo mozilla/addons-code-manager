@@ -51,7 +51,7 @@ import CodeView, {
 describe(__filename, () => {
   type RenderParams = Partial<PublicProps> &
     Partial<DefaultProps> & {
-      location?: Location<{}>;
+      location?: Location;
       store?: Store;
     };
 

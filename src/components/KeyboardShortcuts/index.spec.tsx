@@ -47,7 +47,7 @@ import KeyboardShortcuts, {
 
 describe(__filename, () => {
   type RenderParams = {
-    location?: Location<{}>;
+    location?: Location;
     store?: Store;
   } & Partial<PublicProps & DefaultProps>;
 
