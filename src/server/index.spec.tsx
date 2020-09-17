@@ -185,7 +185,7 @@ describe(__filename, () => {
         );
         expect(response.header['x-content-type-options']).toEqual('nosniff');
         expect(response.header['x-frame-options']).toEqual('DENY');
-        expect(response.header['x-xss-protection']).toEqual('1; mode=block');
+        expect(response.header['x-xss-protection']).toEqual('0');
 
         const staticResponse = await server.get('/favicon.ico');
 
