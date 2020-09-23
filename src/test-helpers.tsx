@@ -256,7 +256,6 @@ export const createExternalVersionWithEntries = (
         [file.path]: {
           ...fakeVersionEntry,
           filename: pathLib.basename(file.path),
-          path: file.path,
           ...file,
         },
       };
