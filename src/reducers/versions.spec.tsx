@@ -2829,7 +2829,7 @@ describe(__filename, () => {
         push({
           ...location,
           search: `?path=${selectedPath}`,
-          hash: undefined,
+          hash: '',
         }),
       );
     });
@@ -2850,7 +2850,7 @@ describe(__filename, () => {
         push({
           ...location,
           search: `${search}&path=${selectedPath}`,
-          hash: undefined,
+          hash: '',
         }),
       );
     });
@@ -2902,7 +2902,7 @@ describe(__filename, () => {
         push({
           ...location,
           search: `?path=${selectedPath}`,
-          hash: undefined,
+          hash: '',
         }),
       );
     });

@@ -1319,7 +1319,7 @@ export const viewVersionFile = ({
     // We do not want to preserve the hash when we select a new file for
     // instance, but we want to keep it when we load a file via its path.
     if (!preserveHash) {
-      delete newLocation.hash;
+      newLocation.hash = '';
     }
 
     dispatch(actions.updateSelectedPath({ versionId, selectedPath }));
