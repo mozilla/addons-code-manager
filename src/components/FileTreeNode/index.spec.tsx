@@ -92,7 +92,6 @@ describe(__filename, () => {
     ...props
   }: RenderParams = {}) => {
     const allProps: PublicProps = {
-      onSelect: () => undefined,
       versionId,
       comparedToVersionId,
       ...getTreefoldRenderProps(),
