@@ -6,7 +6,7 @@ import url from 'url';
 
 import express from 'express';
 import helmet from 'helmet';
-import proxy from 'http-proxy-middleware';
+import { createProxyMiddleware } from 'http-proxy-middleware';
 import cookiesMiddleware, {
   RequestWithCookies,
 } from 'universal-cookie-express';
@@ -183,7 +183,7 @@ export const createServer = ({
     }
 
     app.use(
-      proxy(['/api/**'], {
+      createProxyMiddleware(['/api/**'], {
         target: env.REACT_APP_API_HOST,
         autoRewrite: true,
         changeOrigin: true,
@@ -206,7 +206,7 @@ export const createServer = ({
     );
 
     app.use(
-      proxy(['/**/reviewers/download-git-file/**/'], {
+      createProxyMiddleware(['/**/reviewers/download-git-file/**/'], {
         target: env.REACT_APP_REVIEWERS_HOST,
         autoRewrite: true,
         changeOrigin: true,
@@ -295,7 +295,7 @@ export const createServer = ({
     });
 
     app.use(
-      proxy('/', {
+      createProxyMiddleware('/', {
         target: `http://localhost:${env.REACT_APP_CRA_PORT}`,
         // We need WebSocket for Hot Module Reload (HMR).
         ws: true,
