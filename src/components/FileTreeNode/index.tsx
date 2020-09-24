@@ -132,7 +132,7 @@ const getIconForType = (type: string | null) => {
   }
 };
 
-export class FileTreeNodeBase<TreeNodeType> extends React.Component<Props> {
+export class FileTreeNodeBase extends React.Component<Props> {
   private scrollIntoViewIfNeeded: ScrollIntoViewIfNeeded;
 
   private nodeRef: React.RefObject<HTMLDivElement> | null = this.props

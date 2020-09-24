@@ -68,7 +68,7 @@ type PropsFromState = {
   user: User | null;
 };
 
-type RouterProps = RouteComponentProps<{}>;
+type RouterProps = RouteComponentProps<Record<string, string | undefined>>;
 
 type Props = PublicProps &
   DefaultProps &

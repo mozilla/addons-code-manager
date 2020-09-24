@@ -638,8 +638,8 @@ describe(__filename, () => {
     it('throws for unexpected message types', () => {
       expect(() => {
         findMostSevereType([
-          // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-          // @ts-ignore
+          // @ts-expect-error: We know that this isn't a realistic type but we
+          // want to have a test case anyway.
           createMessageWithType('__unreal_type__'),
         ]);
       }).toThrow(/unknown types/);
@@ -659,9 +659,7 @@ describe(__filename, () => {
       });
 
       const unexpectedKey = 'future';
-      // Artifically inject a new key in the message map.
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-      // @ts-ignore
+      // @ts-expect-error: artifically inject a new key in the message map.
       messages[unexpectedKey] = {};
 
       expect(() => {

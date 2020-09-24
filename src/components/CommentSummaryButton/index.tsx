@@ -12,9 +12,9 @@ import CommentSummary from '../CommentSummary';
 import PopoverButton from '../PopoverButton';
 import styles from './styles.module.scss';
 
-export type PublicProps = {};
+export type PublicProps = Record<string, unknown>;
 
-export type DefaultProps = {};
+export type DefaultProps = Record<string, unknown>;
 
 type PropsFromState = {
   comments: Comment[] | undefined;

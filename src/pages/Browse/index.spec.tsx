@@ -1,4 +1,3 @@
-/* eslint @typescript-eslint/camelcase: 0 */
 import * as React from 'react';
 import { Store } from 'redux';
 import queryString from 'query-string';

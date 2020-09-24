@@ -1,4 +1,3 @@
-/* eslint @typescript-eslint/camelcase: 0 */
 import { shallow } from 'enzyme';
 import * as React from 'react';
 import Treefold from 'react-treefold';
@@ -202,6 +201,7 @@ describe(__filename, () => {
       const treeFold = root.find(Treefold);
       expect(treeFold).toHaveProp('onToggleExpand');
 
+      // eslint-disable-next-line @typescript-eslint/ban-types
       const onToggleExpand = treeFold.prop('onToggleExpand') as Function;
       onToggleExpand(node);
 
@@ -241,6 +241,7 @@ describe(__filename, () => {
       const treeFold = root.find(Treefold);
       expect(treeFold).toHaveProp('isNodeExpanded');
 
+      // eslint-disable-next-line @typescript-eslint/ban-types
       const isNodeExpanded = treeFold.prop('isNodeExpanded') as Function;
       expect(isNodeExpanded(node)).toBeTruthy();
     });
@@ -261,6 +262,7 @@ describe(__filename, () => {
       const treeFold = root.find(Treefold);
       expect(treeFold).toHaveProp('isNodeExpanded');
 
+      // eslint-disable-next-line @typescript-eslint/ban-types
       const isNodeExpanded = treeFold.prop('isNodeExpanded') as Function;
       expect(isNodeExpanded(node)).toBeFalsy();
     });

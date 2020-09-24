@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/camelcase */
 import { ShallowWrapper, shallow } from 'enzyme';
 import * as React from 'react';
 import { Form } from 'react-bootstrap';

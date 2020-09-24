@@ -1,13 +1,13 @@
 // This file contains the implementation of a 'text' language for
 // Prism/refractor.
 
-type Prism = {
+type PrismType = {
   languages: {
-    text: object;
+    text: Record<string, unknown>;
   };
 };
 
-const text = (Prism: Prism) => {
+const text = (Prism: PrismType): void => {
   // eslint-disable-next-line no-param-reassign
   Prism.languages.text = {};
 };

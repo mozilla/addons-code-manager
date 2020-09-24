@@ -38,7 +38,14 @@
     // The beauty of TS is that it infers types quite well, so let's not write
     // too much code.
     "@typescript-eslint/explicit-function-return-type": "off",
-    "@typescript-eslint/no-explicit-any": "error"
+    "@typescript-eslint/no-explicit-any": "error",
+    // See: https://github.com/typescript-eslint/typescript-eslint/issues/2502
+    "no-use-before-define": "off",
+    "@typescript-eslint/ban-ts-comment": ["error", {
+      "ts-expect-error": "allow-with-description"
+    }],
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "@typescript-eslint/no-var-requires": "off"
   },
   "settings": {
     "import/resolver": {

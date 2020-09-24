@@ -1,4 +1,3 @@
-/* eslint @typescript-eslint/camelcase: 0 */
 import * as React from 'react';
 import { DiffInfo } from 'react-diff-view';
 import { ShallowWrapper, shallow } from 'enzyme';

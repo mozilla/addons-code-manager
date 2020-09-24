@@ -237,6 +237,7 @@ describe(__filename, () => {
     const root = render({ store });
 
     // User clicks the "close" button of the first error shown.
+    // eslint-disable-next-line @typescript-eslint/ban-types
     const onClose = root.find(Alert).at(0).prop('onClose') as Function;
     onClose();
 

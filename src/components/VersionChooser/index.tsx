@@ -51,7 +51,7 @@ type PropsFromState = {
   versions: VersionsState;
 };
 
-type RouterProps = RouteComponentProps<{}>;
+type RouterProps = RouteComponentProps<Record<string, string | undefined>>;
 
 type Props = PublicProps &
   ConnectedReduxProps &

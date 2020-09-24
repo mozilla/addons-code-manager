@@ -1,4 +1,3 @@
-/* eslint @typescript-eslint/camelcase: 0 */
 import filesize from 'filesize';
 import queryString from 'query-string';
 import { parseDiff } from 'react-diff-view';
