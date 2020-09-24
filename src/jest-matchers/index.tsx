@@ -1,9 +1,9 @@
 import url from 'url';
 
 declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace, no-redeclare
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace jest {
-    interface Matchers<R, T> {
+    interface Matchers<R> {
       urlWithTheseParams(params: { [key: string]: string | undefined }): R;
     }
 

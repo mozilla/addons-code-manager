@@ -44,8 +44,9 @@
     "@typescript-eslint/ban-ts-comment": ["error", {
       "ts-expect-error": "allow-with-description"
     }],
-    "@typescript-eslint/explicit-module-boundary-types": "off",
-    "@typescript-eslint/no-var-requires": "off"
+    // TODO: re-enable the rule once it gets fixed for TypeScript and enums.
+    // See: https://github.com/typescript-eslint/typescript-eslint/issues/325
+    "no-shadow": "off",
   },
   "settings": {
     "import/resolver": {

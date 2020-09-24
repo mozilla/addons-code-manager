@@ -1,5 +1,4 @@
-/* eslint-disable amo/only-tsx-files */
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+/* eslint-disable amo/only-tsx-files, @typescript-eslint/no-var-requires */
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 
