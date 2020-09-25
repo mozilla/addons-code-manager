@@ -14,8 +14,7 @@ describe(__filename, () => {
     const wrapper = () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (WrappedComponent: any) => {
-        return (props: object) => {
-          // eslint-disable-next-line react/jsx-props-no-spreading
+        return (props: Record<string, unknown>) => {
           return <WrappedComponent {...props} />;
         };
       };
@@ -82,7 +81,6 @@ describe(__filename, () => {
     it('lets you pass options to the final shallow()', () => {
       const componentDidUpdate = jest.fn();
 
-      // eslint-disable-next-line react/no-multi-comp
       class LifecyleExample extends Component {
         componentDidUpdate() {
           componentDidUpdate();

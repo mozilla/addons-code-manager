@@ -1,4 +1,3 @@
-/* eslint @typescript-eslint/camelcase: 0 */
 /* global fetchMock */
 import pathLib from 'path';
 
@@ -70,7 +69,7 @@ let _uniqueId = 0;
 /*
  * Returns a unique sequential ID.
  */
-export const nextUniqueId = () => {
+export const nextUniqueId = (): number => {
   _uniqueId++;
   return _uniqueId;
 };
@@ -370,8 +369,6 @@ export const fakeExternalLinterResult = Object.freeze({
   },
 }) as ExternalLinterResult;
 
-/* eslint-enable @typescript-eslint/camelcase */
-
 export const fakeVersionWithDiff: ExternalVersionWithDiff = Object.freeze({
   ...partialFakeVersion,
   file: fakeVersionFileWithDiff,
@@ -649,6 +646,8 @@ export const createFakeLogger = () => {
   };
 };
 
+// The jest type uses `{}` so we have to use that too.
+// eslint-disable-next-line @typescript-eslint/ban-types
 export const spyOn = <T extends {}>(
   object: T,
   method: jest.FunctionPropertyNames<T>,
@@ -734,7 +733,7 @@ export const simulateLinterProvider = (
  *
  * The `children` render prop can only take one argument.
  */
-const multiRenderPropSimulator = <RenderArgValue extends {}>({
+const multiRenderPropSimulator = <RenderArgValue extends JSX.Element>({
   Component,
   renderArgValue,
   root,
@@ -984,8 +983,7 @@ export const createErrorResponse = (
 };
 
 export const setMockFetchResponseJSON = (
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: Record<string, any>,
+  data: Record<string, unknown>,
   { contentType = 'application/json' } = {},
 ) => {
   fetchMock.mockResponse(JSON.stringify(data), {

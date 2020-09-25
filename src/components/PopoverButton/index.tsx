@@ -99,10 +99,8 @@ export class PopoverButtonBase extends React.Component<Props, State> {
           onClick={() => {
             dispatch(popoverActions.show(id));
           }}
-          // This type has a conflicting definition. See:
+          // @ts-expect-error: This type has a conflicting definition. See:
           // https://github.com/react-bootstrap/react-bootstrap/issues/4706
-          // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-          // @ts-ignore
           ref={this.buttonRef}
           size="sm"
           variant="primary"

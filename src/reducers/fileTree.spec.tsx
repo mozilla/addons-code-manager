@@ -1,4 +1,3 @@
-/* eslint @typescript-eslint/camelcase: 0 */
 import { push } from 'connected-react-router';
 
 import reducer, {

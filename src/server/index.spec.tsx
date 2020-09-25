@@ -290,8 +290,8 @@ describe(__filename, () => {
         expect(() => {
           request(
             createServer({
-              // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-              // @ts-ignore
+              // @ts-expect-error: we inject an object with a wrong type on
+              // purpose.
               env: fakeEnv,
               rootPath: fixturesPath,
             }),

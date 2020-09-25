@@ -4,7 +4,7 @@ import { Col } from 'react-bootstrap';
 
 import { gettext } from '../../utils';
 
-type PublicProps = {};
+type PublicProps = Record<string, unknown>;
 
 export class NotFoundBase extends React.Component<PublicProps> {
   render() {

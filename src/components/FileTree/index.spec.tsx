@@ -1,4 +1,3 @@
-/* eslint @typescript-eslint/camelcase: 0 */
 import { shallow } from 'enzyme';
 import * as React from 'react';
 import Treefold from 'react-treefold';
@@ -202,7 +201,9 @@ describe(__filename, () => {
       const treeFold = root.find(Treefold);
       expect(treeFold).toHaveProp('onToggleExpand');
 
-      const onToggleExpand = treeFold.prop('onToggleExpand') as Function;
+      const onToggleExpand = treeFold.prop('onToggleExpand') as (
+        node: Record<string, unknown>,
+      ) => boolean;
       onToggleExpand(node);
 
       expect(dispatch).toHaveBeenCalledWith(
@@ -241,7 +242,9 @@ describe(__filename, () => {
       const treeFold = root.find(Treefold);
       expect(treeFold).toHaveProp('isNodeExpanded');
 
-      const isNodeExpanded = treeFold.prop('isNodeExpanded') as Function;
+      const isNodeExpanded = treeFold.prop('isNodeExpanded') as (
+        node: Record<string, unknown>,
+      ) => boolean;
       expect(isNodeExpanded(node)).toBeTruthy();
     });
 
@@ -261,7 +264,9 @@ describe(__filename, () => {
       const treeFold = root.find(Treefold);
       expect(treeFold).toHaveProp('isNodeExpanded');
 
-      const isNodeExpanded = treeFold.prop('isNodeExpanded') as Function;
+      const isNodeExpanded = treeFold.prop('isNodeExpanded') as (
+        node: Record<string, unknown>,
+      ) => boolean;
       expect(isNodeExpanded(node)).toBeFalsy();
     });
 

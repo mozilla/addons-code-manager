@@ -31,12 +31,12 @@ export type LocalizedStringMap = {
   [lang: string]: string;
 };
 
-export const gettext = (text: string) => text;
+export const gettext = (text: string): string => text;
 
 export const getLocalizedString = (
   localizedStringMap: LocalizedStringMap,
   lang = process.env.REACT_APP_DEFAULT_API_LANG as string,
-) => {
+): string => {
   const stringForCurrentLang = localizedStringMap[lang];
   const langs = Object.keys(localizedStringMap);
 
@@ -45,7 +45,7 @@ export const getLocalizedString = (
   );
 };
 
-export const getLanguageFromMimeType = (mimeType: string) => {
+export const getLanguageFromMimeType = (mimeType: string): string => {
   switch (mimeType) {
     case 'application/javascript':
     case 'text/javascript':
@@ -67,13 +67,13 @@ export const sanitizeHTML = (
   text: string,
   allowTags: string[] = [],
   _purify = purify,
-) => {
+): { __html: string } => {
   return {
     __html: _purify.sanitize(text, { ALLOWED_TAGS: allowTags }),
   };
 };
 
-export const nl2br = (text: string | null) => {
+export const nl2br = (text: string | null): string => {
   return (text || '').replace(/(\r\n|\r|\n)(?!<\/?(li|ul|ol)>)/g, '<br />');
 };
 
@@ -81,7 +81,7 @@ export const formatFilesize = (size: number): string => {
   return filesize(size, { standard: 'iec' });
 };
 
-export const getPathFromQueryString = (history: History) => {
+export const getPathFromQueryString = (history: History): string | null => {
   const path = queryString.parse(history.location.search)[pathQueryParam];
 
   return typeof path === 'string' && path.length ? path : null;
@@ -93,7 +93,7 @@ export const getPathFromQueryString = (history: History) => {
 export const createAdjustedQueryString = (
   location: Location,
   newParams: { [key: string]: string | number | boolean | undefined },
-) => {
+): string => {
   const query = queryString.parse(location.search);
   return `?${queryString.stringify({ ...query, ...newParams })}`;
 };
@@ -117,7 +117,7 @@ export const makeReviewersURL = ({
   reviewersHost = process.env.REACT_APP_REVIEWERS_HOST,
   url,
   useInsecureProxy = process.env.REACT_APP_USE_INSECURE_PROXY === 'true',
-}: MakReviewersURLParams) => {
+}: MakReviewersURLParams): string | undefined => {
   const { path } = urlUtils.parse(url);
   if (reviewersHost && !useInsecureProxy) {
     return `${reviewersHost}${path}`;

@@ -9,7 +9,7 @@ import { makeApiURL } from '../../api';
 import { gettext } from '../../utils';
 import styles from './styles.module.scss';
 
-type PublicProps = {};
+type PublicProps = Record<string, unknown>;
 
 type PropsFromState = {
   userIsLoading: boolean;

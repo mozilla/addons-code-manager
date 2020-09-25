@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/camelcase */
 import { Location } from 'history';
 import queryString from 'query-string';
 import React from 'react';

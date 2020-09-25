@@ -1,5 +1,5 @@
 declare module 'react-storybook-addon-chapters' {
-  function setDefaults(options: object): void;
+  function setDefaults(options: Record<string, unknown>): void;
 }
 
 // This is used to expose the `addWithChapters` method.
@@ -9,7 +9,7 @@ declare module '@storybook/addons' {
       kind: string,
       module: NodeModule,
     ): StoryApi<StoryFnReturnType> & {
-      addWithChapters(title: string, config: object): this;
+      addWithChapters(title: string, config: Record<string, unknown>): this;
     };
   }
 }

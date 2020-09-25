@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/camelcase */
 import queryString from 'query-string';
 import React from 'react';
 import { Alert } from 'react-bootstrap';

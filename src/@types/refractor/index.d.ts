@@ -1,5 +1,5 @@
 declare module 'refractor' {
-  declare function register(language: object): void;
+  declare function register(language: unknown): void;
 
   type RefractorNode = {
     children?: RefractorNode[];

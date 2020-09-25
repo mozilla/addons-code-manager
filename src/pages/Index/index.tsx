@@ -11,7 +11,7 @@ import styles from './styles.module.scss';
 import { ConnectedReduxProps } from '../../configureStore';
 import { actions as versionsActions } from '../../reducers/versions';
 
-export type PublicProps = {};
+export type PublicProps = Record<string, unknown>;
 
 export type DefaultProps = {
   _log: typeof log;

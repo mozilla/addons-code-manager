@@ -60,7 +60,6 @@ describe(__filename, () => {
       file: {
         ...fakeVersionWithContent.file,
       },
-      // eslint-disable-next-line @typescript-eslint/camelcase
       file_entries: pathList.reduce((pathMap, path: string) => {
         return {
           ...pathMap,

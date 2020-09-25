@@ -129,7 +129,7 @@ export type DefaultProps = {
   viewType: DiffProps['viewType'];
 };
 
-export type RouterProps = RouteComponentProps<{}>;
+export type RouterProps = RouteComponentProps<Record<string, string>>;
 
 export type Props = PublicProps & DefaultProps & RouterProps;
 
