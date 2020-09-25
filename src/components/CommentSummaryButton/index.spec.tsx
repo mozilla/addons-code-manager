@@ -14,15 +14,10 @@ import {
   simulatePopover,
 } from '../../test-helpers';
 
-import CommentSummaryButton, {
-  CommentSummaryButtonBase,
-  DefaultProps,
-  PublicProps,
-} from '.';
+import CommentSummaryButton, { CommentSummaryButtonBase, PublicProps } from '.';
 
 describe(__filename, () => {
-  type RenderParams = Partial<PublicProps> &
-    Partial<DefaultProps> & { store?: Store };
+  type RenderParams = Partial<PublicProps> & { store?: Store };
 
   const render = ({
     store = configureStore(),

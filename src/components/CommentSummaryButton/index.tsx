@@ -14,13 +14,11 @@ import styles from './styles.module.scss';
 
 export type PublicProps = Record<string, unknown>;
 
-export type DefaultProps = Record<string, unknown>;
-
 type PropsFromState = {
   comments: Comment[] | undefined;
 };
 
-type Props = PublicProps & DefaultProps & PropsFromState & ConnectedReduxProps;
+type Props = PublicProps & PropsFromState & ConnectedReduxProps;
 
 export const CommentSummaryButtonBase = ({ comments, dispatch }: Props) => {
   const id = 'COMMENTS_SUMMARY';

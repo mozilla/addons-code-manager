@@ -201,8 +201,9 @@ describe(__filename, () => {
       const treeFold = root.find(Treefold);
       expect(treeFold).toHaveProp('onToggleExpand');
 
-      // eslint-disable-next-line @typescript-eslint/ban-types
-      const onToggleExpand = treeFold.prop('onToggleExpand') as Function;
+      const onToggleExpand = treeFold.prop('onToggleExpand') as (
+        node: Record<string, unknown>,
+      ) => boolean;
       onToggleExpand(node);
 
       expect(dispatch).toHaveBeenCalledWith(
@@ -241,8 +242,9 @@ describe(__filename, () => {
       const treeFold = root.find(Treefold);
       expect(treeFold).toHaveProp('isNodeExpanded');
 
-      // eslint-disable-next-line @typescript-eslint/ban-types
-      const isNodeExpanded = treeFold.prop('isNodeExpanded') as Function;
+      const isNodeExpanded = treeFold.prop('isNodeExpanded') as (
+        node: Record<string, unknown>,
+      ) => boolean;
       expect(isNodeExpanded(node)).toBeTruthy();
     });
 
@@ -262,8 +264,9 @@ describe(__filename, () => {
       const treeFold = root.find(Treefold);
       expect(treeFold).toHaveProp('isNodeExpanded');
 
-      // eslint-disable-next-line @typescript-eslint/ban-types
-      const isNodeExpanded = treeFold.prop('isNodeExpanded') as Function;
+      const isNodeExpanded = treeFold.prop('isNodeExpanded') as (
+        node: Record<string, unknown>,
+      ) => boolean;
       expect(isNodeExpanded(node)).toBeFalsy();
     });
 
