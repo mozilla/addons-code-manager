@@ -179,7 +179,7 @@ export class VersionChooserBase extends React.Component<Props> {
     return (
       <Button
         disabled={!versionId}
-        onClick={(event: React.FormEvent<HTMLButtonElement>) => {
+        onClick={(event) => {
           event.preventDefault();
           event.stopPropagation();
           dispatch(popoverActions.hide(POPOVER_ID));
