@@ -27,7 +27,7 @@ class VersionSelectBase extends React.Component<PublicProps> {
     withLeftArrow: false,
   };
 
-  onChange = (event: React.FormEvent<HTMLSelectElement>) => {
+  onChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = event.currentTarget.value as string;
 
     this.props.onChange(parseInt(value, 10));

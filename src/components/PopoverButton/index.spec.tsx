@@ -53,6 +53,8 @@ describe(__filename, () => {
     const overlay = root.find(Overlay);
     const renderChildren = overlay.renderProp('children');
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore: there is a type mismatch here, apparently.
     return renderChildren({ arrowProps, placement, ref, style });
   };
 
@@ -130,8 +132,9 @@ describe(__filename, () => {
     if (!onHideOverlay) {
       throw new Error('onHideOverlay was unexpectedly empty');
     }
-    // Simulate how Overlay calls onHide() internally.
-    onHideOverlay();
+    // Simulate how Overlay calls onHide() internally. We don't use the event
+    // but TypeScript wants it.
+    onHideOverlay(new Event('some event'));
 
     expect(dispatchSpy).toHaveBeenCalledWith(popoverActions.hide(id));
   });
