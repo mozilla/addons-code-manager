@@ -28,6 +28,7 @@ export enum ItemTitles {
   Information = 'Information',
   Shortcuts = 'Keyboard Shortcuts',
 }
+export const infoPanelTitle = ItemTitles.Information;
 
 export type PublicProps = {
   _getInsertedLines?: typeof getInsertedLines;
@@ -81,7 +82,7 @@ const VersionFileViewer = ({
 
     const renderFileInfo = () => {
       if (file) {
-        return <FileMetadata file={file} versionString={versionString} />;
+        return <FileMetadata file={file} />;
       }
 
       if (entryStatusMap && entryStatusMap[selectedPath] === 'D') {

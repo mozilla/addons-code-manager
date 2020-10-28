@@ -2,6 +2,7 @@ import * as React from 'react';
 import { shallow } from 'enzyme';
 import { Store } from 'redux';
 
+import { infoPanelTitle } from '../VersionFileViewer';
 import configureStore from '../../configureStore';
 import { actions } from '../../reducers/accordionMenu';
 import { createFakeEvent, shallowUntilTarget, spyOn } from '../../test-helpers';
@@ -78,7 +79,21 @@ describe(__filename, () => {
       expect(item.find(`.${childClass}`)).toHaveLength(1);
     });
 
-    it('renders children as expanded', () => {
+    it('renders the Information panel as expanded', () => {
+      const childClass = 'example-class';
+
+      const root = render({
+        children: <div className={childClass} />,
+        title: infoPanelTitle,
+      });
+
+      const item = root.find(`.${styles.itemContent}`);
+      expect(item).toHaveClassName(styles.itemExpanded);
+      expect(item).toHaveProp('aria-expanded', 'true');
+      expect(item.find(`.${childClass}`)).toHaveLength(1);
+    });
+
+    it('can render children as expanded', () => {
       const childClass = 'example-class';
 
       const root = renderExpanded({

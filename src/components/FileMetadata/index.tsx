@@ -10,15 +10,12 @@ import { makeApiURL } from '../../api';
 
 type PublicProps = {
   file: VersionFileWithContent | VersionFileWithDiff;
-  versionString: string;
 };
 
-const FileMetadataBase = ({ file, versionString }: PublicProps) => {
+const FileMetadataBase = ({ file }: PublicProps) => {
   return (
     <div className={styles.FileMetadata}>
       <dl>
-        <dt>{gettext('Version')}</dt>
-        <dd className={styles.version}>{versionString}</dd>
         <dt>{gettext('Size')}</dt>
         <dd className={styles.size}>{formatFilesize(file.size)}</dd>
         <dt>{gettext('SHA256 hash')}</dt>

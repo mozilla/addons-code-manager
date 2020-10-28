@@ -39,6 +39,7 @@
     // too much code.
     "@typescript-eslint/explicit-function-return-type": "off",
     "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/explicit-module-boundary-types": "off",
     // See: https://github.com/typescript-eslint/typescript-eslint/issues/2502
     "no-use-before-define": "off",
     "@typescript-eslint/ban-ts-comment": ["error", {

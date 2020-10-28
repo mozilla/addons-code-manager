@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import makeClassName from 'classnames';
 
 import Button from '../Button';
+import { infoPanelTitle } from '../VersionFileViewer';
 import { ApplicationState } from '../../reducers';
 import { ConnectedReduxProps } from '../../configureStore';
 import { actions, isExpanded } from '../../reducers/accordionMenu';
@@ -56,6 +57,7 @@ export class AccordionItemBase extends React.Component<ItemProps> {
   render() {
     const { children, expanded, title } = this.props;
     const contentId = makeItemContentId(title);
+    const expandPanel = expanded || title === infoPanelTitle;
 
     return (
       <>
@@ -67,9 +69,9 @@ export class AccordionItemBase extends React.Component<ItemProps> {
           {title}
         </Button>
         <div
-          aria-expanded={expanded ? 'true' : 'false'}
+          aria-expanded={expandPanel ? 'true' : 'false'}
           className={makeClassName(styles.item, styles.itemContent, {
-            [styles.itemExpanded]: expanded,
+            [styles.itemExpanded]: expandPanel,
           })}
           id={contentId}
         >
