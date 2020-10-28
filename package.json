@@ -102,7 +102,7 @@
     "react-storybook-addon-chapters": "^3.1.1",
     "stmux": "^1.6.1",
     "storybook-addon-root-attribute": "^1.0.0",
-    "supertest": "^5.0.0",
+    "supertest": "^6.0.0",
     "ts-node-dev": "^1.0.0-pre.32",
     "type-coverage": "^2.0.0"
   },
