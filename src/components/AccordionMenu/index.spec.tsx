@@ -78,7 +78,31 @@ describe(__filename, () => {
       expect(item.find(`.${childClass}`)).toHaveLength(1);
     });
 
-    it('renders children as expanded', () => {
+    it('can render an item as always expanded', () => {
+      const childClass = 'example-class';
+
+      const root = render({
+        children: <div className={childClass} />,
+        alwaysExpanded: true,
+      });
+
+      const item = root.find(`.${styles.itemContent}`);
+      expect(item).toHaveClassName(styles.itemExpanded);
+      expect(item).toHaveProp('aria-expanded', 'true');
+      expect(item.find(`.${childClass}`)).toHaveLength(1);
+    });
+
+    it('does not collapse an item with alwaysExpanded=true', () => {
+      const store = configureStore();
+      const dispatch = spyOn(store, 'dispatch');
+
+      const root = render({ alwaysExpanded: true, store });
+      root.find(`.${styles.itemButton}`).simulate('click', createFakeEvent());
+
+      expect(dispatch).not.toHaveBeenCalled();
+    });
+
+    it('can render children as expanded', () => {
       const childClass = 'example-class';
 
       const root = renderExpanded({

@@ -81,7 +81,7 @@ const VersionFileViewer = ({
 
     const renderFileInfo = () => {
       if (file) {
-        return <FileMetadata file={file} versionString={versionString} />;
+        return <FileMetadata file={file} />;
       }
 
       if (entryStatusMap && entryStatusMap[selectedPath] === 'D') {
@@ -119,7 +119,7 @@ const VersionFileViewer = ({
                 versionId={version.id}
               />
             </AccordionItem>
-            <AccordionItem title={ItemTitles.Information}>
+            <AccordionItem alwaysExpanded title={ItemTitles.Information}>
               {renderFileInfo()}
             </AccordionItem>
             <AccordionItem title={ItemTitles.Shortcuts}>

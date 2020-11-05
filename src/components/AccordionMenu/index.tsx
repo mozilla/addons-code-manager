@@ -23,6 +23,7 @@ export type PublicItemProps = {
 };
 
 export type DefaultItemProps = {
+  alwaysExpanded: boolean;
   expandedByDefault: boolean;
 };
 
@@ -37,6 +38,7 @@ type ItemProps = PublicItemProps &
 
 export class AccordionItemBase extends React.Component<ItemProps> {
   static defaultProps = {
+    alwaysExpanded: false,
     expandedByDefault: false,
   };
 
@@ -49,13 +51,16 @@ export class AccordionItemBase extends React.Component<ItemProps> {
   }
 
   onItemClick = () => {
-    const { dispatch, title } = this.props;
-    dispatch(actions.toggleItem({ itemId: title }));
+    const { alwaysExpanded, dispatch, title } = this.props;
+    if (!alwaysExpanded) {
+      dispatch(actions.toggleItem({ itemId: title }));
+    }
   };
 
   render() {
-    const { children, expanded, title } = this.props;
+    const { alwaysExpanded, children, expanded, title } = this.props;
     const contentId = makeItemContentId(title);
+    const expandPanel = expanded || alwaysExpanded;
 
     return (
       <>
@@ -67,9 +72,9 @@ export class AccordionItemBase extends React.Component<ItemProps> {
           {title}
         </Button>
         <div
-          aria-expanded={expanded ? 'true' : 'false'}
+          aria-expanded={expandPanel ? 'true' : 'false'}
           className={makeClassName(styles.item, styles.itemContent, {
-            [styles.itemExpanded]: expanded,
+            [styles.itemExpanded]: expandPanel,
           })}
           id={contentId}
         >

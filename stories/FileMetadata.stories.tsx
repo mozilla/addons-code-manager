@@ -39,7 +39,7 @@ storiesOf('FileMetadata', module).addWithChapters('all variants', {
           sectionFn: () => {
             const versionFile = loadVersionFile();
 
-            return <FileMetadata file={versionFile} versionString="1.2" />;
+            return <FileMetadata file={versionFile} />;
           },
         },
         {
@@ -67,7 +67,7 @@ storiesOf('FileMetadata', module).addWithChapters('all variants', {
 
             return (
               <div style={{ width: '200px' }}>
-                <FileMetadata file={versionFile} versionString="1.2" />
+                <FileMetadata file={versionFile} />
               </div>
             );
           },

@@ -15,12 +15,8 @@ import FileMetadata from '.';
 describe(__filename, () => {
   it('renders metadata for a file with content', () => {
     const file = createInternalVersionFile(fakeVersionFileWithContent);
-    const versionString = '1.2';
-    const root = shallow(
-      <FileMetadata file={file} versionString={versionString} />,
-    );
+    const root = shallow(<FileMetadata file={file} />);
 
-    expect(root.find(`.${styles.version}`)).toHaveText(versionString);
     expect(root.find(`.${styles.sha256}`)).toHaveText(file.sha256);
 
     const downloadLink = root.find(`.${styles.downloadURL}`).find('a');
@@ -35,12 +31,9 @@ describe(__filename, () => {
 
   it('can render for a file with a diff', () => {
     const file = createInternalVersionFile(fakeVersionFileWithDiff);
-    const versionString = '1.2';
-    const root = shallow(
-      <FileMetadata file={file} versionString={versionString} />,
-    );
+    const root = shallow(<FileMetadata file={file} />);
 
-    expect(root.find(`.${styles.version}`)).toHaveText(versionString);
+    expect(root.find(`.${styles.sha256}`)).toHaveText(file.sha256);
   });
 
   it('renders a formatted filesize', () => {
@@ -49,7 +42,7 @@ describe(__filename, () => {
       ...fakeVersionFileWithContent,
       size,
     });
-    const root = shallow(<FileMetadata file={file} versionString="1.2" />);
+    const root = shallow(<FileMetadata file={file} />);
 
     expect(root.find(`.${styles.size}`)).toHaveText(formatFilesize(size));
   });
