@@ -773,6 +773,31 @@ describe(__filename, () => {
     expect(getWidgetNodes(widgets).length).toEqual(0);
   });
 
+  it.each([
+    ['does not', changeTypes.delete],
+    ['does', changeTypes.insert],
+    ['does', changeTypes.normal],
+  ])('%s render a message for %s changes', (expected, type) => {
+    const line = nextUniqueId();
+    const externalMessages = [{ line, uid: 'first' }];
+    const version = createInternalVersion({
+      ...fakeVersionWithContent,
+      id: nextUniqueId(),
+    });
+    const diff = createDiffWithHunks([
+      createHunkWithChanges([{ type, new_line_number: line }]),
+    ]);
+    const widgets = renderAndGetWidgets({
+      diff,
+      selectedMessageMap: createFakeLinterMessagesByPath({
+        messages: externalMessages,
+      }),
+      version,
+    });
+
+    expect(getWidgetNodes(widgets).length).toEqual(expected === 'does' ? 1 : 0);
+  });
+
   describe('comment list', () => {
     it('renders inline comments for commentable lines', () => {
       const CommentListResult = () => <div />;
