@@ -3,7 +3,6 @@ import { connect } from 'react-redux';
 import makeClassName from 'classnames';
 
 import Button from '../Button';
-import { infoPanelTitle } from '../VersionFileViewer';
 import { ApplicationState } from '../../reducers';
 import { ConnectedReduxProps } from '../../configureStore';
 import { actions, isExpanded } from '../../reducers/accordionMenu';
@@ -24,6 +23,7 @@ export type PublicItemProps = {
 };
 
 export type DefaultItemProps = {
+  alwaysExpanded: boolean;
   expandedByDefault: boolean;
 };
 
@@ -38,6 +38,7 @@ type ItemProps = PublicItemProps &
 
 export class AccordionItemBase extends React.Component<ItemProps> {
   static defaultProps = {
+    alwaysExpanded: false,
     expandedByDefault: false,
   };
 
@@ -50,14 +51,16 @@ export class AccordionItemBase extends React.Component<ItemProps> {
   }
 
   onItemClick = () => {
-    const { dispatch, title } = this.props;
-    dispatch(actions.toggleItem({ itemId: title }));
+    const { alwaysExpanded, dispatch, title } = this.props;
+    if (!alwaysExpanded) {
+      dispatch(actions.toggleItem({ itemId: title }));
+    }
   };
 
   render() {
-    const { children, expanded, title } = this.props;
+    const { alwaysExpanded, children, expanded, title } = this.props;
     const contentId = makeItemContentId(title);
-    const expandPanel = expanded || title === infoPanelTitle;
+    const expandPanel = expanded || alwaysExpanded;
 
     return (
       <>

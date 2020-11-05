@@ -28,7 +28,6 @@ export enum ItemTitles {
   Information = 'Information',
   Shortcuts = 'Keyboard Shortcuts',
 }
-export const infoPanelTitle = ItemTitles.Information;
 
 export type PublicProps = {
   _getInsertedLines?: typeof getInsertedLines;
@@ -120,7 +119,7 @@ const VersionFileViewer = ({
                 versionId={version.id}
               />
             </AccordionItem>
-            <AccordionItem title={ItemTitles.Information}>
+            <AccordionItem alwaysExpanded title={ItemTitles.Information}>
               {renderFileInfo()}
             </AccordionItem>
             <AccordionItem title={ItemTitles.Shortcuts}>
