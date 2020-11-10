@@ -47,7 +47,9 @@ storiesOf('AccordionMenu', module)
       return render(
         <AccordionMenu>
           <AccordionItem title="Files">{makeText()}</AccordionItem>
-          <AccordionItem title="Information">{makeText()}</AccordionItem>
+          <AccordionItem alwaysExpanded title="Current File Information">
+            {makeText()}
+          </AccordionItem>
           <AccordionItem title="Keyboard Shortcuts">{makeText()}</AccordionItem>
           <AccordionItem title="Help">{makeText()}</AccordionItem>
           <AccordionItem title="About">{makeText()}</AccordionItem>
@@ -62,7 +64,7 @@ storiesOf('AccordionMenu', module)
       return render(
         <AccordionMenu>
           <AccordionItem title="Files">Example of short content</AccordionItem>
-          <AccordionItem title="Information">
+          <AccordionItem alwaysExpanded title="Current File Information">
             Another example of short content
           </AccordionItem>
           <AccordionItem title="Keyboard Shortcuts">
@@ -85,7 +87,9 @@ storiesOf('AccordionMenu', module)
           <AccordionItem expandedByDefault title="Files">
             {makeText()}
           </AccordionItem>
-          <AccordionItem title="Information">{makeText()}</AccordionItem>
+          <AccordionItem alwaysExpanded title="Current File Information">
+            {makeText()}
+          </AccordionItem>
           <AccordionItem title="Keyboard Shortcuts">{makeText()}</AccordionItem>
           <AccordionItem title="Help">{makeText()}</AccordionItem>
           <AccordionItem title="About">{makeText()}</AccordionItem>

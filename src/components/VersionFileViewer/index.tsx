@@ -25,7 +25,7 @@ import styles from './styles.module.scss';
 
 export enum ItemTitles {
   Files = 'Files',
-  Information = 'Information',
+  Information = 'Current File Information',
   Shortcuts = 'Keyboard Shortcuts',
 }
 
