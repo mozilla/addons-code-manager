@@ -245,7 +245,7 @@ export class DiffViewBase extends React.Component<Props> {
           </CommentList>
         ) : null;
 
-      if (messages && messages.length) {
+      if (messages && messages.length && !change.isDelete) {
         widget = (
           <>
             {widget}
