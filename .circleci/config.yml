@@ -90,7 +90,8 @@ jobs:
       - *restore_next_build_cache
       - *run_yarn_install
       - *save_next_build_cache
-      - run: yarn test
+      # See: https://support.circleci.com/hc/en-us/articles/360038192673-NodeJS-Builds-or-Test-Suites-Fail-With-ENOMEM-or-a-Timeout
+      - run: yarn test --maxWorkers=2
 
   deploy-storybook:
     <<: *defaults
