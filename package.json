@@ -42,7 +42,6 @@
     "helmet": "4.2.0",
     "history": "4.10.1",
     "http-proxy-middleware": "1.0.6",
-    "http-proxy-response-rewrite": "0.0.1",
     "lodash.chunk": "4.2.0",
     "lodash.debounce": "4.0.8",
     "loglevel": "1.7.0",
@@ -104,7 +103,8 @@
     "storybook-addon-root-attribute": "^1.0.0",
     "supertest": "^6.0.0",
     "ts-node-dev": "^1.0.0-pre.32",
-    "type-coverage": "^2.0.0"
+    "type-coverage": "^2.0.0",
+    "zlib": "^1.0.5"
   },
   "scripts": {
     "build": "react-scripts build --profile",
@@ -137,7 +137,7 @@
     "storybook-deploy": "storybook-to-ghpages --script storybook-build",
     "storybook-smoke-test": "yarn storybook --smoke-test",
     "test": "react-scripts test --reporters=default --reporters='<rootDir>/src/jest-reporters/eslint-check.js'",
-    "test-ci": "yarn test --coverage && codecov",
+    "test-ci": "yarn test --coverage --maxWorkers=2 && codecov",
     "type-coverage": "type-coverage",
     "typecheck": "tsc"
   },

@@ -14,9 +14,10 @@ import {
 import SlowPageAlert, { PublicProps, SlowPageAlertBase } from '.';
 
 describe(__filename, () => {
-  type RenderParams = { history?: History; location?: Location } & Partial<
-    PublicProps
-  >;
+  type RenderParams = {
+    history?: History;
+    location?: Location;
+  } & Partial<PublicProps>;
 
   const render = ({
     getLinkText = () => 'example link text',

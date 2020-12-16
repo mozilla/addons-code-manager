@@ -268,9 +268,6 @@ export const createServer = ({
     // use CRA as usual (in dev mode) and the same authentication mechanism
     // used in production mode.
 
-    // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
-    const modifyResponse = require('http-proxy-response-rewrite');
-
     // This sets the development CSP that works with webpack and devtools.
     app.use(
       helmet.contentSecurityPolicy({
@@ -294,28 +291,59 @@ export const createServer = ({
       return res.sendFile(path.join(rootPath, 'public', 'favicon.ico'));
     });
 
+    // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
+    const zlib = require('zlib');
+
     app.use(
       createProxyMiddleware('/', {
         target: `http://localhost:${env.REACT_APP_CRA_PORT}`,
         // We need WebSocket for Hot Module Reload (HMR).
         ws: true,
+        // This means we handle the response in `onProxyRes()`.
+        selfHandleResponse: true,
         onProxyRes: (
           proxyResponse: http.IncomingMessage,
           req: http.IncomingMessage & RequestWithCookies,
           res: http.ServerResponse,
         ) => {
-          const contentType = proxyResponse.headers['content-type'] || '';
+          const bodyChunks: Buffer[] = [];
+          proxyResponse.on('data', (chunk) => {
+            bodyChunks.push(chunk);
+          });
 
-          if (contentType.includes('text/html')) {
-            // eslint-disable-next-line no-param-reassign
-            proxyResponse.headers['cache-control'] = 'private, no-store';
+          proxyResponse.on('end', () => {
+            res.statusCode = proxyResponse.statusCode || 200;
 
-            modifyResponse(
-              res,
-              proxyResponse.headers['content-encoding'],
-              (body: string) => _injectAuthenticationToken(req, body, env),
-            );
-          }
+            Object.keys(proxyResponse.headers).forEach((key) => {
+              res.setHeader(key, proxyResponse.headers[key] || '');
+            });
+
+            const contentType = proxyResponse.headers['content-type'] || '';
+            const contentEncoding =
+              proxyResponse.headers['content-encoding'] || '';
+
+            let body;
+            if (contentEncoding.includes('gzip')) {
+              body = zlib
+                .gunzipSync(Buffer.concat(bodyChunks))
+                .toString('utf8');
+            } else {
+              body = Buffer.concat(bodyChunks).toString('utf8');
+            }
+
+            if (contentType.includes('text/html')) {
+              res.setHeader('cache-control', 'private, no-store');
+              body = _injectAuthenticationToken(req, body, env);
+            }
+
+            if (contentEncoding.includes('gzip')) {
+              res.setHeader('content-encoding', 'identity');
+            } else {
+              res.setHeader('content-length', body.length);
+            }
+
+            res.end(body);
+          });
         },
       }),
     );

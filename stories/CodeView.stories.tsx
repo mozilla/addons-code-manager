@@ -56,9 +56,10 @@ const CSS = `html, body {
   display: none;
 }`;
 
-type RenderParams = { content?: string; store?: Store } & Partial<
-  CodeViewProps
->;
+type RenderParams = {
+  content?: string;
+  store?: Store;
+} & Partial<CodeViewProps>;
 
 const render = ({
   content = JS_SAMPLE,

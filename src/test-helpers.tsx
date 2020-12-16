@@ -449,9 +449,9 @@ export const createFakeLinterMessagesByPath = ({
 export const createFakeLocation = ({
   searchQuery,
   ...props
-}: { searchQuery?: Record<string, string> } & Partial<
-  Location
-> = {}): Location => {
+}: {
+  searchQuery?: Record<string, string>;
+} & Partial<Location> = {}): Location => {
   return {
     hash: '',
     key: 'some-key',

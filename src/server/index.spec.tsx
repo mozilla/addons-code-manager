@@ -611,6 +611,41 @@ describe(__filename, () => {
 
         expect(_injectAuthenticationToken).toHaveBeenCalled();
         expect(response.text).toContain(expectedHTML);
+        expect(response.header).not.toHaveProperty(
+          'content-encoding',
+          'identity',
+        );
+        expect(response.header).toHaveProperty(
+          'content-length',
+          `${expectedHTML.length}`,
+        );
+      });
+
+      it('supports "Accept-Encoding: gzip", which is used by FF', async () => {
+        // Configure the fake app to use compression.
+        fakeCreateReactAppServerApp.use(
+          // eslint-disable-next-line global-require, import/no-extraneous-dependencies, @typescript-eslint/no-var-requires
+          require('compression')({ threshold: 0 }),
+        );
+        const expectedHTML = 'content with auth token';
+
+        const _injectAuthenticationToken = jest.fn();
+        _injectAuthenticationToken.mockReturnValue(expectedHTML);
+
+        const server = request(
+          createServer({
+            env: devEnv as ServerEnvVars,
+            rootPath: fixturesPath,
+            _injectAuthenticationToken,
+          }),
+        );
+
+        const response = await server.get('/').set('accept-encoding', 'gzip');
+
+        expect(_injectAuthenticationToken).toHaveBeenCalled();
+        expect(response.text).toContain(expectedHTML);
+        expect(response.header).toHaveProperty('content-encoding', 'identity');
+        expect(response.header).not.toHaveProperty('content-length');
       });
 
       it('does not configure the `cache-control` header of non-HTML proxy responses', async () => {
