@@ -151,7 +151,7 @@
     "atLeast": 99
   },
   "storybook-deployer": {
-    "commitMessage": "[skip ci] Deploy Storybook to Github Pages"
+    "commitMessage": "Deploy Storybook to Github Pages [ci-skip]"
   },
   "homepage": "/",
   "jest": {
