@@ -1303,9 +1303,9 @@ describe(__filename, () => {
       _getVersion = jest.fn().mockReturnValue(Promise.resolve(version)),
       path = undefined,
       ...params
-    }: { version?: typeof fakeVersionWithContent } & Partial<
-      FetchVersionParams
-    > = {}) => {
+    }: {
+      version?: typeof fakeVersionWithContent;
+    } & Partial<FetchVersionParams> = {}) => {
       return fetchVersion({
         _getVersion,
         addonId,

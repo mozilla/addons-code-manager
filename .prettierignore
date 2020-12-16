@@ -5,6 +5,7 @@ Dockerfile
 # exclude these directories
 /bin/
 /build/
+/coverage/
 /dist/
 /docker/
 /node_modules/

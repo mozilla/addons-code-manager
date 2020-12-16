@@ -158,9 +158,10 @@ const render = ({
   version = defaultVersion,
   store = createStoreWithVersion({ version }),
   ...moreProps
-}: { store?: Store; version?: typeof defaultVersion } & Partial<
-  FileTreeProps
-> = {}) => {
+}: {
+  store?: Store;
+  version?: typeof defaultVersion;
+} & Partial<FileTreeProps> = {}) => {
   store.dispatch(
     linterActions.loadLinterResult({
       versionId: version.id,
