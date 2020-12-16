@@ -327,8 +327,6 @@ export const createServer = ({
               body = zlib
                 .gunzipSync(Buffer.concat(bodyChunks))
                 .toString('utf8');
-
-              res.setHeader('content-encoding', 'identity');
             } else {
               body = Buffer.concat(bodyChunks).toString('utf8');
             }
@@ -338,7 +336,12 @@ export const createServer = ({
               body = _injectAuthenticationToken(req, body, env);
             }
 
-            res.setHeader('content-length', body.length);
+            if (contentEncoding.includes('gzip')) {
+              res.setHeader('content-encoding', 'identity');
+            } else {
+              res.setHeader('content-length', body.length);
+            }
+
             res.end(body);
           });
         },
