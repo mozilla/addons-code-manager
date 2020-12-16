@@ -64,6 +64,22 @@ jobs:
       - *run_yarn_install
       - *save_build_cache
       - run: yarn test-ci
+      - run:
+          name: yarn serve
+          command: |
+            yarn build
+            yarn serve &
+            sleep 30 && kill $! # kill last backgrounded process (a.k.a. the node server)
+      - store_artifacts:
+          path: coverage
+
+  check:
+    <<: *defaults
+    steps:
+      - checkout
+      - *restore_build_cache
+      - *run_yarn_install
+      - *save_build_cache
       # Make sure we can build a production bundle. This also does type
       # checking.
       - run: yarn build
@@ -74,14 +90,6 @@ jobs:
       - run: yarn prettier-ci
       - run: yarn lint
       - run: yarn storybook-smoke-test
-      - run:
-          name: yarn serve
-          command: |
-            yarn build
-            yarn serve &
-            sleep 30 && kill $! # kill last backgrounded process (a.k.a. the node server)
-      - store_artifacts:
-          path: coverage
 
   test-next:
     <<: *defaults-next
@@ -197,10 +205,12 @@ workflows:
   default-workflow:
     jobs:
       - test
+      - check
       - test-next
       - deploy-storybook:
           requires:
             - test
+            - check
           filters:
             branches:
               only: master
