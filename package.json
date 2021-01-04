@@ -73,8 +73,8 @@
     "universal-cookie-express": "4.0.3"
   },
   "devDependencies": {
-    "@emotion/core": "^10.0.7",
-    "@emotion/styled": "^10.0.7",
+    "@emotion/core": "^11.0.0",
+    "@emotion/styled": "^11.0.0",
     "@storybook/react": "^5.0.0",
     "@storybook/storybook-deployer": "^2.8.1",
     "@types/dedent": "^0.7.0",
