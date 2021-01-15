@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@fortawesome/fontawesome-svg-core": "1.2.32",
-    "@fortawesome/free-regular-svg-icons": "5.15.1",
-    "@fortawesome/free-solid-svg-icons": "5.15.1",
+    "@fortawesome/fontawesome-svg-core": "1.2.34",
+    "@fortawesome/free-regular-svg-icons": "5.15.2",
+    "@fortawesome/free-solid-svg-icons": "5.15.2",
     "@fortawesome/react-fontawesome": "0.1.14",
     "@sentry/browser": "5.29.2",
     "@sentry/integrations": "5.29.2",
