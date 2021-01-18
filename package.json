@@ -39,7 +39,7 @@
     "filesize": "6.1.0",
     "focus-visible": "5.2.0",
     "he": "1.2.0",
-    "helmet": "4.4.0",
+    "helmet": "4.4.1",
     "history": "4.10.1",
     "http-proxy-middleware": "1.0.6",
     "lodash.chunk": "4.2.0",
