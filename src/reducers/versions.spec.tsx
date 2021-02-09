@@ -53,7 +53,7 @@ import reducer, {
   isFileLoading,
   isFileWithContent,
   isFileWithDiff,
-  missingAddonNameText,
+  MISSING_ADDON_NAME_TEXT,
   selectCurrentVersionInfo,
   selectVersionIsLoading,
   versionPathExists,
@@ -4294,7 +4294,7 @@ describe(__filename, () => {
 
   describe('getAddonName', () => {
     it('returns a standard string for a missing name', () => {
-      expect(getAddonName(null)).toEqual(missingAddonNameText);
+      expect(getAddonName(null)).toEqual(MISSING_ADDON_NAME_TEXT);
     });
 
     it('returns localized content for a non-missing name', () => {

@@ -29,7 +29,7 @@ import {
   createInternalVersion,
   createInternalVersionFile,
   getVersionDiff,
-  missingAddonNameText,
+  MISSING_ADDON_NAME_TEXT,
 } from '../../reducers/versions';
 import DiffView from '../../components/DiffView';
 import Loading from '../../components/Loading';
@@ -1235,7 +1235,7 @@ describe(__filename, () => {
     });
 
     expect(root.find('title')).toHaveText(
-      `Compare ${missingAddonNameText}: ${baseVersionId}...${headVersionId}`,
+      `Compare ${MISSING_ADDON_NAME_TEXT}: ${baseVersionId}...${headVersionId}`,
     );
   });
 

@@ -33,7 +33,7 @@ import {
   findRelativePathWithDiff,
 } from './fileTree';
 
-export const missingAddonNameText = '(no name)';
+export const MISSING_ADDON_NAME_TEXT = '(no name)';
 
 // See: https://github.com/piotrwitek/typesafe-actions/issues/143
 const { createAction } = deprecated;
@@ -1405,7 +1405,7 @@ export const goToRelativeDiff = ({
 };
 
 export const getAddonName = (name: LocalizedStringMap | null) => {
-  return !name ? missingAddonNameText : getLocalizedString(name);
+  return !name ? MISSING_ADDON_NAME_TEXT : getLocalizedString(name);
 };
 
 export const createReducer = ({

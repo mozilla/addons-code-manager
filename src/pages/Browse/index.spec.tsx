@@ -21,7 +21,7 @@ import configureStore from '../../configureStore';
 import {
   actions as versionsActions,
   createInternalVersion,
-  missingAddonNameText,
+  MISSING_ADDON_NAME_TEXT,
   VersionEntryType,
 } from '../../reducers/versions';
 import { actions as fileTreeActions } from '../../reducers/fileTree';
@@ -625,7 +625,9 @@ describe(__filename, () => {
 
     const root = render({ store, versionId: String(version.id) });
 
-    expect(root.find('title')).toHaveText(`Browse ${missingAddonNameText}: ${versionString}`);
+    expect(root.find('title')).toHaveText(
+      `Browse ${MISSING_ADDON_NAME_TEXT}: ${versionString}`,
+    );
   });
 
   it('updates the selected path if it is different from the path in the URL', () => {

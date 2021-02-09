@@ -21,7 +21,10 @@ import {
   spyOn,
 } from '../../test-helpers';
 import { actions as userActions } from '../../reducers/users';
-import { actions as versionsActions, missingAddonNameText } from '../../reducers/versions';
+import {
+  actions as versionsActions,
+  MISSING_ADDON_NAME_TEXT,
+} from '../../reducers/versions';
 
 import Navbar, { NavbarBase, PublicProps, mapStateToProps } from '.';
 
@@ -96,7 +99,9 @@ describe(__filename, () => {
       });
       const root = render({ store });
 
-      expect(root.find(`.${styles.addonName}`).text()).toContain(missingAddonNameText);
+      expect(root.find(`.${styles.addonName}`).text()).toContain(
+        MISSING_ADDON_NAME_TEXT,
+      );
     });
 
     it('renders a link to reviewer tools', () => {
