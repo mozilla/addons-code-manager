@@ -14,10 +14,11 @@ import {
   VersionFileWithDiff,
   fetchVersionWithDiff,
   fetchDiffFile,
-  isDiffLoading,
+  getAddonName,
   getEntryStatusMap,
   getVersionDiff,
   getVersionInfo,
+  isDiffLoading,
   viewVersionFile,
   actions as versionsActions,
 } from '../../reducers/versions';
@@ -28,7 +29,6 @@ import {
 } from '../../reducers/fileTree';
 import {
   createCodeLineAnchorGetter,
-  getLocalizedString,
   getPathFromQueryString,
   gettext,
 } from '../../utils';
@@ -240,7 +240,7 @@ export class CompareBase extends React.Component<Props> {
           <title>
             {version
               ? gettext(
-                  `Compare ${getLocalizedString(
+                  `Compare ${getAddonName(
                     version.addon.name,
                   )}: ${baseVersionId}...${headVersionId}`,
                 )

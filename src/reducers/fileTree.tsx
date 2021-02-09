@@ -7,12 +7,12 @@ import {
   actions as versionsActions,
   EntryStatusMap,
   Version,
+  getAddonName,
   viewVersionFile,
 } from './versions';
 import { ThunkActionCreator } from '../configureStore';
 import {
   createAdjustedQueryString,
-  getLocalizedString,
   messageUidQueryParam,
   pathQueryParam,
 } from '../utils';
@@ -65,7 +65,7 @@ export const buildFileTreeNodes = (version: Version): DirectoryNode => {
   const { entries } = version;
   const root: DirectoryNode = {
     id: ROOT_PATH,
-    name: getLocalizedString(version.addon.name),
+    name: getAddonName(version.addon.name),
     children: [],
   };
 

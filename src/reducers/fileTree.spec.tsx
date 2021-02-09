@@ -21,6 +21,7 @@ import {
   actions as versionsActions,
   createInternalVersion,
   createInternalVersionEntry,
+  getAddonName,
 } from './versions';
 import { getMessageMap } from './linter';
 import configureStore from '../configureStore';
@@ -36,7 +37,6 @@ import {
   nextUniqueId,
   thunkTester,
 } from '../test-helpers';
-import { getLocalizedString } from '../utils';
 
 describe(__filename, () => {
   describe('reducer', () => {
@@ -147,7 +147,7 @@ describe(__filename, () => {
   describe('buildFileTree', () => {
     it('creates a root node', () => {
       const version = createVersionWithInternalEntries([]);
-      const addonName = getLocalizedString(version.addon.name);
+      const addonName = getAddonName(version.addon.name);
 
       const tree = buildFileTreeNodes(version);
 

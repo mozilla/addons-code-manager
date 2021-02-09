@@ -27,8 +27,9 @@ import {
   createEntryStatusMap,
   createInternalDiff,
   createInternalVersion,
-  getVersionDiff,
   createInternalVersionFile,
+  getVersionDiff,
+  MISSING_ADDON_NAME_TEXT,
 } from '../../reducers/versions';
 import DiffView from '../../components/DiffView';
 import Loading from '../../components/Loading';
@@ -1208,6 +1209,33 @@ describe(__filename, () => {
 
     expect(root.find('title')).toHaveText(
       `Compare ${name}: ${baseVersionId}...${headVersionId}`,
+    );
+  });
+
+  it('handles a missing add-on name', () => {
+    const baseVersionId = fakeVersionWithDiff.id + 1;
+    const headVersionId = baseVersionId + 1;
+
+    const version = {
+      ...fakeVersionWithDiff,
+      id: headVersionId,
+      addon: {
+        ...fakeVersionWithDiff.addon,
+        name: null,
+      },
+    };
+
+    const store = configureStore();
+    _loadDiff({ baseVersionId, headVersionId, store, version });
+
+    const root = render({
+      baseVersionId: String(baseVersionId),
+      headVersionId: String(headVersionId),
+      store,
+    });
+
+    expect(root.find('title')).toHaveText(
+      `Compare ${MISSING_ADDON_NAME_TEXT}: ${baseVersionId}...${headVersionId}`,
     );
   });
 
