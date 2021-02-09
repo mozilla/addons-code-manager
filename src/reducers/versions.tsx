@@ -24,6 +24,7 @@ import {
   LocalizedStringMap,
   createAdjustedQueryString,
   extractNumber,
+  getLocalizedString,
 } from '../utils';
 import { actions as errorsActions } from './errors';
 import {
@@ -31,6 +32,8 @@ import {
   RelativePathPosition,
   findRelativePathWithDiff,
 } from './fileTree';
+
+export const missingAddonNameText = '(no name)';
 
 // See: https://github.com/piotrwitek/typesafe-actions/issues/143
 const { createAction } = deprecated;
@@ -66,7 +69,7 @@ export type PartialExternalVersionFile = {
 export type ExternalVersionAddon = {
   icon_url: string;
   id: number;
-  name: LocalizedStringMap;
+  name: LocalizedStringMap | null;
   slug: string | null;
 };
 
@@ -193,7 +196,7 @@ export type VersionEntry = {
 type VersionAddon = {
   iconUrl: string;
   id: number;
-  name: LocalizedStringMap;
+  name: LocalizedStringMap | null;
   slug: string | null;
 };
 
@@ -1399,6 +1402,10 @@ export const goToRelativeDiff = ({
       );
     }
   };
+};
+
+export const getAddonName = (name: LocalizedStringMap | null) => {
+  return !name ? missingAddonNameText : getLocalizedString(name);
 };
 
 export const createReducer = ({

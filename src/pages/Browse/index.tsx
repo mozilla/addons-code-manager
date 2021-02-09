@@ -13,6 +13,7 @@ import {
   VersionFileWithContent,
   fetchVersion,
   fetchVersionFile,
+  getAddonName,
   getVersionFile,
   getVersionInfo,
   isFileLoading,
@@ -24,12 +25,7 @@ import {
   getTree,
   RelativePathPosition,
 } from '../../reducers/fileTree';
-import {
-  getLocalizedString,
-  gettext,
-  getPathFromQueryString,
-  makeReviewersURL,
-} from '../../utils';
+import { gettext, getPathFromQueryString, makeReviewersURL } from '../../utils';
 import Loading from '../../components/Loading';
 import CodeView from '../../components/CodeView';
 import styles from './styles.module.scss';
@@ -221,7 +217,7 @@ export class BrowseBase extends React.Component<Props> {
           <title>
             {version
               ? gettext(
-                  `Browse ${getLocalizedString(version.addon.name)}: ${
+                  `Browse ${getAddonName(version.addon.name)}: ${
                     version.versionString
                   }`,
                 )

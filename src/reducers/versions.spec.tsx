@@ -31,6 +31,7 @@ import reducer, {
   fetchVersion,
   fetchVersionFile,
   fetchVersionsList,
+  getAddonName,
   getInsertedLines,
   getDiffAnchors,
   getDiffKey,
@@ -52,6 +53,7 @@ import reducer, {
   isFileLoading,
   isFileWithContent,
   isFileWithDiff,
+  missingAddonNameText,
   selectCurrentVersionInfo,
   selectVersionIsLoading,
   versionPathExists,
@@ -4287,6 +4289,20 @@ describe(__filename, () => {
       expect(
         isFileWithDiff(createInternalVersionFile(fakeVersionFileWithContent)),
       ).toEqual(false);
+    });
+  });
+
+  describe('getAddonName', () => {
+    it('returns a standard string for a missing name', () => {
+      expect(getAddonName(null)).toEqual(missingAddonNameText);
+    });
+
+    it('returns localized content for a non-missing name', () => {
+      const lang = process.env.REACT_APP_DEFAULT_API_LANG as string;
+      const value = 'some name';
+      const name = { [lang]: value };
+
+      expect(getAddonName(name)).toEqual(value);
     });
   });
 });

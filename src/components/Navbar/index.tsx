@@ -4,7 +4,7 @@ import { Button, Navbar } from 'react-bootstrap';
 import { connect } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-import { gettext, getLocalizedString } from '../../utils';
+import { gettext } from '../../utils';
 import CommentSummaryButton from '../CommentSummaryButton';
 import LoginButton from '../LoginButton';
 import VersionChooser from '../VersionChooser';
@@ -13,6 +13,7 @@ import { Comment, selectVersionComments } from '../../reducers/comments';
 import {
   Version,
   fetchVersion,
+  getAddonName,
   getVersionInfo,
   selectCurrentVersionInfo,
 } from '../../reducers/versions';
@@ -168,7 +169,7 @@ export class NavbarBase extends React.Component<Props, State> {
                 <div
                   className={makeClassName(styles.infoItem, styles.addonName)}
                 >
-                  {getLocalizedString(currentVersion.addon.name)}
+                  {getAddonName(currentVersion.addon.name)}
                   <div
                     className={makeClassName(
                       styles.versionIndicator,
