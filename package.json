@@ -154,6 +154,7 @@
   },
   "homepage": "/",
   "jest": {
+    "resetMocks": false,
     "collectCoverageFrom": [
       "src/**/*.{js,jsx,ts,tsx}",
       "!<rootDir>/node_modules/",
