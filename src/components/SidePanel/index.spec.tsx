@@ -27,16 +27,9 @@ describe(__filename, () => {
     );
   };
 
-  it('marks the top-level as expanded when it is expanded', () => {
-    const root = render({ isExpanded: true });
-
-    expect(root).toHaveProp('aria-expanded', 'true');
-  });
-
-  it('adds a className and marks the top-level as collapsed when it is collapsed', () => {
+  it('adds a className when it is collapsed', () => {
     const root = render({ isExpanded: false });
 
-    expect(root).toHaveProp('aria-expanded', 'false');
     expect(root).toHaveClassName(`.${styles.isCollapsed}`);
   });
 
