@@ -1,18 +1,15 @@
 import React from 'react';
 import { Store } from 'redux';
-import { storiesOf } from '@storybook/react';
+import { Meta } from '@storybook/react';
 
-import FileTree, {
-  PublicProps as FileTreeProps,
-} from '../src/components/FileTree';
 import {
   VersionEntryType,
   actions as versionsActions,
-} from '../src/reducers/versions';
+} from '../../reducers/versions';
 import {
   ExternalLinterMessage,
   actions as linterActions,
-} from '../src/reducers/linter';
+} from '../../reducers/linter';
 import {
   createFakeExternalComment,
   createStoreWithVersion,
@@ -21,8 +18,10 @@ import {
   fakeExternalLinterMessage,
   fakeVersionWithContent,
   fakeVersionEntry,
-} from '../src/test-helpers';
-import { renderWithStoreAndRouter } from './utils';
+} from '../../test-helpers';
+import { renderWithStoreAndRouter } from '../../storybook-utils';
+
+import FileTree, { PublicProps as FileTreeProps } from '.';
 
 const fakeDirectoryEntry = {
   ...fakeVersionEntry,
@@ -178,34 +177,41 @@ const render = ({
   return renderWithStoreAndRouter(<FileTree {...props} />, { store });
 };
 
-storiesOf('FileTree', module)
-  .add('fluid width', () => render())
-  .add('small width', () => (
-    <div className="FileTreeStory-smallWidth"> {render()}</div>
-  ))
-  .add('files with comments', () => {
-    const version = defaultVersion;
-    const store = createStoreWithVersion({ version });
-    store.dispatch(versionsActions.expandTree({ versionId: version.id }));
-    dispatchComments({
-      store,
-      versionId: version.id,
-      comments: [
-        createFakeExternalComment({
-          filename: version.file.entries['manifest.json'].path,
-        }),
-        createFakeExternalComment({
-          filename:
-            version.file.entries['jquery-ui/js/jquery-1.7.1.min.js'].path,
-        }),
-        createFakeExternalComment({
-          filename:
-            version.file.entries['background-scripts/libs/jquery.min.js'].path,
-        }),
-        createFakeExternalComment({
-          filename: version.file.entries['lib/compat.js'].path,
-        }),
-      ],
-    });
-    return <div className="FileTreeStory-halfWidth">{render({ store })}</div>;
+export default {
+  title: 'Components/FileTree',
+  component: FileTree,
+} as Meta;
+
+export const FluidWidth = () => {
+  return render();
+};
+
+export const SmallWidth = () => {
+  return <div className="FileTreeStory-smallWidth"> {render()}</div>;
+};
+
+export const FilesWithComments = () => {
+  const version = defaultVersion;
+  const store = createStoreWithVersion({ version });
+  store.dispatch(versionsActions.expandTree({ versionId: version.id }));
+  dispatchComments({
+    store,
+    versionId: version.id,
+    comments: [
+      createFakeExternalComment({
+        filename: version.file.entries['manifest.json'].path,
+      }),
+      createFakeExternalComment({
+        filename: version.file.entries['jquery-ui/js/jquery-1.7.1.min.js'].path,
+      }),
+      createFakeExternalComment({
+        filename:
+          version.file.entries['background-scripts/libs/jquery.min.js'].path,
+      }),
+      createFakeExternalComment({
+        filename: version.file.entries['lib/compat.js'].path,
+      }),
+    ],
   });
+  return <div className="FileTreeStory-halfWidth">{render({ store })}</div>;
+};

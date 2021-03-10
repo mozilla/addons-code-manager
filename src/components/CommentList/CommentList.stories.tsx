@@ -1,16 +1,17 @@
 import * as React from 'react';
 import { Store } from 'redux';
-import { storiesOf } from '@storybook/react';
+import { Meta } from '@storybook/react';
 
-import configureStore from '../src/configureStore';
-import { AnyReactNode } from '../src/typeUtils';
-import CommentList, { PublicProps } from '../src/components/CommentList';
+import configureStore from '../../configureStore';
+import { AnyReactNode } from '../../typeUtils';
 import {
   ExternalComment,
   actions as commentsActions,
-} from '../src/reducers/comments';
-import { createFakeExternalComment } from '../src/test-helpers';
-import { renderWithStoreAndRouter } from './utils';
+} from '../../reducers/comments';
+import { renderWithStoreAndRouter } from '../../storybook-utils';
+import { createFakeExternalComment } from '../../test-helpers';
+
+import CommentList, { PublicProps } from '.';
 
 const render = ({
   addonId = 1,
@@ -81,46 +82,53 @@ const render = ({
   );
 };
 
-storiesOf('CommentList', module)
-  .add('One comment', () => {
-    return render({
-      comments: [
-        createFakeExternalComment({
-          id: 1,
-          comment: 'This is unnecessary due to the reset library up above',
-        }),
-      ],
-    });
-  })
-  .add('Multiple comments', () => {
-    return render({
-      comments: [
-        createFakeExternalComment({
-          id: 1,
-          comment: 'This is unnecessary due to the reset library up above',
-        }),
-        createFakeExternalComment({
-          id: 2,
-          comment: 'Thanks for promptly addressing our other change requests',
-        }),
-      ],
-    });
-  })
-  .add('Comment entry form', () => {
-    return render({ beginComment: true });
-  })
-  .add('Comment entry form with saved comments', () => {
-    return render({
-      beginComment: true,
-      comments: [
-        createFakeExternalComment({
-          id: 1,
-          comment: 'This is unnecessary due to the reset library up above',
-        }),
-        createFakeExternalComment({
-          id: 2,
-          comment: 'Thanks for promptly addressing our other change requests',
-        }),
-      ],
-    });
+export default {
+  title: 'Components/CommentList',
+  component: CommentList,
+} as Meta;
+
+export const OneComment = () => {
+  return render({
+    comments: [
+      createFakeExternalComment({
+        id: 1,
+        comment: 'This is unnecessary due to the reset library up above',
+      }),
+    ],
   });
+};
+
+export const MultipleComments = () => {
+  return render({
+    comments: [
+      createFakeExternalComment({
+        id: 1,
+        comment: 'This is unnecessary due to the reset library up above',
+      }),
+      createFakeExternalComment({
+        id: 2,
+        comment: 'Thanks for promptly addressing our other change requests',
+      }),
+    ],
+  });
+};
+
+export const CommentEntryForm = () => {
+  return render({ beginComment: true });
+};
+
+export const CommentEntryFormWithSavedComments = () => {
+  return render({
+    beginComment: true,
+    comments: [
+      createFakeExternalComment({
+        id: 1,
+        comment: 'This is unnecessary due to the reset library up above',
+      }),
+      createFakeExternalComment({
+        id: 2,
+        comment: 'Thanks for promptly addressing our other change requests',
+      }),
+    ],
+  });
+};

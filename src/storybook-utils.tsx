@@ -4,8 +4,8 @@ import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router-dom';
 import { Store } from 'redux';
 
-import configureStore from '../src/configureStore';
-import { nextUniqueId } from '../src/test-helpers';
+import configureStore from './configureStore';
+import { createFakeExternalComment, nextUniqueId } from './test-helpers';
 
 export const renderWithStoreAndRouter = (
   element: JSX.Element,
@@ -86,4 +86,22 @@ export const generateParagraphs = (
       // eslint-disable-next-line react/no-array-index-key
       .map((p, i) => <p key={i}>{p}</p>)
   );
+};
+
+export const createOneLineComment = () => [
+  createFakeExternalComment({
+    filename: 'manifest.json',
+    lineno: 23,
+    comment: 'This is a deprecated permission',
+  }),
+];
+
+export const createVeryLongComments = () => {
+  return new Array(10).fill(null).map((value, index) => {
+    return createFakeExternalComment({
+      filename: 'manifest.json',
+      lineno: index + 1,
+      comment: loremIpsum.trim(),
+    });
+  });
 };

@@ -1,8 +1,9 @@
 import * as React from 'react';
-import { storiesOf } from '@storybook/react';
+import { Meta } from '@storybook/react';
 
-import Commentable from '../src/components/Commentable';
-import { renderWithStoreAndRouter } from './utils';
+import { renderWithStoreAndRouter } from '../../storybook-utils';
+
+import Commentable, { CommentableBase } from '.';
 
 const renderRow = ({ content, line }: { content: string; line: number }) => {
   return renderWithStoreAndRouter(
@@ -24,10 +25,15 @@ const renderRow = ({ content, line }: { content: string; line: number }) => {
   );
 };
 
-storiesOf('Commentable', module).add('default', () => (
+export default {
+  title: 'Components/Commentable',
+  component: CommentableBase,
+} as Meta;
+
+export const Default = () => (
   <>
     {renderRow({ line: 1, content: 'This is line 1' })}
     {renderRow({ line: 2, content: 'This is line 2' })}
     {renderRow({ line: 3, content: 'This is line 3' })}
   </>
-));
+);
