@@ -82,7 +82,7 @@
     "@types/enzyme-adapter-react-16": "^1.0.3",
     "@types/jest": "^26.0.0",
     "@types/storybook__react": "^4.0.0",
-    "@types/supertest": "^2.0.7",
+    "@types/supertest": "^2.0.10",
     "@typescript-eslint/eslint-plugin": "^4.2.0",
     "@typescript-eslint/parser": "^4.2.0",
     "babel-loader": "8.1.0",
