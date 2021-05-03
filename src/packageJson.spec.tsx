@@ -25,6 +25,7 @@ describe(__filename, () => {
     `should have devDependencies[%s] version prefixed with "^"`,
     (key: string) => {
       if (!skipDevDeps.includes(key)) {
+        // eslint-disable-next-line jest/no-conditional-expect
         expect(packageJson.devDependencies).toHaveProperty(
           [key],
           expect.stringMatching(/^(\^|git)/),
