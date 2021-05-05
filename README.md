@@ -17,7 +17,7 @@ This is a web application to manage add-on source code, such as reviewing code f
 
 All available commands are documented below.
 
-Read [our contributing guidelines](./CONTRIBUTING.md) to get started on your first patch.
+Read [our contributing guidelines](.github/CONTRIBUTING.md) to get started on your first patch.
 
 ## Prettier
 
