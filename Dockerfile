@@ -1,4 +1,4 @@
-FROM node:12
+FROM node:16
 
 ENV NODE_ENV production
 ENV SERVER_HOST 0.0.0.0
