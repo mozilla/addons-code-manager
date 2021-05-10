@@ -135,12 +135,8 @@ export class NavbarBase extends React.Component<Props, State> {
   }
 
   render() {
-    const {
-      currentBaseVersion,
-      currentVersion,
-      reviewersHost,
-      user,
-    } = this.props;
+    const { currentBaseVersion, currentVersion, reviewersHost, user } =
+      this.props;
     const { nextBaseVersionImprint } = this.state;
     const addonSlugOrId = currentVersion
       ? currentVersion.addon.slug || currentVersion.addon.id

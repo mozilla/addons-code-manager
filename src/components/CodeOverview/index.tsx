@@ -221,9 +221,8 @@ export class CodeOverviewBase extends React.Component<Props, State> {
     }
 
     const allLineShapes = generateLineShapes(getLines(content));
-    const { numberOfRows, chunkedLineShapes } = this.fitLineShapesIntoOverview(
-      allLineShapes,
-    );
+    const { numberOfRows, chunkedLineShapes } =
+      this.fitLineShapesIntoOverview(allLineShapes);
     const overview = [];
 
     for (let rowIndex = 0; rowIndex < numberOfRows; rowIndex++) {

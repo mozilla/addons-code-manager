@@ -403,14 +403,10 @@ describe(__filename, () => {
   });
 
   it('does not dispatch fetchVersionFile on update if a file is loading', () => {
-    const {
-      fakeThunk,
-      version,
-      store,
-      renderAndUpdate,
-    } = setUpVersionFileUpdate({
-      initialPath: 'scripts/content.js',
-    });
+    const { fakeThunk, version, store, renderAndUpdate } =
+      setUpVersionFileUpdate({
+        initialPath: 'scripts/content.js',
+      });
 
     const selectedPath = 'scripts/background.js';
     store.dispatch(
@@ -434,17 +430,13 @@ describe(__filename, () => {
   it('does not dispatch fetchVersionFile when switching paths to a loaded file', () => {
     const selectedPath = 'scripts/background.js';
 
-    const {
-      fakeThunk,
-      version,
-      store,
-      renderAndUpdate,
-    } = setUpVersionFileUpdate({
-      extraFileEntries: {
-        [selectedPath]: { ...fakeVersionEntry, path: selectedPath },
-      },
-      initialPath: 'scripts/content.js',
-    });
+    const { fakeThunk, version, store, renderAndUpdate } =
+      setUpVersionFileUpdate({
+        extraFileEntries: {
+          [selectedPath]: { ...fakeVersionEntry, path: selectedPath },
+        },
+        initialPath: 'scripts/content.js',
+      });
 
     // Setup a file that was previously loaded.
     store.dispatch(
@@ -467,14 +459,10 @@ describe(__filename, () => {
   });
 
   it('does not dispatch fetchVersionFile when operation has been aborted', () => {
-    const {
-      fakeThunk,
-      version,
-      store,
-      renderAndUpdate,
-    } = setUpVersionFileUpdate({
-      initialPath: 'scripts/content.js',
-    });
+    const { fakeThunk, version, store, renderAndUpdate } =
+      setUpVersionFileUpdate({
+        initialPath: 'scripts/content.js',
+      });
 
     const selectedPath = 'scripts/background.js';
     store.dispatch(
@@ -845,18 +833,14 @@ describe(__filename, () => {
         [currentPath]: { ...fakeVersionEntry, path: currentPath },
         [nextPath]: { ...fakeVersionEntry, path: nextPath },
       };
-      const {
-        _fetchVersionFile,
-        fakeThunk,
-        store,
-        version,
-      } = setUpVersionFileUpdate({
-        addonId,
-        extraFileEntries,
-        initialPath: currentPath,
-        loadVersionFile,
-        versionId,
-      });
+      const { _fetchVersionFile, fakeThunk, store, version } =
+        setUpVersionFileUpdate({
+          addonId,
+          extraFileEntries,
+          initialPath: currentPath,
+          loadVersionFile,
+          versionId,
+        });
       if (buildTree) {
         store.dispatch(
           fileTreeActions.buildTree({
@@ -901,11 +885,9 @@ describe(__filename, () => {
       const addonId = 5;
       const nextPath = 'next.js';
       const versionId = 1;
-      const {
-        _fetchVersionFile,
-        fakeThunk,
-        dispatchSpy,
-      } = setUpFilesAndRender({ addonId, nextPath, versionId });
+      const { _fetchVersionFile, fakeThunk, dispatchSpy } = setUpFilesAndRender(
+        { addonId, nextPath, versionId },
+      );
 
       expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
       expect(_fetchVersionFile).toHaveBeenCalledWith({
@@ -941,11 +923,9 @@ describe(__filename, () => {
     });
 
     it('does not dispatch fetchVersionFile when the next file is loading', () => {
-      const {
-        _fetchVersionFile,
-        dispatchSpy,
-        fakeThunk,
-      } = setUpFilesAndRender({ beginFetchNextFile: true });
+      const { _fetchVersionFile, dispatchSpy, fakeThunk } = setUpFilesAndRender(
+        { beginFetchNextFile: true },
+      );
 
       expect(dispatchSpy).not.toHaveBeenCalledWith(fakeThunk.thunk);
       expect(_fetchVersionFile).not.toHaveBeenCalled();
