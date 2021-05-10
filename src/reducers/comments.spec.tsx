@@ -1547,10 +1547,8 @@ describe(__filename, () => {
       const path = `${dir}/manifest.json`;
       const commentId = 9876;
 
-      const {
-        comments: initialComments,
-        versionId,
-      } = createCommentsStateForPath({ commentId, path });
+      const { comments: initialComments, versionId } =
+        createCommentsStateForPath({ commentId, path });
 
       const comments = reducer(
         initialComments,

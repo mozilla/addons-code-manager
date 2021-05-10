@@ -134,13 +134,10 @@ describe(__filename, () => {
   it('dispatches fetchLinterMessagesIfNeeded when linterMessages is undefined', () => {
     const version = createInternalVersion(fakeVersionWithContent);
 
-    const {
-      _fetchLinterMessagesIfNeeded,
-      dispatch,
-      fakeThunk,
-    } = renderWithFakeThunk({
-      version,
-    });
+    const { _fetchLinterMessagesIfNeeded, dispatch, fakeThunk } =
+      renderWithFakeThunk({
+        version,
+      });
 
     expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
     expect(_fetchLinterMessagesIfNeeded).toHaveBeenCalledWith({

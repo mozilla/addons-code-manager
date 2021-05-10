@@ -156,7 +156,7 @@ export const callApi = async <
   T extends {
     requestData: undefined | Record<string, unknown>;
     successfulResponse: unknown;
-  }
+  },
 >({
   _makeQueryString = makeQueryString,
   apiState,
@@ -273,9 +273,8 @@ export const fetchAllPages = async <ResultsType,>(
   let nextUrl = null;
 
   for (let page = 1; page <= maxAllowedPages; page++) {
-    const response: FetchAllPagesReturnType<ResultsType> = await getNextResponse(
-      nextUrl,
-    );
+    const response: FetchAllPagesReturnType<ResultsType> =
+      await getNextResponse(nextUrl);
 
     if (isErrorResponse(response)) {
       return response;

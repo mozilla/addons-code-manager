@@ -12,7 +12,7 @@ const app = createServer({
   // This is risky but also expected because `process.env` is only defined at
   // runtime.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  env: (process.env as any) as ServerEnvVars,
+  env: process.env as any as ServerEnvVars,
   rootPath: path.join(__dirname, '..'),
 });
 

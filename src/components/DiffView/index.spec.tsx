@@ -273,10 +273,10 @@ describe(__filename, () => {
   it('resets tokens to undefined if they seem invalid', () => {
     const _codeCanBeHighlighted = jest.fn().mockReturnValue(true);
     const _codeShouldBeTrimmed = jest.fn().mockReturnValue(false);
-    const _tokenize = (jest.spyOn(
+    const _tokenize = jest.spyOn(
       ReactDiffView,
       'tokenize',
-    ) as unknown) as typeof ReactDiffView.tokenize;
+    ) as unknown as typeof ReactDiffView.tokenize;
     // This creates a hunk with just the line that is added via the trimmer.
     // It is the undefined line numbers that cause tokenize to fail.
     const hunk = {
@@ -308,10 +308,10 @@ describe(__filename, () => {
   it('does not reset tokens to undefined for a single line of code', () => {
     const _codeCanBeHighlighted = jest.fn().mockReturnValue(true);
     const _codeShouldBeTrimmed = jest.fn().mockReturnValue(false);
-    const _tokenize = (jest.spyOn(
+    const _tokenize = jest.spyOn(
       ReactDiffView,
       'tokenize',
-    ) as unknown) as typeof ReactDiffView.tokenize;
+    ) as unknown as typeof ReactDiffView.tokenize;
     const code =
       '<!DOCTYPE html><html><head></head><body><script src="/src/manifest.js"></body></html>';
     const diff = createDiffWithHunks([

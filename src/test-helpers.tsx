@@ -109,12 +109,11 @@ const partialFakeVersionFile: PartialExternalVersionFile = {
   uses_unknown_minified_code: false,
 };
 
-export const fakeVersionFileWithContent: ExternalVersionFileWithContent = Object.freeze(
-  {
+export const fakeVersionFileWithContent: ExternalVersionFileWithContent =
+  Object.freeze({
     ...partialFakeVersionFile,
     content: 'some file content',
-  },
-);
+  });
 
 export const fakeExternalDiff = Object.freeze({
   path: 'manifest.json',
@@ -190,12 +189,11 @@ export const fakeExternalDiff = Object.freeze({
   new_ending_new_line: false,
 });
 
-export const fakeVersionFileWithDiff: ExternalVersionFileWithDiff = Object.freeze(
-  {
+export const fakeVersionFileWithDiff: ExternalVersionFileWithDiff =
+  Object.freeze({
     ...partialFakeVersionFile,
     diff: fakeExternalDiff,
-  },
-);
+  });
 
 export const fakeVersionAddon: ExternalVersionAddon = Object.freeze({
   icon_url: 'some-icon-url',
@@ -302,9 +300,8 @@ export const getFakeVersionAndPathList = (
     filename: params.path,
   }));
 
-  const { version, entryStatusMap } = createVersionAndEntryStatusMap(
-    externalEntries,
-  );
+  const { version, entryStatusMap } =
+    createVersionAndEntryStatusMap(externalEntries);
 
   version.selectedPath = pathList[0];
 
@@ -374,12 +371,11 @@ export const fakeVersionWithDiff: ExternalVersionWithDiff = Object.freeze({
   file: fakeVersionFileWithDiff,
 });
 
-export const fakeVersionWithDiffFileOnly: ExternalVersionWithDiffFileOnly = Object.freeze(
-  {
+export const fakeVersionWithDiffFileOnly: ExternalVersionWithDiffFileOnly =
+  Object.freeze({
     id: fakeVersionWithDiff.id,
     file: fakeVersionWithDiff.file,
-  },
-);
+  });
 
 export const fakeVersionsListItem: ExternalVersionsListItem = {
   id: nextUniqueId(),
@@ -949,7 +945,7 @@ export const createStoreWithVersionComments = ({
 
 export const createFakeApiPage = <
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  PaginatedResponseType extends PaginatedResponse<any>
+  PaginatedResponseType extends PaginatedResponse<any>,
 >({
   next = null,
   previous = null,

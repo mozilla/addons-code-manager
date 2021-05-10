@@ -23,7 +23,7 @@ const configureApplication = ({
   _Sentry = Sentry,
   _log = log,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  env = (process.env as any) as ClientEnvVars,
+  env = process.env as any as ClientEnvVars,
 }: ConfigureApplicationParams = {}) => {
   if (env.REACT_APP_SENTRY_DSN) {
     _Sentry.init({

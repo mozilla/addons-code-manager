@@ -63,12 +63,8 @@ export class LinterProviderBase extends React.Component<Props> {
   }
 
   _loadData = () => {
-    const {
-      _fetchLinterMessagesIfNeeded,
-      dispatch,
-      messageMap,
-      version,
-    } = this.props;
+    const { _fetchLinterMessagesIfNeeded, dispatch, messageMap, version } =
+      this.props;
 
     if (messageMap === undefined) {
       dispatch(

@@ -246,12 +246,8 @@ describe(__filename, () => {
     });
 
     it('fetches comments on update', () => {
-      const {
-        _fetchAndLoadComments,
-        dispatch,
-        fakeThunk,
-        root,
-      } = renderForFetching();
+      const { _fetchAndLoadComments, dispatch, fakeThunk, root } =
+        renderForFetching();
 
       dispatch.mockClear();
       root.setProps({});

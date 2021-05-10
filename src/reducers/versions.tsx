@@ -1560,13 +1560,8 @@ export const createReducer = ({
         };
       }
       case getType(actions.loadDiffFile): {
-        const {
-          addonId,
-          baseVersionId,
-          headVersionId,
-          path,
-          version,
-        } = action.payload;
+        const { addonId, baseVersionId, headVersionId, path, version } =
+          action.payload;
 
         const key = getDiffKey({
           addonId,

@@ -885,15 +885,12 @@ describe(__filename, () => {
     it('dispatches fetchVersionWithDiff() with forceReloadVersion set when the file tree has obsolete forVersionId', () => {
       const baseVersionId = nextUniqueId();
       const headVersionId = baseVersionId + 10;
-      const {
-        dispatch,
-        fakeThunk,
-        _fetchVersionWithDiff,
-      } = setUpFileTreeAndRender({
-        baseVersionId,
-        forVersionId: headVersionId + 1,
-        headVersionId,
-      });
+      const { dispatch, fakeThunk, _fetchVersionWithDiff } =
+        setUpFileTreeAndRender({
+          baseVersionId,
+          forVersionId: headVersionId + 1,
+          headVersionId,
+        });
 
       expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
       expect(_fetchVersionWithDiff).toHaveBeenCalledWith(
@@ -906,15 +903,12 @@ describe(__filename, () => {
     it('dispatches fetchVersionWithDiff() with forceReloadVersion set when the file tree has obsolete comparedToVersionId', () => {
       const baseVersionId = nextUniqueId();
       const headVersionId = baseVersionId + 10;
-      const {
-        dispatch,
-        fakeThunk,
-        _fetchVersionWithDiff,
-      } = setUpFileTreeAndRender({
-        baseVersionId,
-        comparedToVersionId: baseVersionId + 1,
-        headVersionId,
-      });
+      const { dispatch, fakeThunk, _fetchVersionWithDiff } =
+        setUpFileTreeAndRender({
+          baseVersionId,
+          comparedToVersionId: baseVersionId + 1,
+          headVersionId,
+        });
 
       expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
       expect(_fetchVersionWithDiff).toHaveBeenCalledWith(
@@ -981,17 +975,13 @@ describe(__filename, () => {
         ],
         { id: headVersionId, selected_file: currentFile },
       );
-      const {
-        _fetchVersionWithDiff,
-        _fetchDiffFile,
-        dispatchSpy,
-        fakeThunk,
-      } = loadDiffAndRender({
-        buildTree,
-        headVersionId,
-        version,
-        ...params,
-      });
+      const { _fetchVersionWithDiff, _fetchDiffFile, dispatchSpy, fakeThunk } =
+        loadDiffAndRender({
+          buildTree,
+          headVersionId,
+          version,
+          ...params,
+        });
       return {
         _fetchVersionWithDiff,
         _fetchDiffFile,
@@ -1006,17 +996,14 @@ describe(__filename, () => {
       const headVersionId = 55;
       const currentFile = 'current.json';
       const nextModifiedFile = 'modified.json';
-      const {
-        _fetchDiffFile,
-        dispatchSpy,
-        fakeThunk,
-      } = setUpForPreloadAndRender({
-        addonId,
-        baseVersionId,
-        currentFile,
-        headVersionId,
-        nextModifiedFile,
-      });
+      const { _fetchDiffFile, dispatchSpy, fakeThunk } =
+        setUpForPreloadAndRender({
+          addonId,
+          baseVersionId,
+          currentFile,
+          headVersionId,
+          nextModifiedFile,
+        });
 
       expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
       expect(_fetchDiffFile).toHaveBeenCalledWith({
@@ -1033,19 +1020,16 @@ describe(__filename, () => {
       const headVersionId = baseVersionId + 1;
       const currentFile = 'current.json';
       const nextModifiedFile = 'modified.json';
-      const {
-        _fetchDiffFile,
-        dispatchSpy,
-        fakeThunk,
-      } = setUpForPreloadAndRender({
-        addonId,
-        baseVersionId,
-        currentFile,
-        currentFileStatus: 'D',
-        headVersionId,
-        nextModifiedFile,
-        nextModifiedFileStatus: 'M',
-      });
+      const { _fetchDiffFile, dispatchSpy, fakeThunk } =
+        setUpForPreloadAndRender({
+          addonId,
+          baseVersionId,
+          currentFile,
+          currentFileStatus: 'D',
+          headVersionId,
+          nextModifiedFile,
+          nextModifiedFileStatus: 'M',
+        });
 
       expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
       expect(_fetchDiffFile).toHaveBeenCalledWith({

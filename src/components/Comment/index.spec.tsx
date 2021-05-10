@@ -526,17 +526,13 @@ describe(__filename, () => {
       const commentId = 987;
       const versionId = 432;
 
-      const {
-        _deleteComment,
-        dispatchSpy,
-        fakeThunk,
-        root,
-      } = renderCommentToDelete({
-        addonId,
-        commentId,
-        considerDelete: true,
-        versionId,
-      });
+      const { _deleteComment, dispatchSpy, fakeThunk, root } =
+        renderCommentToDelete({
+          addonId,
+          commentId,
+          considerDelete: true,
+          versionId,
+        });
 
       const deleteButton = root.find(`.${styles.deleteButton}`);
       expect(deleteButton).toHaveLength(1);
