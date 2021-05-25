@@ -11,7 +11,7 @@
     "@sentry/integrations": "6.3.5",
     "@types/classnames": "2.3.0",
     "@types/dompurify": "2.2.2",
-    "@types/express": "4.17.11",
+    "@types/express": "4.17.12",
     "@types/filesize": "4.2.0",
     "@types/he": "1.1.1",
     "@types/helmet": "0.0.48",
