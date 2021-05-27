@@ -68,7 +68,7 @@
     "sass": "1.34.0",
     "ts-node": "9.1.1",
     "typesafe-actions": "5.1.0",
-    "typescript": "4.2.4",
+    "typescript": "4.3.2",
     "universal-cookie": "4.0.4",
     "universal-cookie-express": "4.0.3"
   },
