@@ -3088,10 +3088,10 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react-bootstrap@0.32.25":
-  version "0.32.25"
-  resolved "https://registry.yarnpkg.com/@types/react-bootstrap/-/react-bootstrap-0.32.25.tgz#fdea798f9a2623a161ed61939898078ae841df1e"
-  integrity sha512-VTa6viz5L+uPblEiF2pZz/n425cC49hrjLTsiLySxf7fw+UkchkjpskrsOHRvC6cCgCAG9futRWvOOjD1IBQqQ==
+"@types/react-bootstrap@0.32.26":
+  version "0.32.26"
+  resolved "https://registry.yarnpkg.com/@types/react-bootstrap/-/react-bootstrap-0.32.26.tgz#7309c5ff46684dcdb5e9e0fd21201cdf13ff43b0"
+  integrity sha512-IugRlKW82adDmfEm2bgq6l08T6MQX8smlZTX2eguiP0GiL0WRGwc3kYtdBl5BhEpUSGx4wP8Upff2/GtqTOlJw==
   dependencies:
     "@types/react" "*"
 
