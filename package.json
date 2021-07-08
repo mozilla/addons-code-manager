@@ -28,7 +28,7 @@
     "@types/react-redux": "7.0.8",
     "@types/react-router-dom": "5.1.7",
     "@types/react-textarea-autosize": "4.3.5",
-    "@types/redux-logger": "3.0.8",
+    "@types/redux-logger": "3.0.9",
     "@types/redux-sentry-middleware": "0.2.0",
     "bootstrap": "4.6.0",
     "chalk": "4.1.1",
