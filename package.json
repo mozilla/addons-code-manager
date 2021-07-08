@@ -29,7 +29,7 @@
     "@types/react-router-dom": "5.1.8",
     "@types/react-textarea-autosize": "4.3.6",
     "@types/redux-logger": "3.0.9",
-    "@types/redux-sentry-middleware": "0.2.0",
+    "@types/redux-sentry-middleware": "0.2.1",
     "bootstrap": "4.6.0",
     "chalk": "4.1.1",
     "classnames": "2.3.1",
