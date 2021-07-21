@@ -123,7 +123,7 @@ export const makeReviewersURL = ({
     return `${reviewersHost}${path}`;
   }
 
-  return path;
+  return path || undefined;
 };
 
 export const shouldAllowSlowPages = ({
