@@ -13346,10 +13346,10 @@ react-dev-utils@^9.0.0:
     strip-ansi "5.2.0"
     text-table "0.2.0"
 
-react-diff-view@2.4.7:
-  version "2.4.7"
-  resolved "https://registry.yarnpkg.com/react-diff-view/-/react-diff-view-2.4.7.tgz#b0583ed85d61db300872014b08a289b2f363ac7e"
-  integrity sha512-M8NrVffIOPLqnQGfbv8VVnUVi80GefATRtneMQKo+uuqTx3IORO1mjrPUe3L0rmW/0xJucINjLWuLhSd1JX/tg==
+react-diff-view@2.4.8:
+  version "2.4.8"
+  resolved "https://registry.yarnpkg.com/react-diff-view/-/react-diff-view-2.4.8.tgz#9aa35d337440b0e18537c3a5907f6b36c2efb313"
+  integrity sha512-K9XCaMKzr3aafsxI8sDaLp2EuUv8hZBnoyxDa5eR7HL4ExmhN+Qho78isfotUzp/7j/Omm1PgpNtr45Vi4BIcA==
 
 react-docgen@^5.0.0:
   version "5.4.0"
