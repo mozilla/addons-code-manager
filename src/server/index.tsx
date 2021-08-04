@@ -303,7 +303,7 @@ export const createServer = ({
         selfHandleResponse: true,
         onProxyRes: (
           proxyResponse: http.IncomingMessage,
-          req: http.IncomingMessage & RequestWithCookies,
+          req: http.IncomingMessage,
           res: http.ServerResponse,
         ) => {
           const bodyChunks: Buffer[] = [];
@@ -333,7 +333,11 @@ export const createServer = ({
 
             if (contentType.includes('text/html')) {
               res.setHeader('cache-control', 'private, no-store');
-              body = _injectAuthenticationToken(req, body, env);
+              body = _injectAuthenticationToken(
+                req as http.IncomingMessage & RequestWithCookies,
+                body,
+                env,
+              );
             }
 
             if (contentEncoding.includes('gzip')) {
