@@ -106,11 +106,11 @@ describe(__filename, () => {
 
     it('renders a link to reviewer tools', () => {
       const reviewersHost = 'https://example.com';
-      const slug = 'some-slug';
+      const addonId = 12345;
       const store = createStoreWithVersion({
         version: {
           ...fakeVersionWithContent,
-          addon: { ...fakeVersionAddon, slug },
+          addon: { ...fakeVersionAddon, id: addonId },
         },
         makeCurrent: true,
       });
@@ -118,17 +118,17 @@ describe(__filename, () => {
 
       expect(root.find(`.${styles.reviewerToolsLink}`)).toHaveProp(
         'href',
-        `${reviewersHost}/reviewers/review/${slug}`,
+        `${reviewersHost}/reviewers/review/${addonId}`,
       );
     });
 
     it('renders a link to reviewer tools for a deleted add-on', () => {
       const reviewersHost = 'https://example.com';
-      const id = 456;
+      const addonId = 12345;
       const store = createStoreWithVersion({
         version: {
           ...fakeVersionWithContent,
-          addon: { ...fakeVersionAddon, id, slug: null },
+          addon: { ...fakeVersionAddon, id: addonId },
         },
         makeCurrent: true,
       });
@@ -136,7 +136,7 @@ describe(__filename, () => {
 
       expect(root.find(`.${styles.reviewerToolsLink}`)).toHaveProp(
         'href',
-        `${reviewersHost}/reviewers/review/${id}`,
+        `${reviewersHost}/reviewers/review/${addonId}`,
       );
     });
 
