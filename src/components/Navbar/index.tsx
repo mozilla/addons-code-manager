@@ -138,9 +138,7 @@ export class NavbarBase extends React.Component<Props, State> {
     const { currentBaseVersion, currentVersion, reviewersHost, user } =
       this.props;
     const { nextBaseVersionImprint } = this.state;
-    const addonSlugOrId = currentVersion
-      ? currentVersion.addon.slug || currentVersion.addon.id
-      : '';
+    const addonId = currentVersion ? currentVersion.addon.id : '';
 
     return (
       <Navbar className={styles.Navbar} expand="lg" variant="dark">
@@ -151,7 +149,7 @@ export class NavbarBase extends React.Component<Props, State> {
                 <div className={styles.infoItem}>
                   <a
                     className={styles.reviewerToolsLink}
-                    href={`${reviewersHost}/reviewers/review/${addonSlugOrId}`}
+                    href={`${reviewersHost}/reviewers/review/${addonId}`}
                     rel="noopener noreferrer"
                     target="_blank"
                   >
