@@ -32,15 +32,15 @@ $top-arrow-height: 20px;
 }
 
 .danger.inline:after {
-  border-bottom-color: theme-color-level('danger', $alert-bg-level);
+  border-bottom-color: shift-color($danger, $alert-bg-scale);
 }
 
 .secondary.inline:after {
-  border-bottom-color: theme-color-level('secondary', $alert-bg-level);
+  border-bottom-color: shift-color($secondary, $alert-bg-scale);
 }
 
 .warning.inline:after {
-  border-bottom-color: theme-color-level('warning', $alert-bg-level);
+  border-bottom-color: shift-color($warning, $alert-bg-scale);
 }
 
 .description {
@@ -53,23 +53,17 @@ $top-arrow-height: 20px;
   $darken-level: 50;
 
   &.danger {
-    border-color: darken(
-      theme-color-level('danger', $alert-border-level),
-      $darken-level
-    );
+    border-color: darken(shift-color($danger, $alert-bg-scale), $darken-level);
   }
 
   &.secondary {
     border-color: darken(
-      theme-color-level('secondary', $alert-border-level),
+      shift-color($secondary, $alert-bg-scale),
       $darken-level
     );
   }
 
   &.warning {
-    border-color: darken(
-      theme-color-level('warning', $alert-border-level),
-      $darken-level
-    );
+    border-color: darken(shift-color($warning, $alert-bg-scale), $darken-level);
   }
 }
