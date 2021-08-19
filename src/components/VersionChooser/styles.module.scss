@@ -1,3 +1,4 @@
+@use 'sass:math';
 @import '../../scss/variables';
 
 .VersionChooser {
@@ -32,5 +33,5 @@
 }
 
 .versionSelectControl {
-  margin-top: $default-padding / 2;
+  margin-top: math.div($default-padding, 2);
 }

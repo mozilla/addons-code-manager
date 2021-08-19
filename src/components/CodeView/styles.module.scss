@@ -1,3 +1,4 @@
+@use 'sass:math';
 @import '../../scss/variables';
 
 .table {
@@ -17,9 +18,9 @@
 
 .lineNumber {
   display: grid;
-  grid-gap: $default-padding / 2;
+  grid-gap: math.div($default-padding, 2);
   grid-template-columns: auto min-content;
-  padding-right: $default-padding / 2;
+  padding-right: math.div($default-padding, 2);
   user-select: none;
 
   a {
