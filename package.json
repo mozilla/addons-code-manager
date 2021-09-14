@@ -36,7 +36,7 @@
     "connected-react-router": "5.0.1",
     "dompurify": "2.3.1",
     "express": "4.17.1",
-    "filesize": "8.0.2",
+    "filesize": "8.0.3",
     "focus-visible": "5.2.0",
     "he": "1.2.0",
     "helmet": "4.6.0",
