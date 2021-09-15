@@ -34,7 +34,7 @@
     "chalk": "4.1.2",
     "classnames": "2.3.1",
     "connected-react-router": "5.0.1",
-    "dompurify": "2.3.1",
+    "dompurify": "2.3.2",
     "express": "4.17.1",
     "filesize": "8.0.3",
     "focus-visible": "5.2.0",
