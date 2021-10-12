@@ -64,7 +64,7 @@
     "redux-logger": "3.0.6",
     "redux-sentry-middleware": "0.2.2",
     "redux-thunk": "2.3.0",
-    "refractor": "3.4.0",
+    "refractor": "3.5.0",
     "sass": "1.42.1",
     "ts-node": "10.3.0",
     "typesafe-actions": "5.1.0",
