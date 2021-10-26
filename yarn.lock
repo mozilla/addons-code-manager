@@ -3120,10 +3120,10 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react-bootstrap@0.32.26":
-  version "0.32.26"
-  resolved "https://registry.yarnpkg.com/@types/react-bootstrap/-/react-bootstrap-0.32.26.tgz#7309c5ff46684dcdb5e9e0fd21201cdf13ff43b0"
-  integrity sha512-IugRlKW82adDmfEm2bgq6l08T6MQX8smlZTX2eguiP0GiL0WRGwc3kYtdBl5BhEpUSGx4wP8Upff2/GtqTOlJw==
+"@types/react-bootstrap@0.32.28":
+  version "0.32.28"
+  resolved "https://registry.yarnpkg.com/@types/react-bootstrap/-/react-bootstrap-0.32.28.tgz#ec91cdc5789c672a4da135fd94a6aad29c158ea5"
+  integrity sha512-+cGcRsnKZrmBhb1wV/fg/gC5LxgcP33O1QhQD/G5HtV0D2nID8tU6nU1M8bM6k72uc2X/0fHezt9Cdv8qBmG3A==
   dependencies:
     "@types/react" "*"
 
