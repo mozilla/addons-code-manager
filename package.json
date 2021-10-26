@@ -63,7 +63,7 @@
     "redux-devtools-extension": "2.13.9",
     "redux-logger": "3.0.6",
     "redux-sentry-middleware": "0.2.2",
-    "redux-thunk": "2.3.0",
+    "redux-thunk": "2.4.0",
     "refractor": "3.5.0",
     "sass": "1.43.2",
     "ts-node": "10.3.0",
