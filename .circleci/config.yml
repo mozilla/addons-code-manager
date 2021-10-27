@@ -6,6 +6,9 @@
 # GH_TOKEN - A valid GitHub token (for Storybook)
 version: 2.1
 
+orbs:
+  codecov: codecov/codecov@3.2.0
+
 references:
   defaults: &defaults
     working_directory: ~/addons-code-manager
@@ -64,6 +67,7 @@ jobs:
       - *run_yarn_install
       - *save_build_cache
       - run: yarn test-ci
+      - codecov/upload
       - run:
           name: yarn serve
           command: |
