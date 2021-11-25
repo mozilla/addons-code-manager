@@ -161,7 +161,8 @@
       "!src/**/*.stories.{js,jsx,ts,tsx}",
       "!<rootDir>/node_modules/",
       "!src/jest-reporters/eslint-check.js",
-      "!src/index.tsx"
+      "!src/index.tsx",
+      "!src/storybook-utils.tsx"
     ]
   }
 }
