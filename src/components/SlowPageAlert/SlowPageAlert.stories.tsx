@@ -1,8 +1,9 @@
 import * as React from 'react';
-import { storiesOf } from '@storybook/react';
+import { Meta } from '@storybook/react';
 
-import SlowPageAlert, { PublicProps } from '../src/components/SlowPageAlert';
-import { renderWithStoreAndRouter } from './utils';
+import { renderWithStoreAndRouter } from '../../storybook-utils';
+
+import SlowPageAlert, { PublicProps } from '.';
 
 const render = (otherProps: Partial<PublicProps> = {}) => {
   const props = {
@@ -13,6 +14,9 @@ const render = (otherProps: Partial<PublicProps> = {}) => {
   return renderWithStoreAndRouter(<SlowPageAlert {...props} />);
 };
 
-storiesOf('SlowPageAlert', module).add('default', () => {
-  return render();
-});
+export default {
+  title: 'Components/SlowPageAlert',
+  component: SlowPageAlert,
+} as Meta;
+
+export const Default = () => render();

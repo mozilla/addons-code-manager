@@ -1,18 +1,19 @@
 import * as React from 'react';
 import { Store } from 'redux';
-import { storiesOf } from '@storybook/react';
+import { Meta } from '@storybook/react';
 
-import { actions as popoverActions } from '../src/reducers/popover';
-import CommentSummaryButton from '../src/components/CommentSummaryButton';
+import { actions as popoverActions } from '../../reducers/popover';
 import {
   createStoreWithVersionComments,
   createFakeExternalComment,
-} from '../src/test-helpers';
-import { renderWithStoreAndRouter } from './utils';
+} from '../../test-helpers';
 import {
   createOneLineComment,
   createVeryLongComments,
-} from './CommentSummary.stories';
+  renderWithStoreAndRouter,
+} from '../../storybook-utils';
+
+import CommentSummaryButton from '.';
 
 const setUpStore = ({ comments = [createFakeExternalComment()] } = {}) => {
   const store = createStoreWithVersionComments({ comments });
@@ -30,12 +31,17 @@ const render = ({ store = setUpStore() }: { store?: Store } = {}) => {
   );
 };
 
-storiesOf('CommentSummaryButton', module)
-  .add('one line comment', () => {
-    return render({ store: setUpStore({ comments: createOneLineComment() }) });
-  })
-  .add('very long comments', () => {
-    return render({
-      store: setUpStore({ comments: createVeryLongComments() }),
-    });
+export default {
+  title: 'Components/CommentSummaryButton',
+  component: CommentSummaryButton,
+} as Meta;
+
+export const OneLineComment = () => {
+  return render({ store: setUpStore({ comments: createOneLineComment() }) });
+};
+
+export const VeryLongComments = () => {
+  return render({
+    store: setUpStore({ comments: createVeryLongComments() }),
   });
+};

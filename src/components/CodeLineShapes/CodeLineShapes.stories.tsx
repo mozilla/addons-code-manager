@@ -1,8 +1,9 @@
 import * as React from 'react';
-import { storiesOf } from '@storybook/react';
+import { Meta } from '@storybook/react';
 
-import CodeLineShapes from '../src/components/CodeLineShapes';
-import { generateLineShapes } from '../src/components/CodeLineShapes/utils';
+import { generateLineShapes } from './utils';
+
+import CodeLineShapes from '.';
 
 const exampleCode = `\
 browser.runtime.onMessage.addListener(
@@ -54,27 +55,22 @@ const buildAndRender = ({
   );
 };
 
-storiesOf('CodeLineShapes', module).addWithChapters('all variants', {
-  chapters: [
-    {
-      sections: [
-        {
-          title: 'Single line of code',
-          sectionFn: () =>
-            buildAndRender({
-              code: '"use strict;"',
-              maxLineLength: 30,
-            }),
-        },
-        {
-          title: '40 Character window',
-          sectionFn: () => buildAndRender({ maxLineLength: 40 }),
-        },
-        {
-          title: '20 Character window',
-          sectionFn: () => buildAndRender({ maxLineLength: 20 }),
-        },
-      ],
-    },
-  ],
-});
+export default {
+  title: 'Components/CodeLineShapes',
+  component: CodeLineShapes,
+} as Meta;
+
+export const SingleLineOfCode = () => {
+  return buildAndRender({
+    code: '"use strict;"',
+    maxLineLength: 30,
+  });
+};
+
+export const FortyCharacterWindow = () => {
+  return buildAndRender({ maxLineLength: 40 });
+};
+
+export const TwentyCharacterWindow = () => {
+  return buildAndRender({ maxLineLength: 20 });
+};

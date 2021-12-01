@@ -1,11 +1,12 @@
 import * as React from 'react';
 import { Store } from 'redux';
-import { storiesOf } from '@storybook/react';
+import { Meta } from '@storybook/react';
 
-import { actions as popoverActions } from '../src/reducers/popover';
-import PopoverButton, { PublicProps } from '../src/components/PopoverButton';
-import { loremIpsum, renderWithStoreAndRouter } from './utils';
-import configureStore from '../src/configureStore';
+import { actions as popoverActions } from '../../reducers/popover';
+import { loremIpsum, renderWithStoreAndRouter } from '../../storybook-utils';
+import configureStore from '../../configureStore';
+
+import PopoverButton, { PublicProps, PopoverButtonBase } from '.';
 
 const render = ({
   id = 'COMMENTS_SUMMARY',
@@ -22,6 +23,9 @@ const render = ({
   return renderWithStoreAndRouter(<PopoverButton {...props} />, { store });
 };
 
-storiesOf('PopoverButton', module).add('example', () => {
-  return render();
-});
+export default {
+  title: 'Components/PopoverButton',
+  component: PopoverButtonBase,
+} as Meta;
+
+export const Default = () => render();

@@ -94,7 +94,7 @@ const mapStateToProps = (
 
 export const AccordionItem = connect(mapStateToProps)(AccordionItemBase);
 
-const AccordionMenu = ({ children }: { children: AnyReactNode }) => {
+export const AccordionMenu = ({ children }: { children: AnyReactNode }) => {
   return <div className={styles.menu}>{children}</div>;
 };
 
