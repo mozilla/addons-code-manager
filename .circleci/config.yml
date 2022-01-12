@@ -141,6 +141,7 @@ jobs:
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             docker build --pull -t addons-code-manager .
       - run: docker images
+      - run: docker run --rm addons-code-manager node --version
       - run:
           name: Write the sha256 sum to an artifact for verification
           command: |
@@ -187,6 +188,7 @@ jobs:
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             docker build --pull -t addons-code-manager .
       - run: docker images
+      - run: docker run --rm addons-code-manager node --version
       - run:
           name: Write the sha256 sum to an artifact for verification
           command: |
