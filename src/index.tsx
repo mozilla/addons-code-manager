@@ -16,9 +16,10 @@ const history = createBrowserHistory();
 const store = configureStore({ history });
 
 const rootElement = document.getElementById('root') as HTMLElement;
-const authToken = (rootElement && rootElement.dataset.authToken) || null;
+const userAuthSessionId =
+  (rootElement && rootElement.dataset.userAuthSessionId) || null;
 
-if (authToken === process.env.REACT_APP_AUTH_TOKEN_PLACEHOLDER) {
+if (userAuthSessionId === process.env.REACT_APP_AUTH_TOKEN_PLACEHOLDER) {
   throw new Error(
     `Runtime error: authentication token placeholder should not be present`,
   );
@@ -29,7 +30,7 @@ const render = (AppComponent: typeof App) => {
     <ErrorBoundary>
       <Provider store={store}>
         <ConnectedRouter history={history}>
-          <AppComponent authToken={authToken} />
+          <AppComponent userAuthSessionId={userAuthSessionId} />
         </ConnectedRouter>
       </Provider>
     </ErrorBoundary>,

@@ -75,7 +75,7 @@ export const redactStateForSentry = (state: ApplicationState) => {
     // This intentionally doesn't spread api state. As the api shape evolves,
     // the tests will fail and that will help the author consider redaction
     // implications.
-    api: { authToken: '[redacted]' },
+    api: { userAuthSessionId: '[redacted]' },
     comments: state.comments,
     errors: state.errors,
     fileTree: state.fileTree,

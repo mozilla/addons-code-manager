@@ -42,10 +42,10 @@ describe(__filename, () => {
   const defaultLang = process.env.REACT_APP_DEFAULT_API_LANG;
   const defaultVersion = process.env.REACT_APP_DEFAULT_API_VERSION;
 
-  const getApiState = ({ authToken = '12345' } = {}) => {
+  const getApiState = ({ userAuthSessionId = '12345' } = {}) => {
     const store = configureStore();
 
-    store.dispatch(apiActions.setAuthToken({ authToken }));
+    store.dispatch(apiActions.setAuthSessionId({ userAuthSessionId }));
     const { api } = store.getState();
 
     return api;
@@ -209,8 +209,8 @@ describe(__filename, () => {
     });
 
     it('does not send an Authorization header when token is empty', async () => {
-      const authToken = '';
-      const apiState = getApiState({ authToken });
+      const userAuthSessionId = '';
+      const apiState = getApiState({ userAuthSessionId });
 
       await callApi({ apiState, endpoint: '/' });
 
@@ -221,8 +221,8 @@ describe(__filename, () => {
     });
 
     it('sends an Authorization header when apiState contains a token', async () => {
-      const authToken = 'some-auth-token';
-      const apiState = getApiState({ authToken });
+      const userAuthSessionId = 'some-session-id';
+      const apiState = getApiState({ userAuthSessionId });
 
       await callApi({ apiState, endpoint: '/' });
 
@@ -230,7 +230,7 @@ describe(__filename, () => {
         expect.any(String),
         expect.objectContaining({
           headers: {
-            Authorization: `Session ${authToken}`,
+            Authorization: `Session ${userAuthSessionId}`,
           },
         }),
       );

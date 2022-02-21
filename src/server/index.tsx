@@ -43,14 +43,14 @@ export const injectAuthenticationToken = (
   env: ServerEnvVars,
 ): string => {
   // Try to retrieve the authentication cookie, which contains the token.
-  const authToken = req.universalCookies.get(
+  const userAuthSessionId = req.universalCookies.get(
     env.REACT_APP_AUTHENTICATION_COOKIE,
   );
 
   // Replace the placeholder in the `index.html` file with the token.
   return html.replace(
     `"${env.REACT_APP_AUTH_TOKEN_PLACEHOLDER}"`,
-    JSON.stringify(authToken || '').replace(/</g, '\\u003c'),
+    JSON.stringify(userAuthSessionId || '').replace(/</g, '\\u003c'),
   );
 };
 

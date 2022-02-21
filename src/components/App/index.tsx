@@ -52,7 +52,7 @@ export type MockObserver = { disconnect: () => void; observe: () => void };
 
 export type PublicProps = {
   _mockObserver?: jest.Mock;
-  authToken: string | null;
+  userAuthSessionId: string | null;
 };
 
 export type DefaultProps = {
@@ -112,17 +112,20 @@ export class AppBase extends React.Component<Props> {
   }
 
   componentDidMount() {
-    const { apiState, authToken, dispatch } = this.props;
+    const { apiState, userAuthSessionId, dispatch } = this.props;
 
-    if (authToken && authToken !== apiState.authToken) {
-      dispatch(apiActions.setAuthToken({ authToken }));
+    if (userAuthSessionId && userAuthSessionId !== apiState.userAuthSessionId) {
+      dispatch(apiActions.setAuthSessionId({ userAuthSessionId }));
     }
   }
 
   componentDidUpdate(prevProps: Props) {
     const { apiState, user } = this.props;
 
-    if (!user && prevProps.apiState.authToken !== apiState.authToken) {
+    if (
+      !user &&
+      prevProps.apiState.userAuthSessionId !== apiState.userAuthSessionId
+    ) {
       const { _fetchCurrentUser, dispatch } = this.props;
 
       dispatch(_fetchCurrentUser());

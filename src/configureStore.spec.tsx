@@ -72,10 +72,12 @@ describe(__filename, () => {
 
     it('redacts api state', () => {
       const store = configureStore();
-      store.dispatch(apiActions.setAuthToken({ authToken: 'some-token' }));
+      store.dispatch(
+        apiActions.setAuthSessionId({ userAuthSessionId: 'some-id' }),
+      );
 
       expect(redactStateForSentry(store.getState()).api).toEqual({
-        authToken: '[redacted]',
+        userAuthSessionId: '[redacted]',
       });
     });
 

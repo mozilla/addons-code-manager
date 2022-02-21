@@ -45,14 +45,14 @@ describe(__filename, () => {
   type RenderParams = {
     _fetchCurrentUser?: DefaultProps['_fetchCurrentUser'];
     _mockObserver?: jest.Mock;
-    authToken?: PublicProps['authToken'];
+    userAuthSessionId?: PublicProps['userAuthSessionId'];
     store?: Store;
   };
 
   const render = ({
     _fetchCurrentUser = createFakeThunk().createThunk,
     _mockObserver = MockObserver,
-    authToken = 'some-token',
+    userAuthSessionId = 'some-id',
     store = configureStore(),
   }: RenderParams = {}) => {
     const contextWithRouter = createContextWithFakeRouter();
@@ -67,7 +67,7 @@ describe(__filename, () => {
     const props = {
       _fetchCurrentUser,
       _mockObserver,
-      authToken,
+      userAuthSessionId,
     };
 
     const root = shallowUntilTarget(<App {...props} />, AppBase, {
@@ -78,14 +78,14 @@ describe(__filename, () => {
   };
 
   it('renders without an authentication token', () => {
-    const root = render({ authToken: null });
+    const root = render({ userAuthSessionId: null });
 
     expect(root.find(ContentShell)).toHaveLength(1);
     expect(root.find(Navbar)).toHaveLength(1);
   });
 
   it('renders with an empty authentication token', () => {
-    const root = render({ authToken: '' });
+    const root = render({ userAuthSessionId: '' });
 
     expect(root.find(ContentShell)).toHaveLength(1);
     expect(root.find(Navbar)).toHaveLength(1);
@@ -101,40 +101,40 @@ describe(__filename, () => {
     );
   });
 
-  it('does not dispatch setAuthToken on mount when authToken is already present in the state', () => {
-    const authToken = 'my-token';
+  it('does not dispatch setAuthSessionId on mount when userAuthSessionId is already present in the state', () => {
+    const userAuthSessionId = 'my-session-id';
     const store = configureStore();
-    store.dispatch(apiActions.setAuthToken({ authToken }));
+    store.dispatch(apiActions.setAuthSessionId({ userAuthSessionId }));
     const dispatch = spyOn(store, 'dispatch');
 
-    render({ authToken, store });
+    render({ userAuthSessionId, store });
 
     expect(dispatch).not.toHaveBeenCalled();
   });
 
-  it('dispatches setAuthToken on mount when authToken is valid and not already set', () => {
-    const authToken = 'my-token';
+  it('dispatches setAuthSessionId on mount when userAuthSessionId is valid and not already set', () => {
+    const userAuthSessionId = 'my-session-d';
     const store = configureStore();
     const dispatch = spyOn(store, 'dispatch');
 
-    render({ authToken, store });
+    render({ userAuthSessionId, store });
 
     expect(dispatch).toHaveBeenCalledWith(
-      apiActions.setAuthToken({ authToken }),
+      apiActions.setAuthSessionId({ userAuthSessionId }),
     );
   });
 
-  it('does not dispatch setAuthToken on mount when authToken is null', () => {
+  it('does not dispatch setAuthSessionId on mount when userAuthSessionId is null', () => {
     const store = configureStore();
     const dispatch = spyOn(store, 'dispatch');
 
-    render({ authToken: null, store });
+    render({ userAuthSessionId: null, store });
 
     expect(dispatch).not.toHaveBeenCalled();
   });
 
   it('configures no route when the user is not logged in', () => {
-    const root = render({ authToken: null });
+    const root = render({ userAuthSessionId: null });
 
     expect(root.find(Route)).toHaveLength(0);
     expect(root.find(ContentShell).children()).toIncludeText('Please log in');
@@ -150,17 +150,19 @@ describe(__filename, () => {
     expect(root.find(`.${styles.loginMessage}`)).toHaveLength(0);
   });
 
-  it('fetches the current user on update when there is no loaded user and authToken changes', () => {
+  it('fetches the current user on update when there is no loaded user and userAuthSessionId changes', () => {
     const store = configureStore();
     const fakeThunk = createFakeThunk();
 
     const root = render({
       _fetchCurrentUser: fakeThunk.createThunk,
-      authToken: null,
+      userAuthSessionId: null,
       store,
     });
 
-    store.dispatch(apiActions.setAuthToken({ authToken: 'some-token' }));
+    store.dispatch(
+      apiActions.setAuthSessionId({ userAuthSessionId: 'some-id' }),
+    );
     const { api: apiState } = store.getState();
     const dispatch = spyOn(store, 'dispatch');
 
@@ -169,9 +171,11 @@ describe(__filename, () => {
     expect(dispatch).toHaveBeenCalledWith(fakeThunk.thunk);
   });
 
-  it('does not fetch the current user on update when there is no loaded user and authToken is the same', () => {
+  it('does not fetch the current user on update when there is no loaded user and userAuthSessionId is the same', () => {
     const store = configureStore();
-    store.dispatch(apiActions.setAuthToken({ authToken: 'some-token' }));
+    store.dispatch(
+      apiActions.setAuthSessionId({ userAuthSessionId: 'some-id' }),
+    );
 
     const root = render({ store });
 
@@ -187,9 +191,11 @@ describe(__filename, () => {
     const store = configureStore();
     store.dispatch(userActions.loadCurrentUser({ user: fakeUser }));
 
-    const root = render({ authToken: null, store });
+    const root = render({ userAuthSessionId: null, store });
 
-    store.dispatch(apiActions.setAuthToken({ authToken: 'some-token' }));
+    store.dispatch(
+      apiActions.setAuthSessionId({ userAuthSessionId: 'some-id' }),
+    );
     const { api: apiState } = store.getState();
     const dispatch = spyOn(store, 'dispatch');
 

@@ -172,8 +172,8 @@ export const callApi = async <
   CallApiResponse<T['successfulResponse']>
 > => {
   const headers: Headers = {};
-  if (apiState.authToken) {
-    headers.Authorization = `Session ${apiState.authToken}`;
+  if (apiState.userAuthSessionId) {
+    headers.Authorization = `Session ${apiState.userAuthSessionId}`;
   }
 
   let body;
