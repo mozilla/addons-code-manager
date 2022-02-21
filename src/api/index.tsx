@@ -173,7 +173,7 @@ export const callApi = async <
 > => {
   const headers: Headers = {};
   if (apiState.authToken) {
-    headers.Authorization = `Bearer ${apiState.authToken}`;
+    headers.Authorization = `Session ${apiState.authToken}`;
   }
 
   let body;

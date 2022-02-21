@@ -230,7 +230,7 @@ describe(__filename, () => {
         expect.any(String),
         expect.objectContaining({
           headers: {
-            Authorization: `Bearer ${authToken}`,
+            Authorization: `Session ${authToken}`,
           },
         }),
       );
