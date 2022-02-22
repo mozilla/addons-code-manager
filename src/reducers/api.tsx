@@ -4,22 +4,22 @@ import { ActionType, deprecated, getType } from 'typesafe-actions';
 // See: https://github.com/piotrwitek/typesafe-actions/issues/143
 const { createAction } = deprecated;
 
-type SetAuthTokenPayload = {
-  authToken: string;
+type SetAuthSessionIdPayload = {
+  userAuthSessionId: string;
 };
 
 export const actions = {
-  setAuthToken: createAction('SET_AUTH_TOKEN', (resolve) => {
-    return (payload: SetAuthTokenPayload) => resolve(payload);
+  setAuthSessionId: createAction('SET_AUTH_TOKEN', (resolve) => {
+    return (payload: SetAuthSessionIdPayload) => resolve(payload);
   }),
 };
 
 export type ApiState = {
-  authToken: string | null;
+  userAuthSessionId: string | null;
 };
 
 export const initialState: ApiState = {
-  authToken: null,
+  userAuthSessionId: null,
 };
 
 const reducer: Reducer<ApiState, ActionType<typeof actions>> = (
@@ -27,8 +27,8 @@ const reducer: Reducer<ApiState, ActionType<typeof actions>> = (
   action,
 ): ApiState => {
   switch (action.type) {
-    case getType(actions.setAuthToken):
-      return { ...state, authToken: action.payload.authToken };
+    case getType(actions.setAuthSessionId):
+      return { ...state, userAuthSessionId: action.payload.userAuthSessionId };
     default:
       return state;
   }

@@ -10,12 +10,15 @@ describe(__filename, () => {
     });
 
     it('sets the authentication token', () => {
-      const authToken = 'token-123';
-      const state = reducer(undefined, actions.setAuthToken({ authToken }));
+      const userAuthSessionId = 'token-123';
+      const state = reducer(
+        undefined,
+        actions.setAuthSessionId({ userAuthSessionId }),
+      );
 
       expect(state).toEqual({
         ...initialState,
-        authToken,
+        userAuthSessionId,
       });
     });
   });
