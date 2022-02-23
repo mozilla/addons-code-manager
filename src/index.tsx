@@ -16,6 +16,8 @@ const history = createBrowserHistory();
 const store = configureStore({ history });
 
 const rootElement = document.getElementById('root') as HTMLElement;
+// rootElement.dataset.userAuthSessionId needs to match the data attribute
+// in the public/index.html template, with camelCase instead of hyphen-case.
 const userAuthSessionId =
   (rootElement && rootElement.dataset.userAuthSessionId) || null;
 
