@@ -16,10 +16,14 @@ const history = createBrowserHistory();
 const store = configureStore({ history });
 
 const rootElement = document.getElementById('root') as HTMLElement;
+// rootElement.dataset.userAuthSessionId needs to match the data attribute
+// in the public/index.html template, with camelCase instead of hyphen-case.
 const userAuthSessionId =
   (rootElement && rootElement.dataset.userAuthSessionId) || null;
 
-if (userAuthSessionId === process.env.REACT_APP_AUTH_TOKEN_PLACEHOLDER) {
+if (
+  userAuthSessionId === process.env.REACT_APP_USER_AUTH_SESSION_ID_PLACEHOLDER
+) {
   throw new Error(
     `Runtime error: authentication token placeholder should not be present`,
   );
