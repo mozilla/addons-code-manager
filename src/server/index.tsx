@@ -25,7 +25,7 @@ export type ServerEnvVars = {
   PUBLIC_URL: string;
   REACT_APP_API_HOST: string;
   REACT_APP_AUTHENTICATION_COOKIE: string;
-  REACT_APP_AUTH_TOKEN_PLACEHOLDER: string;
+  REACT_APP_USER_AUTH_SESSION_ID_PLACEHOLDER: string;
   REACT_APP_CRA_PORT: number;
   REACT_APP_REVIEWERS_HOST: string;
   REACT_APP_SENTRY_DSN: string;
@@ -49,7 +49,7 @@ export const injectAuthenticationToken = (
 
   // Replace the placeholder in the `index.html` file with the token.
   return html.replace(
-    `"${env.REACT_APP_AUTH_TOKEN_PLACEHOLDER}"`,
+    `"${env.REACT_APP_USER_AUTH_SESSION_ID_PLACEHOLDER}"`,
     JSON.stringify(userAuthSessionId || '').replace(/</g, '\\u003c'),
   );
 };

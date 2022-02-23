@@ -21,7 +21,9 @@ const rootElement = document.getElementById('root') as HTMLElement;
 const userAuthSessionId =
   (rootElement && rootElement.dataset.userAuthSessionId) || null;
 
-if (userAuthSessionId === process.env.REACT_APP_AUTH_TOKEN_PLACEHOLDER) {
+if (
+  userAuthSessionId === process.env.REACT_APP_USER_AUTH_SESSION_ID_PLACEHOLDER
+) {
   throw new Error(
     `Runtime error: authentication token placeholder should not be present`,
   );

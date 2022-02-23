@@ -9,7 +9,7 @@ type SetAuthSessionIdPayload = {
 };
 
 export const actions = {
-  setAuthSessionId: createAction('SET_AUTH_TOKEN', (resolve) => {
+  setAuthSessionId: createAction('SET_AUTH_SESSION_ID', (resolve) => {
     return (payload: SetAuthSessionIdPayload) => resolve(payload);
   }),
 };

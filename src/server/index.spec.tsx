@@ -31,9 +31,9 @@ describe(__filename, () => {
         } as Cookies,
       } as RequestWithCookies;
       const env = {
-        REACT_APP_AUTH_TOKEN_PLACEHOLDER: '__PLACEHOLDER__',
+        REACT_APP_USER_AUTH_SESSION_ID_PLACEHOLDER: '__PLACEHOLDER__',
       };
-      const html = `<div data-token="${env.REACT_APP_AUTH_TOKEN_PLACEHOLDER}">`;
+      const html = `<div data-token="${env.REACT_APP_USER_AUTH_SESSION_ID_PLACEHOLDER}">`;
 
       const htmlWithToken = injectAuthenticationToken(
         req,
@@ -53,8 +53,10 @@ describe(__filename, () => {
           get: (name: string) => token,
         } as Cookies,
       } as RequestWithCookies;
-      const env = { REACT_APP_AUTH_TOKEN_PLACEHOLDER: '__PLACEHOLDER__' };
-      const html = `<div data-token="${env.REACT_APP_AUTH_TOKEN_PLACEHOLDER}">`;
+      const env = {
+        REACT_APP_USER_AUTH_SESSION_ID_PLACEHOLDER: '__PLACEHOLDER__',
+      };
+      const html = `<div data-token="${env.REACT_APP_USER_AUTH_SESSION_ID_PLACEHOLDER}">`;
 
       const htmlWithToken = injectAuthenticationToken(
         req,
