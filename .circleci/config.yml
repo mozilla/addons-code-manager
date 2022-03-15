@@ -14,16 +14,18 @@ references:
     working_directory: ~/addons-code-manager
     docker:
       # This is the NodeJS version we run in production.
-      - image: circleci/node:12
+      - image: cimg/node:14.19
 
-  defaults-next: &defaults-next
-    working_directory: ~/addons-code-manager
-    docker:
-      # This is the next NodeJS version we will support.
-      - image: circleci/node:14
+  # https://github.com/mozilla/addons-code-manager/issues/2014
+  # defaults-next: &defaults-next
+  #   working_directory: ~/addons-code-manager
+  #   docker:
+  #     # This is the next NodeJS version we will support.
+  #     - image: cimg/node:16.14
 
   defaults-release: &defaults-release
-    machine: true
+    machine:
+      image: ubuntu-2004:202201-02
     working_directory: ~/addons-code-manager
 
   restore_build_cache: &restore_build_cache
@@ -95,15 +97,15 @@ jobs:
       - run: yarn lint
       - run: yarn storybook-smoke-test
 
-  test-next:
-    <<: *defaults-next
-    steps:
-      - checkout
-      - *restore_next_build_cache
-      - *run_yarn_install
-      - *save_next_build_cache
-      # See: https://support.circleci.com/hc/en-us/articles/360038192673-NodeJS-Builds-or-Test-Suites-Fail-With-ENOMEM-or-a-Timeout
-      - run: yarn test --maxWorkers=2
+  # test-next:
+  #   <<: *defaults-next
+  #   steps:
+  #     - checkout
+  #     - *restore_next_build_cache
+  #     - *run_yarn_install
+  #     - *save_next_build_cache
+  #     # See: https://support.circleci.com/hc/en-us/articles/360038192673-NodeJS-Builds-or-Test-Suites-Fail-With-ENOMEM-or-a-Timeout
+  #     - run: yarn test --maxWorkers=2
 
   deploy-storybook:
     <<: *defaults
@@ -212,7 +214,7 @@ workflows:
     jobs:
       - test
       - check
-      - test-next
+      # - test-next
       - deploy-storybook:
           requires:
             - test
