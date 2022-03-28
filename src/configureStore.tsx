@@ -35,29 +35,6 @@ export type ConnectedReduxProps<A extends Action = AnyAction> = {
   dispatch: ThunkDispatch<A>;
 };
 
-const flattenObject = (
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  object: Record<string, any>,
-) => {
-  return Object.keys(object).reduce((newObject: typeof object, k: string) => {
-    const value = object[k];
-    let newValue;
-
-    if (
-      value === null ||
-      ['string', 'number', 'boolean', 'undefined'].includes(typeof value)
-    ) {
-      newValue = value;
-    } else {
-      newValue = `[type: ${typeof value}]`;
-    }
-
-    // eslint-disable-next-line no-param-reassign
-    newObject[k] = newValue;
-    return newObject;
-  }, {});
-};
-
 type ConfigureStoreParams = {
   history?: History;
   preloadedState?: ApplicationState;
