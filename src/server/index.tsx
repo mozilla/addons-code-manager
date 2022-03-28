@@ -2,7 +2,6 @@
 import fs from 'fs';
 import http from 'http';
 import path from 'path';
-import url from 'url';
 
 import express from 'express';
 import helmet from 'helmet';
