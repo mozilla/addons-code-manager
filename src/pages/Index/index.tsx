@@ -41,12 +41,6 @@ export class IndexBase extends React.Component<Props> {
       return false;
     }
 
-    if (!process.env.REACT_APP_SENTRY_DSN) {
-      _log.warn(
-        'Sentry is not reporting errors! env.REACT_APP_SENTRY_DSN is undefined',
-      );
-    }
-
     return true;
   }
 

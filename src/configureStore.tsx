@@ -15,8 +15,6 @@ import thunk, {
 } from 'redux-thunk';
 import { routerMiddleware } from 'connected-react-router';
 import { History, createBrowserHistory } from 'history';
-import * as Sentry from '@sentry/browser';
-import createSentryMiddleware from 'redux-sentry-middleware';
 
 import createRootReducer, { ApplicationState } from './reducers';
 
@@ -60,34 +58,6 @@ const flattenObject = (
   }, {});
 };
 
-export const actionToSentryBreadcrumb = (action: AnyAction) => {
-  return {
-    ...flattenObject(action),
-    payload: action.payload ? flattenObject(action.payload) : undefined,
-  };
-};
-
-export const redactStateForSentry = (state: ApplicationState) => {
-  // When adding a new state entry to this object, consider the
-  // implication of sending it to Sentry and redact data if necessary.
-  return {
-    accordionMenu: state.accordionMenu,
-    // This intentionally doesn't spread api state. As the api shape evolves,
-    // the tests will fail and that will help the author consider redaction
-    // implications.
-    api: { userAuthSessionId: '[redacted]' },
-    comments: state.comments,
-    errors: state.errors,
-    fileTree: state.fileTree,
-    fullscreenGrid: state.fullscreenGrid,
-    linter: state.linter,
-    popover: state.popover,
-    router: state.router,
-    users: state.users,
-    versions: state.versions,
-  };
-};
-
 type ConfigureStoreParams = {
   history?: History;
   preloadedState?: ApplicationState;
@@ -102,17 +72,6 @@ const configureStore = ({
     thunk as ThunkMiddleware<ApplicationState, AnyAction>,
   ];
   const isDevelopment = process.env.NODE_ENV === 'development';
-
-  if (process.env.REACT_APP_SENTRY_DSN) {
-    allMiddleware.push(
-      // Sentry needs to come after redux-thunk and anything that
-      // intercepts / emits actions.
-      createSentryMiddleware(Sentry, {
-        breadcrumbDataFromAction: actionToSentryBreadcrumb,
-        stateTransformer: redactStateForSentry,
-      }),
-    );
-  }
 
   if (isDevelopment) {
     allMiddleware.push(createLogger());

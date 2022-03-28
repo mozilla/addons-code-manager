@@ -229,78 +229,6 @@ describe(__filename, () => {
         expect(cspReportResponse.status).toEqual(200);
       });
 
-      it('adds the sentry host to connect-src in production when REACT_APP_SENTRY_DSN is set', async () => {
-        const fakeEnv = {
-          ...prodEnv,
-          REACT_APP_SENTRY_DSN: 'https://token@sentry.prod.mozaws.net/425',
-        };
-
-        const server = request(
-          createServer({
-            env: fakeEnv as ServerEnvVars,
-            rootPath: fixturesPath,
-          }),
-        );
-
-        const response = await server.get('/');
-        expect(response.status).toEqual(200);
-        const policy = cspParser(response.header['content-security-policy']);
-        expect(policy['connect-src']).toContain(
-          'https://sentry.prod.mozaws.net',
-        );
-      });
-
-      it('does not add the sentry host to connect-src when REACT_APP_SENTRY_DSN is unset', async () => {
-        const server = request(
-          createServer({
-            env: prodEnv as ServerEnvVars,
-            rootPath: fixturesPath,
-          }),
-        );
-
-        const response = await server.get('/');
-        expect(response.status).toEqual(200);
-        const policy = cspParser(response.header['content-security-policy']);
-        expect(policy['connect-src']).toEqual([
-          "'none'",
-          prodEnv.REACT_APP_ANALYTICS_HOST,
-        ]);
-      });
-
-      it('throws an error when REACT_APP_SENTRY_DSN is invalid', async () => {
-        const fakeEnv = {
-          ...prodEnv,
-          REACT_APP_SENTRY_DSN: 'invalid',
-        };
-
-        expect(() => {
-          request(
-            createServer({
-              env: fakeEnv as ServerEnvVars,
-              rootPath: fixturesPath,
-            }),
-          );
-        }).toThrow(/could not parse host or protocol/);
-      });
-
-      it('throws an error when REACT_APP_SENTRY_DSN is not a string', async () => {
-        const fakeEnv = {
-          ...prodEnv,
-          REACT_APP_SENTRY_DSN: 123,
-        };
-
-        expect(() => {
-          request(
-            createServer({
-              // @ts-expect-error: we inject an object with a wrong type on
-              // purpose.
-              env: fakeEnv,
-              rootPath: fixturesPath,
-            }),
-          );
-        }).toThrow(/argument must be of type string/);
-      });
-
       it('tightens connnect-src if API host is unset', async () => {
         const server = request(
           createServer({
@@ -833,31 +761,6 @@ describe(__filename, () => {
           "'self'",
           devEnv.REACT_APP_ANALYTICS_HOST,
         ]);
-      });
-
-      it('adds the sentry host to connect-src in development when REACT_APP_SENTRY_DSN is set', async () => {
-        const content = '<h1>It works!</h1>';
-        fakeCreateReactAppServerApp.get('/*', (req, res) => res.send(content));
-
-        const fakeEnv = {
-          ...devEnv,
-          REACT_APP_SENTRY_DSN: 'https://token@sentry.prod.mozaws.net/425',
-        };
-
-        const server = request(
-          createServer({
-            env: fakeEnv as ServerEnvVars,
-            rootPath: fixturesPath,
-          }),
-        );
-
-        const response = await server.get('/');
-        expect(response.status).toEqual(200);
-
-        const policy = cspParser(response.header['content-security-policy']);
-        expect(policy['connect-src']).toContain(
-          'https://sentry.prod.mozaws.net',
-        );
       });
 
       it('serves the favicon.ico file', async () => {
