@@ -3,7 +3,6 @@ import log from 'loglevel';
 import configureApplication, { ClientEnvVars } from './configureApplication';
 
 describe(__filename, () => {
-
   describe('configureApplication', () => {
     it('sets the log level to DEBUG when not production', () => {
       const env = {
