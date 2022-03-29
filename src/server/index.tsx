@@ -2,7 +2,6 @@
 import fs from 'fs';
 import http from 'http';
 import path from 'path';
-import url from 'url';
 
 import express from 'express';
 import helmet from 'helmet';
@@ -28,7 +27,6 @@ export type ServerEnvVars = {
   REACT_APP_USER_AUTH_SESSION_ID_PLACEHOLDER: string;
   REACT_APP_CRA_PORT: number;
   REACT_APP_REVIEWERS_HOST: string;
-  REACT_APP_SENTRY_DSN: string;
   REACT_APP_ANALYTICS_HOST: string;
   REACT_APP_GA_DEBUG_MODE: string;
   REACT_APP_USE_INSECURE_PROXY: string;
@@ -103,26 +101,6 @@ export const createServer = ({
       : env.REACT_APP_API_HOST || "'none'",
     analyticsHost,
   ];
-
-  if (env.REACT_APP_SENTRY_DSN) {
-    const dsn = env.REACT_APP_SENTRY_DSN;
-
-    try {
-      const { host, protocol } = url.parse(dsn);
-
-      if (host && protocol) {
-        const sentrySrc = `${protocol}//${host}`;
-        console.log(`Adding Sentry as "${sentrySrc}" to CSP connect-src`);
-        connectSrc.push(sentrySrc);
-      } else {
-        throw new Error('could not parse host or protocol');
-      }
-    } catch (e) {
-      throw new Error(
-        `Could not parse REACT_APP_SENTRY_DSN=${dsn}: ${e.message}`,
-      );
-    }
-  }
 
   // This config sets the non-static CSP for deployed instances.
   const prodCSP = {
