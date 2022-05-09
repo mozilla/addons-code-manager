@@ -9,6 +9,7 @@ Dockerfile
 /dist/
 /docker/
 /node_modules/
+/storybook-static/
 # Allow files we want to process
 !*.js
 !*.ts
