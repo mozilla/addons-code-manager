@@ -3,7 +3,6 @@
 # DOCKERHUB_REPO - docker hub repo, format: <username>/<repo>
 # DOCKER_USER - Login user for docker hub
 # DOCKER_PASS - Login password for docker hub user
-# GH_TOKEN - A valid GitHub token (for Storybook)
 version: 2.1
 
 orbs:
@@ -95,6 +94,17 @@ jobs:
       - run: yarn type-coverage
       - run: yarn prettier-ci
       - run: yarn lint
+      - run:
+          name: storybook changes check
+          command: |
+            yarn storybook-build
+            # This will return a non-zero exit code if content in the storybook-public/
+            # folder has changed. When this fails, run the following command
+            # and commit the changes:
+            #
+            #   yarn storybook-build
+            #
+            git diff --name-only --exit-code storybook-public
       - run: yarn storybook-smoke-test
 
   # test-next:
@@ -106,15 +116,6 @@ jobs:
   #     - *save_next_build_cache
   #     # See: https://support.circleci.com/hc/en-us/articles/360038192673-NodeJS-Builds-or-Test-Suites-Fail-With-ENOMEM-or-a-Timeout
   #     - run: yarn test --maxWorkers=2
-
-  deploy-storybook:
-    <<: *defaults
-    steps:
-      - checkout
-      - *restore_build_cache
-      - *run_yarn_install
-      - *save_build_cache
-      - run: yarn storybook-deploy --ci
 
   release-tag: # build for the master branch and tags
     <<: *defaults-release
@@ -215,15 +216,6 @@ workflows:
       - test
       - check
       # - test-next
-      - deploy-storybook:
-          requires:
-            - test
-            - check
-          filters:
-            branches:
-              only: master
-            tags:
-              ignore: /.*/
       - release-tag:
           filters:
             tags:
