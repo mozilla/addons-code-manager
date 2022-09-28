@@ -305,18 +305,14 @@ describe(__filename, () => {
     _loadVersionAndFile({ store, version });
 
     // The user clicks a different file to view.
-
-    // FIXME: this fails
-    // This is triggering a call to get the data from the API through
-    // fetchVersionFile() ... but response is empty. Looks like we should have
-    // called setUpVersionFileUpdate() ?
-
     store.dispatch(
       versionsActions.updateSelectedPath({
         selectedPath: 'some/file.js',
         versionId: version.id,
       }),
     );
+
+    spyOn(store, 'dispatch');
 
     const root = render({ store, versionId: String(version.id) });
 
@@ -578,24 +574,10 @@ describe(__filename, () => {
   });
 
   it('sets a temporary page title without a version', () => {
-
-    // FIXME: this fails
-    // To avoid the fetchVersion call, we should have version = null in the
-    // props. But it will all get overidden from the state, so we can't just
-    // modify render() to accept and pass version... Instead we need to build
-    // our own fake stuff... If we could get versionInfo[versionId] to be null
-    // that should do it ? The problem is, if we dispatch loadVersionInfo,
-    // it tries to call createInternalVersion()...
-
     const store = configureStore();
-    dispatchLoadVersionInfo({
-      store,
-      version: undefined,
-    });
+    spyOn(store, 'dispatch');
 
-    const root = render({
-      store,
-    });
+    const root = render({ store });
 
     expect(root.find('title')).toHaveText('Browse add-on version');
   });
@@ -825,8 +807,6 @@ describe(__filename, () => {
     });
     const store = configureStore();
 
-    // FIXME: this fails
-
     dispatchLoadVersionInfo({ store, version });
     store.dispatch(
       fileTreeActions.buildTree({
@@ -834,6 +814,8 @@ describe(__filename, () => {
         comparedToVersionId: null,
       }),
     );
+
+    spyOn(store, 'dispatch');
 
     expect(() =>
       render({
@@ -966,5 +948,4 @@ describe(__filename, () => {
       expect(_fetchVersionFile).not.toHaveBeenCalled();
     });
   });
-
 });
