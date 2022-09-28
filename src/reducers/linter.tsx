@@ -220,10 +220,6 @@ export const fetchLinterMessagesIfNeeded = ({
       fileId: version.fileId,
     });
 
-    if (!response) {
-      return;
-    }
-
     if (isErrorResponse(response)) {
       dispatch(actions.abortFetchLinterResult({ versionId }));
       dispatch(errorsActions.addError({ error: response.error }));

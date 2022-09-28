@@ -1014,10 +1014,6 @@ export const fetchVersion = ({
       versionId,
     });
 
-    if (!response) {
-      return;
-    }
-
     if (isErrorResponse(response)) {
       dispatch(actions.abortFetchVersion({ versionId }));
       dispatch(errorsActions.addError({ error: response.error }));
@@ -1075,10 +1071,6 @@ export const fetchVersionFile = ({
       versionId,
       path,
     });
-
-    if (!response) {
-      return;
-    }
 
     if (isErrorResponse(response)) {
       dispatch(actions.abortFetchVersionFile({ path, versionId }));
@@ -1192,10 +1184,6 @@ export const fetchVersionsList = ({
 
     const response = await _getVersionsList({ addonId, apiState });
 
-    if (!response) {
-      return;
-    }
-
     if (isErrorResponse(response)) {
       dispatch(errorsActions.addError({ error: response.error }));
     } else {
@@ -1255,10 +1243,6 @@ export const fetchVersionWithDiff = ({
       headVersionId,
       path,
     });
-
-    if (!response) {
-      return;
-    }
 
     if (isErrorResponse(response)) {
       dispatch(
