@@ -1128,10 +1128,6 @@ export const fetchDiffFile = ({
       path,
     });
 
-    if (!response) {
-      return;
-    }
-
     if (isErrorResponse(response)) {
       dispatch(
         actions.abortFetchDiffFile({
