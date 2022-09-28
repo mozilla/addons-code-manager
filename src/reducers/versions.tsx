@@ -1,3 +1,4 @@
+import { error as consoleError, trace as consoleTrace } from 'console';
 import { Reducer } from 'redux';
 import { ActionType, deprecated, getType } from 'typesafe-actions';
 import log from 'loglevel';
@@ -1014,6 +1015,12 @@ export const fetchVersion = ({
       versionId,
     });
 
+    if (!response) {
+      consoleError('fetchVersion() with no response');
+      consoleError(addonId, versionId, path);
+      consoleTrace();
+    }
+
     if (isErrorResponse(response)) {
       dispatch(actions.abortFetchVersion({ versionId }));
       dispatch(errorsActions.addError({ error: response.error }));
@@ -1072,6 +1079,12 @@ export const fetchVersionFile = ({
       path,
     });
 
+    if (!response) {
+      consoleError('fetchVersionFile() with no response');
+      consoleError(addonId, versionId, path);
+      consoleTrace();
+    }
+
     if (isErrorResponse(response)) {
       dispatch(actions.abortFetchVersionFile({ path, versionId }));
       dispatch(errorsActions.addError({ error: response.error }));
@@ -1119,6 +1132,12 @@ export const fetchDiffFile = ({
       headVersionId,
       path,
     });
+
+    if (!response) {
+      consoleError('fetchDiffFile() with no response');
+      consoleError(addonId, versionId, path);
+      consoleTrace();
+    }
 
     if (isErrorResponse(response)) {
       dispatch(
@@ -1184,6 +1203,12 @@ export const fetchVersionsList = ({
 
     const response = await _getVersionsList({ addonId, apiState });
 
+    if (!response) {
+      consoleError('fetchVersionsList() with no response');
+      consoleError(addonId, versionId, path);
+      consoleTrace();
+    }
+
     if (isErrorResponse(response)) {
       dispatch(errorsActions.addError({ error: response.error }));
     } else {
@@ -1243,6 +1268,12 @@ export const fetchVersionWithDiff = ({
       headVersionId,
       path,
     });
+
+    if (!response) {
+      consoleError('fetchVersionWithDiff() with no response');
+      consoleError(addonId, versionId, path);
+      consoleTrace();
+    }
 
     if (isErrorResponse(response)) {
       dispatch(
