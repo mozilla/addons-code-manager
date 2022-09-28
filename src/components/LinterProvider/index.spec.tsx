@@ -195,9 +195,11 @@ describe(__filename, () => {
 
   it('renders child content', () => {
     const className = 'childClassName';
-    const root = render({
-      children: jest.fn().mockReturnValue(<div className={className} />),
-    });
+    const children = jest.fn().mockReturnValue(<div className={className} />);
+    const store = configureStore();
+    _loadLinterResult({ store, messages: [] });
+
+    const root = render({ children, store });
 
     expect(root).toHaveClassName(className);
   });
