@@ -1187,7 +1187,7 @@ export const fetchVersionsList = ({
     if (isErrorResponse(response)) {
       dispatch(errorsActions.addError({ error: response.error }));
     } else {
-      dispatch(actions.loadVersionsList({ addonId, versions: response }));
+      dispatch(actions.loadVersionsList({ addonId, versions: response || [] }));
     }
   };
 };
