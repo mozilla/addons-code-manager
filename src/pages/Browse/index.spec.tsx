@@ -69,6 +69,7 @@ describe(__filename, () => {
     _viewVersionFile,
     addonId = String(nextUniqueId()),
     history = createFakeHistory(),
+    shouldMockDispatch = false,
     store = configureStore(),
     versionId = String(nextUniqueId()),
   }: RenderParams = {}) => {
@@ -82,6 +83,12 @@ describe(__filename, () => {
       _log,
       _viewVersionFile,
     };
+
+    // Sometimes we need to mock `dispatch` to prevent it from dispatching
+    // actions which would result in an unhandled promise rejection.
+    if (shouldMockDispatch) {
+      spyOn(store, 'dispatch');
+    }
 
     return shallowUntilTarget(<Browse {...props} />, BrowseBase, {
       shallowOptions: {
@@ -312,9 +319,11 @@ describe(__filename, () => {
       }),
     );
 
-    spyOn(store, 'dispatch');
-
-    const root = render({ store, versionId: String(version.id) });
+    const root = render({
+      shouldMockDispatch: true,
+      store,
+      versionId: String(version.id),
+    });
 
     expect(root.find(CodeView)).toHaveLength(0);
     expect(root.find(CodeOverview)).toHaveLength(0);
@@ -574,10 +583,7 @@ describe(__filename, () => {
   });
 
   it('sets a temporary page title without a version', () => {
-    const store = configureStore();
-    spyOn(store, 'dispatch');
-
-    const root = render({ store });
+    const root = render({ shouldMockDispatch: true });
 
     expect(root.find('title')).toHaveText('Browse add-on version');
   });
@@ -815,10 +821,9 @@ describe(__filename, () => {
       }),
     );
 
-    spyOn(store, 'dispatch');
-
     expect(() =>
       render({
+        shouldMockDispatch: true,
         store,
         versionId: String(version.id),
       }),
