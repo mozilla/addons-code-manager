@@ -1014,6 +1014,10 @@ export const fetchVersion = ({
       versionId,
     });
 
+    if (!response) {
+      return;
+    }
+
     if (isErrorResponse(response)) {
       dispatch(actions.abortFetchVersion({ versionId }));
       dispatch(errorsActions.addError({ error: response.error }));
@@ -1072,6 +1076,10 @@ export const fetchVersionFile = ({
       path,
     });
 
+    if (!response) {
+      return;
+    }
+
     if (isErrorResponse(response)) {
       dispatch(actions.abortFetchVersionFile({ path, versionId }));
       dispatch(errorsActions.addError({ error: response.error }));
@@ -1119,6 +1127,10 @@ export const fetchDiffFile = ({
       headVersionId,
       path,
     });
+
+    if (!response) {
+      return;
+    }
 
     if (isErrorResponse(response)) {
       dispatch(
@@ -1184,10 +1196,14 @@ export const fetchVersionsList = ({
 
     const response = await _getVersionsList({ addonId, apiState });
 
+    if (!response) {
+      return;
+    }
+
     if (isErrorResponse(response)) {
       dispatch(errorsActions.addError({ error: response.error }));
     } else {
-      dispatch(actions.loadVersionsList({ addonId, versions: response || [] }));
+      dispatch(actions.loadVersionsList({ addonId, versions: response }));
     }
   };
 };
@@ -1243,6 +1259,10 @@ export const fetchVersionWithDiff = ({
       headVersionId,
       path,
     });
+
+    if (!response) {
+      return;
+    }
 
     if (isErrorResponse(response)) {
       dispatch(
