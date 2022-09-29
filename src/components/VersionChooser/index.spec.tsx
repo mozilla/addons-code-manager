@@ -62,6 +62,7 @@ describe(__filename, () => {
     setHeadVersion?: boolean;
   } & Partial<PublicProps> &
     Partial<DefaultProps> & {
+      shouldMockDispatch?: boolean;
       store?: Store;
       history?: History;
     };

@@ -85,6 +85,7 @@ describe(__filename, () => {
     headVersionId?: string;
     history?: History;
     lang?: string;
+    shouldMockDispatch?: boolean;
     store?: Store;
   };
 
