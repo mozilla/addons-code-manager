@@ -97,6 +97,7 @@ describe(__filename, () => {
     headVersionId = '2',
     history = createFakeHistory(),
     lang = 'fr',
+    shouldMockDispatch = false,
     store = configureStore(),
   }: RenderParams = {}) => {
     const props = {
@@ -108,6 +109,12 @@ describe(__filename, () => {
       _fetchDiffFile,
       _viewVersionFile,
     };
+
+    // Sometimes we need to mock `dispatch` to prevent it from dispatching
+    // actions which would result in an unhandled promise rejection.
+    if (shouldMockDispatch) {
+      spyOn(store, 'dispatch');
+    }
 
     return shallowUntilTarget(<Compare {...props} />, CompareBase, {
       shallowOptions: {
@@ -273,7 +280,11 @@ describe(__filename, () => {
     const version = fakeVersionWithDiff;
     const store = createStoreWithVersion({ version });
 
-    const root = render({ headVersionId: String(version.id), store });
+    const root = render({
+      headVersionId: String(version.id),
+      shouldMockDispatch: true,
+      store,
+    });
 
     expect(root.find(Loading)).toHaveLength(1);
     expect(root.find(Loading)).toHaveProp('message', 'Loading diff...');
@@ -1163,7 +1174,7 @@ describe(__filename, () => {
   });
 
   it('sets a temporary page title without a version', () => {
-    const root = render();
+    const root = render({ shouldMockDispatch: true });
 
     expect(root.find('title')).toHaveText('Compare add-on versions');
   });
