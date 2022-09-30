@@ -62,6 +62,7 @@ describe(__filename, () => {
     setHeadVersion?: boolean;
   } & Partial<PublicProps> &
     Partial<DefaultProps> & {
+      shouldMockDispatch?: boolean;
       store?: Store;
       history?: History;
     };
@@ -76,6 +77,7 @@ describe(__filename, () => {
     history = createFakeHistory(),
     setBaseVersion = true,
     setHeadVersion = true,
+    shouldMockDispatch = false,
     store = configureStore(),
   }: RenderParams = {}) => {
     if (setBaseVersion) {
@@ -107,6 +109,16 @@ describe(__filename, () => {
       _lowerVersionsThan,
       addonId,
     };
+
+    // Some tests require data to not have been loaded. Mocking dispatch
+    // ensures actions that cause us to load data from the API aren't
+    // triggered at all (that would raise an unhandled exception inside
+    // async code and cause the node process to terminate, as tests mock API
+    // responses but the reducers code usually doesn't handle API responses
+    // being empty).
+    if (shouldMockDispatch) {
+      spyOn(store, 'dispatch');
+    }
 
     return shallowUntilTarget(
       <VersionChooser {...props} />,
@@ -145,9 +157,8 @@ describe(__filename, () => {
     store.dispatch(versionsActions.loadVersionsList({ addonId, versions }));
     return { addonId, store };
   };
-
   it('sets the `isLoading` prop to `true`  when lists of versions are not loaded', () => {
-    const { content } = renderForm();
+    const { content } = renderForm({ shouldMockDispatch: true });
 
     expect(content.find(VersionSelect)).toHaveLength(2);
     expect(content.find(VersionSelect).at(0)).toHaveProp('isLoading', true);
@@ -274,14 +285,14 @@ describe(__filename, () => {
 
   it('synchronizes on mount', () => {
     const spy = jest.spyOn(VersionChooserBase.prototype, 'synchronize');
-    render();
+    render({ shouldMockDispatch: true });
 
     expect(spy).toHaveBeenCalled();
   });
 
   it('synchronizes on update', () => {
     const spy = jest.spyOn(VersionChooserBase.prototype, 'synchronize');
-    const root = render();
+    const root = render({ shouldMockDispatch: true });
     spy.mockClear();
     root.setProps({});
 
@@ -611,7 +622,10 @@ describe(__filename, () => {
   });
 
   it('renders VersionSelect in a loading state before versionsMap has loaded', () => {
-    const { content } = renderForm({ addonId: nextUniqueId() });
+    const { content } = renderForm({
+      addonId: nextUniqueId(),
+      shouldMockDispatch: true,
+    });
 
     expect(content.find(`.${styles.baseVersionSelect}`)).toHaveProp(
       'isLoading',
@@ -696,7 +710,11 @@ describe(__filename, () => {
 
     it('renders a disabled button when the version ID is empty', () => {
       const history = createFakeHistory();
-      const { button } = _renderBrowseButton({ history, versionId: '' });
+      const { button } = _renderBrowseButton({
+        history,
+        versionId: '',
+        shouldMockDispatch: true,
+      });
 
       expect(button).toHaveProp('disabled', true);
       expect(button).toHaveProp('href', undefined);
@@ -775,7 +793,10 @@ describe(__filename, () => {
           [pathQueryParam]: 'manifest.json',
         },
       });
-      const root = render({ history: createFakeHistory({ location }) });
+      const root = render({
+        history: createFakeHistory({ location }),
+        shouldMockDispatch: true,
+      });
 
       const url = 'any/path/';
       expect(getInstance(root).addLocationQueryString(url)).toEqual(
@@ -784,14 +805,14 @@ describe(__filename, () => {
     });
 
     it('handles an empty location query string', () => {
-      const root = render();
+      const root = render({ shouldMockDispatch: true });
 
       const url = 'any/path/';
       expect(getInstance(root).addLocationQueryString(url)).toEqual(url);
     });
 
     it('does not support URLs with existing query strings', () => {
-      const root = render();
+      const root = render({ shouldMockDispatch: true });
 
       expect(() => {
         getInstance(root).addLocationQueryString('/some/path/?existing=query');

@@ -85,6 +85,7 @@ describe(__filename, () => {
     headVersionId?: string;
     history?: History;
     lang?: string;
+    shouldMockDispatch?: boolean;
     store?: Store;
   };
 
@@ -97,6 +98,7 @@ describe(__filename, () => {
     headVersionId = '2',
     history = createFakeHistory(),
     lang = 'fr',
+    shouldMockDispatch = false,
     store = configureStore(),
   }: RenderParams = {}) => {
     const props = {
@@ -108,6 +110,16 @@ describe(__filename, () => {
       _fetchDiffFile,
       _viewVersionFile,
     };
+
+    // Some tests require data to not have been loaded. Mocking dispatch
+    // ensures actions that cause us to load data from the API aren't
+    // triggered at all (that would raise an unhandled exception inside
+    // async code and cause the node process to terminate, as tests mock API
+    // responses but the reducers code usually doesn't handle API responses
+    // being empty).
+    if (shouldMockDispatch) {
+      spyOn(store, 'dispatch');
+    }
 
     return shallowUntilTarget(<Compare {...props} />, CompareBase, {
       shallowOptions: {
@@ -273,7 +285,11 @@ describe(__filename, () => {
     const version = fakeVersionWithDiff;
     const store = createStoreWithVersion({ version });
 
-    const root = render({ headVersionId: String(version.id), store });
+    const root = render({
+      headVersionId: String(version.id),
+      shouldMockDispatch: true,
+      store,
+    });
 
     expect(root.find(Loading)).toHaveLength(1);
     expect(root.find(Loading)).toHaveProp('message', 'Loading diff...');
@@ -1163,7 +1179,7 @@ describe(__filename, () => {
   });
 
   it('sets a temporary page title without a version', () => {
-    const root = render();
+    const root = render({ shouldMockDispatch: true });
 
     expect(root.find('title')).toHaveText('Compare add-on versions');
   });

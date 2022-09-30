@@ -195,9 +195,14 @@ describe(__filename, () => {
 
   it('renders child content', () => {
     const className = 'childClassName';
-    const root = render({
-      children: jest.fn().mockReturnValue(<div className={className} />),
-    });
+    const children = jest.fn().mockReturnValue(<div className={className} />);
+    const store = configureStore();
+    // Pretend we already have a linter result - otherwise we'd try to fetch it
+    // and that would fail as the mocked empty API response would not be
+    // handled correctly in the reducer.
+    _loadLinterResult({ store, messages: [] });
+
+    const root = render({ children, store });
 
     expect(root).toHaveClassName(className);
   });

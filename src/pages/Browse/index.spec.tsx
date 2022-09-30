@@ -69,6 +69,7 @@ describe(__filename, () => {
     _viewVersionFile,
     addonId = String(nextUniqueId()),
     history = createFakeHistory(),
+    shouldMockDispatch = false,
     store = configureStore(),
     versionId = String(nextUniqueId()),
   }: RenderParams = {}) => {
@@ -82,6 +83,16 @@ describe(__filename, () => {
       _log,
       _viewVersionFile,
     };
+
+    // Some tests require data to not have been loaded. Mocking dispatch
+    // ensures actions that cause us to load data from the API aren't
+    // triggered at all (that would raise an unhandled exception inside
+    // async code and cause the node process to terminate, as tests mock API
+    // responses but the reducers code usually doesn't handle API responses
+    // being empty).
+    if (shouldMockDispatch) {
+      spyOn(store, 'dispatch');
+    }
 
     return shallowUntilTarget(<Browse {...props} />, BrowseBase, {
       shallowOptions: {
@@ -312,7 +323,11 @@ describe(__filename, () => {
       }),
     );
 
-    const root = render({ store, versionId: String(version.id) });
+    const root = render({
+      shouldMockDispatch: true,
+      store,
+      versionId: String(version.id),
+    });
 
     expect(root.find(CodeView)).toHaveLength(0);
     expect(root.find(CodeOverview)).toHaveLength(0);
@@ -572,7 +587,7 @@ describe(__filename, () => {
   });
 
   it('sets a temporary page title without a version', () => {
-    const root = render();
+    const root = render({ shouldMockDispatch: true });
 
     expect(root.find('title')).toHaveText('Browse add-on version');
   });
@@ -812,6 +827,7 @@ describe(__filename, () => {
 
     expect(() =>
       render({
+        shouldMockDispatch: true,
         store,
         versionId: String(version.id),
       }),
@@ -877,7 +893,6 @@ describe(__filename, () => {
         dispatchSpy,
         fakeThunk,
         store,
-        version,
       };
     };
 
