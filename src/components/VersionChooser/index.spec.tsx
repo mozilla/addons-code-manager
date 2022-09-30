@@ -110,8 +110,12 @@ describe(__filename, () => {
       addonId,
     };
 
-    // Sometimes we need to mock `dispatch` to prevent it from dispatching
-    // actions which would result in an unhandled promise rejection.
+    // Some tests require data to not have been loaded. Mocking dispatch
+    // ensures actions that cause us to load data from the API aren't
+    // triggered at all (that would raise an unhandled exception inside
+    // async code and cause the node process to terminate, as tests mock API
+    // responses but the reducers code usually doesn't handle API responses
+    // being empty).
     if (shouldMockDispatch) {
       spyOn(store, 'dispatch');
     }
