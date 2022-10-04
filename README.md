@@ -6,7 +6,7 @@ This is a web application to manage add-on source code, such as reviewing code f
 
 ## Requirements
 
-- You need [Node](https://nodejs.org/) 14 which is the current [LTS](https://github.com/nodejs/LTS) (long term support) release.
+- You need [Node](https://nodejs.org/) 16 which is the current [LTS](https://github.com/nodejs/LTS) (long term support) release.
 - You need [yarn](https://yarnpkg.com/en/) to manage dependencies and run commands.
 
 ## Getting started
