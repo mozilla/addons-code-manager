@@ -6,7 +6,7 @@ import styles from './styles.module.scss';
 
 export type PublicProps = { className?: string; comments: Comment[] };
 
-function CommentSummary({ comments, className }: PublicProps) {
+const CommentSummary = ({ comments, className }: PublicProps) => {
   const overallComments = [];
   const fileComments = [];
 
@@ -86,6 +86,6 @@ function CommentSummary({ comments, className }: PublicProps) {
       />
     </div>
   );
-}
+};
 
 export default CommentSummary;

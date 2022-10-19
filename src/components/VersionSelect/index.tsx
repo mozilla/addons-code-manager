@@ -62,51 +62,53 @@ class VersionSelectBase extends React.Component<PublicProps> {
     } = this.props;
 
     return (
-      <Form.Group
-        as={Col}
-        className={makeClassName(className, styles.formGroup)}
-        controlId={controlId}
-      >
-        {withLeftArrow && <FontAwesomeIcon icon="long-arrow-alt-left" />}
-        <Form.Label className={styles.label}>{label}</Form.Label>
-        {isLoading ? (
-          <div
-            className={makeClassName(
-              // `.form-control` is a Bootstrap CSS class used by the
-              // `Form.Control` React component.
-              'form-control',
-              formControlClassName,
-              styles.simulatedFormControl,
-            )}
-          >
-            <Skeleton className={styles.simulatedFormControlSkeleton} />
-          </div>
-        ) : (
-          <Form.Control
-            as="select"
-            className={formControlClassName}
-            value={value}
-            onChange={this.onChange}
-          >
-            {listedVersions.length && (
-              <optgroup
-                className={styles.listedGroup}
-                label={gettext('Listed')}
-              >
-                {listedVersions.map(this.renderOption)}
-              </optgroup>
-            )}
-            {unlistedVersions.length && (
-              <optgroup
-                className={styles.unlistedGroup}
-                label={gettext('Unlisted')}
-              >
-                {unlistedVersions.map(this.renderOption)}
-              </optgroup>
-            )}
-          </Form.Control>
-        )}
-      </Form.Group>
+      <>
+        <Form.Group
+          as={Col}
+          className={makeClassName(className, styles.formGroup)}
+          controlId={controlId}
+        >
+          {withLeftArrow && <FontAwesomeIcon icon="long-arrow-alt-left" />}
+          <Form.Label className={styles.label}>{label}</Form.Label>
+          {isLoading ? (
+            <div
+              className={makeClassName(
+                // `.form-control` is a Bootstrap CSS class used by the
+                // `Form.Control` React component.
+                'form-control',
+                formControlClassName,
+                styles.simulatedFormControl,
+              )}
+            >
+              <Skeleton className={styles.simulatedFormControlSkeleton} />
+            </div>
+          ) : (
+            <Form.Control
+              as="select"
+              className={formControlClassName}
+              value={value}
+              onChange={this.onChange}
+            >
+              {listedVersions.length && (
+                <optgroup
+                  className={styles.listedGroup}
+                  label={gettext('Listed')}
+                >
+                  {listedVersions.map(this.renderOption)}
+                </optgroup>
+              )}
+              {unlistedVersions.length && (
+                <optgroup
+                  className={styles.unlistedGroup}
+                  label={gettext('Unlisted')}
+                >
+                  {unlistedVersions.map(this.renderOption)}
+                </optgroup>
+              )}
+            </Form.Control>
+          )}
+        </Form.Group>
+      </>
     );
   }
 }

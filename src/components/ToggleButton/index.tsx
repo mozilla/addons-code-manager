@@ -13,13 +13,13 @@ type Props = {
   toggleLeft?: boolean;
 };
 
-function ToggleButton({
+const ToggleButton = ({
   className,
   label,
   onClick,
   title,
   toggleLeft = false,
-}: Props) {
+}: Props) => {
   const labelElement = label ? (
     <span className={styles.label}>{label}</span>
   ) : null;
@@ -41,6 +41,6 @@ function ToggleButton({
       {toggleLeft && labelElement}
     </Button>
   );
-}
+};
 
 export default ToggleButton;

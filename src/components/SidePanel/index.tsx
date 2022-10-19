@@ -15,14 +15,14 @@ export type PublicProps = {
   toggleLeft: boolean;
 };
 
-export function SidePanelBase({
+export const SidePanelBase = ({
   borderless = false,
   children,
   className,
   isExpanded,
   onClick,
   toggleLeft,
-}: PublicProps) {
+}: PublicProps) => {
   const collapseText = gettext('Collapse this panel');
 
   return (
@@ -48,6 +48,6 @@ export function SidePanelBase({
       />
     </aside>
   );
-}
+};
 
 export default SidePanelBase;

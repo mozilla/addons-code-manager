@@ -186,11 +186,11 @@ export const FluidWidth = () => {
   return render();
 };
 
-export function SmallWidth() {
+export const SmallWidth = () => {
   return <div className="FileTreeStory-smallWidth"> {render()}</div>;
-}
+};
 
-export function FilesWithComments() {
+export const FilesWithComments = () => {
   const version = defaultVersion;
   const store = createStoreWithVersion({ version });
   store.dispatch(versionsActions.expandTree({ versionId: version.id }));
@@ -214,4 +214,4 @@ export function FilesWithComments() {
     ],
   });
   return <div className="FileTreeStory-halfWidth">{render({ store })}</div>;
-}
+};

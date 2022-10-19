@@ -24,7 +24,7 @@ const render = ({
   store = configureStore(),
   ...props
 }: Partial<PublicProps> & { afterMount?: () => void; store?: Store } = {}) => {
-  function Shell() {
+  const Shell = () => {
     useEffect(() => {
       if (afterMount) {
         afterMount();
@@ -32,7 +32,7 @@ const render = ({
     }, [afterMount]);
 
     return <Navbar {...props} />;
-  }
+  };
   return renderWithStoreAndRouter(<Shell />, { store });
 };
 

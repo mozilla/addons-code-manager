@@ -30,12 +30,10 @@ export default {
   component: CommentableBase,
 } as Meta;
 
-export function Default() {
-  return (
-    <>
-      {renderRow({ line: 1, content: 'This is line 1' })}
-      {renderRow({ line: 2, content: 'This is line 2' })}
-      {renderRow({ line: 3, content: 'This is line 3' })}
-    </>
-  );
-}
+export const Default = () => (
+  <>
+    {renderRow({ line: 1, content: 'This is line 1' })}
+    {renderRow({ line: 2, content: 'This is line 2' })}
+    {renderRow({ line: 3, content: 'This is line 3' })}
+  </>
+);

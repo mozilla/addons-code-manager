@@ -10,7 +10,7 @@ export type PublicProps = {
 
 type Props = PublicProps;
 
-function CodeLineShapes({ isChange, lineShapes }: Props) {
+const CodeLineShapes = ({ isChange, lineShapes }: Props) => {
   return (
     <>
       {lineShapes.tokens.map((shape, shapeIndex) => {
@@ -38,6 +38,6 @@ function CodeLineShapes({ isChange, lineShapes }: Props) {
       })}
     </>
   );
-}
+};
 
 export default CodeLineShapes;

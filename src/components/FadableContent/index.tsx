@@ -7,12 +7,12 @@ export type PublicProps = {
   fade: boolean;
 };
 
-function FadableContentBase({ children, fade }: PublicProps) {
+const FadableContentBase = ({ children, fade }: PublicProps) => {
   if (!fade) {
     return children;
   }
 
   return <div className={styles.shell}>{children}</div>;
-}
+};
 
 export default FadableContentBase;

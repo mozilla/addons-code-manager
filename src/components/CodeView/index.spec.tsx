@@ -571,9 +571,7 @@ describe(__filename, () => {
 
   describe('add comment button', () => {
     it('renders an add comment button on each line', () => {
-      function AddComment() {
-        return <button type="button">Add</button>;
-      }
+      const AddComment = () => <button type="button">Add</button>;
 
       const { shell, renderContent } = simulateCommentableLine({
         addCommentButton: <AddComment />,
@@ -589,9 +587,7 @@ describe(__filename, () => {
     });
 
     it('does not render add comment buttons when the feature is disabled', () => {
-      function AddComment() {
-        return <button type="button">Add</button>;
-      }
+      const AddComment = () => <button type="button">Add</button>;
 
       const { shell, renderContent } = simulateCommentableLine({
         addCommentButton: <AddComment />,
@@ -627,9 +623,7 @@ describe(__filename, () => {
     });
 
     it('renders comment list content for each line', () => {
-      function CommentListResult() {
-        return <div />;
-      }
+      const CommentListResult = () => <div />;
 
       const { shell, renderContent } = simulateInlineCommentList({
         commentList: <CommentListResult />,

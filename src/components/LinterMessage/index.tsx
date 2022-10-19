@@ -74,12 +74,12 @@ export type PublicProps = {
 
 type Props = PublicProps & RouteComponentProps;
 
-export function LinterMessageBase({
+export const LinterMessageBase = ({
   className,
   inline = false,
   location,
   message,
-}: Props) {
+}: Props) => {
   const { description, message: linterMessage, type } = message;
   const variant = getAlertVariant(type);
   const messageUid = queryString.parse(location.search)[messageUidQueryParam];
@@ -103,6 +103,6 @@ export function LinterMessageBase({
       <p className={styles.description}>{renderDescription(description)}</p>
     </Alert>
   );
-}
+};
 
 export default withRouter(LinterMessageBase);

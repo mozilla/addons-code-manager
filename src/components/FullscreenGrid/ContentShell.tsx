@@ -37,7 +37,7 @@ export enum PanelAttribs {
   topContent = 'topContent',
 }
 
-export function ContentShellBase({
+export const ContentShellBase = ({
   altSidePanel,
   altSidePanelClass,
   altSidePanelIsExpanded,
@@ -50,7 +50,7 @@ export function ContentShellBase({
   mainSidePanelIsBorderless = false,
   mainSidePanelIsExpanded,
   topContent,
-}: Props) {
+}: Props) => {
   return (
     <>
       {topContent ? (
@@ -86,7 +86,7 @@ export function ContentShellBase({
       </SidePanel>
     </>
   );
-}
+};
 
 const mapStateToProps = (state: ApplicationState): PropsFromState => {
   return {

@@ -10,11 +10,11 @@ export type PublicProps = {
   containerRef?: (element: HTMLDivElement | null) => void;
 };
 
-function GlobalLinterMessages({
+const GlobalLinterMessages = ({
   className,
   messages,
   containerRef,
-}: PublicProps) {
+}: PublicProps) => {
   return messages && messages.length ? (
     <div className={className} id={getCodeLineAnchorID(0)} ref={containerRef}>
       {messages.map((msg) => (
@@ -22,6 +22,6 @@ function GlobalLinterMessages({
       ))}
     </div>
   ) : null;
-}
+};
 
 export default GlobalLinterMessages;

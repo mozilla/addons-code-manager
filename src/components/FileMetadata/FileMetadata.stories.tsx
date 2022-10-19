@@ -35,13 +35,13 @@ export default {
   component: FileMetadata,
 } as Meta;
 
-export function WithListsOfVersionsLoaded() {
+export const WithListsOfVersionsLoaded = () => {
   const versionFile = loadVersionFile();
 
   return <FileMetadata file={versionFile} />;
-}
+};
 
-export function WithAConstrainedWidth() {
+export const WithAConstrainedWidth = () => {
   const path = 'very-long-file-name.json';
   const version = {
     ...fakeVersionWithContent,
@@ -61,4 +61,4 @@ export function WithAConstrainedWidth() {
       <FileMetadata file={versionFile} />
     </div>
   );
-}
+};
