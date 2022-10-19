@@ -8,8 +8,10 @@ export default {
   component: Skeleton,
 } as Meta;
 
-export const InAParagraph = () => (
-  <p>
-    <Skeleton />
-  </p>
-);
+export function InAParagraph() {
+  return (
+    <p>
+      <Skeleton />
+    </p>
+  );
+}

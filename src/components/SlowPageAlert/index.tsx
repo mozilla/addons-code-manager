@@ -16,14 +16,14 @@ export type PublicProps = {
 
 export type Props = PublicProps & RouteComponentProps;
 
-export const SlowPageAlertBase = ({
+export function SlowPageAlertBase({
   _shouldAllowSlowPages = shouldAllowSlowPages,
   allowSlowPagesByDefault,
   getLinkText,
   getMessage,
   history,
   location,
-}: Props) => {
+}: Props) {
   const allowSlowPages = _shouldAllowSlowPages({
     allowByDefault: allowSlowPagesByDefault,
     location,
@@ -46,6 +46,6 @@ export const SlowPageAlertBase = ({
       <Alert.Link onClick={onClick}>{getLinkText(allowSlowPages)}</Alert.Link>
     </Alert>
   );
-};
+}
 
 export default withRouter(SlowPageAlertBase);

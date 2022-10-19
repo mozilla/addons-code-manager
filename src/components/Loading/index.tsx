@@ -5,12 +5,12 @@ type PublicProps = {
   message: string;
 };
 
-const LoadingBase = ({ message }: PublicProps) => {
+function LoadingBase({ message }: PublicProps) {
   return (
     <>
       <FontAwesomeIcon icon="spinner" spin /> {message}
     </>
   );
-};
+}
 
 export default LoadingBase;

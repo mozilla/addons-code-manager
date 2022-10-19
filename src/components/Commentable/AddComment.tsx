@@ -17,13 +17,13 @@ export type PublicProps = {
 
 type Props = PublicProps & ConnectedReduxProps;
 
-export const AddCommentBase = ({
+export function AddCommentBase({
   className,
   dispatch,
   fileName,
   line,
   versionId,
-}: Props) => {
+}: Props) {
   return (
     <Button
       onClick={() => {
@@ -40,6 +40,6 @@ export const AddCommentBase = ({
       title={gettext('Add a comment')}
     />
   );
-};
+}
 
 export default connect()(AddCommentBase);

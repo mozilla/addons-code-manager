@@ -7,8 +7,8 @@ type PublicProps = {
   className?: string;
 };
 
-const SkeletonBase = ({ className }: PublicProps) => {
+function SkeletonBase({ className }: PublicProps) {
   return <div className={makeClassName(styles.skeleton, className)} />;
-};
+}
 
 export default SkeletonBase;

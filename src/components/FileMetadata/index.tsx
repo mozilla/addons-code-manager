@@ -12,7 +12,7 @@ type PublicProps = {
   file: VersionFileWithContent | VersionFileWithDiff;
 };
 
-const FileMetadataBase = ({ file }: PublicProps) => {
+function FileMetadataBase({ file }: PublicProps) {
   return (
     <div className={styles.FileMetadata}>
       <dl>
@@ -37,6 +37,6 @@ const FileMetadataBase = ({ file }: PublicProps) => {
       </dl>
     </div>
   );
-};
+}
 
 export default FileMetadataBase;

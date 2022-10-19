@@ -40,7 +40,7 @@ export type PublicProps = {
   version: Version | undefined | null;
 };
 
-const VersionFileViewer = ({
+function VersionFileViewer({
   _getInsertedLines = getInsertedLines,
   children,
   comparedToVersionId,
@@ -49,7 +49,7 @@ const VersionFileViewer = ({
   getCodeLineAnchor,
   onSelectFile,
   version,
-}: PublicProps) => {
+}: PublicProps) {
   if (!version) {
     return (
       <ContentShell>
@@ -156,6 +156,6 @@ const VersionFileViewer = ({
       {renderWithLinterProvider}
     </LinterProvider>
   );
-};
+}
 
 export default VersionFileViewer;

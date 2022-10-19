@@ -18,26 +18,26 @@ type PublicProps = {
 
 type Props = PublicProps & PropsFromState;
 
-export const Header = ({
+export function Header({
   children,
   className,
 }: {
   children?: AnyReactNode;
   className?: string;
-}) => {
+}) {
   return (
     <header className={makeClassName(styles.Header, className)}>
       {children}
     </header>
   );
-};
+}
 
-export const FullscreenGridBase = ({
+export function FullscreenGridBase({
   children,
   className,
   altSidePanelIsExpanded,
   mainSidePanelIsExpanded,
-}: Props) => {
+}: Props) {
   return (
     <div
       className={makeClassName(
@@ -56,7 +56,7 @@ export const FullscreenGridBase = ({
       {children}
     </div>
   );
-};
+}
 
 const mapStateToProps = (state: ApplicationState): PropsFromState => {
   return {

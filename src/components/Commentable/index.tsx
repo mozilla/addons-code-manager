@@ -17,7 +17,7 @@ export type PublicProps = {
 } & AddCommentProps;
 
 // This represents something that can be commented on, such as a line of code.
-export const CommentableBase = ({
+export function CommentableBase({
   addCommentClassName,
   as: AsComponent,
   children,
@@ -27,7 +27,7 @@ export const CommentableBase = ({
   line,
   shellRef,
   versionId,
-}: PublicProps) => {
+}: PublicProps) {
   return (
     <AsComponent
       className={makeClassName(styles.commentable, className)}
@@ -44,6 +44,6 @@ export const CommentableBase = ({
       )}
     </AsComponent>
   );
-};
+}
 
 export default CommentableBase;

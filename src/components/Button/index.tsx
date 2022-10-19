@@ -13,21 +13,17 @@ type Props = {
   ariaControls?: string;
 };
 
-const Button = ({
-  className,
-  children,
-  onClick,
-  title,
-  ariaControls,
-}: Props) => (
-  <BsButton
-    className={makeClassName(styles.button, className)}
-    onClick={onClick}
-    title={title}
-    aria-controls={ariaControls}
-  >
-    {children}
-  </BsButton>
-);
+function Button({ className, children, onClick, title, ariaControls }: Props) {
+  return (
+    <BsButton
+      className={makeClassName(styles.button, className)}
+      onClick={onClick}
+      title={title}
+      aria-controls={ariaControls}
+    >
+      {children}
+    </BsButton>
+  );
+}
 
 export default Button;

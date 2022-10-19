@@ -8,4 +8,6 @@ export default {
   component: Loading,
 } as Meta;
 
-export const Default = () => <Loading message="Loading content..." />;
+export function Default() {
+  return <Loading message="Loading content..." />;
+}

@@ -20,7 +20,7 @@ type PropsFromState = {
 
 type Props = PublicProps & PropsFromState & ConnectedReduxProps;
 
-export const CommentSummaryButtonBase = ({ comments, dispatch }: Props) => {
+export function CommentSummaryButtonBase({ comments, dispatch }: Props) {
   const id = 'COMMENTS_SUMMARY';
   return (
     <PopoverButton
@@ -48,7 +48,7 @@ export const CommentSummaryButtonBase = ({ comments, dispatch }: Props) => {
       prompt={gettext('Comment Summary')}
     />
   );
-};
+}
 
 const mapStateToProps = (state: ApplicationState): PropsFromState => {
   const currentVersion = selectCurrentVersionInfo(state.versions);

@@ -800,7 +800,9 @@ describe(__filename, () => {
 
   describe('comment list', () => {
     it('renders inline comments for commentable lines', () => {
-      const CommentListResult = () => <div />;
+      function CommentListResult() {
+        return <div />;
+      }
       const lineNumber = nextUniqueId();
       const version = createInternalVersion({
         ...fakeVersionWithContent,
@@ -1224,7 +1226,9 @@ describe(__filename, () => {
     });
 
     it('passes expected children to the commentable div', () => {
-      const AddComment = () => <button type="button">Add</button>;
+      function AddComment() {
+        return <button type="button">Add</button>;
+      }
       const className = 'test-class';
       const defaultGutter = <div className={className} />;
       const gutter = _renderGutter({
