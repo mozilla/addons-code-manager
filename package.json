@@ -85,7 +85,7 @@
     "@types/supertest": "^2.0.10",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
-    "babel-loader": "8.1.0",
+    "babel-loader": "8.3.0",
     "content-security-policy-parser": "^0.4.0",
     "dedent": "^0.7.0",
     "enzyme": "^3.8.0",
