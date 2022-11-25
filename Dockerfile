@@ -19,7 +19,7 @@ RUN yarn install --pure-lockfile --production=false
 FROM node:16-slim
 
 ARG olympia_uid=9500
-ARG work_dir=/app
+ARG app_dir=/app
 
 ENV NODE_ENV production
 ENV SERVER_HOST 0.0.0.0
@@ -30,13 +30,13 @@ RUN useradd -u ${olympia_uid} -d /home/olympia -m -s /sbin/nologin olympia
 # of USER unless the "buildkit" feature is enabled. To make sure the work
 # directory is owned by the proper user for everybody, we manually set the
 # ownership.
-RUN mkdir -p ${work_dir} && chown ${olympia_uid}:${olympia_uid} ${work_dir}
+RUN mkdir -p ${app_dir} && chown ${olympia_uid}:${olympia_uid} ${app_dir}
 
-WORKDIR ${work_dir}
+WORKDIR ${app_dir}
 
 USER ${olympia_uid}:${olympia_uid}
 
-COPY --from=builder --chown=${olympia_uid}:${olympia_uid} ${work_dir}/ .
+COPY --from=builder --chown=${olympia_uid}:${olympia_uid} ${app_dir}/ .
 COPY --chown=${olympia_uid}:${olympia_uid} . .
 
 CMD yarn start
