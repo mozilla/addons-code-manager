@@ -1,12 +1,16 @@
-FROM node:16 AS builder
+FROM node:16-slim AS builder
 
 WORKDIR /app
 
 # Install the project's dependencies, including dev dependencies.
 COPY package.json yarn.lock ./
+
+# python and build-essential are needed or the `yarn install --pure-lockfile`
+# fails while trying to invoke `/app/node_modules/node-pty`.
+RUN apt-get update -y && apt-get install -y python3 build-essential 
 RUN yarn install --pure-lockfile --production=false
 
-FROM node:16
+FROM node:16-slim
 
 ARG olympia_uid=9500
 
