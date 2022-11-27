@@ -18,25 +18,25 @@ RUN yarn install --pure-lockfile --production=false
 #
 FROM node:16-slim
 
-ARG runas_id=9500
+ARG app_uid=9500
 ARG app_dir=/app
 
 ENV NODE_ENV production
 ENV SERVER_HOST 0.0.0.0
 ENV PORT 4000
 
-RUN useradd -u ${runas_id} -d /home/olympia -m -s /sbin/nologin olympia
+RUN useradd -u ${app_uid} -d /home/app -m -s /sbin/nologin app
 # The WORKDIR directive set the ownership of the work directory to root instead
 # of USER unless the "buildkit" feature is enabled. To make sure the work
 # directory is owned by the proper user for everybody, we manually set the
 # ownership.
-RUN mkdir -p ${app_dir} && chown ${runas_id}:${runas_id} ${app_dir}
+RUN mkdir -p ${app_dir} && chown ${app_uid}:${app_uid} ${app_dir}
 
 WORKDIR ${app_dir}
 
-USER ${runas_id}:${runas_id}
+USER ${app_uid}:${app_uid}
 
-COPY --from=builder --chown=${runas_id}:${runas_id} ${app_dir}/ .
-COPY --chown=${runas_id}:${runas_id} . .
+COPY --from=builder --chown=${app_uid}:${app_uid} ${app_dir}/ .
+COPY --chown=${app_uid}:${app_uid} . .
 
 CMD yarn start
