@@ -65,6 +65,8 @@ yarn storybook
 
 When developing a new component, always add a story for it. If you were creating a component like `src/components/StarIcon/index.tsx` then you'd put its story in `stories/StarIcon.stories.tsx`. The storybook server will automatically load files having the `.stories.tsx` suffix in this directory.
 
+To update our Storybook, checkout `gh-pages` branch, run `yarn storybook-build`, commit and push the result to that branch.
+
 ## Configuration
 
 You can configure the app by defining environment variables in `.env` files, the standard way to [configure Create React App](https://facebook.github.io/create-react-app/docs/adding-custom-environment-variables#adding-development-environment-variables-in-env), but read on below because **there are some differences**.
