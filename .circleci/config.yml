@@ -107,15 +107,6 @@ jobs:
       # See: https://support.circleci.com/hc/en-us/articles/360038192673-NodeJS-Builds-or-Test-Suites-Fail-With-ENOMEM-or-a-Timeout
       - run: yarn test --maxWorkers=2
 
-  deploy-storybook:
-    <<: *defaults
-    steps:
-      - checkout
-      - *restore_build_cache
-      - *run_yarn_install
-      - *save_build_cache
-      - run: yarn storybook-deploy --ci
-
   release-tag: # build for the master branch and tags
     <<: *defaults-release
     steps:
@@ -215,15 +206,6 @@ workflows:
       - test
       - check
       - test-next
-      - deploy-storybook:
-          requires:
-            - test
-            - check
-          filters:
-            branches:
-              only: master
-            tags:
-              ignore: /.*/
       - release-tag:
           filters:
             tags:
