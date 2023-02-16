@@ -212,7 +212,6 @@ describe(__filename, () => {
     expect(dispatchSpy).toHaveBeenCalledWith(fakeThunk.thunk);
     expect(_manageComment).toHaveBeenCalledWith({
       addonId,
-      cannedResponseId: undefined,
       comment: commentText,
       ...keyParams,
     });
