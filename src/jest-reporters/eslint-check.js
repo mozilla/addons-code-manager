@@ -2,7 +2,7 @@
 /* eslint-disable amo/only-tsx-files */
 /* eslint-disable @typescript-eslint/no-var-requires */
 // eslint-disable-next-line import/no-extraneous-dependencies
-const { CLIEngine } = require('eslint');
+const { ESLint } = require('eslint');
 
 const { getChangedFiles } = require('./utils');
 
@@ -10,7 +10,7 @@ const NO_ESLINT_ENV_VAR = 'NO_ESLINT';
 
 class EslintCheckReporter {
   constructor() {
-    this.eslint = new CLIEngine();
+    this.eslint = new ESLint();
     this.eslintOutput = null;
   }
 
@@ -22,20 +22,22 @@ class EslintCheckReporter {
     if (this.isDisabled()) {
       return;
     }
-
     const files = await getChangedFiles();
 
     if (!files) {
       throw new Error(`Failed to retrieve files in the eslint check reporter.`);
     }
 
-    const report = this.eslint.executeOnFiles(files);
+    const results = await this.eslint.lintFiles(files);
+    const errorCount = results.reduce((p, c) => p + c.errorCount, 0);
+    const warningCount = results.reduce((p, c) => p + c.warningCount, 0);
 
-    if (report.errorCount === 0 && report.warningCount === 0) {
+    if (errorCount === 0 && warningCount === 0) {
       // All good.
       this.eslintOutput = null;
     } else {
-      this.eslintOutput = CLIEngine.getFormatter()(report.results);
+      const formatter = await this.eslint.loadFormatter();
+      this.eslintOutput = formatter.format(results);
     }
   }
 

@@ -7,14 +7,14 @@ import { nextUniqueId, shallowUntilTarget } from './test-helpers';
 
 describe(__filename, () => {
   describe('shallowUntilTarget', () => {
-    const ExampleBase = () => {
+    function ExampleBase() {
       return <div>Example component</div>;
-    };
+    }
 
     const wrapper = () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (WrappedComponent: any) => {
-        return (props: Record<string, unknown>) => {
+        return function (props: Record<string, unknown>) {
           return <WrappedComponent {...props} />;
         };
       };
