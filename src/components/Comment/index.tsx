@@ -158,9 +158,6 @@ export class CommentBase extends React.Component<Props, State> {
     dispatch(
       _manageComment({
         addonId,
-        // TODO: support canned responses.
-        // https://github.com/mozilla/addons-code-manager/issues/113
-        cannedResponseId: undefined,
         // If the comment is empty, pass an empty string so that
         // the API can trigger an error. The error will be rendered like
         // all other API errors.

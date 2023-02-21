@@ -497,7 +497,6 @@ describe(__filename, () => {
 
       expect(
         createInternalComment({
-          canned_response: null,
           comment,
           id,
           lineno,
@@ -533,7 +532,6 @@ describe(__filename, () => {
           .fn()
           .mockResolvedValue(createFakeExternalComment()),
         addonId: 1,
-        cannedResponseId: undefined,
         comment: 'Example of a comment',
         commentId: undefined,
         fileName: null,
@@ -548,7 +546,6 @@ describe(__filename, () => {
         .fn()
         .mockResolvedValue(createFakeExternalComment());
       const addonId = 123;
-      const cannedResponseId = undefined;
       const comment = 'A comment on a file';
       const commentId = undefined;
       const fileName = 'manifest.json';
@@ -560,7 +557,6 @@ describe(__filename, () => {
           _manageComment({
             _createOrUpdateComment,
             addonId,
-            cannedResponseId,
             comment,
             fileName,
             line,
@@ -573,7 +569,6 @@ describe(__filename, () => {
       expect(_createOrUpdateComment).toHaveBeenCalledWith({
         addonId,
         apiState: store.getState().api,
-        cannedResponseId,
         comment,
         commentId,
         fileName,

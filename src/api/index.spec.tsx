@@ -796,7 +796,6 @@ describe(__filename, () => {
         _callApi: jest.fn(),
         addonId: 123,
         apiState: defaultApiState,
-        cannedResponseId: undefined,
         comment: 'Example comment',
         commentId: undefined,
         fileName: null,
@@ -810,7 +809,6 @@ describe(__filename, () => {
       const _callApi = jest.fn();
       const addonId = 999;
       const apiState = defaultApiState;
-      const cannedResponseId = undefined;
       const comment = 'A comment about this code';
       const fileName = null;
       const line = null;
@@ -820,7 +818,6 @@ describe(__filename, () => {
         _callApi,
         addonId,
         apiState,
-        cannedResponseId,
         comment,
         fileName,
         line,
@@ -830,7 +827,6 @@ describe(__filename, () => {
       expect(_callApi).toHaveBeenCalledWith({
         apiState,
         bodyData: {
-          canned_response: cannedResponseId,
           comment,
           filename: fileName,
           lineno: line,
@@ -844,7 +840,6 @@ describe(__filename, () => {
       const _callApi = jest.fn();
       const addonId = 999;
       const apiState = defaultApiState;
-      const cannedResponseId = undefined;
       const comment = 'An updated comment about this code';
       const commentId = 456;
       const fileName = null;
@@ -855,7 +850,6 @@ describe(__filename, () => {
         _callApi,
         addonId,
         apiState,
-        cannedResponseId,
         comment,
         commentId,
         fileName,
@@ -866,7 +860,6 @@ describe(__filename, () => {
       expect(_callApi).toHaveBeenCalledWith({
         apiState,
         bodyData: {
-          canned_response: cannedResponseId,
           comment,
           filename: fileName,
           lineno: line,
@@ -883,37 +876,6 @@ describe(__filename, () => {
       const result = await _createOrUpdateComment({ _callApi });
 
       expect(result).toEqual(fakeComment);
-    });
-
-    it('requires either cannedResponseId or comment', async () => {
-      await expect(
-        _createOrUpdateComment({
-          cannedResponseId: undefined,
-          comment: undefined,
-        }),
-      ).rejects.toThrow(/cannedResponseId or comment must be specified/);
-    });
-
-    it('does not accept both cannedResponseId and comment', async () => {
-      await expect(
-        _createOrUpdateComment({
-          cannedResponseId: 432,
-          comment: 'Some comment',
-        }),
-      ).rejects.toThrow(
-        /cannedResponseId and comment cannot both be specified/,
-      );
-    });
-
-    it('does not accept both cannedResponseId and a blank comment', async () => {
-      await expect(
-        _createOrUpdateComment({
-          cannedResponseId: 432,
-          comment: '',
-        }),
-      ).rejects.toThrow(
-        /cannedResponseId and comment cannot both be specified/,
-      );
     });
   });
 

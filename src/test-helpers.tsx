@@ -878,7 +878,6 @@ export const createFakeExternalComment = (
   comment: Partial<ExternalComment> = {},
 ) => {
   return {
-    canned_response: null,
     comment: 'Example comment about some code',
     id: nextUniqueId(),
     lineno: null,

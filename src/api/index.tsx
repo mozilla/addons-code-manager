@@ -420,7 +420,6 @@ export const getDiffFileOnly = async ({
 };
 
 type CommentRequest = {
-  canned_response?: number;
   comment?: string;
   filename?: string | null;
   lineno?: number | null;
@@ -431,7 +430,6 @@ export const createOrUpdateComment = async ({
   _callApi = callApi,
   addonId,
   apiState,
-  cannedResponseId,
   comment,
   commentId,
   fileName,
@@ -441,20 +439,12 @@ export const createOrUpdateComment = async ({
   _callApi?: typeof callApi;
   addonId: number;
   apiState: ApiState;
-  cannedResponseId?: number;
-  comment?: string;
+  comment: string;
   commentId: number | undefined;
   fileName: string | null;
   line: number | null;
   versionId: number;
 }) => {
-  if (cannedResponseId === undefined && comment === undefined) {
-    throw new Error('Either cannedResponseId or comment must be specified');
-  }
-  if (cannedResponseId !== undefined && comment !== undefined) {
-    throw new Error('cannedResponseId and comment cannot both be specified');
-  }
-
   let endpoint = `reviewers/addon/${addonId}/versions/${versionId}/draft_comments`;
   if (commentId) {
     endpoint = `${endpoint}/${commentId}`;
@@ -466,7 +456,6 @@ export const createOrUpdateComment = async ({
   }>({
     apiState,
     bodyData: {
-      canned_response: cannedResponseId,
       comment,
       filename: fileName,
       lineno: line,

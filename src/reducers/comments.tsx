@@ -19,15 +19,7 @@ type CommentBase = {
   lineno: number | null;
 };
 
-export type ExternalCannedResponse = {
-  id: number;
-  title: string;
-  response: string;
-  category: string;
-};
-
 export type ExternalComment = CommentBase & {
-  canned_response: ExternalCannedResponse | null;
   comment: string | null;
   user: {
     id: number;
@@ -332,7 +324,6 @@ export const manageComment = ({
   /* istanbul ignore next */
   _createOrUpdateComment = createOrUpdateComment,
   addonId,
-  cannedResponseId,
   comment,
   commentId,
   fileName,
@@ -341,8 +332,7 @@ export const manageComment = ({
 }: {
   _createOrUpdateComment?: typeof createOrUpdateComment;
   addonId: number;
-  cannedResponseId?: number;
-  comment?: string;
+  comment: string;
   commentId: number | undefined;
   fileName: string | null;
   line: number | null;
@@ -364,7 +354,6 @@ export const manageComment = ({
     const response = await _createOrUpdateComment({
       addonId,
       apiState,
-      cannedResponseId,
       comment,
       commentId,
       fileName,
