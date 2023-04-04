@@ -4297,10 +4297,10 @@
   dependencies:
     "@types/lodash" "*"
 
-"@types/lodash.unescape@4.0.6":
-  version "4.0.6"
-  resolved "https://registry.yarnpkg.com/@types/lodash.unescape/-/lodash.unescape-4.0.6.tgz#cca470b1ab7736a81ea91bd071b2ed4f21ed4520"
-  integrity sha512-9JwlwdieWYlLqr1s/X8M1/Heo9qaFb2lHj6ETFlwJQrU9QyMvKngMnYzz0OYE4qx+VFdZgVP9I7AnBdju8/x0g==
+"@types/lodash.unescape@4.0.7":
+  version "4.0.7"
+  resolved "https://registry.yarnpkg.com/@types/lodash.unescape/-/lodash.unescape-4.0.7.tgz#69f1cab2e755b824151346a44faeaaf93702972b"
+  integrity sha512-KGxcfHpWcOnLeK5g71YErXL6m947wQC9XfhVjENlCku85C6WxsqNIxwxpqDCpL06rY5ExQiXZH50KgJDFLzc7Q==
   dependencies:
     "@types/lodash" "*"
 
