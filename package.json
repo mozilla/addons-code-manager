@@ -61,7 +61,7 @@
     "redux-devtools-extension": "2.13.9",
     "redux-logger": "3.0.6",
     "redux-thunk": "2.4.1",
-    "refractor": "3.5.0",
+    "refractor": "4.8.1",
     "sass": "1.44.0",
     "ts-node": "10.4.0",
     "typesafe-actions": "5.1.0",
