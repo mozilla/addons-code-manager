@@ -13,6 +13,9 @@ COPY package.json yarn.lock ./
 RUN apt-get update -y && apt-get install -y python3 build-essential
 RUN yarn install --pure-lockfile --production=false
 
+# Build the application
+RUN yarn build
+
 #
 # Install
 #
