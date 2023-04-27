@@ -8533,10 +8533,10 @@ eslint-module-utils@^2.7.0:
     find-up "^2.1.0"
     pkg-dir "^2.0.0"
 
-eslint-plugin-amo@^1.10.1:
-  version "1.18.0"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-amo/-/eslint-plugin-amo-1.18.0.tgz#6e06b707f848d3268f50cedadc35dfe9c2232ee6"
-  integrity sha512-GCe7BpWOksrvRyKTWXAkVrIDwTuoAmJbpCCoc2Dy8+KqkpNNyB8/IbCbwM96kL93cjAliasDp6vnaKk3yOdo/w==
+eslint-plugin-amo@^1.23.0:
+  version "1.23.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-amo/-/eslint-plugin-amo-1.23.0.tgz#20169ddf563749a7bb44dacb913beeefe4b1c389"
+  integrity sha512-kBe3j6VFRVP2A91D1JNkPn23nkOhd161EoSObV7A244TRiZDEJ/XuUtrlX8gxM8qXJDUPw/hjiz1sJSHn4rNOg==
   dependencies:
     requireindex "1.2.0"
     string-natural-compare "3.0.1"
