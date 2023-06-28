@@ -70,7 +70,7 @@
     "universal-cookie-express": "4.0.3"
   },
   "devDependencies": {
-    "@storybook/addon-actions": "^6.1.21",
+    "@storybook/addon-actions": "^7.0.24",
     "@storybook/addon-essentials": "^6.1.21",
     "@storybook/addon-links": "^6.1.21",
     "@storybook/node-logger": "^6.1.21",
