@@ -67,7 +67,7 @@
     "typesafe-actions": "5.1.0",
     "typescript": "4.3.5",
     "universal-cookie": "4.0.4",
-    "universal-cookie-express": "4.0.3"
+    "universal-cookie-express": "6.1.0"
   },
   "devDependencies": {
     "@storybook/addon-actions": "^6.1.21",
