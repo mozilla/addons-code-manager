@@ -6186,6 +6186,13 @@ brace-expansion@^1.1.7:
     balanced-match "^1.0.0"
     concat-map "0.0.1"
 
+brace-expansion@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/brace-expansion/-/brace-expansion-2.0.1.tgz#1edc459e0f0c548486ecf9fc99f2221364b9a0ae"
+  integrity sha512-XnAIvQ8eM+kC6aULx6wuQiwVsnzsi9d3WxzV3FpWTGA19F621kwdbsAcFKXgKUHZWsy+mY6iL1sHTxWEFCytDA==
+  dependencies:
+    balanced-match "^1.0.0"
+
 braces@^2.3.1, braces@^2.3.2:
   version "2.3.2"
   resolved "https://registry.yarnpkg.com/braces/-/braces-2.3.2.tgz#5979fd3f14cd531565e5fa2df1abfff1dfaee729"
@@ -12563,12 +12570,19 @@ minimalistic-crypto-utils@^1.0.1:
   resolved "https://registry.yarnpkg.com/minimalistic-crypto-utils/-/minimalistic-crypto-utils-1.0.1.tgz#f6c00c1c0b082246e5c4d99dfb8c7c083b2b582a"
   integrity sha1-9sAMHAsIIkblxNmd+4x8CDsrWCo=
 
-minimatch@3, minimatch@3.0.4, minimatch@^3.0.2, minimatch@^3.0.4:
+minimatch@3.0.4, minimatch@^3.0.2, minimatch@^3.0.4:
   version "3.0.4"
   resolved "https://registry.yarnpkg.com/minimatch/-/minimatch-3.0.4.tgz#5166e286457f03306064be5497e8dbb0c3d32083"
   integrity sha512-yJHVQEhyqPLUTgt9B83PXu6W3rx4MvvHvSUvToogpwoGDOUQ+yDrR0HRot+yOCdCO7u4hX3pWft6kWBBcqh0UA==
   dependencies:
     brace-expansion "^1.1.7"
+
+"minimatch@6 || 7 || 8 || 9":
+  version "9.0.3"
+  resolved "https://registry.yarnpkg.com/minimatch/-/minimatch-9.0.3.tgz#a6e00c3de44c3a542bfaae70abfc22420a6da825"
+  integrity sha512-RHiac9mvaRw0x3AYRgDC1CxAP7HTcNrrECeA8YYJeWnpo+2Q5CegtZjaotWTWxDG3UeGA1coE05iH1mPjT/2mg==
+  dependencies:
+    brace-expansion "^2.0.1"
 
 minimist@1, minimist@^1.1.1, minimist@^1.2.0, minimist@^1.2.5:
   version "1.2.7"
@@ -17378,24 +17392,24 @@ type-check@~0.3.2:
   dependencies:
     prelude-ls "~1.1.2"
 
-type-coverage-core@^2.18.2:
-  version "2.18.2"
-  resolved "https://registry.yarnpkg.com/type-coverage-core/-/type-coverage-core-2.18.2.tgz#2ffe1abe035c5a506614778223536b5d1d22f451"
-  integrity sha512-cyQKmRoh+7gbIvXnPg5F6xWTdZ2+0R0tqgdJaIImqDs1Gih6fBeIDhYblS25TkR2ZmacmYnG33nAvQUe89zwnA==
+type-coverage-core@^2.26.1:
+  version "2.26.1"
+  resolved "https://registry.yarnpkg.com/type-coverage-core/-/type-coverage-core-2.26.1.tgz#a5a1adf78c628a5cb76e9a79ac8f48636a354864"
+  integrity sha512-KoGejLimF+LPr/JKdgo6fmaHIn5FJ74xCzUt3lSbcoPVDLDbqBGQQ3rizkQJmSV0R6/35iIbE16ln0atkwNE+g==
   dependencies:
     fast-glob "3"
-    minimatch "3"
+    minimatch "6 || 7 || 8 || 9"
     normalize-path "3"
     tslib "1 || 2"
     tsutils "3"
 
-type-coverage@^2.0.0:
-  version "2.18.2"
-  resolved "https://registry.yarnpkg.com/type-coverage/-/type-coverage-2.18.2.tgz#96fb05aff17bc56bb85a94339c7291742ddafe67"
-  integrity sha512-1CumIpMrwTtp0asIBoYfvZlaEgxlIwGhIs/UoKuKOIIsNWnXw4iThg+LyEGMLfNJNsCEzheeZR4Xx9F8QdPXPg==
+type-coverage@^2.26.1:
+  version "2.26.1"
+  resolved "https://registry.yarnpkg.com/type-coverage/-/type-coverage-2.26.1.tgz#dcf9cc29715a93882cbb3864e0646332b277e6dd"
+  integrity sha512-+jAw8ppSb18zSYB5DttEn4IBcNXESNh1g8pyqajz8I0wUPauDDWx1cyTvSucmMfKaDSWMeK3HJW08WCQL9suaQ==
   dependencies:
     minimist "1"
-    type-coverage-core "^2.18.2"
+    type-coverage-core "^2.26.1"
 
 type-detect@4.0.8:
   version "4.0.8"
