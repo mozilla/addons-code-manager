@@ -100,7 +100,7 @@
     "storybook-addon-root-attribute": "^1.0.0",
     "supertest": "^6.0.0",
     "ts-node-dev": "^1.0.0-pre.32",
-    "type-coverage": "^2.0.0",
+    "type-coverage": "^2.26.3",
     "zlib": "^1.0.5"
   },
   "scripts": {
