@@ -13,7 +13,7 @@
     "@types/filesize": "4.2.0",
     "@types/he": "1.1.2",
     "@types/helmet": "0.0.48",
-    "@types/http-proxy": "1.17.9",
+    "@types/http-proxy": "1.17.13",
     "@types/http-proxy-middleware": "0.19.3",
     "@types/lodash.chunk": "4.2.6",
     "@types/lodash.debounce": "4.0.6",
