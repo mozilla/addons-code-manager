@@ -4182,10 +4182,10 @@
   dependencies:
     "@types/unist" "*"
 
-"@types/he@1.1.2":
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/@types/he/-/he-1.1.2.tgz#0c8b275f36d2b8b651104638e4d45693349c3953"
-  integrity sha512-kSJPcLO1x+oolc0R89pUl2kozldQ/fVQ1C1p5mp8fPoLdF/ZcBvckaTC2M8xXh3GYendXvCpy5m/a2eSbfgNgw==
+"@types/he@1.2.2":
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/@types/he/-/he-1.2.2.tgz#feff24b8b7fd24a5f6b0eb88e57243ed65bdca4e"
+  integrity sha512-v2gT1gRK65k9nz8SVSXo3lh7AHnRPL3mRcYNhhsqL/L2S1xt/MGyEI5a7vJPXWik/IxTtAktXf8/HlCxDR1nsw==
 
 "@types/helmet@0.0.48":
   version "0.0.48"
