@@ -1,7 +1,7 @@
 #
 # Build
 #
-FROM node:16-slim AS builder
+FROM node:18-slim AS builder
 
 WORKDIR /app
 
@@ -16,7 +16,7 @@ RUN yarn install --pure-lockfile --production=false
 #
 # Install
 #
-FROM node:16-slim
+FROM node:18-slim
 
 ARG app_uid=9500
 ARG app_dir=/app
