@@ -25,7 +25,7 @@ references:
 
   defaults-release: &defaults-release
     machine:
-      image: ubuntu-2004:202201-02
+      image: ubuntu-2004:current
     working_directory: ~/addons-code-manager
 
   restore_build_cache: &restore_build_cache
