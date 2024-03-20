@@ -87,7 +87,7 @@
     "@typescript-eslint/parser": "^5.52.0",
     "babel-loader": "8.1.0",
     "content-security-policy-parser": "^0.4.0",
-    "dedent": "^0.7.0",
+    "dedent": "^1.5.1",
     "enzyme": "^3.8.0",
     "enzyme-adapter-react-16": "^1.7.1",
     "eslint-config-amo": "^5.0.0",
